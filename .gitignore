@@ -1,0 +1,23 @@
+# ── 系统垃圾 ──────────────────────────────
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# ── Obsidian 本地配置（每人的库配置不同，不该分发）──
+.obsidian/
+.trash/
+.smart-env/
+
+# ── 本地凭据与私密内容（永不上传）──────────
+.credentials
+*.token
+_private/
+
+# ── 构建与缓存产物 ────────────────────────
+__pycache__/
+*.pyc
+.venv/
+node_modules/
