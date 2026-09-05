@@ -1,9 +1,9 @@
 ---
 tags:
-  - 🌍
+  - 🌏
 ---
 
-# 🌍 RTCS
+# 🌏 RTCS
 
 实时计算机系统与体系结构（Real-Time Computer Systems and Architecture），大四上，20 讲 + 4 次实验。
 
