@@ -15,6 +15,13 @@ desktop.ini
 .credentials
 *.token
 _private/
+# 交给校方评分的个人实验报告：只留本机，防止被逐字抄走构成 plagiarism
+报告/
+*.tex
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 
 # ── 构建与缓存产物 ────────────────────────
 __pycache__/

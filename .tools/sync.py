@@ -56,8 +56,10 @@ GIT_USER_EMAIL = "170943770+AlanCommitK@users.noreply.github.com"
 BRANCH = "main"
 
 # 任何一层路径叫这些名字就整棵跳过
+# 「报告」：交给校方评分的个人实验报告一律不发布——原文被同学逐字抄走会构成
+# plagiarism，风险由报告作者承担。代码与配图仍然发布（它们是工具性的）。
 EXCLUDE_DIR_NAMES = {
-    "_private", "_to_delete", "__pycache__", "node_modules",
+    "_private", "_to_delete", "报告", "__pycache__", "node_modules",
     ".obsidian", ".trash", ".smart-env", ".git", ".tools",
 }
 EXCLUDE_FILE_NAMES = {".DS_Store", "desktop.ini", "Thumbs.db"}
