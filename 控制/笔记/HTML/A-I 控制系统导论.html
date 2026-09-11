@@ -281,10 +281,15 @@ figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); backgr
 <tr><td><span class="term">执行器</span><br><span class="en">actuator</span></td><td>发动机与传动系，把油门指令变成驱动力</td></tr>
 <tr><td><span class="term">过程</span><br><span class="en">process</span></td><td>车辆运动本身（质量、气动阻力、滚动阻力）</td></tr>
 <tr><td><span class="term">被控对象</span><br><span class="en">plant</span></td><td>过程加执行器合起来的那一整块</td></tr>
-<tr><td><span class="term">扰动</span><br><span class="en">disturbance</span></td><td>路面坡度 <span class="m">θ(t)</span>，会把输出往坏处带的信号</td></tr>
+<tr><td><span class="term">扰动</span><br><span class="en">disturbance</span></td><td>路面坡度 <span class="m">θ(t)</span>（定量分析页改记作 <span class="m">w</span>，见下方勘误），会把输出往坏处带的信号</td></tr>
 <tr><td><span class="term">传感器</span><br><span class="en">sensor</span></td><td>车速表，把实际车速量出来送回比较点</td></tr>
 <tr><td><span class="term">系统</span><br><span class="en">system</span></td><td>上述部件为同一目标组合起来的整体</td></tr>
 </tbody></table></div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件的扰动记号前后不一致</div>
+  <p style="margin-bottom:0">概念框图页标的是 <span class="m">θ(t)</span>（Road Grade, Uphill (+) / Downhill (−)），到了开环、闭环两页定量分析改标 <span class="m">w</span>（题干原文 「grade, w is 1」）。<strong>课件从未说明两者关系，也没在同一页同时用过。</strong>本笔记术语表随框图记 <span class="m">θ</span>，第 3 节起随分析页记 <span class="m">w</span>，指的是同一条扰动支路。</p>
+</div>
 
 <div class="box warn">
   <div class="h"><span class="tag">易错</span>有两处容易混</div>
@@ -575,7 +580,12 @@ figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); backgr
 
 <div class="box exam">
   <div class="h"><span class="tag">考点</span>课件讨论题：温控器的传感器永远报 22 °C，房间温度会怎样？</div>
-  <p>关键在于反馈链断了而控制器并不知情。它算出的误差恒为 <span class="m">e = 22 − 22 = 0</span>，于是判断「已经达标」，停止加热。房间温度会一路掉到与室外热平衡为止。</p>
+  <p>关键在于反馈链断了而控制器并不知情。无论房间实际多冷多热，控制器拿到的测量值恒为 22 °C，于是它算出的误差<strong>恒定不变、完全不随真实室温变化</strong>——控制器被钉死在一个固定的控制动作上。</p>
+  <p>具体往哪个方向失控，取决于设定值：课件配图画的是温控器旁边一台被打了红叉的暖气片，对应<strong>设定值不高于 22 °C</strong> 的情形，此时误差恒为非正，控制器判断「已经达标」停止加热，房间温度一路掉到与室外热平衡为止。反过来若<strong>设定值高于 22 °C</strong>，误差恒为正，加热器永不停机，房间会一直升温到过热——同样是失控，只是方向相反。</p>
+  <div class="box warn">
+    <div class="h"><span class="tag">勘误</span>课件没给设定温度</div>
+    <p style="margin-bottom:0">原题只说 「If a thermostat sensor always reports 22°C」，<strong>从头到尾没有给出 setpoint</strong>。22 °C 是传感器读数，不是设定值——课件第 9 页把 measured temperature 与 setpoint 明确分开写过。所以这道题不能直接写成 <span class="m">e = 22 − 22 = 0</span>，那要先假定设定值也是 22 °C。</p>
+  </div>
   <p style="margin-bottom:0">注意这比开环还糟：开环加热器至少还按预设功率老老实实工作；这个坏掉的闭环则被一个「一切正常」的假读数骗停了。所以课件那句总结是准确的——<strong>闭环控制系统的可靠性上限，就是它反馈信息的质量。</strong></p>
 </div>
 

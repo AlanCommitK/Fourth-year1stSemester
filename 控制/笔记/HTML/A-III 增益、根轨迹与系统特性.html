@@ -432,6 +432,11 @@ figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); backgr
 
 <p>代入式 (6)，<span class="m">K &gt; 25</span> 之后 <span class="m">t<sub>s</sub> ≈ 4/5 = 0.8</span> s，<strong>不再随 <span class="m">K</span> 明显改善</strong>；而超调按式 (5) 一路上涨。实测印证这两句：</p>
 
+<div class="box def">
+  <div class="h">别拿式 (6) 去套 K = 25 那一行</div>
+  <p style="margin-bottom:0">式 (6) 的 <span class="m">t<sub>s</sub> ≈ 4/(ζω<sub>n</sub>)</span> 是<strong>欠阻尼</strong>（<span class="m">ζ &lt; 1</span>）下的包络估算。<span class="m">K = 25</span> 恰好是 <span class="m">ζ = 1</span> 的临界点，不在式 (6) 的适用范围内；临界阻尼的 2% 调节时间是 <span class="m">5.83/ω<sub>n</sub> = 5.83/5 = 1.17</span> s，正是下表那个值。两者不矛盾——表里的数是实测的，式 (6) 只是 <span class="m">K</span> 更大以后的粗估。</p>
+</div>
+
 <div class="tw"><table>
 <thead><tr><th style="width:6rem"><span class="m">K</span></th><th style="width:6rem"><span class="m">ζ</span></th><th>超调</th><th>2% 调节时间</th></tr></thead>
 <tbody>

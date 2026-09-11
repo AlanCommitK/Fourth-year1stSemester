@@ -259,6 +259,11 @@ figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); backgr
 <tr><td><span class="term">鲁棒性</span><br><span class="en">robustness</span></td><td>即使设计所用的模型不完全准确、或物理系统的动态随时间变化，上述三条仍要成立</td></tr>
 </tbody></table></div>
 
+<div class="box def">
+  <div class="h">「系统必须稳定」是课件原话，不是本笔记偷懒</div>
+  <p style="margin-bottom:0">课件原文逐字是 「System must be stable at all times.」——它只<strong>提出要求</strong>，没有定义什么叫稳定。课件把实质定义推迟到了本讲后半段：稳定 ＝ <strong>全部极点位于左半平面</strong>（第 5 节），可操作判据 ＝ <strong>Routh 阵列第一列全正</strong>（第 8 节）。这张表先当验收清单读即可。</p>
+</div>
+
 <p>排在第一位的是稳定性，这不是排版顺序：<strong>另外三条在不稳定的系统上根本无从谈起</strong>——输出都发散了，「跟得准不准」「扰动压不压得住」就没有意义。所以这一讲的大半篇幅给稳定性。</p>
 
 <p>抗扰与鲁棒性在 A-I 第 3.5 节已经量化过：两者都被同一个因子 <span class="m">1 + L</span> 除。这一讲补的是稳定性与跟踪。</p>
