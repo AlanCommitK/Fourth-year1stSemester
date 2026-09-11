@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A-II 系统响应与稳定性 · 控制</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充 ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+    color:var(--accent); min-width:4rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+/* 一组「标签 + 滑块 + 读数」必须整组换行，不能让标签留在上一行 */
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">控制 · Part A-II</div>
+  <div class="tt">系统响应与稳定性</div>
+  <div class="toc">
+<a href="#s1">1 · 先把验收标准立起来</a>
+<a href="#s2">2 · 为什么非得先会解系统</a>
+<a href="#s3">3 · 第一次压缩：LTI 与 h(t)</a>
+<a href="#s3-1" class="sub">3.1 线性与时不变</a>
+<a href="#s3-2" class="sub">3.2 卷积</a>
+<a href="#s4">4 · 第二次压缩：传递函数</a>
+<a href="#s4-1" class="sub">4.1 阶跃测试输入</a>
+<a href="#s5">5 · 第三次压缩：极点</a>
+<a href="#s5-1" class="sub">5.1 极点即模态</a>
+<a href="#s5-2" class="sub">5.2 几何判据</a>
+<a href="#s6">6 · 频率响应</a>
+<a href="#s6-1" class="sub">6.1 相位上界与例外</a>
+<a href="#s7">7 · 捷径一：终值定理</a>
+<a href="#s8">8 · 捷径二：Routh 判据</a>
+<a href="#s8-1" class="sub">8.1 必要条件：系数全正</a>
+<a href="#s8-2" class="sub">8.2 阵列的构造</a>
+<a href="#s8-3" class="sub">8.3 两种特殊情况</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Part A-II — System Response and Stability</div>
+  <h1>系统响应与稳定性</h1>
+  <p>A-I 末尾留下一个问题：反馈把系统变成了信号反复绕圈的动态过程，怎么判断它会不会发散。这一讲用三次压缩把它化成纯几何——微分方程 → 冲激响应 <span class="m">h(t)</span> → 传递函数 <span class="m">H(s)</span> → 几个复数；压到最后，「这个系统会怎么动」只剩下「这几个复数落在虚轴的哪一侧」。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+  <p>主线是<strong>一路压缩</strong>：微分方程 → 冲激响应 <span class="m">h(t)</span> → 传递函数 <span class="m">H(s)</span> → <strong>几个复数</strong>。每一步都是等价变换，信息一点没丢，但形式越来越好算；压到最后，「这个系统会怎么动」变成了「这几个复数落在复平面的哪一侧」这个纯几何问题。</p>
+  <p>终值定理与 Routh 判据是两条捷径，共同点是<strong>不解方程</strong>：前者不做反变换就给出终值，后者不求根就判定稳定性。</p>
+  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Part A - II</code>，15 页。</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 780 162" role="img" aria-label="三次压缩流程图：微分方程经「限制在 LTI」压成冲激响应 h(t)，经拉普拉斯变换压成传递函数 H(s)，经部分分式展开压成几个极点；三步分别在第 3、4、5 节，每一步都是等价变换，信息没有丢失，只是形式越来越好算">
+  <defs><marker id="ac1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="currentColor" opacity=".55"/></marker></defs>
+  <g font-family="inherit" font-size="13" text-anchor="middle">
+    <g fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4" marker-end="url(#ac1)">
+      <path d="M166,90 H210"/>
+      <path d="M368,90 H412"/>
+      <path d="M570,90 H614"/>
+    </g>
+
+    <text x="188" y="50" fill="#2F6F8F" font-size="11" font-weight="600">限制在 LTI</text>
+    <text x="390" y="50" fill="#2F6F8F" font-size="11" font-weight="600">拉普拉斯变换</text>
+    <text x="592" y="50" fill="#2F6F8F" font-size="11" font-weight="600">部分分式</text>
+    <text x="188" y="112" fill="currentColor" font-size="11" opacity=".55">第 3 节</text>
+    <text x="390" y="112" fill="currentColor" font-size="11" opacity=".55">第 4 节</text>
+    <text x="592" y="112" fill="currentColor" font-size="11" opacity=".55">第 5 节</text>
+
+    <rect x="14" y="64" width="146" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="87" y="87" fill="currentColor">微分方程</text>
+    <text x="87" y="104" fill="currentColor" font-size="11" opacity=".6">系统的原始描述</text>
+
+    <rect x="216" y="64" width="146" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="289" y="87" fill="currentColor">冲激响应 h(t)</text>
+    <text x="289" y="104" fill="currentColor" font-size="11" opacity=".6">一个函数装下全部动态</text>
+
+    <rect x="418" y="64" width="146" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="491" y="87" fill="currentColor">传递函数 H(s)</text>
+    <text x="491" y="104" fill="currentColor" font-size="11" opacity=".6">卷积变成乘法</text>
+
+    <rect x="620" y="64" width="146" height="52" rx="7" fill="none" stroke="#2F6F8F" stroke-opacity=".4"/>
+    <text x="693" y="87" fill="#2F6F8F" font-weight="600">极点</text>
+    <text x="693" y="104" fill="currentColor" font-size="11" opacity=".6">几个复数</text>
+
+    <text x="390" y="146" fill="currentColor" font-size="11" opacity=".6">每一步都是等价变换：信息一点没丢，只是形式越来越好算</text>
+  </g>
+</svg>
+<figcaption>这一讲的路线图。三次压缩分别在第 3、4、5 节完成；第 7、8 节的终值定理与 Routh 判据是两条「不解方程」的捷径，挂在第 4、5 节的成果上。</figcaption>
+</figure>
+
+<h2 id="s1"><span class="n">1</span>先把验收标准立起来</h2>
+
+<p>课件开篇给了四条「良好控制」的目标。它们是这门课后面一切分析的验收标准，值得先记住：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:9rem">目标</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td><span class="term">稳定性</span><br><span class="en">stability</span></td><td>系统在任何时候都必须稳定</td></tr>
+<tr><td><span class="term">跟踪</span><br><span class="en">tracking</span></td><td>输出要尽可能贴住参考输入（例：车保持在车道内）</td></tr>
+<tr><td><span class="term">抗扰</span><br><span class="en">disturbance rejection</span></td><td>输出要对扰动尽可能不敏感（例：室温不随开窗剧烈波动）</td></tr>
+<tr><td><span class="term">鲁棒性</span><br><span class="en">robustness</span></td><td>即使设计所用的模型不完全准确、或物理系统的动态随时间变化，上述三条仍要成立</td></tr>
+</tbody></table></div>
+
+<p>排在第一位的是稳定性，这不是排版顺序：<strong>另外三条在不稳定的系统上根本无从谈起</strong>——输出都发散了，「跟得准不准」「扰动压不压得住」就没有意义。所以这一讲的大半篇幅给稳定性。</p>
+
+<p>抗扰与鲁棒性在 A-I 第 3.5 节已经量化过：两者都被同一个因子 <span class="m">1 + L</span> 除。这一讲补的是稳定性与跟踪。</p>
+
+<h2 id="s2"><span class="n">2</span>为什么非得先会「解」系统</h2>
+
+<p>课件列了四条理由，落到操作上其实是一句话：<strong>设计是一个循环</strong>——试一个设计，求出它的响应，与期望性能比对，再改。</p>
+
+<figure>
+<svg viewBox="0 0 780 172" role="img" aria-label="设计循环图：试探设计到求响应，求响应到与期望性能比较，比较到修改，修改再回到试探设计，构成一个闭合循环；循环的每一圈都要求一次响应">
+  <defs><marker id="ac2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="currentColor" opacity=".55"/></marker></defs>
+  <g font-family="inherit" font-size="13" text-anchor="middle">
+    <g fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4" marker-end="url(#ac2)">
+      <path d="M181,66 H219"/>
+      <path d="M371,66 H409"/>
+      <path d="M561,66 H599"/>
+      <path d="M675,94 V130 H105 V98"/>
+    </g>
+
+    <rect x="35" y="42" width="140" height="48" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="105" y="71" fill="currentColor">试探设计</text>
+
+    <rect x="225" y="42" width="140" height="48" rx="7" fill="none" stroke="#2F6F8F" stroke-opacity=".4"/>
+    <text x="295" y="71" fill="#2F6F8F" font-weight="600">求响应</text>
+
+    <rect x="415" y="42" width="140" height="48" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="485" y="71" fill="currentColor">与期望性能比较</text>
+
+    <rect x="605" y="42" width="140" height="48" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="675" y="71" fill="currentColor">修改</text>
+
+    <text x="390" y="152" fill="currentColor" font-size="11" opacity=".6">每改一次就要重新求一次响应 —— 所以「求响应有多快」直接决定设计效率</text>
+  </g>
+</svg>
+<figcaption>设计循环。蓝框那一步是被反复执行的那一步：后面费力气把微分方程压成代数式，不是为了数学好看，是为了让这个循环转得动。</figcaption>
+</figure>
+
+<p>课件说动态响应可以在<strong>三个域</strong>里研究：时域、复频域（<span class="m">s</span> 域）、频域。三者描述的是同一个系统，只是问的问题不同——时域问「输出随时间怎么变」，<span class="m">s</span> 域问「把方程化成代数式之后，决定行为的那几个数落在哪」，频域问「某个频率的正弦进去会被放大多少、滞后多少」。这一讲三个域都会出现。</p>
+
+<h2 id="s3"><span class="n">3</span>第一次压缩：限制在 LTI，全部信息进一个函数</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>线性与时不变分别是什么</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>线性系统 <span class="en">linear system</span></div>
+  <p>指满足<span class="term">叠加原理</span><span class="en">（superposition）</span>的系统，它包含两条：</p>
+  <ul style="margin-bottom:0">
+    <li><strong>可加性</strong>：多个输入同时作用时的响应，等于各输入单独作用的响应之和；</li>
+    <li><strong>齐次性</strong><span class="en">（homogeneity）</span>：输入乘以一个常数，输出乘以同一个常数。</li>
+  </ul>
+</div>
+
+<p><span class="term">时不变</span><span class="en">（time-invariant）</span>指系统的特性不随时间改变：今天做的实验和明年做的实验，同样的输入给出同样的输出（只是时间平移）。</p>
+
+<p>两者合起来就是 <span class="term">LTI 系统</span><span class="en">（linear time-invariant system，线性时不变系统）</span>，与之相对的是 <span class="term">LTV 系统</span><span class="en">（linear time-varying，线性时变系统）</span>。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件这一处的措辞要修正</div>
+  <p>课件在 “LTIS” 标题下写：微分方程的系数是<strong>常数或仅为自变量的函数</strong>时方程是线性的。</p>
+  <p>这句话本身没错，但它定义的是<strong>线性</strong>，不是<strong>线性时不变</strong>。系数若是时间 <span class="m">t</span> 的函数，方程仍然线性，但系统是<strong>时变</strong>的（LTV）。</p>
+  <p style="margin-bottom:0">要 LTI，系数必须是<strong>常数</strong>。课件举的例子——由固定阻值、容值组成的电路——正是常系数的情形。</p>
+</div>
+
+<h3 id="s3-2"><span class="n">3.2</span>卷积：全部信息装进 <span class="m">h(t)</span></h3>
+
+<p>LTI 的价值在于它把两件事送给了我们：</p>
+
+<ul>
+<li>叠加原理让我们可以<strong>把复杂输入拆成简单输入的和</strong>，分别求响应再加起来；</li>
+<li>更进一步，任意输入的响应都可以写成输入与<span class="term">单位冲激响应</span><span class="en">（impulse response，<span class="m">h(t)</span>，即单位冲激输入下的输出）</span>的卷积。</li>
+</ul>
+
+<div class="eq"><span class="m">y(t) = ∫<sub>−∞</sub><sup>∞</sup> h(τ) u(t − τ) dτ = h(t) ∗ u(t)</span><span class="lbl">(1)</span></div>
+
+<p><span class="term">因果</span><span class="en">（causal，指输出不会早于引起它的输入出现）</span>LTI 系统满足 <span class="m">h(t) = 0</span>（<span class="m">t &lt; 0</span>），积分下限于是变成 0。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>第一次压缩</div>
+  <p style="margin-bottom:0">式 (1) 说的是：<strong>一个 LTI 系统的全部动态信息，装在 <span class="m">h(t)</span> 这一个函数里</strong>。知道了 <span class="m">h(t)</span>，任何输入的响应都能算出来，不必回头再解一次微分方程。</p>
+</div>
+
+<p>课件用一道小题检验对「线性」的理解，答案里藏着控制理论的一条基本做法。</p>
+
+<details class="box">
+  <summary>课件练习：汽车匀加速 <span class="m">V = U + at</span>，判断线性</summary>
+  <p>取 <span class="m">U = 10</span> m/s、<span class="m">t = 5</span> s，分别做 <span class="m">a = 1</span> 与 <span class="m">a = 2</span> m/s² 两次实验。把加速度 <span class="m">a</span> 当输入、末速度 <span class="m">V</span> 当输出，则 <span class="m">V(a) = 10 + 5a</span>。</p>
+  <p><strong>可加性检验</strong>：<span class="m">V(1) = 15</span>，<span class="m">V(2) = 20</span>，两者之和是 35；而 <span class="m">V(1 + 2) = V(3) = 25</span>。<span class="m">25 ≠ 35</span>，可加性不成立。</p>
+  <p><strong>齐次性检验</strong>更直观：<span class="m">V(0) = 10 ≠ 0</span>。输入为零而输出非零，输出不可能与输入成正比。</p>
+  <p>所以这个关系是<strong>非线性</strong>的——准确地说是<strong>仿射的</strong><span class="en">（affine，线性加一个常数偏置）</span>。破坏线性的正是那个非零初始速度 <span class="m">U</span>。</p>
+  <p>但换个变量它就线性了：取<strong>增量</strong> <span class="m">ΔV = V − U = at</span>，则 <span class="m">ΔV</span> 与 <span class="m">a</span> 严格成正比，可加性与齐次性都成立。</p>
+  <p style="margin-bottom:0">这不是文字游戏，而是整个控制理论赖以成立的做法：<strong>真实系统几乎都不线性，我们做的是在某个工作点附近对增量建模</strong>。巡航控制里 <span class="m">r</span>、<span class="m">y</span>、<span class="m">u</span> 全都应当理解成「相对于某个平衡工作点的偏差」，传递函数描述的也永远是增量之间的关系。</p>
+</details>
+
+<h2 id="s4"><span class="n">4</span>第二次压缩：拉普拉斯把卷积换成乘法</h2>
+
+<p>卷积虽然通用，算起来仍然是积分。<span class="term">拉普拉斯变换</span><span class="en">（Laplace transform）</span>的价值就在这一条性质上：<strong>时域的卷积等于 <span class="m">s</span> 域的乘积</strong>。于是式 (1) 变成</p>
+
+<div class="eq"><span class="m">Y(s) = H(s) U(s)</span><span class="lbl">(2)</span></div>
+
+<p>其中</p>
+
+<div class="eq"><span class="m">H(s) = <span class="frac"><span>Y(s)</span><span>U(s)</span></span></span><span class="lbl">(3)</span></div>
+
+<p>就是<span class="term">传递函数</span><span class="en">（transfer function）</span>。式 (3) 附带一个必须记住的前提：<strong>零初始条件</strong>。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">推导</span>为什么传递函数必须假定零初始条件</div>
+  <p style="margin-bottom:0">传递函数要描述的是<strong>系统本身</strong>，不是系统的历史。非零初始条件在 <span class="m">s</span> 域里会额外生出一批与输入无关的项，那些项属于「这台机器此刻正处在什么状态」，不属于「这台机器是什么」。把它们清零，<span class="m">Y(s)/U(s)</span> 才是一个只依赖系统结构的比值。</p>
+</div>
+
+<p>至此第二次压缩完成：解微分方程这件事，变成了<strong>做代数</strong>。</p>
+
+<h3 id="s4-1"><span class="n">4.1</span>阶跃是最常用的测试输入</h3>
+
+<p><span class="term">单位阶跃</span><span class="en">（unit step）</span>记作 <span class="m">ℓ(t)</span>，可以发生在任意时刻 <span class="m">a</span>：</p>
+
+<div class="eq"><span class="m">ℓ(t − a) = 0&nbsp;&nbsp;(t &lt; a)&emsp;;&emsp;ℓ(t − a) = 1&nbsp;&nbsp;(t ≥ a)</span><span class="lbl">(4)</span></div>
+
+<p>阶跃之所以是默认测试信号，是因为它一次同时包含了「突变」和「持续」：突变部分考察系统的<span class="term">暂态</span><span class="en">（transient）</span>，持续部分考察它的<span class="term">稳态</span><span class="en">（steady state）</span>。阶跃输入下的输出就叫<span class="term">阶跃响应</span><span class="en">（step response）</span>。</p>
+
+<p>顺带记一条以后反复要用的对应：<strong>时域上把波形整体右移 <span class="m">a</span> 秒，在 <span class="m">s</span> 域就是乘一个因子 <span class="m">e<sup> −as</sup></span>。</strong>下面这道课件例题会同时用到卷积与这条对应，两条路给出同一个答案。</p>
+
+<details class="box">
+  <summary>课件例题：单位阶跃延迟 2 秒输入一阶环节，求输出</summary>
+  <p>输入 <span class="m">u(t) = ℓ(t − 2)</span>，冲激响应 <span class="m">h(t) = e<sup> −3t</sup>ℓ(t)</span>，求 <span class="m">y(t) = h(t) ∗ u(t)</span>。</p>
+  <p><strong>卷积做法。</strong>代入式 (1)，并利用 <span class="m">h(τ) = 0</span>（<span class="m">τ &lt; 0</span>）与 <span class="m">u(t − τ) = 1</span> 当且仅当 <span class="m">t − τ ≥ 2</span>（即 <span class="m">τ ≤ t − 2</span>）：</p>
+  <div class="eq"><span class="m">y(t) = ∫<sub>0</sub><sup>t−2</sup> e<sup> −3τ</sup> dτ = [<span class="frac"><span>−e<sup> −3τ</sup></span><span>3</span></span>]<sub>0</sub><sup>t−2</sup> = <span class="frac"><span>1</span><span>3</span></span>(1 − e<sup> −3(t−2)</sup>),&emsp;t ≥ 2</span></div>
+  <p><span class="m">t &lt; 2</span> 时积分上限为负、区间为空，<span class="m">y(t) = 0</span>。合起来</p>
+  <div class="eq"><span class="m">y(t) = <span class="frac"><span>1</span><span>3</span></span>(1 − e<sup> −3(t−2)</sup>) ℓ(t − 2)</span></div>
+  <p><strong>拉普拉斯做法（更快）。</strong><span class="m">H(s) = <span class="frac"><span>1</span><span>s + 3</span></span></span>，<span class="m">U(s) = <span class="frac"><span>e<sup> −2s</sup></span><span>s</span></span></span>，故</p>
+  <div class="eq"><span class="m">Y(s) = <span class="frac"><span>e<sup> −2s</sup></span><span>s(s + 3)</span></span></span></div>
+  <p><span class="m"><span class="frac"><span>1</span><span>s(s + 3)</span></span></span> 的原函数是 <span class="m"><span class="frac"><span>1</span><span>3</span></span>(1 − e<sup> −3t</sup>) ℓ(t)</span>，而因子 <span class="m">e<sup> −2s</sup></span> 的作用正是把整个波形右移 2 秒，得到同一个结果。</p>
+  <p style="margin-bottom:0">两条路给出同一个答案，这就是式 (2) 的意义：卷积积分被换成了一次乘法加一次查表。数值上，<span class="m">t = 2</span> 时 <span class="m">y = 0</span>，<span class="m">t = 3</span> 时 <span class="m">y = 0.3167</span>，<span class="m">t = 4</span> 时 <span class="m">y = 0.3325</span>，终值 <span class="m">1/3</span>。</p>
+</details>
+
+<figure>
+<div id="dsPlot"></div>
+<figcaption><span class="m">t &lt; 2</span> 时曲线严格贴在 0 上：因子 <span class="m">e<sup> −2s</sup></span> 的全部作用就是把整条曲线原样右移 2 秒，形状一点没变。<span class="m">t ≥ 2</span> 之后按时间常数 <span class="m">1/3</span> s 爬向终值 <span class="m">1/3</span>。图上三个标注点就是笔记里给的数值。</figcaption>
+</figure>
+
+<h2 id="s5"><span class="n">5</span>第三次压缩：全部信息落到几个复数上</h2>
+
+<p>对线性常系数系统，<span class="m">H(s)</span> 总是一个有理分式。于是它的信息又能再压一层——压到分子与分母的根上：</p>
+
+<ul>
+<li>分子的根叫<span class="term">零点</span><span class="en">（zeros）</span> <span class="m">z<sub>1</sub>, …, z<sub>m</sub></span>；</li>
+<li>分母的根叫<span class="term">极点</span><span class="en">（poles）</span> <span class="m">p<sub>1</sub>, …, p<sub>n</sub></span>。</li>
+</ul>
+
+<h3 id="s5-1"><span class="n">5.1</span>极点为什么就是「系统自己会做的运动」</h3>
+
+<p>设 <span class="m">H(s)</span> 严格真（分子次数低于分母次数）且极点互异，把它做部分分式展开：</p>
+
+<div class="eq"><span class="m">H(s) = Σ<sub>i=1</sub><sup>n</sup> <span class="frac"><span>r<sub>i</sub></span><span>s − p<sub>i</sub></span></span>&emsp;⇒&emsp;h(t) = Σ<sub>i=1</sub><sup>n</sup> r<sub>i</sub> e<sup> p<sub>i</sub>t</sup></span><span class="lbl">(5)</span></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>极点即模态</div>
+  <p style="margin-bottom:0">式 (5) 是这一讲最要紧的一步。它说：<strong>冲激响应是一堆指数的叠加，每个极点贡献一项 <span class="m">e<sup> p<sub>i</sub>t</sup></span>。</strong>课件那句 “poles identify the signals contained in the IR”（极点指明冲激响应里含有哪些信号）说的就是这件事。</p>
+</div>
+
+<p>把极点写成 <span class="m">p = σ + jω</span>，那么</p>
+
+<div class="eq"><span class="m">e<sup> pt</sup> = e<sup> σt</sup> e<sup> jωt</sup> = e<sup> σt</sup>(cos ωt + j sin ωt)</span></div>
+
+<p>包络由<strong>实部</strong> <span class="m">σ</span> 决定，振荡由<strong>虚部</strong> <span class="m">ω</span> 决定。于是极点位置与时域行为一一对应：</p>
+
+<div class="tool" id="piTool">
+  <h4>拖动极点，看冲激响应跟着变</h4>
+  <p class="sub">左图是 s 平面上的一对共轭极点 <span class="m">σ ± jω</span>（淡色叉是下表那五类参考位置），右图是它对应的模态 <span class="m">h(t) = 2e<sup> σt</sup>cos ωt</span>。把 ω 拖到 0 就退化成单个实极点。</p>
+  <div class="row">
+    <span class="ctl"><label>实部 σ</label>
+    <input type="range" id="piSig" min="-1.5" max="0.6" step="0.05" value="-0.4" oninput="piGo()">
+    <span class="rv" id="piSigV">−0.40</span></span>
+    <span class="ctl"><label>虚部 ω</label>
+    <input type="range" id="piOmg" min="0" max="5" step="0.1" value="3" oninput="piGo()">
+    <span class="rv" id="piOmgV">3.00</span></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="piSet('negreal')">负实轴</button>
+    <button class="btn" onclick="piSet('lhp')">左半平面共轭对</button>
+    <button class="btn" onclick="piSet('jw')">虚轴上一对</button>
+    <button class="btn" onclick="piSet('origin')">原点</button>
+    <button class="btn" onclick="piSet('rhp')">右半平面</button>
+  </div>
+  <div class="panes"><div id="piPlane"></div><div id="piResp"></div></div>
+  <div class="result" id="piOut"></div>
+</div>
+
+<div class="tw"><table>
+<thead><tr><th style="width:15rem">极点位置</th><th>对应的时域模态</th></tr></thead>
+<tbody>
+<tr><td>负实轴上（<span class="m">σ &lt; 0</span>，<span class="m">ω = 0</span>）</td><td>单调衰减的指数，越靠左衰减越快</td></tr>
+<tr><td>左半平面复数对（<span class="m">σ &lt; 0</span>，<span class="m">ω ≠ 0</span>）</td><td>衰减的振荡，虚部越大振得越快</td></tr>
+<tr><td>虚轴上一对（<span class="m">σ = 0</span>）</td><td>等幅振荡，不衰减也不发散</td></tr>
+<tr><td>原点（<span class="m">σ = 0</span>，<span class="m">ω = 0</span>）</td><td>常数，不回落</td></tr>
+<tr><td>右半平面（<span class="m">σ &gt; 0</span>）</td><td>发散：实极点是单调发散，复数对是发散的振荡</td></tr>
+</tbody></table></div>
+
+<p>零点不产生新的模态——式 (5) 里没有零点的位置。零点改变的是各模态的<strong>权重</strong> <span class="m">r<sub>i</sub></span>，也就是每个模态在响应里占多大分量。这解释了一个常见现象：一个极点离虚轴很近却几乎看不出影响，往往是因为附近有个零点把它的留数压得很小。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>稳定性于是变成一句几何判据</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>稳定判据</div>
+  <p>LTI 系统稳定 <span class="m">⇔</span> <strong>全部极点都在左半平面</strong>（实部严格小于零）。</p>
+  <p style="margin-bottom:0">只要有一个极点在右半平面，式 (5) 里就有一项 <span class="m">e<sup> σt</sup></span>（<span class="m">σ &gt; 0</span>）随时间发散；极点落在虚轴上则是临界情形，等幅振荡，既不稳定也不发散。</p>
+</div>
+
+<p>到这里，A-I 提出的「绕圈之后会不会发散」就有了确定的答案形式：写出闭环传递函数，看它分母的根。剩下的问题只有一个——<strong>分母是高次多项式，求根很费事</strong>。第 8 节的 Routh 判据就是为了绕开求根。</p>
+
+<h2 id="s6"><span class="n">6</span>频率响应：传递函数在虚轴上的取值</h2>
+
+<p>把 <span class="m">s</span> 取在虚轴上，就得到<span class="term">频率响应函数</span><span class="en">（frequency response function）</span>：</p>
+
+<div class="eq"><span class="m">H(jω) = H(s)|<sub>s = jω</sub> = |H(jω)| e<sup> jφ(ω)</sup></span><span class="lbl">(6)</span></div>
+
+<p>它回答一个很具体的问题：<strong>一个频率为 <span class="m">ω</span> 的正弦输入进去，稳态输出是什么？</strong>答案是同频率的正弦，幅值乘以 <span class="m">|H(jω)|</span>，相位加上 <span class="m">φ(ω)</span>：</p>
+
+<ul>
+<li><span class="m">|H(jω)|</span> 说明系统对这个频率是放大还是衰减；</li>
+<li><span class="m">φ(ω)</span> 为负表示<span class="term">滞后</span><span class="en">（lag）</span>，为正表示<span class="term">超前</span><span class="en">（lead）</span>。</li>
+</ul>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这正是 A-I 那个失稳机制的量化工具</div>
+  <p>A-I 第 4 节说：若某个频率上回路滞后达 <span class="m">180°</span> 且回路增益不小于 1，负反馈就变成正反馈。</p>
+  <p style="margin-bottom:0">现在这句话有了确切的写法：找那个使 <span class="m">φ(ω) = −180°</span> 的频率，看该处 <span class="m">|H(jω)|</span> 是否小于 1。频域法（Bode 图、Nyquist 图）整套工具都建在这一条上，实验课会用 MATLAB 画它们。</p>
+</div>
+
+<p>下面这道课件例题把式 (6) 走一遍，顺带给出一条对判稳很有用的观察。</p>
+
+<details class="box">
+  <summary>课件例题：一阶环节受 10 rad/s 正弦激励，求稳态响应</summary>
+  <p>系统方程 <span class="m">ẏ + ky = u</span>，取 <span class="m">k = 1</span>，输入 <span class="m">u(t) = sin(10t)</span>。</p>
+  <p>先求传递函数。对方程两边取拉普拉斯变换（零初始条件）：<span class="m">sY(s) + kY(s) = U(s)</span>，故</p>
+  <div class="eq"><span class="m">H(s) = <span class="frac"><span>1</span><span>s + k</span></span></span>，取 <span class="m">k = 1</span> 得 <span class="m">H(s) = <span class="frac"><span>1</span><span>s + 1</span></span></span></div>
+  <p>输入频率 <span class="m">ω = 10</span> rad/s，代入式 (6)：<span class="m">H(j10) = <span class="frac"><span>1</span><span>1 + j10</span></span></span>。幅值与相角：</p>
+  <div class="eq"><span class="m">|H(j10)| = <span class="frac"><span>1</span><span>√<span class="sqrt">1<sup>2</sup> + 10<sup>2</sup></span></span></span> = <span class="frac"><span>1</span><span>√<span class="sqrt">101</span></span></span> = 0.0995,&emsp;φ = −arctan <span class="frac"><span>10</span><span>1</span></span> = −84.29°</span></div>
+  <p>所以稳态响应是</p>
+  <div class="eq"><span class="m">y<sub>ss</sub>(t) = 0.0995 sin(10t − 84.29°)</span></div>
+  <p style="margin-bottom:0"><strong>直接解微分方程可以核对</strong>：完整解是 <span class="m">y(t) = <span class="frac"><span>sin 10t − 10 cos 10t</span><span>101</span></span> + <span class="frac"><span>10</span><span>101</span></span> e<sup> −t</sup></span>。末项是自由响应，随 <span class="m">e<sup> −t</sup></span> 衰减掉；前项的幅值是 <span class="m"><span class="frac"><span>√<span class="sqrt">1 + 100</span></span><span>101</span></span> = <span class="frac"><span>1</span><span>√<span class="sqrt">101</span></span></span></span>，与上面一致。</p>
+</details>
+
+<h3 id="s6-1"><span class="n">6.1</span>一阶滞后的相位上界，以及它的三个例外</h3>
+
+<p>上面这个例子顺带给出一条判稳时常用的观察：<span class="m"><span class="frac"><span>1</span><span>s + k</span></span></span>（<span class="m">k &gt; 0</span>）这种<strong>稳定的一阶滞后环节</strong>，相位从 <span class="m">0°</span> 单调走向 <span class="m">−90°</span>，<strong><span class="m">90°</span> 是取不到的上界</strong>。</p>
+
+<p>所以由这类环节串起来的回路，至少要<strong>三节</strong>才可能在某个有限频率上凑够 <span class="m">180°</span>——这解释了为什么考题里的特征多项式常常是三阶。</p>
+
+<figure>
+<div id="plPlot"></div>
+<figcaption>一节一阶滞后的相角从 <span class="m">0°</span> 单调走向 <span class="m">−90°</span> 却永远取不到；两节最多趋近 <span class="m">−180°</span>，同样取不到；只有三节才真的与 <span class="m">−180°</span> 相交（交点在 <span class="m">ω = √3</span>）。三条虚线是下面警示框里的三个例外——它们都能用两个极点就凑够 <span class="m">180°</span>。</figcaption>
+</figure>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>这条「至少三阶」只对纯一阶滞后串联成立</div>
+  <p>三种常见情形会让两个极点就够：</p>
+  <ul>
+    <li><strong>积分环节</strong> <span class="m">1/s</span> 的相位恒为 <span class="m">−90°</span>，两个积分器（<span class="m">K/s<sup>2</sup></span>）相位恒 <span class="m">−180°</span>；</li>
+    <li><strong>右半平面零点</strong>会额外贡献滞后，例如 <span class="m">L = <span class="frac"><span>K(1 − s)</span><span>s(s + 1)</span></span></span> 在 <span class="m">ω = 1</span> 处相位恰好 <span class="m">−180°</span>、幅值为 <span class="m">K</span>，<span class="m">K ≥ 1</span> 即失稳；</li>
+    <li><strong>纯延时</strong> <span class="m">e<sup> −Ts</sup></span> 的滞后随频率无限增大，根本没有上界。</li>
+  </ul>
+  <p style="margin-bottom:0">所以答题时别把「三阶以下一定稳」当结论用。</p>
+</div>
+
+<h2 id="s7"><span class="n">7</span>捷径一：终值定理</h2>
+
+<p><span class="term">终值定理</span><span class="en">（final value theorem，FVT）</span>让你不做拉普拉斯反变换就得到输出的稳态值：</p>
+
+<div class="eq"><span class="m">lim<sub>t → ∞</sub> y(t) = lim<sub>s → 0</sub> s Y(s)</span><span class="lbl">(7)</span></div>
+
+<p>课件把结果分成三种情况，判据全在 <span class="m">sY(s)</span> 的极点上：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:15rem"><span class="m">sY(s)</span> 的极点</th><th>时域终值</th></tr></thead>
+<tbody>
+<tr><td>全部实部小于零</td><td>收敛到一个常数，式 (7) 给出的就是它</td></tr>
+<tr><td>有一对极点落在虚轴上</td><td>等幅振荡，终值<strong>不存在</strong></td></tr>
+<tr><td>有极点实部大于零</td><td>无界发散，终值<strong>不存在</strong></td></tr>
+</tbody></table></div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>FVT 会对不稳定系统给出一个看似正常的假答案</div>
+  <p>式 (7) 只是取一个极限，它不会替你检查系统稳不稳。两个反例：</p>
+  <p><span class="m">Y(s) = <span class="frac"><span>1</span><span>s(s − 1)</span></span></span>，代入式 (7) 得 <span class="m">lim<sub>s → 0</sub> <span class="frac"><span>1</span><span>s − 1</span></span> = −1</span>，一个规规矩矩的数。但真实的 <span class="m">y(t) = e<sup> t</sup> − 1</span> 是发散的。</p>
+  <p><span class="m">Y(s) = <span class="frac"><span>1</span><span>s<sup>2</sup> + 1</span></span></span>，代入得 0。但 <span class="m">y(t) = sin t</span> 根本没有极限。</p>
+  <p style="margin-bottom:0"><strong>所以顺序不能颠倒：先确认 <span class="m">sY(s)</span> 的极点都在左半平面，再用 FVT</strong>。考试里若题目没说系统稳定，写答案前应当先把分母的根检查一遍——这一步本身常常就带着分。</p>
+</div>
+
+<figure>
+<div id="fvtPlot"></div>
+<figcaption>两条水平虚线都是终值定理形式上算出来的「终值」，而它们与真实波形毫无关系：左边 <span class="m">y(t) = e<sup> t</sup> − 1</span> 头也不回地发散，右边 <span class="m">y(t) = sin t</span> 永远在摆动。式子算得出一个数，不代表那个数是极限——先验稳定性，再用 FVT。</figcaption>
+</figure>
+
+<p>课件的例题演示了完整的三步走，包括那一步先验稳定性。</p>
+
+<details class="box">
+  <summary>课件例题：二阶环节受 3 V 阶跃指令，求稳态电压</summary>
+  <p>电池充电系统的传递函数是 <span class="m">H(s) = <span class="frac"><span>5s + 4</span><span>3s<sup>2</sup> + 6s + 5</span></span></span>，指令为 3 V 阶跃，求稳态电压。</p>
+  <p><strong>第一步，先验稳定性。</strong>分母 <span class="m">3s<sup>2</sup> + 6s + 5</span> 的根是 <span class="m">s = −1 ± j0.8165</span>，实部均为负，可以用 FVT。</p>
+  <p><strong>第二步，写出输出的拉普拉斯变换。</strong>3 V 阶跃即 <span class="m">U(s) = <span class="frac"><span>3</span><span>s</span></span></span>，故</p>
+  <div class="eq"><span class="m">Y(s) = H(s) U(s) = <span class="frac"><span>5s + 4</span><span>3s<sup>2</sup> + 6s + 5</span></span> ⋅ <span class="frac"><span>3</span><span>s</span></span></span></div>
+  <p><strong>第三步，代入式 (7)：</strong></p>
+  <div class="eq"><span class="m">lim<sub>s → 0</sub> s Y(s) = lim<sub>s → 0</sub> <span class="frac"><span>3(5s + 4)</span><span>3s<sup>2</sup> + 6s + 5</span></span> = <span class="frac"><span>3 × 4</span><span>5</span></span> = 2.4</span> V</div>
+  <p>结果的结构值得记：<strong>稳态值 = 输入幅值 × 传递函数在 <span class="m">s = 0</span> 处的值</strong>。<span class="m">H(0)</span> 这个值叫<span class="term">直流增益</span><span class="en">（DC gain）</span>，意思是「输入是一个不再变化的常量时，输出是它的几倍」。本例 <span class="m">H(0) = 4/5</span>，所以 3 V 的指令只得到 2.4 V。</p>
+  <p style="margin-bottom:0">注意这里只是一个环节自身的直流增益不等于 1，题目并没有说它是某个闭环；不要直接把它当成 A-I 讲的比例控制静差——那是闭环结构造成的，两回事。</p>
+</details>
+
+<h2 id="s8"><span class="n">8</span>捷径二：Routh 稳定判据</h2>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>特征多项式 ＝ 闭环传递函数的分母</div>
+  <p>第 5.2 节说，稳定性等价于「闭环传递函数的<strong>分母</strong>的根都在左半平面」。把这个分母单独拎出来，就叫系统的<span class="term">特征多项式</span><span class="en">（characteristic polynomial）</span>；令它等于零得到的方程叫<span class="term">特征方程</span><span class="en">（characteristic equation）</span>，<strong>闭环极点正是它的根</strong>。</p>
+  <p style="margin-bottom:0">这句话是这一讲通向 A-III 的接口：Routh 判据处理的是这个多项式，A-III 的根轨迹画的也是这个多项式的根随增益 <span class="m">K</span> 移动的轨迹。两讲谈的是同一个东西。</p>
+</div>
+
+<p>对高阶特征多项式</p>
+
+<div class="eq"><span class="m">a(s) = s<sup>n</sup> + a<sub>1</sub>s<sup>n−1</sup> + a<sub>2</sub>s<sup>n−2</sup> + ⋯ + a<sub>n−1</sub>s + a<sub>n</sub></span><span class="lbl">(8)</span></div>
+
+<p>求根很费事，而我们其实只需要知道<strong>根在不在左半平面</strong>，并不需要根本身。Routh 判据正是干这个的。</p>
+
+<h3 id="s8-1"><span class="n">8.1</span>必要条件：系数全正</h3>
+
+<p>若 <span class="m">a(s)</span> 的全部根都在左半平面，则式 (8) 的所有系数必须为正（且没有缺项）。道理不难看出：左半平面的实根给出因式 <span class="m">(s + α)</span>（<span class="m">α &gt; 0</span>），共轭复根给出 <span class="m">(s<sup>2</sup> + βs + γ)</span>（<span class="m">β, γ &gt; 0</span>），全是正系数因式，乘开来不可能出现负号或零系数。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>系数全正只是必要条件，绝不能当成结论</div>
+  <p>反例：<span class="m">a(s) = s<sup>3</sup> + s<sup>2</sup> + s + 6</span>，四个系数全为正。但它的根是 <span class="m">s = −2</span> 与 <span class="m">s = 0.5 ± j1.658</span>——<strong>有一对根在右半平面</strong>。</p>
+  <p style="margin-bottom:0">所以「系数全正」只能用来<strong>快速排除</strong>（有负系数或缺项就直接判不稳定，不必列表），不能用来判定稳定。</p>
+</div>
+
+<h3 id="s8-2"><span class="n">8.2</span>阵列的构造</h3>
+
+<p>前两行由式 (8) 的系数<strong>隔一个取一个</strong>分别填入，其后每一行由紧邻的上两行算出：</p>
+
+<div class="tw"><table class="compact">
+<thead><tr><th style="width:6rem">行</th><th>第 1 列</th><th>第 2 列</th><th>第 3 列</th></tr></thead>
+<tbody>
+<tr><td><span class="m">s<sup>n</sup></span></td><td><span class="m">1</span></td><td><span class="m">a<sub>2</sub></span></td><td><span class="m">a<sub>4</sub></span></td></tr>
+<tr><td><span class="m">s<sup>n−1</sup></span></td><td><span class="m">a<sub>1</sub></span></td><td><span class="m">a<sub>3</sub></span></td><td><span class="m">a<sub>5</sub></span></td></tr>
+<tr><td><span class="m">s<sup>n−2</sup></span></td><td><span class="m">b<sub>1</sub></span></td><td><span class="m">b<sub>2</sub></span></td><td><span class="m">b<sub>3</sub></span></td></tr>
+<tr><td><span class="m">s<sup>n−3</sup></span></td><td><span class="m">c<sub>1</sub></span></td><td><span class="m">c<sub>2</sub></span></td><td><span class="m">c<sub>3</sub></span></td></tr>
+<tr><td>⋮</td><td>⋮</td><td>⋮</td><td>⋮</td></tr>
+<tr><td><span class="m">s<sup>0</sup></span></td><td><span class="m">k<sub>1</sub></span></td><td></td><td></td></tr>
+</tbody></table></div>
+
+<div class="eq"><span class="m">b<sub>1</sub> = <span class="frac"><span>a<sub>1</sub>a<sub>2</sub> − 1⋅a<sub>3</sub></span><span>a<sub>1</sub></span></span>,&emsp;b<sub>2</sub> = <span class="frac"><span>a<sub>1</sub>a<sub>4</sub> − 1⋅a<sub>5</sub></span><span>a<sub>1</sub></span></span>,&emsp;c<sub>1</sub> = <span class="frac"><span>b<sub>1</sub>a<sub>3</sub> − a<sub>1</sub>b<sub>2</sub></span><span>b<sub>1</sub></span></span></span><span class="lbl">(9)</span></div>
+
+<p>记法比公式好用：<strong>每个元素 ＝ [（上一行首元）×（上上行的下一列）−（上上行首元）×（上一行的下一列）] ÷（上一行首元）</strong>，也就是把上面两行的「第一列」与「下一列」排成 <span class="m">2 × 2</span> 行列式，取其负值再除以上一行首元。缺位一律补 0；某一行右侧全为 0 之后就不必再往右算了。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>判据本身</div>
+  <p><strong>第一列的符号变化次数 ＝ 右半平面根的个数。</strong>于是「稳定」等价于<strong>第一列全为正</strong>（对首项为 1 的多项式而言）。</p>
+  <p style="margin-bottom:0">注意判据给出的是<strong>个数</strong>，不只是「稳不稳」，这一点在题目问「有几个根在右半平面」时直接用得上。</p>
+</div>
+
+<p>下面这个例子演示阵列怎么列、变号怎么数，也演示「系数全正仍可能不稳定」的实际样子。</p>
+
+<details class="box">
+  <summary>例：四阶多项式的 Routh 阵与变号计数</summary>
+  <p><span class="m">a(s) = s<sup>4</sup> + 2s<sup>3</sup> + 3s<sup>2</sup> + 4s + 5</span>，系数全正，通不过必要条件的筛子，得老实列表。</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:5rem">行</th><th>第 1 列</th><th>第 2 列</th><th>第 3 列</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">s<sup>4</sup></span></td><td><span class="m">1</span></td><td><span class="m">3</span></td><td><span class="m">5</span></td></tr>
+  <tr><td><span class="m">s<sup>3</sup></span></td><td><span class="m">2</span></td><td><span class="m">4</span></td><td><span class="m">0</span></td></tr>
+  <tr><td><span class="m">s<sup>2</sup></span></td><td><span class="m"><span class="frac"><span>2×3 − 1×4</span><span>2</span></span> = 1</span></td><td><span class="m"><span class="frac"><span>2×5 − 1×0</span><span>2</span></span> = 5</span></td><td></td></tr>
+  <tr><td><span class="m">s<sup>1</sup></span></td><td><span class="m"><span class="frac"><span>1×4 − 2×5</span><span>1</span></span> = −6</span></td><td><span class="m">0</span></td><td></td></tr>
+  <tr><td><span class="m">s<sup>0</sup></span></td><td><span class="m">5</span></td><td></td><td></td></tr>
+  </tbody></table></div>
+  <p>第一列是 <span class="m">1, 2, 1, −6, 5</span>：从 <span class="m">1</span> 到 <span class="m">−6</span> 变号一次，从 <span class="m">−6</span> 到 <span class="m">5</span> 再变号一次，共 <strong>2 次</strong>。结论：<strong>有 2 个根在右半平面，系统不稳定。</strong></p>
+  <p style="margin-bottom:0">直接求根可以核对：<span class="m">−1.288 ± j0.858</span> 与 <span class="m">0.288 ± j1.416</span>，确实两个在右半平面。</p>
+</details>
+
+<h3 id="s8-3"><span class="n">8.3</span>两种特殊情况</h3>
+
+<p>列表时会碰到两种卡住的情形，处理办法不同，而且第二种在 A-III《增益、根轨迹与系统特性》里是主力工具：</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>情形一：第一列出现 0，但该行其余元素不全为 0</div>
+  <p style="margin-bottom:0">下一行会除以 0 而算不下去。做法是用一个任意小的正数 <span class="m">ε</span> 顶替这个 0，照常算完，最后令 <span class="m">ε → 0<sup>+</sup></span> 判断各元素的符号。</p>
+</div>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>情形二：整行为 0</div>
+  <p>这说明特征多项式含有<strong>关于原点对称的一组根</strong>——共轭虚根对、正负实根对，或者对称分布的四个复根。做法是：</p>
+  <ol>
+    <li>取全零行<strong>上面一行</strong>的元素，写成一个<strong>辅助多项式</strong> <span class="m">A(s)</span>（该行对应的 <span class="m">s</span> 的幂次即为 <span class="m">A(s)</span> 的最高次，逐项降 2 次）；</li>
+    <li>对 <span class="m">A(s)</span> 求导，把 <span class="m">dA/ds</span> 的系数填回那个全零行；</li>
+    <li>继续正常列表。</li>
+  </ol>
+  <p style="margin-bottom:0">关键在于：<strong><span class="m">A(s) = 0</span> 的根就是那组对称根本身</strong>。如果它们恰好是一对纯虚根 <span class="m">± jω</span>，那么 <span class="m">ω</span> 就是系统等幅振荡的频率——A-III 求「根轨迹穿过虚轴的频率」用的正是这一步。</p>
+</div>
+
+<div class="tool" id="rhTool">
+  <h4>Routh 阵列生成器</h4>
+  <p class="sub">输入特征多项式的系数，降幂排列，空格或逗号分隔。阵列逐行算出，第一列加粗、负值标红；ε 情形与全零行会在右侧注明。最后用直接求根独立核对一遍结论。</p>
+  <div class="row">
+    <label>系数</label>
+    <input type="text" id="rhIn" value="1 1 1 6" style="width:16rem" oninput="routhGo()">
+    <button class="btn" onclick="routhSet('1 1 1 6')">s³+s²+s+6</button>
+    <button class="btn" onclick="routhSet('1 6 11 6')">全稳定</button>
+    <button class="btn" onclick="routhSet('1 2 1 2')">全零行</button>
+    <button class="btn" onclick="routhSet('1 1 2 2 3')">ε 情形</button>
+    <button class="btn" onclick="routhSet('3 6 5')">课件充电例</button>
+  </div>
+  <div class="tw" id="rhTable"></div>
+  <div class="result" id="rhOut"></div>
+</div>
+
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+<li>四条控制目标：<strong>稳定性、跟踪、抗扰、鲁棒性</strong>；稳定性排第一，因为其余三条在不稳定系统上无意义。</li>
+<li>主线是三次压缩：微分方程 → 冲激响应 <span class="m">h(t)</span> → 传递函数 <span class="m">H(s)</span> → <strong>极点</strong>。</li>
+<li><strong>线性 ＝ 可加性 ＋ 齐次性</strong>；时不变 ＝ 系数为常数。系数是 <span class="m">t</span> 的函数时仍线性，但是<strong>时变</strong>（课件此处措辞有误）。</li>
+<li><span class="m">V = U + at</span> 是<strong>仿射</strong>不是线性，因为 <span class="m">V(0) = U ≠ 0</span>；改用增量 <span class="m">ΔV</span> 即线性。控制理论一律在工作点附近对增量建模。</li>
+<li>LTI 的全部信息在 <span class="m">h(t)</span> 里：<span class="m">y = h ∗ u</span>。拉普拉斯把卷积换成乘法：<span class="m">Y(s) = H(s)U(s)</span>，<span class="m">H(s) = Y(s)/U(s)</span>，<strong>必须零初始条件</strong>。</li>
+<li>时移阶跃 <span class="m">ℓ(t − a)</span> 在 <span class="m">s</span> 域对应因子 <span class="m">e<sup> −as</sup></span>。</li>
+<li><strong>极点即模态</strong>（<span class="m">H</span> 严格真、极点互异时）：<span class="m">h(t) = Σ r<sub>i</sub> e<sup> p<sub>i</sub>t</sup></span>，实部定包络、虚部定振荡。零点不产生模态，只改变各模态的权重（留数）。</li>
+<li><strong>稳定 <span class="m">⇔</span> 全部极点在左半平面</strong>；虚轴上为临界（等幅振荡）。</li>
+<li>频率响应 <span class="m">H(jω) = H(s)|<sub>s = jω</sub></span>：幅值决定放大或衰减，相角为负是滞后。<strong>稳定的一阶滞后环节</strong>相位上界 <span class="m">90°</span>（取不到），所以纯一阶滞后串联至少要三节才能凑够 <span class="m">180°</span>；<strong>含积分器、右半平面零点或纯延时时此结论不成立</strong>。</li>
+<li><strong>FVT</strong>：<span class="m">lim<sub>t → ∞</sub> y(t) = lim<sub>s → 0</sub> sY(s)</span>，<strong>只有在 <span class="m">sY(s)</span> 的极点全在左半平面时才成立</strong>；对不稳定系统它会给出一个看似正常的假答案（<span class="m">1/(s(s − 1))</span> 给 <span class="m">−1</span>，实际发散）。</li>
+<li>稳态值 ＝ 输入幅值 × 直流增益 <span class="m">H(0)</span>。电池例：<span class="m">3 × 4/5 = 2.4</span> V。</li>
+<li><strong>特征多项式 ＝ 闭环传递函数的分母</strong>；令其为零即特征方程，闭环极点是它的根。</li>
+<li><strong>Routh</strong>：系数全正是必要不充分（反例 <span class="m">s<sup>3</sup> + s<sup>2</sup> + s + 6</span> 系数全正却有两个右半平面根）；<strong>第一列的变号次数 ＝ 右半平面根的个数</strong>。</li>
+<li>两种特殊情况：第一列出现 0 用 <span class="m">ε</span> 顶替；<strong>整行为 0 说明有对称根</strong>，用上一行构造辅助多项式 <span class="m">A(s)</span>、以 <span class="m">dA/ds</span> 的系数续表，而 <span class="m">A(s)</span> 的根就是那组对称根——这是求虚轴穿越频率的标准手法。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <strong>A-III 增益、根轨迹与系统特性</strong>，把这一讲的静态判据变成动态的图：当控制器增益 <span class="m">K</span> 从 0 连续增大时，闭环极点在复平面上走出的轨迹是什么形状、什么时候越过虚轴、越过时的频率是多少。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>A-II 系统响应与稳定性.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   ctrl-core.js — 控制课 HTML 学习页共用的数值内核
+   纯函数，不碰 DOM。可在 Node 里直接跑测试，也可整段内联进 HTML。
+   多项式一律用降幂系数数组表示：[a0,a1,...,an] 表示 a0·s^n + a1·s^(n-1) + ... + an
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 复数 */
+function cx(re, im){ return {re: re, im: im===undefined?0:im}; }
+function cadd(a,b){ return {re:a.re+b.re, im:a.im+b.im}; }
+function csub(a,b){ return {re:a.re-b.re, im:a.im-b.im}; }
+function cmul(a,b){ return {re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re}; }
+function cdiv(a,b){
+  // Smith 算法：按 |b.re| 与 |b.im| 的大小分支，避免 b 很大或很小时中间量溢出/下溢
+  var r, d;
+  if(Math.abs(b.re) >= Math.abs(b.im)){
+    r = b.im/b.re; d = b.re + b.im*r;
+    return {re:(a.re + a.im*r)/d, im:(a.im - a.re*r)/d};
+  } else {
+    r = b.re/b.im; d = b.re*r + b.im;
+    return {re:(a.re*r + a.im)/d, im:(a.im*r - a.re)/d};
+  }
+}
+function cabs(a){ return Math.hypot(a.re, a.im); }
+function carg(a){ return Math.atan2(a.im, a.re); }
+
+/* ---------------------------------------------------------- 多项式基本操作 */
+
+/** 卷积：两个多项式相乘。conv([1,2],[1,3]) = [1,5,6] 即 (s+2)(s+3)=s²+5s+6 */
+function conv(a,b){
+  var out = new Array(a.length+b.length-1).fill(0);
+  for(var i=0;i<a.length;i++) for(var j=0;j<b.length;j++) out[i+j] += a[i]*b[j];
+  return out;
+}
+
+/** 多项式相加（右对齐，即按常数项对齐） */
+function polyAdd(a,b){
+  var n = Math.max(a.length,b.length), out = new Array(n).fill(0);
+  for(var i=0;i<a.length;i++) out[n-a.length+i] += a[i];
+  for(var j=0;j<b.length;j++) out[n-b.length+j] += b[j];
+  return out;
+}
+
+/** 多项式数乘 */
+function polyScale(a,k){ return a.map(function(v){return v*k;}); }
+
+/** 去掉首部的零系数（否则次数会被虚高，求根会多出伪根） */
+function polyTrim(a){
+  var i=0; while(i<a.length-1 && Math.abs(a[i])<1e-14) i++;
+  return a.slice(i);
+}
+
+/** 在复点 s 处求值（Horner） */
+function polyVal(a,s){
+  var acc = cx(0,0);
+  for(var i=0;i<a.length;i++) acc = cadd(cmul(acc,s), cx(a[i],0));
+  return acc;
+}
+
+/** 由根反求多项式（首一） */
+function polyFromRoots(roots){
+  var p=[cx(1,0)];
+  for(var k=0;k<roots.length;k++){
+    var q=new Array(p.length+1).fill(null).map(function(){return cx(0,0);});
+    for(var i=0;i<p.length;i++){
+      q[i]   = cadd(q[i], p[i]);
+      q[i+1] = csub(q[i+1], cmul(p[i], roots[k]));
+    }
+    p=q;
+  }
+  return p.map(function(c){return c.re;});   // 共轭成对时虚部应为 0
+}
+
+/**
+ * 求根：Aberth–Ehrlich 迭代（比 Durand–Kerner 收敛快且更稳）。
+ * 输入实系数降幂数组，返回复根数组。已处理首零、尾零（s=0 的根）。
+ */
+function roots(coefIn){
+  var a = polyTrim(coefIn.slice());
+  if(a.length<=1) return [];
+  // 把尾部的零常数项提出来，每提一个就是一个 s=0 的根（避免迭代在 0 附近打转）
+  var zeroRoots=0;
+  while(a.length>1 && Math.abs(a[a.length-1])<1e-14){ a.pop(); zeroRoots++; }
+  if(a.length<=1){
+    var r0=[]; for(var q=0;q<zeroRoots;q++) r0.push(cx(0,0)); return r0;
+  }
+  var n = a.length-1;
+  var lead = a[0];
+  var m = a.map(function(v){return v/lead;});           // 首一化
+  var d = [];                                            // 导数
+  for(var i=0;i<n;i++) d.push(m[i]*(n-i));
+
+  // 初值：放在半径 R 的圆上、错开相角，避免对称初值导致迭代卡住
+  var R = 1 + Math.max.apply(null, m.slice(1).map(Math.abs));
+  var z = [];
+  for(var k=0;k<n;k++){
+    var th = (2*Math.PI*k)/n + 0.6180339887;             // 黄金角偏置打破对称
+    z.push(cx(R*0.5*Math.cos(th), R*0.5*Math.sin(th)));
+  }
+  for(var it=0; it<600; it++){
+    var maxStep=0;
+    for(var j=0;j<n;j++){
+      var pv = polyVal(m, z[j]);
+      var dv = polyVal(d, z[j]);
+      if(cabs(dv)<1e-300) continue;
+      var nr = cdiv(pv, dv);                              // Newton 修正 p/p'
+      var sum = cx(0,0);
+      for(var l=0;l<n;l++){
+        if(l===j) continue;
+        var diff = csub(z[j], z[l]);
+        if(cabs(diff)<1e-300) continue;
+        sum = cadd(sum, cdiv(cx(1,0), diff));
+      }
+      var den = csub(cx(1,0), cmul(nr, sum));
+      if(cabs(den)<1e-300) continue;
+      var step = cdiv(nr, den);
+      z[j] = csub(z[j], step);
+      maxStep = Math.max(maxStep, cabs(step));
+    }
+    if(maxStep < 1e-14) break;
+  }
+  // 共轭清理：虚部相对实部极小的判为实根
+  for(var t=0;t<z.length;t++){
+    if(Math.abs(z[t].im) < 1e-9*(1+Math.abs(z[t].re))) z[t] = cx(z[t].re, 0);
+  }
+  for(var q2=0;q2<zeroRoots;q2++) z.push(cx(0,0));
+  return z;
+}
+
+/* ------------------------------------------------------------- 传递函数 */
+
+/** 单位负反馈闭环：T = K·G/(1+K·G)，G = num/den。返回 {num, den} */
+function feedbackUnity(num, den, K){
+  var kn = polyScale(num, K);
+  return {num: kn, den: polyAdd(den, kn)};
+}
+
+/** 直流增益 T(0) */
+function dcGain(num, den){
+  var n = num[num.length-1], d = den[den.length-1];
+  if(Math.abs(d) < 1e-14) return Infinity;
+  return n/d;
+}
+
+/**
+ * 阶跃响应。用能控标准型 + 定步长 RK4 积分。
+ * 返回 {t:[...], y:[...]}，N 为输出采样点数。
+ * 要求 deg(num) <= deg(den)（真或严格真）。
+ */
+function stepResponse(numIn, denIn, tEnd, N){
+  N = N || 400;
+  var den = polyTrim(denIn.slice());
+  var n = den.length-1;
+  if(n===0) return {t:[0,tEnd], y:[numIn[numIn.length-1]/den[0], numIn[numIn.length-1]/den[0]]};
+  // 首一化
+  var lead = den[0];
+  den = den.map(function(v){return v/lead;});
+  var num = numIn.map(function(v){return v/lead;});
+  while(num.length < den.length) num.unshift(0);         // 左补零对齐到 n+1 长
+  if(num.length > den.length) throw new Error('stepResponse: 分子次数高于分母（非真系统）');
+
+  var D = num[0];                                        // 直通项
+  var bp = [];                                           // 严格真部分 num - D·den，次数 < n
+  for(var i=1;i<num.length;i++) bp.push(num[i] - D*den[i]);
+
+  // x' = A x + B u, y = C x + D u   (能控标准型)
+  // A 最后一行 = [-an, -a_{n-1}, ..., -a1]；B = e_n；C = [bp_n, ..., bp_1]
+  var lastRow = [];
+  for(var j=n;j>=1;j--) lastRow.push(-den[j]);
+  var C = [];
+  for(var j2=bp.length-1;j2>=0;j2--) C.push(bp[j2]);
+
+  function deriv(x){
+    var dx = new Array(n);
+    for(var i2=0;i2<n-1;i2++) dx[i2] = x[i2+1];
+    var s=0; for(var k=0;k<n;k++) s += lastRow[k]*x[k];
+    dx[n-1] = s + 1;                                     // u ≡ 1（单位阶跃）
+    return dx;
+  }
+  // 步长：让最快模态每个时间常数至少走 ~40 步，同时不少于输出分辨率
+  var rs = roots(den);
+  var fastest = 0;
+  for(var r=0;r<rs.length;r++) fastest = Math.max(fastest, cabs(rs[r]));
+  var dt = tEnd/N;
+  if(fastest>0) dt = Math.min(dt, 0.05/fastest);
+  var sub = Math.max(1, Math.ceil((tEnd/N)/dt));
+  dt = (tEnd/N)/sub;
+
+  var x = new Array(n).fill(0), t=0, T=[0], Y=[C.reduce(function(a,c,i3){return a+c*x[i3];},0) + D];
+  function axpy(x0,k,h){ var o=new Array(n); for(var i4=0;i4<n;i4++) o[i4]=x0[i4]+h*k[i4]; return o; }
+  for(var s2=1;s2<=N;s2++){
+    for(var u=0;u<sub;u++){
+      var k1=deriv(x),
+          k2=deriv(axpy(x,k1,dt/2)),
+          k3=deriv(axpy(x,k2,dt/2)),
+          k4=deriv(axpy(x,k3,dt));
+      for(var i5=0;i5<n;i5++) x[i5] += dt/6*(k1[i5]+2*k2[i5]+2*k3[i5]+k4[i5]);
+      t += dt;
+    }
+    var y=D; for(var i6=0;i6<n;i6++) y += C[i6]*x[i6];
+    T.push(t); Y.push(y);
+  }
+  return {t:T, y:Y};
+}
+
+/** 阶跃响应指标：超调 Mp(%)、2% 调节时间 ts、稳态值。ts 用「最后一次离开 ±2% 带」定义 */
+function stepInfo(resp){
+  var y = resp.y, t = resp.t, yf = y[y.length-1];
+  var peak = -Infinity, tp = 0;
+  for(var i=0;i<y.length;i++) if(y[i]>peak){ peak=y[i]; tp=t[i]; }
+  var Mp = (Math.abs(yf) > 1e-12) ? (peak-yf)/Math.abs(yf)*100 : NaN;
+  if(Mp < 0) Mp = 0;
+  var band = 0.02*Math.abs(yf), ts = NaN;
+  for(var j=y.length-1;j>=0;j--){
+    if(Math.abs(y[j]-yf) > band){ ts = t[Math.min(j+1,t.length-1)]; break; }
+  }
+  if(isNaN(ts)) ts = 0;
+  return {yFinal:yf, peak:peak, tPeak:tp, Mp:Mp, ts:ts};
+}
+
+/**
+ * 根轨迹：对一串 K 求 den + K·num 的根。
+ * 返回 {K:[...], branches:[[{re,im}...], ...]}，branches[i] 是第 i 条分支随 K 的轨迹。
+ * 分支靠「与上一组根就近配对」保持连续，否则画出来会互相跳线。
+ */
+function rootLocus(num, den, Kmin, Kmax, N){
+  N = N || 400;
+  var nb = Math.max(polyTrim(den).length-1, polyTrim(num).length-1);
+
+  function rootsAt(K){ return roots(polyAdd(den, polyScale(num, K))); }
+  /** 把一组根按最近邻配到参考顺序上（次数 <= 8，O(n²) 足够） */
+  function order(r, prev){
+    while(r.length < nb) r.push(cx(NaN,NaN));
+    if(!prev) return r.slice(0,nb);
+    var used=new Array(r.length).fill(false), out=new Array(nb);
+    for(var p=0;p<nb;p++){
+      if(isNaN(prev[p].re)){ out[p]=cx(NaN,NaN); continue; }
+      var best=-1, bd=Infinity;
+      for(var q=0;q<r.length;q++){
+        if(used[q]||isNaN(r[q].re)) continue;
+        var d=cabs(csub(r[q],prev[p]));
+        if(d<bd){ bd=d; best=q; }
+      }
+      if(best>=0){ used[best]=true; out[p]=r[best]; } else out[p]=cx(NaN,NaN);
+    }
+    return out;
+  }
+  /** 相邻两组根之间的最大间距，用来判断是否需要细分。
+      跑向无穷远的那一支要按支剔除：它每步都跨很大，但那一段画出来本就在视窗外，
+      细分它只会白白拖慢，还会把点数顶到上限、把真正需要细分的重根处挤掉。 */
+  var cxm=0, cym=0, cluster=1, farLimit=1e9;
+  function spread(a,b){
+    var m=0;
+    for(var i=0;i<nb;i++){
+      if(isNaN(a[i].re)||isNaN(b[i].re)) continue;
+      var da=cabs(csub(a[i],cx(cxm,cym))), db=cabs(csub(b[i],cx(cxm,cym)));
+      if(da>farLimit && db>farLimit) continue;          // 这一支已经跑远了，不管
+      m=Math.max(m, cabs(csub(a[i],b[i])));
+    }
+    return m;
+  }
+
+  // 初始采样：前密后疏（小 K 处轨迹变化快）
+  var pts = [];
+  for(var i=0;i<=N;i++){
+    var K = Kmin + (Kmax-Kmin)*Math.pow(i/N, 2.2);
+    pts.push({K:K, r:rootsAt(K)});
+  }
+  // 先配一遍序
+  for(var j=0;j<pts.length;j++) pts[j].r = order(pts[j].r, j?pts[j-1].r:null);
+
+  /* 自适应细分：靠近重根时根按 √(K−K₀) 移动，任何等距 K 采样都会在那里拉出折线。
+     凡是相邻两点跨度超过阈值就插中点，反复几轮。
+     阈值要按「开环零极点所在那一簇」的尺度来定，不能按全体根的最大模——
+     跑向无穷远的那一支会把尺度撑大几十倍，于是感兴趣的区域一次也细分不到。 */
+  var pz = roots(den).concat(roots(num)).filter(function(v){return isFinite(v.re);});
+  pz.forEach(function(v){ cxm+=v.re; cym+=v.im; });
+  if(pz.length){ cxm/=pz.length; cym/=pz.length; }
+  pz.forEach(function(v){ cluster=Math.max(cluster, cabs(csub(v, cx(cxm,cym)))); });
+  var tol = cluster*0.012;
+  farLimit = cluster*6;
+  for(var pass=0; pass<9 && pts.length<4000; pass++){
+    var out=[pts[0]], changed=false;
+    for(var k=1;k<pts.length;k++){
+      if(spread(pts[k-1].r, pts[k].r) > tol && (pts[k].K-pts[k-1].K) > 1e-12){
+        var Km=(pts[k-1].K+pts[k].K)/2;
+        var mid={K:Km, r:order(rootsAt(Km), pts[k-1].r)};
+        out.push(mid); changed=true;
+        pts[k].r = order(pts[k].r, mid.r);
+      }
+      out.push(pts[k]);
+    }
+    pts=out;
+    if(!changed) break;
+  }
+
+  var Ks=[], branches=[]; for(var b=0;b<nb;b++) branches.push([]);
+  for(var u=0;u<pts.length;u++){
+    Ks.push(pts[u].K);
+    for(var m=0;m<nb;m++) branches[m].push(pts[u].r[m]);
+  }
+  return {K:Ks, branches:branches};
+}
+
+/** 矢量法：在点 s 处算开环 G(s)=num/den 的幅值、相角（度），以及各因子的模与角 */
+function vectorEval(num, den, s){
+  var zs = roots(num), ps = roots(den);
+  var zi = zs.map(function(z){ var v=csub(s,z); return {root:z, mag:cabs(v), ang:carg(v)*180/Math.PI}; });
+  var pi = ps.map(function(p){ var v=csub(s,p); return {root:p, mag:cabs(v), ang:carg(v)*180/Math.PI}; });
+  var G = cdiv(polyVal(num,s), polyVal(den,s));
+  var angle = carg(G)*180/Math.PI;
+  // 落在根轨迹上的判据：∠G = 180° + k·360°
+  var norm = ((angle % 360) + 360) % 360;
+  var onLocus = Math.abs(norm - 180) < 1.0;
+  return {
+    mag: cabs(G), angle: angle, zeros: zi, poles: pi,
+    onLocus: onLocus,
+    K: cabs(G) > 1e-12 ? 1/cabs(G) : Infinity            // |K·G|=1 ⇒ K = 1/|G|
+  };
+}
+
+/**
+ * Routh 阵列。输入特征多项式降幂系数。
+ * 返回 {rows, signChanges, rhp, notes}
+ * notes 里记录用到的特殊处理：'epsilon'（第一列出现 0）/'auxiliary'（整行为零）
+ */
+function routh(coefIn){
+  var a = polyTrim(coefIn.slice());
+  var n = a.length-1;
+  if(n<1) return {rows:[a.slice()], signChanges:0, rhp:0, notes:[]};
+  var width = Math.floor(n/2)+1;
+  var rows = [], notes = [];
+  var r0 = [], r1 = [];
+  for(var i=0;i<=n;i+=2) r0.push(a[i]);
+  for(var j=1;j<=n;j+=2) r1.push(a[j]);
+  while(r0.length<width) r0.push(0);
+  while(r1.length<width) r1.push(0);
+  rows.push(r0); rows.push(r1);
+
+  var EPS = 1e-8;
+  for(var k=2;k<=n;k++){
+    var A = rows[k-2], B = rows[k-1];
+    // 特殊情形一：整行为零 -> 用上一行做辅助多项式并求导
+    var allZero = B.every(function(v){return Math.abs(v)<1e-12;});
+    if(allZero){
+      notes.push({row:k-1, type:'auxiliary'});
+      var ord = n-(k-2);                                  // 上一行对应的 s 次数
+      var aux = [];
+      for(var m=0;m<A.length;m++){ if(ord-2*m >= 0) aux.push({c:A[m], p:ord-2*m}); }
+      var der = aux.filter(function(x){return x.p>0;}).map(function(x){return x.c*x.p;});
+      for(var t=0;t<B.length;t++) B[t] = (t<der.length) ? der[t] : 0;
+    }
+    // 特殊情形二：首元为零但整行不全为零 -> 用 ε 代替
+    if(Math.abs(B[0])<1e-12){
+      notes.push({row:k-1, type:'epsilon'});
+      B[0] = EPS;
+    }
+    var row = [];
+    for(var c=0;c<width;c++){
+      var a2 = (c+1<A.length)?A[c+1]:0, b2 = (c+1<B.length)?B[c+1]:0;
+      row.push((B[0]*a2 - A[0]*b2)/B[0]);
+    }
+    rows.push(row);
+  }
+  // 第一列变号次数 = 右半平面极点数
+  var col = rows.map(function(r){return r[0];});
+  var sc = 0;
+  for(var q=1;q<col.length;q++){
+    if(Math.abs(col[q])<1e-14) continue;
+    var prev = null;
+    for(var w=q-1;w>=0;w--){ if(Math.abs(col[w])>1e-14){ prev=col[w]; break; } }
+    if(prev!==null && prev*col[q] < 0) sc++;
+  }
+  return {rows:rows, signChanges:sc, rhp:sc, notes:notes};
+}
+
+/* ------------------------------------------------------------ 频率响应 */
+
+/** 频率响应：返回 {w, mag, phaseDeg}，相角已解缠（unwrap），否则画出来会有 ±360 跳变 */
+function freqResponse(num, den, wMin, wMax, N){
+  N = N||300;
+  var W=[], M=[], P=[];
+  var last=null, off=0;
+  for(var i=0;i<=N;i++){
+    var w = wMin*Math.pow(wMax/wMin, i/N);
+    var G = cdiv(polyVal(num, cx(0,w)), polyVal(den, cx(0,w)));
+    var ph = carg(G)*180/Math.PI + off;
+    if(last!==null){
+      while(ph-last >  180){ ph -= 360; off -= 360; }
+      while(ph-last < -180){ ph += 360; off += 360; }
+    }
+    last = ph;
+    W.push(w); M.push(cabs(G)); P.push(ph);
+  }
+  return {w:W, mag:M, phaseDeg:P};
+}
+
+
+/* ============================================================================
+   plot.js — 给控制课学习页用的极简 SVG 绘图层
+   只依赖 ctrl-core.js 的数据，不依赖任何外部库。
+   配色规则照 RTCS 模板：中性元素用 currentColor + opacity（自动跟随明暗主题），
+   强调色硬编码 #2F6F8F（SVG 属性里 var() 不稳），其余语义色开页时从 CSS 变量读一次。
+   ==========================================================================*/
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+
+/** 数字转文本，负号用 U+2212（排版约定），不是 ASCII 连字符。 */
+function nf(v, d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  return s.replace(/-/g, '−');
+}
+/** 复数转文本，同样用 U+2212 */
+function nfc(v, d){
+  d = (d===undefined)?4:d;
+  return nf(v.re,d) + (v.im>=0 ? ' + j' : ' − j') + nf(Math.abs(v.im),d);
+}
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+/** 从 CSS 变量读语义色。暗色模式切换后重新调用即可拿到新值。 */
+function themeColors(){
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  return {
+    accent: g('--accent', '#2F6F8F'),
+    warn:   g('--warn',   '#B4534B'),
+    ok:     g('--ok',     '#3F8A63'),
+    exam:   g('--exam',   '#9A6B2F'),
+    muted:  g('--muted',  '#5C6673'),
+    faint:  g('--faint',  '#8A929C')
+  };
+}
+
+/**
+ * 一块直角坐标画布。
+ * opts: {w,h, xmin,xmax,ymin,ymax, padL,padR,padT,padB, xlabel,ylabel, title}
+ * 数据坐标 → 像素坐标：
+ *   px = padL + (x - xmin)/(xmax - xmin) * plotW
+ *   py = padT + (ymax - y)/(ymax - ymin) * plotH      ← 减法负责把数学 y 向上翻成 SVG y 向下
+ */
+function Plot(opts){
+  var o = opts || {};
+  this.w = o.w || 640; this.h = o.h || 300;
+  this.padL = (o.padL!==undefined)?o.padL:52;
+  this.padR = (o.padR!==undefined)?o.padR:16;
+  this.padT = (o.padT!==undefined)?o.padT:14;
+  this.padB = (o.padB!==undefined)?o.padB:38;
+  this.xmin=o.xmin; this.xmax=o.xmax; this.ymin=o.ymin; this.ymax=o.ymax;
+  this.xlabel=o.xlabel||''; this.ylabel=o.ylabel||'';
+  this.logX = !!o.logX;
+  this.c = themeColors();
+  this.svg = svgEl('svg', {
+    viewBox:'0 0 '+this.w+' '+this.h,
+    role:'img', 'aria-label': o.title || o.ariaLabel || '图'
+  });
+  this.svg.style.display='block'; this.svg.style.width='100%'; this.svg.style.height='auto';
+  this.g = svgEl('g', {'font-family':'inherit','font-size':'11.5'});
+  this.svg.appendChild(this.g);
+}
+Plot.prototype.plotW = function(){ return this.w - this.padL - this.padR; };
+Plot.prototype.plotH = function(){ return this.h - this.padT - this.padB; };
+Plot.prototype.X = function(x){
+  if(this.logX){
+    var a=Math.log10(this.xmin), b=Math.log10(this.xmax);
+    return this.padL + (Math.log10(x)-a)/(b-a)*this.plotW();
+  }
+  return this.padL + (x-this.xmin)/(this.xmax-this.xmin)*this.plotW();
+};
+Plot.prototype.Y = function(y){
+  return this.padT + (this.ymax-y)/(this.ymax-this.ymin)*this.plotH();
+};
+Plot.prototype.add = function(e){ this.g.appendChild(e); return e; };
+
+/** 反变换：像素 → 数据（给点击取点用） */
+Plot.prototype.invX = function(px){ return this.xmin + (px-this.padL)/this.plotW()*(this.xmax-this.xmin); };
+Plot.prototype.invY = function(py){ return this.ymax - (py-this.padT)/this.plotH()*(this.ymax-this.ymin); };
+
+/** 自动挑「好看」的刻度间隔：1/2/5 × 10^k */
+function niceStep(span, target){
+  var raw = span/(target||6);
+  var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  var n = raw/mag;
+  var m = (n<1.5)?1:(n<3)?2:(n<7)?5:10;
+  return m*mag;
+}
+function fmtTick(v, step){
+  if(Math.abs(v) < step*1e-9) return '0';
+  var dec = Math.max(0, -Math.floor(Math.log10(step)));
+  if(dec>4) return v.toExponential(1);
+  return v.toFixed(dec);
+}
+
+/** 画坐标框、刻度、轴标。opts:{grid:true, xTicks:n, yTicks:n, zeroLines:true} */
+Plot.prototype.axes = function(opts){
+  var o=opts||{}, self=this;
+  var L=this.padL, R=this.w-this.padR, T=this.padT, B=this.h-this.padB;
+  // 外框
+  this.add(svgEl('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',
+    stroke:'currentColor','stroke-opacity':0.25,'stroke-width':1}));
+  // x 刻度
+  if(this.logX){
+    var d0=Math.ceil(Math.log10(this.xmin)), d1=Math.floor(Math.log10(this.xmax));
+    for(var d=d0; d<=d1; d++){
+      var xv=Math.pow(10,d), px=this.X(xv);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+px+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+px+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var lab=(d===0)?'1':(d===1?'10':'10^'+d);
+      var tk=svgEl('text',{x:px,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      if(d===0||d===1){ tk.textContent=lab; }
+      else { tk.textContent='10'; var sup=svgEl('tspan',{dy:-4,'font-size':'8.5'}); sup.textContent=String(d); tk.appendChild(sup); }
+      this.add(tk);
+    }
+  } else {
+    var sx=niceStep(this.xmax-this.xmin, o.xTicks||6);
+    for(var x=Math.ceil(this.xmin/sx)*sx; x<=this.xmax+sx*1e-9; x+=sx){
+      var pxx=this.X(x);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+pxx+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+pxx+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var t1=svgEl('text',{x:pxx,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      t1.textContent=fmtTick(x,sx); this.add(t1);
+    }
+  }
+  // y 刻度
+  var sy=niceStep(this.ymax-this.ymin, o.yTicks||5);
+  for(var y=Math.ceil(this.ymin/sy)*sy; y<=this.ymax+sy*1e-9; y+=sy){
+    var py=this.Y(y);
+    if(o.grid!==false) this.add(svgEl('path',{d:'M'+L+','+py+' H'+R,
+      stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+    this.add(svgEl('path',{d:'M'+L+','+py+' h-5',stroke:'currentColor','stroke-opacity':0.35}));
+    var t2=svgEl('text',{x:L-8,y:py+4,'text-anchor':'end',fill:'currentColor','fill-opacity':0.6});
+    t2.textContent=fmtTick(y,sy); this.add(t2);
+  }
+  // 零线加重
+  if(o.zeroLines!==false){
+    if(this.ymin<0 && this.ymax>0)
+      this.add(svgEl('path',{d:'M'+L+','+this.Y(0)+' H'+R,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+    if(!this.logX && this.xmin<0 && this.xmax>0)
+      this.add(svgEl('path',{d:'M'+this.X(0)+','+T+' V'+B,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+  }
+  if(this.xlabel){
+    var xl=svgEl('text',{x:(L+R)/2,y:this.h-6,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12'});
+    xl.textContent=this.xlabel; this.add(xl);
+  }
+  if(this.ylabel){
+    var yl=svgEl('text',{x:12,y:(T+B)/2,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12',
+      transform:'rotate(-90 12 '+((T+B)/2)+')'});
+    yl.textContent=this.ylabel; this.add(yl);
+  }
+  return this;
+};
+
+/** 把超出视窗的点截断成 null，避免发散曲线把画面拉飞 */
+Plot.prototype.curve = function(xs, ys, opt){
+  var o=opt||{}, pts=[], segs=[], self=this;
+  var yLo=this.ymin-(this.ymax-this.ymin)*0.5, yHi=this.ymax+(this.ymax-this.ymin)*0.5;
+  for(var i=0;i<xs.length;i++){
+    var y=ys[i];
+    if(!isFinite(y) || y<yLo || y>yHi){ if(pts.length){segs.push(pts); pts=[];} continue; }
+    if(this.logX && xs[i]<=0){ continue; }
+    pts.push(this.X(xs[i]).toFixed(2)+','+this.Y(y).toFixed(2));
+  }
+  if(pts.length) segs.push(pts);
+  for(var s=0;s<segs.length;s++){
+    this.add(svgEl('polyline',{points:segs[s].join(' '),fill:'none',
+      stroke:o.color||this.c.accent,'stroke-width':o.width||1.9,
+      'stroke-dasharray':o.dash||null,'stroke-linejoin':'round','stroke-linecap':'round',
+      'stroke-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  }
+  return this;
+};
+Plot.prototype.hline = function(y,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.padL+','+this.Y(y)+' H'+(this.w-this.padR),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.vline = function(x,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.X(x)+','+this.padT+' V'+(this.h-this.padB),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.dot = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||4,
+    fill:o.fill||o.color||this.c.accent, stroke:o.stroke||'none','stroke-width':o.sw||0,
+    'fill-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  return this;
+};
+/** 叉号，用来标极点 */
+Plot.prototype.cross = function(x,y,opt){
+  var o=opt||{}, r=o.r||5, px=this.X(x), py=this.Y(y);
+  this.add(svgEl('path',{d:'M'+(px-r)+','+(py-r)+' L'+(px+r)+','+(py+r)+
+    ' M'+(px-r)+','+(py+r)+' L'+(px+r)+','+(py-r),
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2,'stroke-linecap':'round'}));
+  return this;
+};
+/** 空心圆，用来标零点 */
+Plot.prototype.circleMark = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||5,fill:'none',
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2}));
+  return this;
+};
+Plot.prototype.text = function(x,y,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:this.X(x)+(o.dx||0), y:this.Y(y)+(o.dy||0),
+    'text-anchor':o.anchor||'middle', fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),
+    'font-size':o.size||'11.5','font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 像素坐标直接放文字（图例等） */
+Plot.prototype.pxText = function(px,py,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:px,y:py,'text-anchor':o.anchor||'start',fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),'font-size':o.size||'11.5',
+    'font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 图例：items=[{label,color,dash}] */
+Plot.prototype.legend = function(items, px, py){
+  var y=py;
+  for(var i=0;i<items.length;i++){
+    this.add(svgEl('path',{d:'M'+px+','+(y-4)+' h18',stroke:items[i].color,
+      'stroke-width':items[i].width||2.2,'stroke-dasharray':items[i].dash||null}));
+    this.pxText(px+24, y, items[i].label, {size:'11'});
+    y += 15;
+  }
+  return this;
+};
+/** 一段折线的极坐标圆弧（画等阻尼线、圆形轨迹用） */
+Plot.prototype.arc = function(cx0, cy0, r, a0, a1, opt){
+  var o=opt||{}, pts=[], N=o.N||120;
+  for(var i=0;i<=N;i++){
+    var a=a0+(a1-a0)*i/N;
+    pts.push(this.X(cx0+r*Math.cos(a)).toFixed(2)+','+this.Y(cy0+r*Math.sin(a)).toFixed(2));
+  }
+  this.add(svgEl('polyline',{points:pts.join(' '),fill:'none',stroke:o.color||this.c.faint,
+    'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||null,
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.7)}));
+  return this;
+};
+/** 挂到容器里（先清空） */
+Plot.prototype.mountTo = function(elOrId){
+  var host = (typeof elOrId==='string') ? document.getElementById(elOrId) : elOrId;
+  if(!host) return this;
+  host.innerHTML='';
+  host.appendChild(this.svg);
+  return this;
+};
+
+/* ===================== A-II 交互件 ===================== */
+
+/* ---------- 1/(s+3) 受延时 2 s 的单位阶跃 ---------- */
+function drawDelayedStep(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  var xs=[],ys=[];
+  for(var i=0;i<=600;i++){
+    var t=5*i/600;
+    ys.push(t<2 ? 0 : (1/3)*(1-Math.exp(-3*(t-2))));
+    xs.push(t);
+  }
+  var p=new Plot({w:660,h:280,xmin:0,xmax:5,ymin:-0.03,ymax:0.4,padL:54,padB:40,
+    xlabel:'时间 t (s)', ylabel:'y(t)',
+    title:'一阶环节受延时 2 秒的阶跃输入，输出波形'});
+  p.axes({xTicks:5,yTicks:5});
+  p.hline(1/3,{color:p.c.ok,dash:'6 4',width:1.4});
+  p.pxText(p.X(4.1),p.Y(1/3)-7,'终值 1/3',{color:p.c.ok,size:'11.5',weight:'600',opacity:1});
+  p.vline(2,{color:p.c.warn,dash:'4 3',width:1.3,opacity:.8});
+  p.pxText(p.X(2)+6,p.padT+16,'t = 2 s 起跳',{color:p.c.warn,size:'11.5',weight:'600',opacity:1});
+  // t<2 那段严格贴 0，加粗强调
+  p.curve([0,2],[0,0],{color:'#2F6F8F',width:3.2});
+  p.curve(xs,ys,{color:'#2F6F8F',width:2.4});
+  [[2,0],[3,(1/3)*(1-Math.exp(-3))],[4,(1/3)*(1-Math.exp(-6))]].forEach(function(q){
+    p.dot(q[0],q[1],{color:p.c.exam,r:4});
+    p.pxText(p.X(q[0])+7,p.Y(q[1])+(q[0]===2?16:-8),
+      't='+q[0]+' → '+q[1].toFixed(4),{color:p.c.exam,size:'11',weight:'600',opacity:1});
+  });
+  p.pxText(p.X(0.15),p.Y(0.055),'t < 2：严格为 0',{size:'11.5',opacity:.65});
+  p.pxText(p.X(0.15),p.Y(0.02),'e^(−2s) 只是原样右移，形状没变',{size:'10.5',opacity:.5});
+  p.mountTo(host);
+}
+
+/* ---------- 极点位置 ↔ 冲激响应 ---------- */
+/* h(t) 取一对共轭极点 σ±jω 的模态：h(t) = 2 e^(σt) cos(ωt)；ω = 0 时退化成 e^(σt)。 */
+var PI_PRESETS = {
+  negreal:  {s:-0.8, w:0,    name:'负实轴'},
+  lhp:      {s:-0.4, w:3.0,  name:'左半平面共轭对'},
+  jw:       {s:0,    w:3.0,  name:'虚轴上一对'},
+  origin:   {s:0,    w:0,    name:'原点'},
+  rhp:      {s:0.35, w:3.0,  name:'右半平面'}
+};
+function piSet(k){
+  var q=PI_PRESETS[k];
+  document.getElementById('piSig').value=q.s;
+  document.getElementById('piOmg').value=q.w;
+  piGo();
+}
+function piGo(){
+  var sig=parseFloat(document.getElementById('piSig').value);
+  var omg=parseFloat(document.getElementById('piOmg').value);
+  if(!isFinite(sig)) sig=0; if(!isFinite(omg)) omg=0;
+  document.getElementById('piSigV').textContent=nf(sig,2);
+  document.getElementById('piOmgV').textContent=nf(omg,2);
+
+  /* 左：s 平面 */
+  var sp=new Plot({w:300,h:290,xmin:-1.6,xmax:1.0,ymin:-5,ymax:5,padL:42,padB:38,padR:12,
+    xlabel:'Re (σ)', ylabel:'Im (ω)', title:'s 平面上的极点位置'});
+  sp.axes({xTicks:4,yTicks:5});
+  // 右半平面底色
+  sp.g.insertBefore(svgEl('rect',{x:sp.X(0),y:sp.padT,width:sp.X(1.0)-sp.X(0),height:sp.plotH(),
+    fill:sp.c.warn,'fill-opacity':.07}), sp.g.firstChild);
+  sp.pxText(sp.X(0.5),sp.padT+14,'不稳定区',{color:sp.c.warn,size:'10.5',anchor:'middle',opacity:.85});
+  // 五类参考位置（淡）
+  for(var k in PI_PRESETS){
+    var q=PI_PRESETS[k];
+    sp.cross(q.s,q.w,{color:sp.c.faint,r:4,width:1.4});
+    if(q.w!==0) sp.cross(q.s,-q.w,{color:sp.c.faint,r:4,width:1.4});
+  }
+  // 当前
+  sp.cross(sig,omg,{color:'#2F6F8F',r:7,width:2.6});
+  if(omg!==0) sp.cross(sig,-omg,{color:'#2F6F8F',r:7,width:2.6});
+  sp.mountTo('piPlane');
+
+  /* 右：h(t) */
+  var xs=[],ys=[];
+  for(var i=0;i<=700;i++){
+    var t=8*i/700;
+    ys.push(omg===0 ? Math.exp(sig*t) : 2*Math.exp(sig*t)*Math.cos(omg*t));
+    xs.push(t);
+  }
+  var lim = omg===0?2.2:3.2;
+  var hp=new Plot({w:390,h:290,xmin:0,xmax:8,ymin:-lim,ymax:lim,padL:46,padB:38,padR:12,
+    xlabel:'时间 t', ylabel:'h(t)', title:'对应的冲激响应'});
+  hp.axes({xTicks:5,yTicks:5});
+  // 包络 e^(σt)
+  if(omg!==0){
+    var env=xs.map(function(t){return 2*Math.exp(sig*t);});
+    hp.curve(xs,env,{color:hp.c.exam,width:1.3,dash:'5 4',opacity:.85});
+    hp.curve(xs,env.map(function(v){return -v;}),{color:hp.c.exam,width:1.3,dash:'5 4',opacity:.85});
+    hp.pxText(hp.w-hp.padR-4,hp.padT+14,'包络 ±2e^(σt)',{color:hp.c.exam,size:'10.5',anchor:'end',opacity:1});
+  }
+  hp.curve(xs,ys,{color:'#2F6F8F',width:2.2});
+  hp.mountTo('piResp');
+
+  /* 判定文字 */
+  var verdict, cls;
+  if(sig<-1e-9){ verdict='σ < 0 ⇒ 包络衰减，稳定'; cls='good'; }
+  else if(sig>1e-9){ verdict='σ > 0 ⇒ 包络发散，不稳定'; cls='bad'; }
+  else { verdict = (omg===0) ? 'σ = 0 且 ω = 0 ⇒ 常数，不回落（临界）' : 'σ = 0 ⇒ 等幅振荡（临界）'; cls=''; }
+  var shape = omg===0
+    ? (sig<0?'单调衰减的指数':(sig>0?'单调发散的指数':'常数'))
+    : (sig<0?'衰减的振荡':(sig>0?'发散的振荡':'等幅振荡'));
+  document.getElementById('piOut').innerHTML =
+    '<div>极点 <span class="m">p = '+nf(sig,2)+' + j'+nf(Math.abs(omg),2)+'</span>'+
+    (omg!==0?'（及其共轭）':'')+'　→　时域模态：<strong>'+shape+'</strong></div>'+
+    '<div style="margin-top:.35rem"><strong class="'+cls+'">'+verdict+'</strong>'+
+    (omg!==0?'；虚部 ω = '+Math.abs(omg).toFixed(2)+' 定振荡快慢，周期 '+(2*Math.PI/Math.abs(omg)).toFixed(2)+'':'')+
+    '</div>';
+}
+
+/* ---------- 一阶滞后的相位上界与三个例外 ---------- */
+function drawPhaseLag(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  var p=new Plot({w:700,h:330,xmin:0.02,xmax:50,ymin:-290,ymax:10,logX:true,
+    padL:56,padB:42,xlabel:'频率 ω (rad/s，对数轴)', ylabel:'相角 (°)',
+    title:'一阶滞后串联的总相角，以及三个让两个极点就够的例外'});
+  p.axes({yTicks:6});
+  p.hline(-180,{color:p.c.warn,dash:'6 4',width:1.6});
+  p.pxText(p.padL+6,p.Y(-180)-7,'−180°：凑够这么多才可能失稳',{color:p.c.warn,size:'11.5',weight:'600',opacity:1});
+  p.hline(-90,{color:p.c.faint,dash:'3 3',width:1,opacity:.6});
+  p.pxText(p.padL+6,p.Y(-90)-6,'−90°：一节滞后取不到的上界',{size:'10.5',opacity:.55});
+
+  var ws=[]; for(var i=0;i<=400;i++) ws.push(0.02*Math.pow(50/0.02, i/400));
+  function lagPhase(n){ return ws.map(function(w){ return -n*Math.atan(w)*180/Math.PI; }); }
+  p.curve(ws,lagPhase(1),{color:'#2F6F8F',width:2.4});
+  p.curve(ws,lagPhase(2),{color:'#2F6F8F',width:1.9,opacity:.62});
+  p.curve(ws,lagPhase(3),{color:'#2F6F8F',width:1.9,opacity:.40});
+  p.pxText(p.X(30),p.Y(-88),'1 节',{color:'#2F6F8F',size:'11',weight:'600',opacity:1});
+  p.pxText(p.X(30),p.Y(-176),'2 节（趋近但取不到）',{color:'#2F6F8F',size:'11',weight:'600',anchor:'end',opacity:.85});
+  p.pxText(p.X(30),p.Y(-262),'3 节',{color:'#2F6F8F',size:'11',weight:'600',opacity:.7});
+  // 3 节与 −180° 的交点：3·atan(ω)=180 ⇒ ω = tan(60°) = √3
+  var wc=Math.sqrt(3);
+  p.dot(wc,-180,{color:p.c.warn,r:5});
+  p.pxText(p.X(wc),p.Y(-180)+18,'ω = √3 ≈ 1.732',{color:p.c.warn,size:'11',weight:'600',anchor:'middle',opacity:1});
+
+  // 例外一：K/s²  恒 −180°
+  p.curve(ws, ws.map(function(){return -180;}), {color:p.c.ok,width:1.8,dash:'7 4'});
+  p.pxText(p.X(0.035),p.Y(-171),'例外① K/s²：恒 −180°',{color:p.c.ok,size:'11',weight:'600',opacity:1});
+  // 例外二：K(1−s)/(s(s+1))  在 ω=1 处恰 −180°
+  var ex2 = ws.map(function(w){
+    var num={re:1,im:-w};                       // 1 − jω
+    var den={re:-w*w, im:w};                    // (jω)(jω+1) = −ω² + jω
+    var a=Math.atan2(num.im,num.re)-Math.atan2(den.im,den.re);
+    var d=a*180/Math.PI; while(d>10) d-=360; while(d<-350) d+=360; return d;
+  });
+  p.curve(ws,ex2,{color:p.c.exam,width:1.8,dash:'7 4'});
+  p.dot(1,-180,{color:p.c.exam,r:4.5});
+  p.pxText(p.X(1)-8,p.Y(-180)-9,'例外② ω=1 恰 −180°',{color:p.c.exam,size:'11',weight:'600',anchor:'end',opacity:1});
+  // 例外三：纯延时 e^(−Ts)，T=1，相位 −ωT 线性无下界
+  var ex3 = ws.map(function(w){ var d=-w*180/Math.PI; return d<-290?NaN:d; });
+  p.curve(ws,ex3,{color:p.c.muted,width:1.8,dash:'2 3'});
+  p.pxText(p.X(4.6),p.Y(-250),'例外③ 纯延时 e^(−Ts)：无下界',{color:p.c.muted,size:'11',weight:'600',anchor:'end',opacity:1});
+  p.mountTo(host);
+}
+
+/* ---------- 终值定理的两个反例 ---------- */
+function drawFvtTrap(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  host.innerHTML='';
+  var wrap=document.createElement('div');
+  wrap.style.display='grid';
+  wrap.style.gridTemplateColumns='repeat(auto-fit,minmax(280px,1fr))';
+  wrap.style.gap='.9rem';
+  var d1=document.createElement('div'), d2=document.createElement('div');
+  wrap.appendChild(d1); wrap.appendChild(d2); host.appendChild(wrap);
+
+  // 左：y = e^t − 1，FVT 给 −1
+  var xs=[],ys=[];
+  for(var i=0;i<=400;i++){ var t=4*i/400; xs.push(t); ys.push(Math.exp(t)-1); }
+  var p1=new Plot({w:340,h:250,xmin:0,xmax:4,ymin:-3,ymax:14,padL:44,padB:38,padR:12,
+    xlabel:'t', ylabel:'y(t)', title:'Y(s)=1/(s(s−1))：FVT 给 −1，真实解发散'});
+  p1.axes({xTicks:4,yTicks:5});
+  p1.hline(-1,{color:p1.c.warn,dash:'6 4',width:1.6});
+  p1.pxText(p1.padL+6,p1.Y(-1)-7,'FVT 算出的「终值」= −1',{color:p1.c.warn,size:'11',weight:'600',opacity:1});
+  p1.curve(xs,ys,{color:'#2F6F8F',width:2.4});
+  p1.pxText(p1.X(2.35),p1.Y(11),'y(t) = e^t − 1',{color:'#2F6F8F',size:'11.5',weight:'600',opacity:1});
+  p1.pxText(p1.X(2.0),p1.Y(6.5),'冲出画面，永不回头',{size:'10.5',opacity:.6});
+  p1.mountTo(d1);
+
+  // 右：y = sin t，FVT 给 0
+  var x2=[],y2=[];
+  for(var j=0;j<=600;j++){ var u=20*j/600; x2.push(u); y2.push(Math.sin(u)); }
+  var p2=new Plot({w:340,h:250,xmin:0,xmax:20,ymin:-1.5,ymax:1.5,padL:44,padB:38,padR:12,
+    xlabel:'t', ylabel:'y(t)', title:'Y(s)=1/(s²+1)：FVT 给 0，真实解无极限'});
+  p2.axes({xTicks:5,yTicks:4});
+  p2.hline(0,{color:p2.c.warn,dash:'6 4',width:1.6});
+  p2.pxText(p2.padL+6,p2.Y(0)-7,'FVT 算出的「终值」= 0',{color:p2.c.warn,size:'11',weight:'600',opacity:1});
+  p2.curve(x2,y2,{color:'#2F6F8F',width:2.2});
+  p2.pxText(p2.X(10),p2.Y(1.25),'y(t) = sin t，等幅摆动',{color:'#2F6F8F',size:'11.5',weight:'600',anchor:'middle',opacity:1});
+  p2.mountTo(d2);
+}
+
+/* ---------- Routh 阵列生成器 ---------- */
+function routhSet(s){ document.getElementById('rhIn').value=s; routhGo(); }
+function routhGo(){
+  var raw=document.getElementById('rhIn').value.trim();
+  var out=document.getElementById('rhOut'), tbl=document.getElementById('rhTable');
+  var parts=raw.split(/[\s,]+/).filter(function(x){return x.length;});
+  var coef=parts.map(Number);
+  if(!parts.length || coef.some(function(v){return !isFinite(v);})){
+    tbl.innerHTML=''; out.innerHTML='<span class="bad">请输入降幂排列的实系数，用空格或逗号分隔，例如 <code>1 1 1 6</code></span>';
+    return;
+  }
+  if(coef.length<2){ tbl.innerHTML=''; out.innerHTML='<span class="bad">至少要两个系数（一次以上）</span>'; return; }
+  if(coef.length>9){ tbl.innerHTML=''; out.innerHTML='<span class="bad">这里最多支持 8 阶</span>'; return; }
+
+  var R=routh(coef);
+  var n=coef.length-1;
+  // 多项式回显
+  var terms=[];
+  for(var i=0;i<coef.length;i++){
+    var pw=n-i, c=coef[i];
+    if(Math.abs(c)<1e-14) continue;
+    var cs=(Math.abs(Math.abs(c)-1)<1e-14 && pw>0)?'':String(Math.abs(c));
+    var t=(pw===0)?String(Math.abs(c)):(pw===1?cs+'s':cs+'s<sup>'+pw+'</sup>');
+    terms.push((terms.length===0?(c<0?'−':''):(c<0?' − ':' + '))+t);
+  }
+  var epsRows=R.notes.filter(function(x){return x.type==='epsilon';}).map(function(x){return x.row;});
+  var auxRows=R.notes.filter(function(x){return x.type==='auxiliary';}).map(function(x){return x.row;});
+
+  var ncol=R.rows[0].length;
+  var html='<table class="compact" style="max-width:100%;table-layout:fixed"><thead><tr><th style="width:3.6rem">行</th>';
+  for(var c2=0;c2<ncol;c2++) html+='<th style="width:6.5rem">'+(c2===0?'第一列':'')+'</th>';
+  html+='<th>说明</th></tr></thead><tbody>';
+  for(var r=0;r<R.rows.length;r++){
+    var note='';
+    if(epsRows.indexOf(r)>=0) note='<span class="bad">首元为 0 → 用 ε 代替</span>';
+    if(auxRows.indexOf(r)>=0) note='<span class="bad">整行为零 → 辅助多项式求导</span>';
+    html+='<tr><td class="mono">s<sup>'+(n-r)+'</sup></td>';
+    for(var c3=0;c3<R.rows[r].length;c3++){
+      var v=R.rows[r][c3];
+      var txt=(Math.abs(v)<1e-12)?'0':(Math.abs(v)<1e-4||Math.abs(v)>1e5)?nf(v.toExponential(3)):nf((+v.toFixed(6)).toString());
+      var style=(c3===0)?' style="font-weight:700"':'';
+      var col=(c3===0 && v<0)?' class="bad mono"':' class="mono"';
+      html+='<td'+col+style+'>'+txt+'</td>';
+    }
+    html+='<td style="font-size:13px">'+note+'</td></tr>';
+  }
+  html+='</tbody></table>';
+  tbl.innerHTML=html;
+
+  // 用独立求根交叉验证
+  var rr=roots(coef);
+  var rhpTrue=rr.filter(function(v){return v.re>1e-9;}).length;
+  var onAxis=rr.filter(function(v){return Math.abs(v.re)<=1e-9;}).length;
+  var agree=(R.rhp===rhpTrue);
+  var rootStr=rr.map(function(v){ return nfc(v,4); }).join('　');
+
+  out.innerHTML=
+    '<div><span class="m">'+terms.join('')+'</span></div>'+
+    '<div style="margin-top:.5rem">第一列变号 <strong>'+R.signChanges+'</strong> 次 ⇒ 右半平面极点 <strong>'+R.rhp+'</strong> 个 ⇒ '+
+      (R.rhp===0 ? (onAxis>0
+          ? '<strong>临界：没有右半平面极点，但有 '+onAxis+' 个极点落在虚轴上</strong>'
+          : '<strong class="good">稳定</strong>')
+        : '<strong class="bad">不稳定</strong>')+'</div>'+
+    '<div style="margin-top:.5rem;font-size:14px;opacity:.8">直接求根核对：'+rootStr+'</div>'+
+    '<div style="font-size:14px">求根得右半平面 '+rhpTrue+' 个 —— '+
+      (agree?'<span class="good">与 Routh 结果一致 ✓</span>':'<span class="bad">与 Routh 不一致，请检查</span>')+'</div>';
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+drawDelayedStep('dsPlot');
+piGo();
+drawPhaseLag('plPlot');
+drawFvtTrap('fvtPlot');
+routhGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+</script>
+</body>
+</html>

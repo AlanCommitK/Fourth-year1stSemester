@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A-III 增益、根轨迹与系统特性 · 控制</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充 ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+    color:var(--accent); min-width:4rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+/* 一组「标签 + 滑块 + 读数」必须整组换行，不能让标签留在上一行 */
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">控制 · Part A-III</div>
+  <div class="tt">增益、根轨迹与系统特性</div>
+  <div class="toc">
+<a href="#s1">1 · 向量法</a>
+<a href="#s2">2 · 反馈与特征方程</a>
+<a href="#s3">3 · 增益改变了什么</a>
+<a href="#s3-1" class="sub">3.1 二阶标准形</a>
+<a href="#s3-2" class="sub">3.2 无人机定高</a>
+<a href="#s4">4 · 轨迹的两个条件</a>
+<a href="#s4-1" class="sub">4.1 相角与幅值</a>
+<a href="#s4-2" class="sub">4.2 实轴判据</a>
+<a href="#s4-3" class="sub">4.3 渐近线</a>
+<a href="#s4-4" class="sub">4.4 判一个点</a>
+<a href="#s5">5 · 轨迹上的三个地标</a>
+<a href="#s5-1" class="sub">5.1 分离点与会合点</a>
+<a href="#s5-2" class="sub">5.2 虚轴穿越</a>
+<a href="#s5-3" class="sub">5.3 出射角</a>
+<a href="#s6">6 · 综合例：机械臂</a>
+<a href="#s6-1" class="sub">6.1 圆形轨迹</a>
+<a href="#s6-2" class="sub">6.2 增益该怎么选</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Part A-III — Gain, Root Locus and System Characteristics</div>
+  <h1>增益、根轨迹与系统特性</h1>
+  <p>A-II 把稳定性归结成「极点在不在左半平面」，但做设计时极点并不是固定的——控制器增益 <span class="m">K</span> 一动，闭环极点就跟着动。这一讲的主线是<strong>把「解方程」换成「在复平面上量向量」</strong>：一个点在不在轨迹上、它对应多大的 <span class="m">K</span>、轨迹在哪儿越过虚轴，全都靠量一组向量的模与角来回答，一次高次方程都不必解。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+  <p>A-II 第 5.2 节把稳定性归结成「极点在不在左半平面」。但做设计时极点并不是固定的——增益 <span class="m">K</span> 一动，闭环极点就跟着动。闭环特征方程（第 2 节给出它的形状）决定了极点随 <span class="m">K</span> 画出的轨迹，也就是<span class="term">根轨迹</span>；而「某个点在不在轨迹上」「它对应多大的 <span class="m">K</span>」「轨迹在哪儿越过虚轴」这些问题，全都能靠量一组向量的模与角来回答。</p>
+  <p>这也正好回答了 A-I 第 3.4 节留下的那个矛盾：增益大误差小，增益太大又会失稳，那条线到底在哪。</p>
+  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Part A - III</code>，14 页。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>工具：复变函数的值就是一组向量</h2>
+
+<p>一个最简单的复变函数 <span class="m">F(s) = s + a</span>，它的零点在 <span class="m">s = −a</span>。把它在某一点 <span class="m">s</span> 求值，得到的复数</p>
+
+<div class="eq"><span class="m">F(s) = s + a = s − (−a)</span></div>
+
+<p>正是<strong>从零点 <span class="m">−a</span> 指向 <span class="m">s</span> 的那个向量</strong>。这句话把「代数求值」换成了「在图上画一根箭头」，是本讲全部技巧的地基。</p>
+
+<p>推广到一般的有理函数。把零点与极点的<strong>实际位置</strong>分别记作 <span class="m">ẑ<sub>i</sub></span> 与 <span class="m">p̂<sub>j</sub></span>，即</p>
+
+<div class="eq"><span class="m">F(s) = <span class="frac"><span>K ∏<sub>i=1</sub><sup>m</sup>(s − ẑ<sub>i</sub>)</span><span>∏<sub>j=1</sub><sup>n</sup>(s − p̂<sub>j</sub>)</span></span></span></div>
+
+<p>那么在任一点 <span class="m">s</span> 处</p>
+
+<div class="eq"><span class="m">M = |F(s)| = <span class="frac"><span>∏<sub>i=1</sub><sup>m</sup> |s − ẑ<sub>i</sub>|</span><span>∏<sub>j=1</sub><sup>n</sup> |s − p̂<sub>j</sub>|</span></span></span><br><span class="m">θ = ∠F(s) = Σ<sub>i=1</sub><sup>m</sup> ∠(s − ẑ<sub>i</sub>) − Σ<sub>j=1</sub><sup>n</sup> ∠(s − p̂<sub>j</sub>)</span><span class="lbl">(1)</span></div>
+
+<p>道理只是复数乘除的极坐标形式：<strong>模相乘除，角相加减</strong>。分子上的向量从零点出发，分母上的向量从极点出发，全都指向被求值的那个点 <span class="m">s</span>——「向量 ＝ 终点减起点」。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">记号</span>课件用的是「相反数」约定，本篇不用</div>
+  <p>课件把分子写成 <span class="m">∏(s + z<sub>i</sub>)</span>、分母写成 <span class="m">∏(s + p<sub>j</sub>)</span>，并在第 8 页明确注明 “<span class="m">z<sub>i</sub></span> and <span class="m">p<sub>i</sub></span> are the <strong>negative</strong> of the zero and pole values”——即 <span class="m">z<sub>i</sub> = −ẑ<sub>i</sub></span>、<span class="m">p<sub>j</sub> = −p̂<sub>j</sub></span>。零点若在 <span class="m">s = −2</span>，课件记的是 <span class="m">z<sub>i</sub> = 2</span>。</p>
+  <p>这是课件自己写明的约定，不是错；但第 3–4 页给出 <span class="m">M</span> 与 <span class="m">θ</span> 的公式时没有重申它，很容易在代入时把符号搞反。</p>
+  <p style="margin-bottom:0">本篇一律用<strong>实际位置</strong> <span class="m">ẑ<sub>i</sub></span>、<span class="m">p̂<sub>j</sub></span>，好处是「向量 ＝ 终点减起点」永远直接成立，不必记谁是谁的相反数。（不用 <span class="m">ζ</span> 表示零点位置，是因为 <span class="m">ζ</span> 在第 3 节要留给阻尼比。）</p>
+</div>
+
+<p>下面这道课件例题把式 (1) 走一遍：三个向量画出来，模相除、角相减，答案就出来了，全程不必做复数除法。</p>
+
+<details class="box">
+  <summary>课件例题：一个二阶有理函数在复点处的模与相角</summary>
+  <p>求 <span class="m">F(s) = <span class="frac"><span>s + 1</span><span>s(s + 2)</span></span></span> 在 <span class="m">s = −3 + j4</span> 处的值。三个向量，全都指向 <span class="m">s = −3 + j4</span>：</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:6rem">向量</th><th>起点</th><th>终点减起点</th><th>模</th><th>相角</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">s + 1</span></td><td>零点 <span class="m">−1</span></td><td><span class="m">−2 + j4</span></td><td><span class="m">√<span class="sqrt">20</span> = 4.4721</span></td><td><span class="m">116.57°</span></td></tr>
+  <tr><td><span class="m">s</span></td><td>极点 <span class="m">0</span></td><td><span class="m">−3 + j4</span></td><td><span class="m">5</span></td><td><span class="m">126.87°</span></td></tr>
+  <tr><td><span class="m">s + 2</span></td><td>极点 <span class="m">−2</span></td><td><span class="m">−1 + j4</span></td><td><span class="m">√<span class="sqrt">17</span> = 4.1231</span></td><td><span class="m">104.04°</span></td></tr>
+  </tbody></table></div>
+  <p>代入式 (1)：</p>
+  <div class="eq"><span class="m">M = <span class="frac"><span>4.4721</span><span>5 × 4.1231</span></span> = 0.2169,&emsp;θ = 116.57° − 126.87° − 104.04° = −114.34°</span></div>
+  <p>即 <span class="m">F(−3 + j4) = 0.2169 ∠(−114.34°)</span>。直接代数代入可以核对：<span class="m">F = −0.0894 − j0.1976</span>，模 <span class="m">0.2169</span>、辐角 <span class="m">−114.34°</span>，完全一致。</p>
+  <p style="margin-bottom:0"><strong>工程意义</strong>：一个衰减率与频率由 <span class="m">s = −3 + j4</span> 描述的信号送进这个系统，幅度会被压到 <span class="m">0.217</span> 倍，相位滞后 <span class="m">114.34°</span>。</p>
+</details>
+
+<h2 id="s2"><span class="n">2</span>反馈把极点搬走，零点却原地不动</h2>
+
+<p>标准的单回路结构：前向通道 <span class="m">KG(s)</span>，反馈通道 <span class="m">H(s)</span>，闭环传递函数记作 <span class="m">T(s)</span>：</p>
+
+<div class="eq"><span class="m">T(s) = <span class="frac"><span>KG(s)</span><span>1 + KG(s)H(s)</span></span></span><span class="lbl">(2)</span></div>
+
+<figure>
+<svg viewBox="0 0 780 206" role="img" aria-label="标准单回路负反馈框图：参考输入 R(s) 进入求和点，求和点输出误差信号进入前向通道 K G(s)，其输出即 Y(s)；输出经取出点送入反馈通道 H(s)，再以负号回到求和点。闭环传递函数记作 T(s)，其分母 1 + K G(s) H(s) 置零即为特征方程">
+  <defs><marker id="a3a" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="currentColor" opacity=".55"/></marker></defs>
+  <g font-family="inherit" font-size="13" text-anchor="middle">
+    <g fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4" marker-end="url(#a3a)">
+      <path d="M22,62 H70"/>
+      <path d="M102,62 H146"/>
+      <path d="M302,62 H470"/>
+      <path d="M362,62 V144 H341"/>
+      <path d="M187,144 H88 V80"/>
+    </g>
+    <circle cx="88" cy="62" r="14" fill="none" stroke="currentColor" stroke-opacity=".45"/>
+    <path d="M81,62 H95 M88,55 V69" stroke="currentColor" stroke-opacity=".45" stroke-width="1.2"/>
+    <text x="40" y="52" fill="currentColor" font-size="12">R(s)</text>
+    <text x="72" y="44" fill="currentColor" font-size="13" opacity=".7">+</text>
+    <text x="106" y="88" fill="#2F6F8F" font-size="14" font-weight="600">−</text>
+    <text x="124" y="52" fill="currentColor" font-size="11" opacity=".6">E(s)</text>
+
+    <rect x="148" y="40" width="154" height="44" rx="7" fill="none" stroke="#2F6F8F" stroke-opacity=".4"/>
+    <text x="225" y="60" fill="#2F6F8F" font-weight="600">K G(s)</text>
+    <text x="225" y="77" fill="currentColor" font-size="11" opacity=".6">前向通道</text>
+
+    <circle cx="362" cy="62" r="3.2" fill="currentColor" opacity=".55"/>
+    <text x="492" y="66" fill="currentColor" font-size="12">Y(s)</text>
+
+    <rect x="187" y="122" width="154" height="44" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="264" y="142" fill="currentColor">H(s)</text>
+    <text x="264" y="159" fill="currentColor" font-size="11" opacity=".6">反馈通道</text>
+
+    <text x="390" y="196" fill="currentColor" font-size="11.5" opacity=".62">闭环 T(s) = KG /(1 + KGH)；分母置零 1 + KG(s)H(s) = 0 就是特征方程，它的根随 K 移动</text>
+  </g>
+</svg>
+<figcaption>本讲的基准结构。注意三个符号各司其职：<span class="m">G</span> 前向、<span class="m">H</span> 反馈、<span class="m">T</span> 闭环——这与 A-II 的用法不同，见下面的记号提醒。</figcaption>
+</figure>
+
+<div class="box warn">
+  <div class="h"><span class="tag">记号</span>记号在这里有一次改变：<span class="m">G</span> / <span class="m">H</span> / <span class="m">T</span> 的含义与 A-II 不同</div>
+  <p>A-II 第 4 节里 <span class="m">H(s)</span> 泛指「某个系统的传递函数」。<strong>从本讲起 <span class="m">H(s)</span> 专指反馈通道的传递函数</strong>，<span class="m">G(s)</span> 指前向通道，整个闭环的传递函数改记作 <span class="m">T(s)</span>。</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:5rem">符号</th><th>A-II 里</th><th>本讲起</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">G(s)</span></td><td>未使用</td><td><strong>前向通道</strong>的传递函数</td></tr>
+  <tr><td><span class="m">H(s)</span></td><td>泛指某个系统的传递函数</td><td><strong>反馈通道</strong>的传递函数</td></tr>
+  <tr><td><span class="m">T(s)</span></td><td>未使用</td><td>整个<strong>闭环</strong>的传递函数</td></tr>
+  </tbody></table></div>
+  <p>这是控制文献的通用分工，遇到 <span class="m">H(jω)</span> 这类写法要<strong>按上下文判断指的是哪一个</strong>。</p>
+  <p style="margin-bottom:0">反馈通道若就是一根直线、不做任何加工，则 <span class="m">H(s) = 1</span>，这种最常见的结构叫<span class="term">单位负反馈</span><span class="en">（unity negative feedback）</span>，此时 <span class="m">T = <span class="frac"><span>L</span><span>1 + L</span></span></span>，<span class="m">L = KG</span> 就是 A-I 第 3.3 节定义的回路增益。</p>
+</div>
+
+<p>分母置零得到<span class="term">特征方程</span><span class="en">（characteristic equation）</span>：</p>
+
+<div class="eq"><span class="m">1 + KG(s)H(s) = 0</span><span class="lbl">(3)</span></div>
+
+<p>闭环极点就是式 (3) 的根。<span class="m">K</span> 出现在方程里，所以<strong>根随 <span class="m">K</span> 移动</strong>——这是整个根轨迹方法的出发点。</p>
+
+<details class="box">
+  <summary>课件例题：前向与反馈通道各含一个零极点时，闭环的零极点变成什么</summary>
+  <p>取 <span class="m">G(s) = <span class="frac"><span>s + 3</span><span>s + 2</span></span></span>，<span class="m">H(s) = <span class="frac"><span>s + 5</span><span>s + 2</span></span></span>，代入式 (2) 并通分：</p>
+  <div class="eq"><span class="m">T(s) = <span class="frac"><span>K(s + 2)(s + 3)</span><span>(s + 2)<sup>2</sup> + K(s + 3)(s + 5)</span></span></span></div>
+  <p><strong>闭环零点是 <span class="m">−3</span> 和 <span class="m">−2</span>，与 <span class="m">K</span> 完全无关。</strong>其中 <span class="m">−3</span> 来自前向通道 <span class="m">G</span> 的零点，<span class="m">−2</span> 则来自<strong>反馈通道 <span class="m">H</span> 的极点</strong>——<span class="m">H</span> 在分母上，通分之后它的极点跑到了闭环的分子里。这是一条容易被忽略的结构性事实。</p>
+  <p><strong>闭环极点则随 <span class="m">K</span> 跑。</strong>把分母展开：</p>
+  <div class="eq"><span class="m">(1 + K)s<sup>2</sup> + (4 + 8K)s + (4 + 15K) = 0</span></div>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:7rem"><span class="m">K</span></th><th>闭环极点</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">0</span></td><td><span class="m">−2, −2</span>（二重）</td></tr>
+  <tr><td><span class="m">1</span></td><td><span class="m">−3 ± j0.707</span></td></tr>
+  <tr><td><span class="m">5</span></td><td><span class="m">−4.194, −3.140</span></td></tr>
+  <tr><td><span class="m">100</span></td><td><span class="m">−4.955, −3.005</span></td></tr>
+  <tr><td><span class="m">→ ∞</span></td><td><span class="m">→ −5, −3</span></td></tr>
+  </tbody></table></div>
+  <p style="margin-bottom:0">这张表演示了根轨迹最基本的两条性质：<strong>轨迹起于开环极点（<span class="m">K = 0</span> 处），止于开环零点（<span class="m">K → ∞</span> 处）。</strong>这里 <span class="m">K = 0</span> 时两个极点都在 <span class="m">−2</span>（即 <span class="m">GH</span> 的二重极点），<span class="m">K → ∞</span> 时分别趋向 <span class="m">−3</span> 与 <span class="m">−5</span>（即 <span class="m">GH</span> 的两个零点）。</p>
+</details>
+
+<h2 id="s3"><span class="n">3</span>增益改变的到底是什么</h2>
+
+<p>增益变大，换来的不是「哪里都变好」。闭环极点随 <span class="m">K</span> 走的是一条会拐弯的路：<span class="m">K</span> 小时两个实极点相向而行，响应确实变快；两者一旦在实轴上相遇，实部就被钉住不再左移，此后再加大 <span class="m">K</span> 只增加振荡——<strong>衰减速度到顶，超调却继续涨</strong>。这一节先把描述这件事所需的一整套词立好，再用课件的例子把三档算清楚。</p>
+
+<h3 id="s3-1"><span class="n">3.1</span>二阶系统的标准写法：<span class="m">ω<sub>n</sub></span>、<span class="m">ζ</span>、<span class="m">M<sub>p</sub></span>、<span class="m">t<sub>s</sub></span></h3>
+
+<p>二阶系统有一套通用形式：</p>
+
+<div class="eq"><span class="m"><span class="frac"><span>ω<sub>n</sub><sup>2</sup></span><span>s<sup>2</sup> + 2ζω<sub>n</sub>s + ω<sub>n</sub><sup>2</sup></span></span></span><span class="lbl">(4)</span></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>两个参数各量什么</div>
+  <ul style="margin-bottom:0">
+    <li><span class="m">ω<sub>n</sub></span> 叫<span class="term">无阻尼自然频率</span><span class="en">（natural frequency）</span>，量的是「这个系统若完全不衰减，会以多快的角频率振荡」；</li>
+    <li><span class="m">ζ</span> 叫<span class="term">阻尼比</span><span class="en">（damping ratio）</span>，量的是「振荡衰减得有多干脆」。</li>
+  </ul>
+</div>
+
+<p>按 <span class="m">ζ</span> 分三档，时域表现各不相同：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7rem">档位</th><th style="width:5rem"><span class="m">ζ</span></th><th>极点</th><th>时域表现</th></tr></thead>
+<tbody>
+<tr><td><span class="term">过阻尼</span><br><span class="en">overdamped</span></td><td><span class="m">ζ &gt; 1</span></td><td>两个相异负实根</td><td>单调趋近终值，不冲过头，但慢</td></tr>
+<tr><td><span class="term">临界阻尼</span><br><span class="en">critically damped</span></td><td><span class="m">ζ = 1</span></td><td>二重负实根</td><td>不冲过头的前提下最快的一档</td></tr>
+<tr><td><span class="term">欠阻尼</span><br><span class="en">underdamped</span></td><td><span class="m">0 &lt; ζ &lt; 1</span></td><td>一对共轭复根</td><td>先冲过头再摆回来</td></tr>
+</tbody></table></div>
+
+<p>冲过头的幅度占终值的比例叫<span class="term">超调</span><span class="en">（overshoot）</span>，对式 (4) 这种没有零点的标准二阶系统有</p>
+
+<div class="eq"><span class="m">M<sub>p</sub> = e<sup> −πζ / √<span class="sqrt">1 − ζ²</span></sup></span><span class="lbl">(5)</span></div>
+
+<p>输出进入终值 <span class="m">±2%</span> 并不再出来所需的时间叫<span class="term">调节时间</span><span class="en">（settling time）</span> <span class="m">t<sub>s</sub></span>。它由包络的衰减快慢决定，所以<strong>只跟极点的实部有关</strong>：</p>
+
+<div class="eq"><span class="m">t<sub>s</sub> ≈ <span class="frac"><span>4</span><span>ζω<sub>n</sub></span></span> = <span class="frac"><span>4</span><span>|σ|</span></span></span><span class="lbl">(6)</span></div>
+
+<p>其中 <span class="m">σ</span> 是主导极点的实部。两个公式的分工值得先记住：<strong><span class="m">M<sub>p</sub></span> 只由 <span class="m">ζ</span>（也就是极点与负实轴的夹角）决定，<span class="m">t<sub>s</sub></span> 只由极点实部决定</strong>。</p>
+
+<div class="tool" id="dzTool">
+  <h4>拖动 ζ：极点在圆上走，超调与 ts 跟着变</h4>
+  <p class="sub"><span class="m">ω<sub>n</sub></span> 固定为 1。左图里极点始终待在半径 <span class="m">ω<sub>n</sub></span> 的圆上，ζ 只改变它的<strong>极角</strong>（<span class="m">θ = arccos ζ</span>）；<span class="m">ζ &gt; 1</span> 后两个极点离开圆、落到实轴上。</p>
+  <div class="row">
+    <span class="ctl"><label>阻尼比 ζ</label>
+    <input type="range" id="dzZ" min="0.05" max="1.6" step="0.01" value="0.5" oninput="dzGo()">
+    <span class="rv" id="dzZv">0.50</span></span>
+    <button class="btn" onclick="dzSet(0.1)">0.1 强振荡</button>
+    <button class="btn" onclick="dzSet(0.5)">0.5</button>
+    <button class="btn" onclick="dzSet(0.707)">0.707 常用</button>
+    <button class="btn" onclick="dzSet(1)">1 临界</button>
+    <button class="btn" onclick="dzSet(1.4)">1.4 过阻尼</button>
+  </div>
+  <div class="panes"><div id="dzPlane"></div><div id="dzResp"></div></div>
+  <div class="result" id="dzOut"></div>
+</div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>式 (5) 只对「没有零点的标准二阶系统」成立</div>
+  <p style="margin-bottom:0">式 (5)、式 (6) 都是针对标准二阶系统的估算；<strong>一旦闭环还有零点，超调会被零点显著放大，式 (5) 就只能当参考</strong>——第 6 节的机械臂例正是这种情形，那里算出来的超调是 61.6%，和式 (5) 的预测差得很远。</p>
+</div>
+
+<h3 id="s3-2"><span class="n">3.2</span>课件例题：无人机定高</h3>
+
+<p>闭环传递函数 <span class="m"><span class="frac"><span>Y(s)</span><span>R(s)</span></span> = <span class="frac"><span>K</span><span>s<sup>2</sup> + 10s + K</span></span></span>。与式 (4) 逐项对照：</p>
+
+<div class="eq"><span class="m">ω<sub>n</sub> = √<span class="sqrt">K</span>,&emsp;2ζω<sub>n</sub> = 10&emsp;⇒&emsp;ζ = <span class="frac"><span>5</span><span>√<span class="sqrt">K</span></span></span></span><span class="lbl">(7)</span></div>
+
+<p>特征方程 <span class="m">s<sup>2</sup> + 10s + K = 0</span> 的判别式是 <span class="m">100 − 4K</span>，于是三档一目了然：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:8rem"><span class="m">K</span> 的范围</th><th style="width:5rem">判别式</th><th>极点</th><th>阻尼</th></tr></thead>
+<tbody>
+<tr><td><span class="m">0 &lt; K &lt; 25</span></td><td><span class="m">&gt; 0</span></td><td>两个相异负实根</td><td>过阻尼，<span class="m">ζ &gt; 1</span></td></tr>
+<tr><td><span class="m">K = 25</span></td><td><span class="m">= 0</span></td><td>二重根 <span class="m">−5</span></td><td>临界阻尼，<span class="m">ζ = 1</span></td></tr>
+<tr><td><span class="m">K &gt; 25</span></td><td><span class="m">&lt; 0</span></td><td><span class="m">−5 ± j√<span class="sqrt">K − 25</span></span></td><td>欠阻尼，<span class="m">ζ &lt; 1</span></td></tr>
+</tbody></table></div>
+
+<div class="tool" id="dgTool">
+  <h4>无人机定高：增益的收益会饱和，代价不会</h4>
+  <p class="sub"><span class="m">K/(s<sup>2</sup> + 10s + K)</span>。拖动 K 看两个闭环极点怎么走：<span class="m">K &lt; 25</span> 时两个实极点相向而行，<span class="m">K = 25</span> 在 <span class="m">−5</span> 相遇，此后<strong>实部钉死在 −5</strong>，只有虚部继续长。</p>
+  <div class="row">
+    <span class="ctl"><label>增益 K</label>
+    <input type="range" id="dgK" min="1" max="500" step="1" value="100" oninput="dgGo()">
+    <span class="rv" id="dgKv">100</span></span>
+    <button class="btn" onclick="dgSet(10)">10</button>
+    <button class="btn" onclick="dgSet(25)">25 临界</button>
+    <button class="btn" onclick="dgSet(100)">100</button>
+    <button class="btn" onclick="dgSet(400)">400</button>
+  </div>
+  <div class="panes"><div id="dgPlane"></div><div id="dgResp"></div></div>
+  <div class="result" id="dgOut"></div>
+</div>
+
+<p>这张图把「增大增益到底换来了什么」讲得很干净：</p>
+
+<ul>
+<li><span class="m">K &lt; 25</span> 时，两个实极点从 <span class="m">0</span> 和 <span class="m">−10</span> 相向而行。靠近原点那个衰减最慢、决定整体快慢，<span class="m">K</span> 增大把它往左推——<strong>响应确实变快了</strong>。</li>
+<li><span class="m">K = 25</span> 时两者在 <span class="m">−5</span> 相遇，这是<strong>实部能达到的最左位置</strong>。</li>
+<li><span class="m">K &gt; 25</span> 后两极点变成共轭对沿垂线上下分开，<strong>实部被永久钉在 <span class="m">−5</span></strong>。此后再加大 <span class="m">K</span>，<span class="m">ω<sub>n</sub> = √<span class="sqrt">K</span></span> 变大、<span class="m">ζ = 5/√<span class="sqrt">K</span></span> 变小，只增加振荡、不再加快衰减。</li>
+</ul>
+
+<p>代入式 (6)，<span class="m">K &gt; 25</span> 之后 <span class="m">t<sub>s</sub> ≈ 4/5 = 0.8</span> s，<strong>不再随 <span class="m">K</span> 明显改善</strong>；而超调按式 (5) 一路上涨。实测印证这两句：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:6rem"><span class="m">K</span></th><th style="width:6rem"><span class="m">ζ</span></th><th>超调</th><th>2% 调节时间</th></tr></thead>
+<tbody>
+<tr><td><span class="m">25</span></td><td><span class="m">1.000</span></td><td>0</td><td>1.17 s</td></tr>
+<tr><td><span class="m">50</span></td><td><span class="m">0.707</span></td><td>4.3%</td><td>0.84 s</td></tr>
+<tr><td><span class="m">100</span></td><td><span class="m">0.500</span></td><td>16.3%</td><td>0.81 s</td></tr>
+<tr><td><span class="m">400</span></td><td><span class="m">0.250</span></td><td>44.4%</td><td>0.71 s</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>增益的收益会饱和，代价却不会</div>
+  <p style="margin-bottom:0">调节时间在 0.8 s 上下小幅起伏，超调却从 0 涨到 44%。这正是 A-I 第 3.4 节那个矛盾的具体形态。</p>
+</div>
+
+<p>顺带说清一件事：这个系统对<strong>任何</strong> <span class="m">K &gt; 0</span> 都稳定（极点实部要么是两个负数，要么恒为 <span class="m">−5</span>），所以「增益过大」在这里的代价是<strong>振荡而非失稳</strong>。会真正失稳的是更高阶的系统，那要留到第 5.2 节。</p>
+
+<h2 id="s4"><span class="n">4</span>根轨迹的两个条件：先判角、再算 <span class="m">K</span></h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>把特征方程拆成模与角</h3>
+
+<p>把式 (3) 移项：</p>
+
+<div class="eq"><span class="m">KG(s)H(s) = −1</span></div>
+
+<p>复数 <span class="m">−1</span> 的模是 1、辐角是 <span class="m">180°</span> 的奇数倍。于是一个点 <span class="m">s</span> 是闭环极点，当且仅当它同时满足两个条件（以下 <span class="m">G(s)H(s)</span> 一律<strong>不含</strong> <span class="m">K</span>）：</p>
+
+<div class="eq">相角条件&emsp;<span class="m">∠G(s)H(s) = 180°(2k + 1),&emsp;k = 0, ±1, ±2, …</span><span class="lbl">(8)</span></div>
+
+<div class="eq">幅值条件&emsp;<span class="m">K = <span class="frac"><span>1</span><span>|G(s)H(s)|</span></span></span><span class="lbl">(9)</span></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>两个条件分工明确，必须分清</div>
+  <ul>
+    <li><strong>相角条件与 <span class="m">K</span> 无关</strong>，所以它单独决定了「哪些点可能成为闭环极点」——这些点的集合就是<span class="term">根轨迹</span><span class="en">（root locus）</span>。</li>
+    <li><strong>幅值条件不筛选点</strong>，它只在点已经落在轨迹上之后，告诉你「要多大的 <span class="m">K</span> 才能把极点搬到这里」。</li>
+  </ul>
+  <p style="margin-bottom:0">所以做题顺序永远是：<strong>先用相角条件判在不在，再用幅值条件求 <span class="m">K</span>。</strong>反过来先算 <span class="m">K</span> 是无效的——任何一点都能算出一个正数 <span class="m">1/|GH|</span>，那个数只有在相角条件成立时才有意义。</p>
+</div>
+
+<p>特征方程是 <span class="m">n</span> 次的，每个 <span class="m">K</span> 对应 <span class="m">n</span> 个根，所以轨迹一共有 <span class="m">n</span> 条<span class="term">分支</span><span class="en">（branch）</span>，每条描述其中一个闭环极点随 <span class="m">K</span> 的走法。</p>
+
+<div class="tool" id="rlTool">
+  <h4>根轨迹浏览器</h4>
+  <p class="sub">淡色曲线是整条根轨迹（相角条件决定的点集，与 K 无关）；蓝色粗叉是当前 K 对应的闭环极点，由幅值条件定位。右边同步给出该 K 下的闭环阶跃响应——轨迹上的位置与时域波形是同一件事的两种看法。</p>
+  <div class="row">
+    <label>系统</label>
+    <select id="rlSys" onchange="rlPick()">
+      <option value="third">经典三阶  K/(s(s+1)(s+5))</option>
+      <option value="arm">机械臂  K(s+2)/(s²−4s+13)</option>
+      <option value="drone">无人机  K/(s(s+10))</option>
+      <option value="brk">§5.1  K(s−3)(s−5)/((s+1)(s+2))</option>
+    </select>
+  </div>
+  <div class="row">
+    <span class="ctl"><label>增益 K</label>
+    <input type="range" id="rlK" min="0" max="60" step="0.12" value="10" oninput="rlGo()">
+    <span class="rv" id="rlKv">10.0</span></span>
+  </div>
+  <div class="panes"><div id="rlPlane"></div><div id="rlResp"></div></div>
+  <div class="result" id="rlOut"></div>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>实轴上哪些段属于轨迹</h3>
+
+<p>这一条课件没讲，但画轨迹和做题都绕不开。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>实轴判据</div>
+  <p style="margin-bottom:0">实轴上的一点属于根轨迹，当且仅当<strong>它右侧的实极点与实零点的总个数为奇数</strong>。</p>
+</div>
+
+<p>理由直接来自相角条件。取实轴上一个试探点 <span class="m">σ</span>：</p>
+
+<ul>
+<li>位于 <span class="m">σ</span> <strong>左侧</strong>的实极点或实零点，指向 <span class="m">σ</span> 的向量朝右，辐角 <span class="m">0°</span>，不贡献角度；</li>
+<li>位于 <span class="m">σ</span> <strong>右侧</strong>的，向量朝左，辐角 <span class="m">180°</span>；</li>
+<li>共轭复数对的两个向量辐角大小相等、符号相反，<strong>加起来恰好抵消</strong>。</li>
+</ul>
+
+<p>于是总角度 <span class="m">= 180° × (右侧实零极点个数)</span>，它是 <span class="m">180°</span> 的奇数倍当且仅当那个个数为奇数。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>计数时零点与极点一视同仁，<strong>正实轴上的零极点也要数</strong></div>
+  <p style="margin-bottom:0">这是最容易漏的一点。下图那个例子里，分离点 <span class="m">σ = −1.4530</span> 右侧有极点 <span class="m">−1</span> 和两个<strong>正实轴</strong>零点 <span class="m">3</span>、<span class="m">5</span>，一共 <strong>3 个</strong>，不是 1 个——漏掉正实轴上那两个零点就会把奇偶数错，整段轨迹判反。</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 780 158" role="img" aria-label="实轴判据示意图：实轴上有极点 −2、−1 与零点 3、5。自右向左各区间的右侧零极点个数依次为 0、1、2、3、4；个数为奇数的两段，即 3 到 5 之间与 −2 到 −1 之间，属于根轨迹，用粗蓝线标出。分离点 −1.4530 落在 −2 与 −1 之间，会合点 3.8166 落在 3 与 5 之间">
+  <g font-family="inherit" font-size="13" text-anchor="middle">
+    <line x1="46" y1="70" x2="752" y2="70" stroke="currentColor" stroke-opacity=".35" stroke-width="1.2"/>
+    <g stroke="#2F6F8F" stroke-width="5" stroke-linecap="round" opacity=".55">
+      <line x1="147" y1="70" x2="219" y2="70"/>
+      <line x1="508" y1="70" x2="653" y2="70"/>
+    </g>
+    <g stroke="currentColor" stroke-opacity=".5" stroke-width="1.6">
+      <path d="M141,64 L153,76 M153,64 L141,76"/>
+      <path d="M213,64 L225,76 M225,64 L213,76"/>
+    </g>
+    <g fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.6">
+      <circle cx="508" cy="70" r="6"/>
+      <circle cx="653" cy="70" r="6"/>
+    </g>
+    <line x1="291" y1="65" x2="291" y2="75" stroke="currentColor" stroke-opacity=".35"/>
+
+    <g fill="currentColor" font-size="12" opacity=".8">
+      <text x="147" y="94">−2</text>
+      <text x="219" y="94">−1</text>
+      <text x="291" y="94">0</text>
+      <text x="508" y="94">3</text>
+      <text x="653" y="94">5</text>
+    </g>
+    <g fill="currentColor" font-size="11" opacity=".55">
+      <text x="147" y="108">极点</text>
+      <text x="219" y="108">极点</text>
+      <text x="508" y="108">零点</text>
+      <text x="653" y="108">零点</text>
+    </g>
+
+    <g fill="currentColor" font-size="11" opacity=".5">
+      <text x="103" y="46">4</text>
+      <text x="363" y="46">2</text>
+      <text x="700" y="46">0</text>
+    </g>
+    <g fill="#2F6F8F" font-size="12" font-weight="600">
+      <text x="183" y="46">3</text>
+      <text x="580" y="46">1</text>
+    </g>
+    <text x="398" y="26" fill="currentColor" font-size="11" opacity=".55">每段上方是「该段右侧实零极点的个数」——奇数即在轨迹上（蓝色粗线段）</text>
+
+    <g fill="#2F6F8F" font-size="11">
+      <text x="186" y="132">分离点 −1.4530</text>
+      <text x="568" y="132">会合点 3.8166</text>
+    </g>
+    <g stroke="#2F6F8F" stroke-opacity=".6" stroke-width="1.2">
+      <path d="M186,120 V78"/>
+      <path d="M568,120 V78"/>
+    </g>
+  </g>
+</svg>
+<figcaption>第 5.1 节那个例子（<span class="m">GH = K(s − 3)(s − 5)/[(s + 1)(s + 2)]</span>）的实轴判据。自右向左计数依次是 0、1、2、3、4；奇数的两段才在轨迹上。</figcaption>
+</figure>
+
+<h3 id="s4-3"><span class="n">4.3</span>渐近线</h3>
+
+<p>有限零点只有 <span class="m">m</span> 个，而分支有 <span class="m">n</span> 条，所以当 <span class="m">K → ∞</span> 时有 <span class="m">n − m</span> 条分支跑向无穷远。它们的走向由 <span class="m">n − m</span> 条<span class="term">渐近线</span><span class="en">（asymptote）</span>描述：</p>
+
+<div class="eq">夹角&emsp;<span class="m"><span class="frac"><span>180°(2k + 1)</span><span>n − m</span></span></span>&emsp;与实轴的交点&emsp;<span class="m">σ<sub>a</sub> = <span class="frac"><span>Σ<sub>j</sub> p̂<sub>j</sub> − Σ<sub>i</sub> ẑ<sub>i</sub></span><span>n − m</span></span></span><span class="lbl">(10)</span></div>
+
+<p>渐近线是徒手画轨迹时定「远处走向」的唯一依据，也是 Tutorial 里问「根轨迹的关键性质」时的<strong>必答项之一</strong>。</p>
+
+<h3 id="s4-4"><span class="n">4.4</span>用相角条件判一个点</h3>
+
+<p>下面这道课件例题演示「先判角、再算 <span class="m">K</span>」的完整走法，也演示一个<strong>不在</strong>轨迹上的点长什么样。</p>
+
+<div class="tool" id="vmTool">
+  <h4>矢量法计算器：先判角，再算 K</h4>
+  <p class="sub">系统取课件例题的 <span class="m">K(s+3)(s+4)/((s+1)(s+2))</span>。<strong>在左图里点任意一点</strong>，右边列出四个向量的模与相角，并判断该点在不在轨迹上。注意最后那一行：不在轨迹上的点照样能算出一个正的 K——那个数没有意义。</p>
+  <div class="row">
+    <button class="btn" onclick="vmSetPoint(-2,3)">课件那一点 s = −2 + j3</button>
+    <button class="btn" onclick="vmSetPoint(-1.5,0)">实轴上 −1.5（在轨迹上）</button>
+    <button class="btn" onclick="vmSetPoint(-3.5,0)">实轴上 −3.5（在轨迹上）</button>
+    <button class="btn" onclick="vmSetPoint(-2.5,0)">实轴上 −2.5（不在）</button>
+  </div>
+  <div class="panes">
+    <div id="vmPlane" onclick="vmClick(event)" style="cursor:crosshair"></div>
+    <div><div class="tw" id="vmTable"></div></div>
+  </div>
+  <div class="result" id="vmOut"></div>
+</div>
+
+<details class="box">
+  <summary>课件例题：判断某复点是不是闭环极点</summary>
+  <p>单位负反馈，前向传递函数 <span class="m"><span class="frac"><span>K(s + 3)(s + 4)</span><span>(s + 1)(s + 2)</span></span></span>，问 <span class="m">s = −2 + j3</span> 是不是它的闭环极点。四个向量都指向 <span class="m">s = −2 + j3</span>：</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:9rem">向量</th><th>终点减起点</th><th>模</th><th>相角</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">s + 3</span>（零点 <span class="m">−3</span>）</td><td><span class="m">1 + j3</span></td><td><span class="m">3.1623</span></td><td><span class="m">71.57°</span></td></tr>
+  <tr><td><span class="m">s + 4</span>（零点 <span class="m">−4</span>）</td><td><span class="m">2 + j3</span></td><td><span class="m">3.6056</span></td><td><span class="m">56.31°</span></td></tr>
+  <tr><td><span class="m">s + 1</span>（极点 <span class="m">−1</span>）</td><td><span class="m">−1 + j3</span></td><td><span class="m">3.1623</span></td><td><span class="m">108.43°</span></td></tr>
+  <tr><td><span class="m">s + 2</span>（极点 <span class="m">−2</span>）</td><td><span class="m">j3</span></td><td><span class="m">3.0000</span></td><td><span class="m">90.00°</span></td></tr>
+  </tbody></table></div>
+  <p>代入相角条件：</p>
+  <div class="eq"><span class="m">θ = 71.57° + 56.31° − 108.43° − 90.00° = −70.56°</span></div>
+  <p><span class="m">−70.56°</span> 不是 <span class="m">180°</span> 的奇数倍，<strong>所以这个点不在根轨迹上</strong>，无论 <span class="m">K</span> 取什么值它都不会是闭环极点。</p>
+  <p style="margin-bottom:0">注意不要多此一举去算 <span class="m">K</span>。这里 <span class="m">|G(s)H(s)| = 1.2019</span>，据此得到的「<span class="m">K = 0.832</span>」算得出来但毫无意义，因为相角条件已经否决了。</p>
+</details>
+
+<h2 id="s5"><span class="n">5</span>轨迹上的三个地标</h2>
+
+<p>有了相角条件，原则上可以逐点试探画出整条轨迹，但那太笨。实用做法是<strong>先定几个关键点，再把它们连起来</strong>。</p>
+
+<h3 id="s5-1"><span class="n">5.1</span>分离点与会合点</h3>
+
+<p>两条轨迹分支沿实轴相向而行、相遇后拐进复平面，相遇处叫<span class="term">分离点</span><span class="en">（breakaway point）</span>；反过来，两条复数分支回到实轴、相遇后分道扬镳的地方叫<span class="term">会合点</span><span class="en">（break-in point）</span>。两者满足同一个方程：</p>
+
+<div class="eq"><span class="m">Σ<sub>i=1</sub><sup>m</sup> <span class="frac"><span>1</span><span>σ − ẑ<sub>i</sub></span></span> = Σ<sub>j=1</sub><sup>n</sup> <span class="frac"><span>1</span><span>σ − p̂<sub>j</sub></span></span></span><span class="lbl">(11)</span></div>
+
+<p><span class="m">ẑ<sub>i</sub></span>、<span class="m">p̂<sub>j</sub></span> 是 <span class="m">G(s)H(s)</span> 的零点与极点的<strong>实际位置</strong>。（课件写成 <span class="m">Σ 1/(σ + z<sub>i</sub>) = Σ 1/(σ + p<sub>i</sub>)</span> 并注明 <span class="m">z<sub>i</sub></span>、<span class="m">p<sub>i</sub></span> 取相反数，与式 (11) 等价。）</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>解出来的根必须再筛一遍</div>
+  <p>式 (11) 通常是个多项式方程，会解出<strong>不止一个根</strong>，其中一部分并不在轨迹上。所以最后一步必须筛：<strong>只有落在第 4.2 节判定的实轴轨迹段上的解，才是真的分离点或会合点。</strong></p>
+  <p style="margin-bottom:0">（分离点原则上也可以是复数、成对出现；本课的题型只涉及实轴上的情形。）</p>
+</div>
+
+<details class="box">
+  <summary>课件例题：两个正实零点、两个负实极点的分离与会合</summary>
+  <p><span class="m">KG(s)H(s) = <span class="frac"><span>K(s − 3)(s − 5)</span><span>(s + 1)(s + 2)</span></span></span>，零点在 <span class="m">3</span> 与 <span class="m">5</span>，极点在 <span class="m">−1</span> 与 <span class="m">−2</span>。代入式 (11)：</p>
+  <div class="eq"><span class="m"><span class="frac"><span>1</span><span>σ − 3</span></span> + <span class="frac"><span>1</span><span>σ − 5</span></span> = <span class="frac"><span>1</span><span>σ + 1</span></span> + <span class="frac"><span>1</span><span>σ + 2</span></span></span></div>
+  <p>通分整理得 <span class="m">11σ<sup>2</sup> − 26σ − 61 = 0</span>，解出</p>
+  <div class="eq"><span class="m">σ = <span class="frac"><span>13</span><span>11</span></span> ± <span class="frac"><span>2√<span class="sqrt">210</span></span><span>11</span></span>&emsp;⇒&emsp;σ<sub>1</sub> = −1.4530,&emsp;σ<sub>2</sub> = 3.8166</span></div>
+  <p>两个都要用实轴判据核一遍，<strong>注意正实轴上的两个零点也要计入</strong>：</p>
+  <ul style="margin-bottom:0">
+    <li><span class="m">σ<sub>1</sub> = −1.4530</span> 右侧有极点 <span class="m">−1</span>、零点 <span class="m">3</span>、零点 <span class="m">5</span>，共 <strong>3 个（奇数）</strong>，在轨迹上；它夹在两个开环极点之间，是<strong>分离点</strong>。</li>
+    <li><span class="m">σ<sub>2</sub> = 3.8166</span> 右侧只有零点 <span class="m">5</span>，共 <strong>1 个（奇数）</strong>，在轨迹上；它夹在两个开环零点之间，是<strong>会合点</strong>。</li>
+  </ul>
+</details>
+
+<h3 id="s5-2"><span class="n">5.2</span>虚轴穿越：找临界增益与振荡频率</h3>
+
+<p>轨迹从左半平面跨到右半平面的那一刻，就是系统由稳定变不稳定的临界点。这一点上：</p>
+
+<ul>
+<li>对应的 <span class="m">K</span> 是<strong>系统保持稳定的最大增益</strong>；</li>
+<li>该点的虚部 <span class="m">ω</span> 是系统在这个临界增益下<strong>等幅振荡的频率</strong>。</li>
+</ul>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>求法：Routh 全零行，两步</div>
+  <ol style="margin-bottom:0">
+    <li>把含 <span class="m">K</span> 的特征方程列成 Routh 阵，<strong>找出使某一整行变成零的那个 <span class="m">K</span></strong>。对常见的四阶及以下问题，这一行就是 <span class="m">s<sup>1</sup></span> 行，所以是令 <span class="m">s<sup>1</sup></span> 行的首元为零。（<strong>不要笼统地说「令第一列里含 <span class="m">K</span> 的项为零」</strong>——第一列往往有好几项含 <span class="m">K</span>，令别的项为零得到的不是穿越点。）</li>
+    <li>回到全零行的<strong>上一行</strong>，用它构造辅助多项式 <span class="m">A(s)</span>，解 <span class="m">A(s) = 0</span>，得到的一对纯虚根 <span class="m">± jω</span> 就是穿越点，<span class="m">ω</span> 即振荡频率。</li>
+  </ol>
+</div>
+
+<p>这两步用的正是 A-II 第 8.3 节讲过的 Routh 全零行。</p>
+
+<details class="box">
+  <summary>课件例题：风力机并网，求最大稳定增益与振荡频率</summary>
+  <p>开环 <span class="m">L(s) = <span class="frac"><span>K(s + 3)</span><span>s(s + 1)(s + 2)(s + 4)</span></span></span>。</p>
+  <p><strong>第一步，写特征方程。</strong></p>
+  <div class="eq"><span class="m">s(s + 1)(s + 2)(s + 4) + K(s + 3) = s<sup>4</sup> + 7s<sup>3</sup> + 14s<sup>2</sup> + (8 + K)s + 3K = 0</span></div>
+  <p><strong>第二步，列 Routh 阵。</strong></p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:4rem">行</th><th>第 1 列</th><th>第 2 列</th><th>第 3 列</th></tr></thead>
+  <tbody>
+  <tr><td><span class="m">s<sup>4</sup></span></td><td><span class="m">1</span></td><td><span class="m">14</span></td><td><span class="m">3K</span></td></tr>
+  <tr><td><span class="m">s<sup>3</sup></span></td><td><span class="m">7</span></td><td><span class="m">8 + K</span></td><td><span class="m">0</span></td></tr>
+  <tr><td><span class="m">s<sup>2</sup></span></td><td><span class="m"><span class="frac"><span>90 − K</span><span>7</span></span></span></td><td><span class="m">3K</span></td><td></td></tr>
+  <tr><td><span class="m">s<sup>1</sup></span></td><td><span class="m"><span class="frac"><span>−(K<sup>2</sup> + 65K − 720)</span><span>90 − K</span></span></span></td><td><span class="m">0</span></td><td></td></tr>
+  <tr><td><span class="m">s<sup>0</sup></span></td><td><span class="m">3K</span></td><td></td><td></td></tr>
+  </tbody></table></div>
+  <p><strong>第三步，令 <span class="m">s<sup>1</sup></span> 行为零。</strong></p>
+  <div class="eq"><span class="m">K<sup>2</sup> + 65K − 720 = 0&emsp;⇒&emsp;K = <span class="frac"><span>−65 + 7√<span class="sqrt">145</span></span><span>2</span></span> = 9.6456</span></div>
+  <p>（另一个根为负，舍去。）所以 <span class="m">K<sub>max</sub> = 9.65</span>：<span class="m">0 &lt; K &lt; 9.65</span> 系统稳定，<span class="m">K &gt; 9.65</span> 失稳。</p>
+  <p><strong>第四步，用 <span class="m">s<sup>2</sup></span> 行构造辅助多项式求频率。</strong></p>
+  <div class="eq"><span class="m">A(s) = <span class="frac"><span>90 − K</span><span>7</span></span>s<sup>2</sup> + 3K = 0&emsp;⇒&emsp;ω<sup>2</sup> = <span class="frac"><span>21K</span><span>90 − K</span></span> = 2.5208&emsp;⇒&emsp;ω = 1.5877 rad/s</span></div>
+  <p><strong>核对</strong>：把 <span class="m">K = 9.6456</span> 代回特征方程直接求根，得 <span class="m">−4.3780</span>、<span class="m">−2.6221</span>、<span class="m">± j1.5877</span>——确有一对根落在虚轴上，与上面一致。</p>
+  <p style="margin-bottom:0">工程含义正是题干问的：增益恰好取到 9.65 时，风机输出会出现 1.59 rad/s（约 0.25 Hz）的<strong>等幅</strong>振荡；超过 9.65 则振荡发散。所以 9.65 就是「持续振荡首次出现」的那个增益，实际整定必须留在它以下。</p>
+</details>
+
+<h3 id="s5-3"><span class="n">5.3</span>复极点的出射角</h3>
+
+<p>轨迹从一个<strong>复极点</strong>出发时，初始方向不是随便的，由相角条件唯一确定。设要求的是极点 <span class="m">p̂<sub>k</sub></span> 处的<span class="term">出射角</span><span class="en">（angle of departure）</span> <span class="m">θ<sub>d</sub></span>：</p>
+
+<div class="eq"><span class="m">θ<sub>d</sub> = 180° + Σ<sub>i</sub> ∠(p̂<sub>k</sub> − ẑ<sub>i</sub>) − Σ<sub>j≠k</sub> ∠(p̂<sub>k</sub> − p̂<sub>j</sub>)</span><span class="lbl">(12)</span></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">推导</span>记住来历就不必背公式</div>
+  <p style="margin-bottom:0">取一个离 <span class="m">p̂<sub>k</sub></span> <strong>无穷近</strong>的轨迹上的点 <span class="m">s</span>。对其余所有零极点来说，指向 <span class="m">s</span> 与指向 <span class="m">p̂<sub>k</sub></span> 的向量方向几乎相同；唯独从 <span class="m">p̂<sub>k</sub></span> 指向 <span class="m">s</span> 的那个向量，它的方向就是 <span class="m">θ<sub>d</sub></span>。把这些角代进相角条件 (8)，移项即得式 (12)。</p>
+</div>
+
+<p>出射角的用处是<strong>判断趋势</strong>：角度指向左上方说明增益一加大极点就往稳定区走，指向右上方则相反。</p>
+
+<details class="box">
+  <summary>课件例题：三阶系统复极点的出射角</summary>
+  <p>单位负反馈，<span class="m">KG(s) = <span class="frac"><span>K(s + 2)</span><span>(s + 3)(s<sup>2</sup> + 2s + 2)</span></span></span>。<span class="m">s<sup>2</sup> + 2s + 2</span> 的根是 <span class="m">−1 ± j1</span>，所以开环极点是 <span class="m">−3</span> 与 <span class="m">−1 ± j1</span>，零点是 <span class="m">−2</span>。求从 <span class="m">p̂<sub>k</sub> = −1 + j1</span> 出发的出射角。</p>
+  <p>三个向量都从别的零极点指向 <span class="m">p̂<sub>k</sub></span>：</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th style="width:9rem">从哪儿出发</th><th>终点减起点</th><th>相角</th></tr></thead>
+  <tbody>
+  <tr><td>零点 <span class="m">−2</span></td><td><span class="m">1 + j1</span></td><td><span class="m">45.00°</span></td></tr>
+  <tr><td>极点 <span class="m">−3</span></td><td><span class="m">2 + j1</span></td><td><span class="m">26.57°</span></td></tr>
+  <tr><td>极点 <span class="m">−1 − j1</span></td><td><span class="m">j2</span></td><td><span class="m">90.00°</span></td></tr>
+  </tbody></table></div>
+  <p>代入式 (12)：</p>
+  <div class="eq"><span class="m">θ<sub>d</sub> = 180° + 45.00° − (26.57° + 90.00°) = 108.43°</span></div>
+  <p style="margin-bottom:0"><strong>核对</strong>：取 <span class="m">K = 10<sup>−4</sup></span> 直接解特征方程，那个极点移到 <span class="m">−1.00001 + j1.00003</span>，位移方向的辐角是 <span class="m">108.435°</span>，与公式一致。</p>
+</details>
+
+<h2 id="s6"><span class="n">6</span>综合例题：机械臂定位</h2>
+
+<p>课件最后一题把本讲的工具全用上了，值得完整走一遍。</p>
+
+<p>题干：自动化产线上的机械臂要快而准地定位。单位负反馈，前向传递函数</p>
+
+<div class="eq"><span class="m">G(s) = <span class="frac"><span>K(s + 2)</span><span>s<sup>2</sup> − 4s + 13</span></span></span></div>
+
+<p>要求：虚轴穿越点、该处的 <span class="m">K</span>、会合点、复极点处的出射角，并据此评论增益该怎么选。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>先看清楚：这个被控对象本身是不稳定的</div>
+  <p><span class="m">s<sup>2</sup> − 4s + 13</span> 的一次项系数是 <span class="m">−4 &lt; 0</span>，通不过 Routh 必要条件（A-II 第 8.1 节）。它的根是 <span class="m">2 ± j3</span>，<strong>在右半平面</strong>。</p>
+  <p style="margin-bottom:0">所以本题不是「增益太大会失稳」，而是反过来——<strong>增益太小才失稳，必须把 <span class="m">K</span> 加到足够大才能把极点拉进左半平面</strong>。这类题的直觉与常见情形相反，容易栽跟头。</p>
+</div>
+
+<p>四问按「先定虚轴穿越、再定会合点、最后定出射角」的顺序做最省事：前两问各自只需一个方程，第三问用它们的结果就能核对方向对不对。闭环特征方程是</p>
+
+<div class="eq"><span class="m">s<sup>2</sup> − 4s + 13 + K(s + 2) = s<sup>2</sup> + (K − 4)s + (13 + 2K) = 0</span><span class="lbl">(13)</span></div>
+
+<p><strong>(1) 虚轴穿越点与该处的 <span class="m">K</span>。</strong>二阶方程直接看系数：一次项系数为零时根为纯虚数，<span class="m">K − 4 = 0 ⇒ K = 4</span>。代回式 (13)：<span class="m">s<sup>2</sup> + 21 = 0</span>，故</p>
+
+<div class="eq"><span class="m">s = ± j√<span class="sqrt">21</span> = ± j4.583</span></div>
+
+<p>也就是说 <span class="m">K &lt; 4</span> 时系统不稳定，<span class="m">K &gt; 4</span> 才稳定，<span class="m">K = 4</span> 时以 <span class="m">4.583</span> rad/s 等幅振荡。</p>
+
+<p><strong>(2) 会合点。</strong>零点在 <span class="m">−2</span>，极点在 <span class="m">2 ± j3</span>，代入式 (11)：</p>
+
+<div class="eq"><span class="m"><span class="frac"><span>1</span><span>σ + 2</span></span> = <span class="frac"><span>1</span><span>σ − 2 − j3</span></span> + <span class="frac"><span>1</span><span>σ − 2 + j3</span></span> = <span class="frac"><span>2(σ − 2)</span><span>(σ − 2)<sup>2</sup> + 9</span></span></span></div>
+
+<p>交叉相乘整理：<span class="m">σ<sup>2</sup> + 4σ − 21 = 0</span>，解得 <span class="m">σ = 3</span> 或 <span class="m">σ = −7</span>。筛一遍：实轴上 <span class="m">σ = −7</span> 的右侧只有零点 <span class="m">−2</span> 这一个实零极点（奇数），在轨迹上；<span class="m">σ = 3</span> 的右侧一个也没有（偶数），不在轨迹上。所以<strong>会合点是 <span class="m">σ = −7</span></strong>，此处</p>
+
+<div class="eq"><span class="m">K = <span class="frac"><span>1</span><span>|G(−7)H(−7)|</span></span> = <span class="frac"><span>|(−7)<sup>2</sup> − 4(−7) + 13|</span><span>|−7 + 2|</span></span> = <span class="frac"><span>90</span><span>5</span></span> = 18</span></div>
+
+<p>代回式 (13) 验证：<span class="m">s<sup>2</sup> + 14s + 49 = (s + 7)<sup>2</sup></span>，确实是二重根。</p>
+
+<p><strong>(3) 出射角。</strong>从极点 <span class="m">2 + j3</span> 出发，代入式 (12)：零点 <span class="m">−2</span> 指向 <span class="m">2 + j3</span> 的向量是 <span class="m">4 + j3</span>，辐角 <span class="m">36.87°</span>；另一个极点 <span class="m">2 − j3</span> 指向 <span class="m">2 + j3</span> 的向量是 <span class="m">j6</span>，辐角 <span class="m">90°</span>。</p>
+
+<div class="eq"><span class="m">θ<sub>d</sub> = 180° + 36.87° − 90° = 126.87°</span></div>
+
+<p>指向左上方，说明 <span class="m">K</span> 一增大，这个右半平面的极点立刻朝左半平面移动——与 (1) 的结论一致。</p>
+
+<h3 id="s6-1"><span class="n">6.1</span>整条轨迹长什么样：以零点为心的圆</h3>
+
+<figure>
+<div id="armLocus"></div>
+<figcaption>机械臂的完整根轨迹。两个开环极点 <span class="m">2 ± j3</span> 本就在右半平面（系统开环不稳定），轨迹沿以零点 <span class="m">−2</span> 为心、半径 <span class="m">√(|ẑ−p̂<sub>1</sub>|·|ẑ−p̂<sub>2</sub>|) = 5</span> 的圆走：<span class="m">K = 4</span> 穿过虚轴进入左半平面，<span class="m">K = 18</span> 两支在 <span class="m">−7</span> 会合。灰色虚线那半支属于 <span class="m">K &lt; 0</span> 的补轨迹，不是本题的解。</figcaption>
+</figure>
+
+<p>复数部分是一个<strong>以零点 <span class="m">−2</span> 为圆心的圆</strong>。这类「两个极点、一个有限零点」的系统，复数轨迹恒为以该零点为心的圆，半径是</p>
+
+<div class="eq"><span class="m">R = √<span class="sqrt">|ẑ − p̂<sub>1</sub>| ⋅ |ẑ − p̂<sub>2</sub>|</span></span><span class="lbl">(14)</span></div>
+
+<p>两个极点为共轭对时，两段距离相等，式 (14) 退化成「零点到极点的距离」。本例 <span class="m">|2 + j3 − (−2)| = 5</span>，所以 <span class="m">R = 5</span>。</p>
+
+<p>这个圆可以直接拿来自查前面算出的两个数：</p>
+
+<ul>
+<li>圆与实轴交于 <span class="m">−2 ± 5</span>，即 <span class="m">3</span> 与 <span class="m">−7</span>——恰是第 (2) 问解出的那两个根。这也解释了为什么会多出一个 <span class="m">σ = 3</span>：它是圆与实轴的另一个交点，落在 <span class="m">K &lt; 0</span> 的<span class="term">补轨迹</span><span class="en">（complementary root locus，即把 <span class="m">K</span> 取成负数时的那半条轨迹）</span>上。</li>
+<li>圆与虚轴交于 <span class="m">ω<sup>2</sup> = 5<sup>2</sup> − 2<sup>2</sup> = 21</span>，即 <span class="m">± j4.583</span>——与第 (1) 问一致。</li>
+</ul>
+
+<h3 id="s6-2"><span class="n">6.2</span>增益该怎么选：<span class="m">K = 18</span> 不是最优工作点</h3>
+
+<p>这一问要小心，因为<strong>闭环有一个零点 <span class="m">−2</span>，光看极点会得出错误结论</strong>。闭环传递函数是</p>
+
+<div class="eq"><span class="m">T(s) = <span class="frac"><span>K(s + 2)</span><span>s<sup>2</sup> + (K − 4)s + (13 + 2K)</span></span></span></div>
+
+<p><span class="m">K = 18</span> 时分母确实是 <span class="m">(s + 7)<sup>2</sup></span>，<strong>极点意义上</strong>的临界阻尼，实部的绝对值也在此达到最大。但分子那个零点会把响应显著拉高，而且直流增益</p>
+
+<div class="eq"><span class="m">T(0) = <span class="frac"><span>2K</span><span>13 + 2K</span></span></span></div>
+
+<p>在 <span class="m">K = 18</span> 时只有 <span class="m">36/49 = 0.735</span>——<strong>输出只到指令的 73.5%，静差高达 26.5%</strong>。实测三项指标：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:5rem"><span class="m">K</span></th><th>直流增益（静差）</th><th>超调</th><th>2% 调节时间</th></tr></thead>
+<tbody>
+<tr><td><span class="m">10</span></td><td>0.606（39.4%）</td><td>108.1%</td><td>1.66 s</td></tr>
+<tr><td><span class="m">18</span></td><td>0.735（26.5%）</td><td>61.6%</td><td>0.95 s</td></tr>
+<tr><td><span class="m">25</span></td><td>0.794（20.6%）</td><td>45.0%</td><td>1.09 s</td></tr>
+<tr><td><span class="m">40</span></td><td>0.860（14.0%）</td><td>28.6%</td><td>1.10 s</td></tr>
+<tr><td><span class="m">100</span></td><td>0.939（6.1%）</td><td>11.8%</td><td>0.86 s</td></tr>
+<tr><td><span class="m">200</span></td><td>0.969（3.1%）</td><td>6.0%</td><td>0.56 s</td></tr>
+</tbody></table></div>
+
+<figure>
+<div id="armSteps"></div>
+<figcaption>六条闭环阶跃响应叠在一起。<span class="m">K = 18</span>（粗蓝线）既不是最快的也不是最平稳的：它的超调 61.6%，而 <span class="m">K = 200</span> 只有 6%。每条线与 <span class="m">r = 1</span> 的缺口就是静差。下表是从这些曲线上量出来的数——注意 <span class="m">t<sub>s</sub></span> 那一列<strong>对 K 并不单调</strong>。</figcaption>
+<div class="tw" id="armStepsNote" style="margin-top:.8rem"></div>
+</figure>
+
+<p>三条结论：</p>
+
+<ul>
+<li><strong><span class="m">K = 18</span> 既不是最快的，也远不是「不振荡」的</strong>：超调 61.6%，调节时间还不如 <span class="m">K = 200</span>。式 (5) 在这里失效，正是因为那个零点。</li>
+<li><strong>超调与静差都随 <span class="m">K</span> 单调下降。</strong>那个「趋向零点 <span class="m">−2</span> 的慢极点」看似会拖慢响应，但它几乎被零点抵消掉（<span class="m">K = 100</span> 时该极点的留数只有 0.13），所以实际并不慢。</li>
+<li>题干要的是 “accurate and stable positioning”（准确且稳定的定位），照这三项指标看，<strong>应当取远大于 18 的 <span class="m">K</span></strong>。<span class="m">K</span> 的上界不来自「变慢」，而来自高增益的实际代价（见《Tutorial A 全解》(d) 问）：传感器噪声被成比例放大、执行器饱和（本题被控对象开环不稳定，一旦饱和就可能失稳）、以及未建模的高频动态被激起。</li>
+</ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>把 <span class="m">K = 18</span> 直接说成「最优工作点」是错的</div>
+  <p style="margin-bottom:0"><span class="m">K = 18</span> 值得记住的是它的<strong>极点意义</strong>：闭环极点实部的绝对值在此最大，是包络衰减最快的一档。仅此而已——<span class="m">t<sub>s</sub></span> 对 <span class="m">K</span> 并不单调（0.95 → 1.09 → 1.10 → 0.86 → 0.56 s），超调与静差则一路随 <span class="m">K</span> 下降。</p>
+</div>
+
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+<li><strong>向量法</strong>：<span class="m">F(s)</span> 在某点的值 ＝ 各向量的模之比、角之差（式 (1)）；分子向量从零点出发、分母向量从极点出发，都指向被求值的点，「向量 ＝ 终点减起点」。</li>
+<li><strong>记号</strong>：课件写 <span class="m">(s + z<sub>i</sub>)</span>，其中 <span class="m">z<sub>i</sub></span> 是零点位置的<strong>相反数</strong>（课件第 8 页已注明）。本篇一律用实际位置 <span class="m">ẑ<sub>i</sub></span>、<span class="m">p̂<sub>j</sub></span>，代入时不会错。</li>
+<li><strong>记号在本讲改变</strong>：<span class="m">G</span> 是前向通道、<span class="m">H</span> 是反馈通道、<span class="m">T</span> 是闭环；<span class="m">H = 1</span> 时叫单位负反馈。（A-II 里 <span class="m">H</span> 泛指某系统的传递函数。）</li>
+<li>闭环特征方程 <span class="m">1 + KG(s)H(s) = 0</span>。<strong>闭环零点与 <span class="m">K</span> 无关</strong>（等于 <span class="m">G</span> 的零点加 <span class="m">H</span> 的极点）；<strong>闭环极点随 <span class="m">K</span> 移动</strong>，轨迹起于开环极点、止于开环零点，共 <span class="m">n</span> 条分支。</li>
+<li><strong>二阶标准形</strong>：<span class="m">ω<sub>n</sub></span> 无阻尼自然频率、<span class="m">ζ</span> 阻尼比；<span class="m">ζ &gt; 1</span> 过阻尼、<span class="m">= 1</span> 临界阻尼、<span class="m">&lt; 1</span> 欠阻尼。<span class="m">M<sub>p</sub> = e<sup> −πζ / √<span class="sqrt">1 − ζ²</span></sup></span>，<span class="m">t<sub>s</sub> ≈ 4/|σ|</span>。<strong>闭环带零点时 <span class="m">M<sub>p</sub></span> 会被显著放大，公式只能当参考。</strong></li>
+<li>无人机例 <span class="m">K/(s<sup>2</sup> + 10s + K)</span>：<span class="m">ω<sub>n</sub> = √<span class="sqrt">K</span></span>、<span class="m">ζ = 5/√<span class="sqrt">K</span></span>；<span class="m">K &lt; 25</span> 过阻尼、<span class="m">K = 25</span> 临界、<span class="m">K &gt; 25</span> 欠阻尼。<strong><span class="m">K &gt; 25</span> 后实部钉在 <span class="m">−5</span>，<span class="m">t<sub>s</sub></span> 稳在 0.8 s 上下不再明显改善，超调却从 0 涨到 44%</strong>——增益的收益会饱和，代价不会。</li>
+<li><strong>相角条件</strong> <span class="m">∠GH = 180°(2k + 1)</span> 与 <span class="m">K</span> 无关，单独决定轨迹；<strong>幅值条件</strong> <span class="m">K = 1/|GH|</span> 只在点已在轨迹上时才有意义。<strong>先判角，再算 <span class="m">K</span>。</strong>（<span class="m">GH</span> 一律不含 <span class="m">K</span>。）</li>
+<li><strong>实轴判据</strong>：某点在轨迹上 <span class="m">⇔</span> 其右侧实零极点个数为奇数；<strong>正实轴上的零极点也要数</strong>。</li>
+<li><strong>渐近线</strong>：<span class="m">n − m</span> 条，夹角 <span class="m"><span class="frac"><span>180°(2k + 1)</span><span>n − m</span></span></span>，交于 <span class="m">σ<sub>a</sub> = <span class="frac"><span>Σ p̂<sub>j</sub> − Σ ẑ<sub>i</sub></span><span>n − m</span></span></span>。</li>
+<li><strong>分离点/会合点</strong>：<span class="m">Σ 1/(σ − ẑ<sub>i</sub>) = Σ 1/(σ − p̂<sub>j</sub>)</span>；解出的根必须再用实轴判据筛。</li>
+<li><strong>虚轴穿越</strong>：找使 Routh 阵<strong>整行为零</strong>的 <span class="m">K</span>（常见即 <span class="m">s<sup>1</sup></span> 行首元为零），再用上一行的辅助多项式 <span class="m">A(s) = 0</span> 求 <span class="m">ω</span>。风机例：<span class="m">K<sub>max</sub> = 9.65</span>，<span class="m">ω = 1.588</span> rad/s，等幅振荡只发生在 <span class="m">K</span> 恰为 9.65 时。</li>
+<li><strong>出射角</strong> <span class="m">θ<sub>d</sub> = 180° + Σ∠(零点 → p̂<sub>k</sub>) − Σ∠(其他极点 → p̂<sub>k</sub>)</span>；课件例 <span class="m"><span class="frac"><span>K(s + 2)</span><span>(s + 3)(s<sup>2</sup> + 2s + 2)</span></span></span> 得 <span class="m">108.43°</span>。</li>
+<li><strong>机械臂例</strong>（开环不稳定，极点 <span class="m">2 ± j3</span>）：<span class="m">K = 4</span> 时穿越虚轴于 <span class="m">± j√<span class="sqrt">21</span></span>，<span class="m">K &lt; 4</span> 不稳定；会合点 <span class="m">σ = −7</span> 对应 <span class="m">K = 18</span>；出射角 <span class="m">126.87°</span>。复数轨迹是以零点为心、半径 <span class="m">√<span class="sqrt">|ẑ − p̂<sub>1</sub>| |ẑ − p̂<sub>2</sub>|</span> = 5</span> 的圆。</li>
+<li><strong>机械臂的选增益结论</strong>：<span class="m">K = 18</span> 只是极点意义上的临界阻尼，实际超调 61.6%、静差 26.5%，既不最快也不平稳；超调与静差都随 <span class="m">K</span> 单调下降，所以要「快而准」应取远大于 18 的 <span class="m">K</span>，上界来自噪声、饱和与未建模动态。</li>
+</ul></div>
+
+<footer>
+<p><strong>Part A 到此结束。</strong>三讲连起来是一条完整的因果链：<strong>反馈买到抗扰与鲁棒性、代价是可能失稳</strong>（A-I）→ <strong>稳定性等价于极点在左半平面，且有不解方程的判法</strong>（A-II）→ <strong>极点随增益移动的轨迹，以及轨迹上的关键地标</strong>（A-III）。配套的自测题与全解见笔记《Tutorial A 全解》。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>A-III 增益、根轨迹与系统特性.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   ctrl-core.js — 控制课 HTML 学习页共用的数值内核
+   纯函数，不碰 DOM。可在 Node 里直接跑测试，也可整段内联进 HTML。
+   多项式一律用降幂系数数组表示：[a0,a1,...,an] 表示 a0·s^n + a1·s^(n-1) + ... + an
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 复数 */
+function cx(re, im){ return {re: re, im: im===undefined?0:im}; }
+function cadd(a,b){ return {re:a.re+b.re, im:a.im+b.im}; }
+function csub(a,b){ return {re:a.re-b.re, im:a.im-b.im}; }
+function cmul(a,b){ return {re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re}; }
+function cdiv(a,b){
+  // Smith 算法：按 |b.re| 与 |b.im| 的大小分支，避免 b 很大或很小时中间量溢出/下溢
+  var r, d;
+  if(Math.abs(b.re) >= Math.abs(b.im)){
+    r = b.im/b.re; d = b.re + b.im*r;
+    return {re:(a.re + a.im*r)/d, im:(a.im - a.re*r)/d};
+  } else {
+    r = b.re/b.im; d = b.re*r + b.im;
+    return {re:(a.re*r + a.im)/d, im:(a.im*r - a.re)/d};
+  }
+}
+function cabs(a){ return Math.hypot(a.re, a.im); }
+function carg(a){ return Math.atan2(a.im, a.re); }
+
+/* ---------------------------------------------------------- 多项式基本操作 */
+
+/** 卷积：两个多项式相乘。conv([1,2],[1,3]) = [1,5,6] 即 (s+2)(s+3)=s²+5s+6 */
+function conv(a,b){
+  var out = new Array(a.length+b.length-1).fill(0);
+  for(var i=0;i<a.length;i++) for(var j=0;j<b.length;j++) out[i+j] += a[i]*b[j];
+  return out;
+}
+
+/** 多项式相加（右对齐，即按常数项对齐） */
+function polyAdd(a,b){
+  var n = Math.max(a.length,b.length), out = new Array(n).fill(0);
+  for(var i=0;i<a.length;i++) out[n-a.length+i] += a[i];
+  for(var j=0;j<b.length;j++) out[n-b.length+j] += b[j];
+  return out;
+}
+
+/** 多项式数乘 */
+function polyScale(a,k){ return a.map(function(v){return v*k;}); }
+
+/** 去掉首部的零系数（否则次数会被虚高，求根会多出伪根） */
+function polyTrim(a){
+  var i=0; while(i<a.length-1 && Math.abs(a[i])<1e-14) i++;
+  return a.slice(i);
+}
+
+/** 在复点 s 处求值（Horner） */
+function polyVal(a,s){
+  var acc = cx(0,0);
+  for(var i=0;i<a.length;i++) acc = cadd(cmul(acc,s), cx(a[i],0));
+  return acc;
+}
+
+/** 由根反求多项式（首一） */
+function polyFromRoots(roots){
+  var p=[cx(1,0)];
+  for(var k=0;k<roots.length;k++){
+    var q=new Array(p.length+1).fill(null).map(function(){return cx(0,0);});
+    for(var i=0;i<p.length;i++){
+      q[i]   = cadd(q[i], p[i]);
+      q[i+1] = csub(q[i+1], cmul(p[i], roots[k]));
+    }
+    p=q;
+  }
+  return p.map(function(c){return c.re;});   // 共轭成对时虚部应为 0
+}
+
+/**
+ * 求根：Aberth–Ehrlich 迭代（比 Durand–Kerner 收敛快且更稳）。
+ * 输入实系数降幂数组，返回复根数组。已处理首零、尾零（s=0 的根）。
+ */
+function roots(coefIn){
+  var a = polyTrim(coefIn.slice());
+  if(a.length<=1) return [];
+  // 把尾部的零常数项提出来，每提一个就是一个 s=0 的根（避免迭代在 0 附近打转）
+  var zeroRoots=0;
+  while(a.length>1 && Math.abs(a[a.length-1])<1e-14){ a.pop(); zeroRoots++; }
+  if(a.length<=1){
+    var r0=[]; for(var q=0;q<zeroRoots;q++) r0.push(cx(0,0)); return r0;
+  }
+  var n = a.length-1;
+  var lead = a[0];
+  var m = a.map(function(v){return v/lead;});           // 首一化
+  var d = [];                                            // 导数
+  for(var i=0;i<n;i++) d.push(m[i]*(n-i));
+
+  // 初值：放在半径 R 的圆上、错开相角，避免对称初值导致迭代卡住
+  var R = 1 + Math.max.apply(null, m.slice(1).map(Math.abs));
+  var z = [];
+  for(var k=0;k<n;k++){
+    var th = (2*Math.PI*k)/n + 0.6180339887;             // 黄金角偏置打破对称
+    z.push(cx(R*0.5*Math.cos(th), R*0.5*Math.sin(th)));
+  }
+  for(var it=0; it<600; it++){
+    var maxStep=0;
+    for(var j=0;j<n;j++){
+      var pv = polyVal(m, z[j]);
+      var dv = polyVal(d, z[j]);
+      if(cabs(dv)<1e-300) continue;
+      var nr = cdiv(pv, dv);                              // Newton 修正 p/p'
+      var sum = cx(0,0);
+      for(var l=0;l<n;l++){
+        if(l===j) continue;
+        var diff = csub(z[j], z[l]);
+        if(cabs(diff)<1e-300) continue;
+        sum = cadd(sum, cdiv(cx(1,0), diff));
+      }
+      var den = csub(cx(1,0), cmul(nr, sum));
+      if(cabs(den)<1e-300) continue;
+      var step = cdiv(nr, den);
+      z[j] = csub(z[j], step);
+      maxStep = Math.max(maxStep, cabs(step));
+    }
+    if(maxStep < 1e-14) break;
+  }
+  // 共轭清理：虚部相对实部极小的判为实根
+  for(var t=0;t<z.length;t++){
+    if(Math.abs(z[t].im) < 1e-9*(1+Math.abs(z[t].re))) z[t] = cx(z[t].re, 0);
+  }
+  for(var q2=0;q2<zeroRoots;q2++) z.push(cx(0,0));
+  return z;
+}
+
+/* ------------------------------------------------------------- 传递函数 */
+
+/** 单位负反馈闭环：T = K·G/(1+K·G)，G = num/den。返回 {num, den} */
+function feedbackUnity(num, den, K){
+  var kn = polyScale(num, K);
+  return {num: kn, den: polyAdd(den, kn)};
+}
+
+/** 直流增益 T(0) */
+function dcGain(num, den){
+  var n = num[num.length-1], d = den[den.length-1];
+  if(Math.abs(d) < 1e-14) return Infinity;
+  return n/d;
+}
+
+/**
+ * 阶跃响应。用能控标准型 + 定步长 RK4 积分。
+ * 返回 {t:[...], y:[...]}，N 为输出采样点数。
+ * 要求 deg(num) <= deg(den)（真或严格真）。
+ */
+function stepResponse(numIn, denIn, tEnd, N){
+  N = N || 400;
+  var den = polyTrim(denIn.slice());
+  var n = den.length-1;
+  if(n===0) return {t:[0,tEnd], y:[numIn[numIn.length-1]/den[0], numIn[numIn.length-1]/den[0]]};
+  // 首一化
+  var lead = den[0];
+  den = den.map(function(v){return v/lead;});
+  var num = numIn.map(function(v){return v/lead;});
+  while(num.length < den.length) num.unshift(0);         // 左补零对齐到 n+1 长
+  if(num.length > den.length) throw new Error('stepResponse: 分子次数高于分母（非真系统）');
+
+  var D = num[0];                                        // 直通项
+  var bp = [];                                           // 严格真部分 num - D·den，次数 < n
+  for(var i=1;i<num.length;i++) bp.push(num[i] - D*den[i]);
+
+  // x' = A x + B u, y = C x + D u   (能控标准型)
+  // A 最后一行 = [-an, -a_{n-1}, ..., -a1]；B = e_n；C = [bp_n, ..., bp_1]
+  var lastRow = [];
+  for(var j=n;j>=1;j--) lastRow.push(-den[j]);
+  var C = [];
+  for(var j2=bp.length-1;j2>=0;j2--) C.push(bp[j2]);
+
+  function deriv(x){
+    var dx = new Array(n);
+    for(var i2=0;i2<n-1;i2++) dx[i2] = x[i2+1];
+    var s=0; for(var k=0;k<n;k++) s += lastRow[k]*x[k];
+    dx[n-1] = s + 1;                                     // u ≡ 1（单位阶跃）
+    return dx;
+  }
+  // 步长：让最快模态每个时间常数至少走 ~40 步，同时不少于输出分辨率
+  var rs = roots(den);
+  var fastest = 0;
+  for(var r=0;r<rs.length;r++) fastest = Math.max(fastest, cabs(rs[r]));
+  var dt = tEnd/N;
+  if(fastest>0) dt = Math.min(dt, 0.05/fastest);
+  var sub = Math.max(1, Math.ceil((tEnd/N)/dt));
+  dt = (tEnd/N)/sub;
+
+  var x = new Array(n).fill(0), t=0, T=[0], Y=[C.reduce(function(a,c,i3){return a+c*x[i3];},0) + D];
+  function axpy(x0,k,h){ var o=new Array(n); for(var i4=0;i4<n;i4++) o[i4]=x0[i4]+h*k[i4]; return o; }
+  for(var s2=1;s2<=N;s2++){
+    for(var u=0;u<sub;u++){
+      var k1=deriv(x),
+          k2=deriv(axpy(x,k1,dt/2)),
+          k3=deriv(axpy(x,k2,dt/2)),
+          k4=deriv(axpy(x,k3,dt));
+      for(var i5=0;i5<n;i5++) x[i5] += dt/6*(k1[i5]+2*k2[i5]+2*k3[i5]+k4[i5]);
+      t += dt;
+    }
+    var y=D; for(var i6=0;i6<n;i6++) y += C[i6]*x[i6];
+    T.push(t); Y.push(y);
+  }
+  return {t:T, y:Y};
+}
+
+/** 阶跃响应指标：超调 Mp(%)、2% 调节时间 ts、稳态值。ts 用「最后一次离开 ±2% 带」定义 */
+function stepInfo(resp){
+  var y = resp.y, t = resp.t, yf = y[y.length-1];
+  var peak = -Infinity, tp = 0;
+  for(var i=0;i<y.length;i++) if(y[i]>peak){ peak=y[i]; tp=t[i]; }
+  var Mp = (Math.abs(yf) > 1e-12) ? (peak-yf)/Math.abs(yf)*100 : NaN;
+  if(Mp < 0) Mp = 0;
+  var band = 0.02*Math.abs(yf), ts = NaN;
+  for(var j=y.length-1;j>=0;j--){
+    if(Math.abs(y[j]-yf) > band){ ts = t[Math.min(j+1,t.length-1)]; break; }
+  }
+  if(isNaN(ts)) ts = 0;
+  return {yFinal:yf, peak:peak, tPeak:tp, Mp:Mp, ts:ts};
+}
+
+/**
+ * 根轨迹：对一串 K 求 den + K·num 的根。
+ * 返回 {K:[...], branches:[[{re,im}...], ...]}，branches[i] 是第 i 条分支随 K 的轨迹。
+ * 分支靠「与上一组根就近配对」保持连续，否则画出来会互相跳线。
+ */
+function rootLocus(num, den, Kmin, Kmax, N){
+  N = N || 400;
+  var nb = Math.max(polyTrim(den).length-1, polyTrim(num).length-1);
+
+  function rootsAt(K){ return roots(polyAdd(den, polyScale(num, K))); }
+  /** 把一组根按最近邻配到参考顺序上（次数 <= 8，O(n²) 足够） */
+  function order(r, prev){
+    while(r.length < nb) r.push(cx(NaN,NaN));
+    if(!prev) return r.slice(0,nb);
+    var used=new Array(r.length).fill(false), out=new Array(nb);
+    for(var p=0;p<nb;p++){
+      if(isNaN(prev[p].re)){ out[p]=cx(NaN,NaN); continue; }
+      var best=-1, bd=Infinity;
+      for(var q=0;q<r.length;q++){
+        if(used[q]||isNaN(r[q].re)) continue;
+        var d=cabs(csub(r[q],prev[p]));
+        if(d<bd){ bd=d; best=q; }
+      }
+      if(best>=0){ used[best]=true; out[p]=r[best]; } else out[p]=cx(NaN,NaN);
+    }
+    return out;
+  }
+  /** 相邻两组根之间的最大间距，用来判断是否需要细分。
+      跑向无穷远的那一支要按支剔除：它每步都跨很大，但那一段画出来本就在视窗外，
+      细分它只会白白拖慢，还会把点数顶到上限、把真正需要细分的重根处挤掉。 */
+  var cxm=0, cym=0, cluster=1, farLimit=1e9;
+  function spread(a,b){
+    var m=0;
+    for(var i=0;i<nb;i++){
+      if(isNaN(a[i].re)||isNaN(b[i].re)) continue;
+      var da=cabs(csub(a[i],cx(cxm,cym))), db=cabs(csub(b[i],cx(cxm,cym)));
+      if(da>farLimit && db>farLimit) continue;          // 这一支已经跑远了，不管
+      m=Math.max(m, cabs(csub(a[i],b[i])));
+    }
+    return m;
+  }
+
+  // 初始采样：前密后疏（小 K 处轨迹变化快）
+  var pts = [];
+  for(var i=0;i<=N;i++){
+    var K = Kmin + (Kmax-Kmin)*Math.pow(i/N, 2.2);
+    pts.push({K:K, r:rootsAt(K)});
+  }
+  // 先配一遍序
+  for(var j=0;j<pts.length;j++) pts[j].r = order(pts[j].r, j?pts[j-1].r:null);
+
+  /* 自适应细分：靠近重根时根按 √(K−K₀) 移动，任何等距 K 采样都会在那里拉出折线。
+     凡是相邻两点跨度超过阈值就插中点，反复几轮。
+     阈值要按「开环零极点所在那一簇」的尺度来定，不能按全体根的最大模——
+     跑向无穷远的那一支会把尺度撑大几十倍，于是感兴趣的区域一次也细分不到。 */
+  var pz = roots(den).concat(roots(num)).filter(function(v){return isFinite(v.re);});
+  pz.forEach(function(v){ cxm+=v.re; cym+=v.im; });
+  if(pz.length){ cxm/=pz.length; cym/=pz.length; }
+  pz.forEach(function(v){ cluster=Math.max(cluster, cabs(csub(v, cx(cxm,cym)))); });
+  var tol = cluster*0.012;
+  farLimit = cluster*6;
+  for(var pass=0; pass<9 && pts.length<4000; pass++){
+    var out=[pts[0]], changed=false;
+    for(var k=1;k<pts.length;k++){
+      if(spread(pts[k-1].r, pts[k].r) > tol && (pts[k].K-pts[k-1].K) > 1e-12){
+        var Km=(pts[k-1].K+pts[k].K)/2;
+        var mid={K:Km, r:order(rootsAt(Km), pts[k-1].r)};
+        out.push(mid); changed=true;
+        pts[k].r = order(pts[k].r, mid.r);
+      }
+      out.push(pts[k]);
+    }
+    pts=out;
+    if(!changed) break;
+  }
+
+  var Ks=[], branches=[]; for(var b=0;b<nb;b++) branches.push([]);
+  for(var u=0;u<pts.length;u++){
+    Ks.push(pts[u].K);
+    for(var m=0;m<nb;m++) branches[m].push(pts[u].r[m]);
+  }
+  return {K:Ks, branches:branches};
+}
+
+/** 矢量法：在点 s 处算开环 G(s)=num/den 的幅值、相角（度），以及各因子的模与角 */
+function vectorEval(num, den, s){
+  var zs = roots(num), ps = roots(den);
+  var zi = zs.map(function(z){ var v=csub(s,z); return {root:z, mag:cabs(v), ang:carg(v)*180/Math.PI}; });
+  var pi = ps.map(function(p){ var v=csub(s,p); return {root:p, mag:cabs(v), ang:carg(v)*180/Math.PI}; });
+  var G = cdiv(polyVal(num,s), polyVal(den,s));
+  var angle = carg(G)*180/Math.PI;
+  // 落在根轨迹上的判据：∠G = 180° + k·360°
+  var norm = ((angle % 360) + 360) % 360;
+  var onLocus = Math.abs(norm - 180) < 1.0;
+  return {
+    mag: cabs(G), angle: angle, zeros: zi, poles: pi,
+    onLocus: onLocus,
+    K: cabs(G) > 1e-12 ? 1/cabs(G) : Infinity            // |K·G|=1 ⇒ K = 1/|G|
+  };
+}
+
+/**
+ * Routh 阵列。输入特征多项式降幂系数。
+ * 返回 {rows, signChanges, rhp, notes}
+ * notes 里记录用到的特殊处理：'epsilon'（第一列出现 0）/'auxiliary'（整行为零）
+ */
+function routh(coefIn){
+  var a = polyTrim(coefIn.slice());
+  var n = a.length-1;
+  if(n<1) return {rows:[a.slice()], signChanges:0, rhp:0, notes:[]};
+  var width = Math.floor(n/2)+1;
+  var rows = [], notes = [];
+  var r0 = [], r1 = [];
+  for(var i=0;i<=n;i+=2) r0.push(a[i]);
+  for(var j=1;j<=n;j+=2) r1.push(a[j]);
+  while(r0.length<width) r0.push(0);
+  while(r1.length<width) r1.push(0);
+  rows.push(r0); rows.push(r1);
+
+  var EPS = 1e-8;
+  for(var k=2;k<=n;k++){
+    var A = rows[k-2], B = rows[k-1];
+    // 特殊情形一：整行为零 -> 用上一行做辅助多项式并求导
+    var allZero = B.every(function(v){return Math.abs(v)<1e-12;});
+    if(allZero){
+      notes.push({row:k-1, type:'auxiliary'});
+      var ord = n-(k-2);                                  // 上一行对应的 s 次数
+      var aux = [];
+      for(var m=0;m<A.length;m++){ if(ord-2*m >= 0) aux.push({c:A[m], p:ord-2*m}); }
+      var der = aux.filter(function(x){return x.p>0;}).map(function(x){return x.c*x.p;});
+      for(var t=0;t<B.length;t++) B[t] = (t<der.length) ? der[t] : 0;
+    }
+    // 特殊情形二：首元为零但整行不全为零 -> 用 ε 代替
+    if(Math.abs(B[0])<1e-12){
+      notes.push({row:k-1, type:'epsilon'});
+      B[0] = EPS;
+    }
+    var row = [];
+    for(var c=0;c<width;c++){
+      var a2 = (c+1<A.length)?A[c+1]:0, b2 = (c+1<B.length)?B[c+1]:0;
+      row.push((B[0]*a2 - A[0]*b2)/B[0]);
+    }
+    rows.push(row);
+  }
+  // 第一列变号次数 = 右半平面极点数
+  var col = rows.map(function(r){return r[0];});
+  var sc = 0;
+  for(var q=1;q<col.length;q++){
+    if(Math.abs(col[q])<1e-14) continue;
+    var prev = null;
+    for(var w=q-1;w>=0;w--){ if(Math.abs(col[w])>1e-14){ prev=col[w]; break; } }
+    if(prev!==null && prev*col[q] < 0) sc++;
+  }
+  return {rows:rows, signChanges:sc, rhp:sc, notes:notes};
+}
+
+/* ------------------------------------------------------------ 频率响应 */
+
+/** 频率响应：返回 {w, mag, phaseDeg}，相角已解缠（unwrap），否则画出来会有 ±360 跳变 */
+function freqResponse(num, den, wMin, wMax, N){
+  N = N||300;
+  var W=[], M=[], P=[];
+  var last=null, off=0;
+  for(var i=0;i<=N;i++){
+    var w = wMin*Math.pow(wMax/wMin, i/N);
+    var G = cdiv(polyVal(num, cx(0,w)), polyVal(den, cx(0,w)));
+    var ph = carg(G)*180/Math.PI + off;
+    if(last!==null){
+      while(ph-last >  180){ ph -= 360; off -= 360; }
+      while(ph-last < -180){ ph += 360; off += 360; }
+    }
+    last = ph;
+    W.push(w); M.push(cabs(G)); P.push(ph);
+  }
+  return {w:W, mag:M, phaseDeg:P};
+}
+
+
+/* ============================================================================
+   plot.js — 给控制课学习页用的极简 SVG 绘图层
+   只依赖 ctrl-core.js 的数据，不依赖任何外部库。
+   配色规则照 RTCS 模板：中性元素用 currentColor + opacity（自动跟随明暗主题），
+   强调色硬编码 #2F6F8F（SVG 属性里 var() 不稳），其余语义色开页时从 CSS 变量读一次。
+   ==========================================================================*/
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+
+/** 数字转文本，负号用 U+2212（排版约定），不是 ASCII 连字符。 */
+function nf(v, d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  return s.replace(/-/g, '−');
+}
+/** 复数转文本，同样用 U+2212 */
+function nfc(v, d){
+  d = (d===undefined)?4:d;
+  return nf(v.re,d) + (v.im>=0 ? ' + j' : ' − j') + nf(Math.abs(v.im),d);
+}
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+/** 从 CSS 变量读语义色。暗色模式切换后重新调用即可拿到新值。 */
+function themeColors(){
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  return {
+    accent: g('--accent', '#2F6F8F'),
+    warn:   g('--warn',   '#B4534B'),
+    ok:     g('--ok',     '#3F8A63'),
+    exam:   g('--exam',   '#9A6B2F'),
+    muted:  g('--muted',  '#5C6673'),
+    faint:  g('--faint',  '#8A929C')
+  };
+}
+
+/**
+ * 一块直角坐标画布。
+ * opts: {w,h, xmin,xmax,ymin,ymax, padL,padR,padT,padB, xlabel,ylabel, title}
+ * 数据坐标 → 像素坐标：
+ *   px = padL + (x - xmin)/(xmax - xmin) * plotW
+ *   py = padT + (ymax - y)/(ymax - ymin) * plotH      ← 减法负责把数学 y 向上翻成 SVG y 向下
+ */
+function Plot(opts){
+  var o = opts || {};
+  this.w = o.w || 640; this.h = o.h || 300;
+  this.padL = (o.padL!==undefined)?o.padL:52;
+  this.padR = (o.padR!==undefined)?o.padR:16;
+  this.padT = (o.padT!==undefined)?o.padT:14;
+  this.padB = (o.padB!==undefined)?o.padB:38;
+  this.xmin=o.xmin; this.xmax=o.xmax; this.ymin=o.ymin; this.ymax=o.ymax;
+  this.xlabel=o.xlabel||''; this.ylabel=o.ylabel||'';
+  this.logX = !!o.logX;
+  this.c = themeColors();
+  this.svg = svgEl('svg', {
+    viewBox:'0 0 '+this.w+' '+this.h,
+    role:'img', 'aria-label': o.title || o.ariaLabel || '图'
+  });
+  this.svg.style.display='block'; this.svg.style.width='100%'; this.svg.style.height='auto';
+  this.g = svgEl('g', {'font-family':'inherit','font-size':'11.5'});
+  this.svg.appendChild(this.g);
+}
+Plot.prototype.plotW = function(){ return this.w - this.padL - this.padR; };
+Plot.prototype.plotH = function(){ return this.h - this.padT - this.padB; };
+Plot.prototype.X = function(x){
+  if(this.logX){
+    var a=Math.log10(this.xmin), b=Math.log10(this.xmax);
+    return this.padL + (Math.log10(x)-a)/(b-a)*this.plotW();
+  }
+  return this.padL + (x-this.xmin)/(this.xmax-this.xmin)*this.plotW();
+};
+Plot.prototype.Y = function(y){
+  return this.padT + (this.ymax-y)/(this.ymax-this.ymin)*this.plotH();
+};
+Plot.prototype.add = function(e){ this.g.appendChild(e); return e; };
+
+/** 反变换：像素 → 数据（给点击取点用） */
+Plot.prototype.invX = function(px){ return this.xmin + (px-this.padL)/this.plotW()*(this.xmax-this.xmin); };
+Plot.prototype.invY = function(py){ return this.ymax - (py-this.padT)/this.plotH()*(this.ymax-this.ymin); };
+
+/** 自动挑「好看」的刻度间隔：1/2/5 × 10^k */
+function niceStep(span, target){
+  var raw = span/(target||6);
+  var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  var n = raw/mag;
+  var m = (n<1.5)?1:(n<3)?2:(n<7)?5:10;
+  return m*mag;
+}
+function fmtTick(v, step){
+  if(Math.abs(v) < step*1e-9) return '0';
+  var dec = Math.max(0, -Math.floor(Math.log10(step)));
+  if(dec>4) return v.toExponential(1);
+  return v.toFixed(dec);
+}
+
+/** 画坐标框、刻度、轴标。opts:{grid:true, xTicks:n, yTicks:n, zeroLines:true} */
+Plot.prototype.axes = function(opts){
+  var o=opts||{}, self=this;
+  var L=this.padL, R=this.w-this.padR, T=this.padT, B=this.h-this.padB;
+  // 外框
+  this.add(svgEl('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',
+    stroke:'currentColor','stroke-opacity':0.25,'stroke-width':1}));
+  // x 刻度
+  if(this.logX){
+    var d0=Math.ceil(Math.log10(this.xmin)), d1=Math.floor(Math.log10(this.xmax));
+    for(var d=d0; d<=d1; d++){
+      var xv=Math.pow(10,d), px=this.X(xv);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+px+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+px+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var lab=(d===0)?'1':(d===1?'10':'10^'+d);
+      var tk=svgEl('text',{x:px,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      if(d===0||d===1){ tk.textContent=lab; }
+      else { tk.textContent='10'; var sup=svgEl('tspan',{dy:-4,'font-size':'8.5'}); sup.textContent=String(d); tk.appendChild(sup); }
+      this.add(tk);
+    }
+  } else {
+    var sx=niceStep(this.xmax-this.xmin, o.xTicks||6);
+    for(var x=Math.ceil(this.xmin/sx)*sx; x<=this.xmax+sx*1e-9; x+=sx){
+      var pxx=this.X(x);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+pxx+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+pxx+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var t1=svgEl('text',{x:pxx,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      t1.textContent=fmtTick(x,sx); this.add(t1);
+    }
+  }
+  // y 刻度
+  var sy=niceStep(this.ymax-this.ymin, o.yTicks||5);
+  for(var y=Math.ceil(this.ymin/sy)*sy; y<=this.ymax+sy*1e-9; y+=sy){
+    var py=this.Y(y);
+    if(o.grid!==false) this.add(svgEl('path',{d:'M'+L+','+py+' H'+R,
+      stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+    this.add(svgEl('path',{d:'M'+L+','+py+' h-5',stroke:'currentColor','stroke-opacity':0.35}));
+    var t2=svgEl('text',{x:L-8,y:py+4,'text-anchor':'end',fill:'currentColor','fill-opacity':0.6});
+    t2.textContent=fmtTick(y,sy); this.add(t2);
+  }
+  // 零线加重
+  if(o.zeroLines!==false){
+    if(this.ymin<0 && this.ymax>0)
+      this.add(svgEl('path',{d:'M'+L+','+this.Y(0)+' H'+R,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+    if(!this.logX && this.xmin<0 && this.xmax>0)
+      this.add(svgEl('path',{d:'M'+this.X(0)+','+T+' V'+B,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+  }
+  if(this.xlabel){
+    var xl=svgEl('text',{x:(L+R)/2,y:this.h-6,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12'});
+    xl.textContent=this.xlabel; this.add(xl);
+  }
+  if(this.ylabel){
+    var yl=svgEl('text',{x:12,y:(T+B)/2,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12',
+      transform:'rotate(-90 12 '+((T+B)/2)+')'});
+    yl.textContent=this.ylabel; this.add(yl);
+  }
+  return this;
+};
+
+/** 把超出视窗的点截断成 null，避免发散曲线把画面拉飞 */
+Plot.prototype.curve = function(xs, ys, opt){
+  var o=opt||{}, pts=[], segs=[], self=this;
+  var yLo=this.ymin-(this.ymax-this.ymin)*0.5, yHi=this.ymax+(this.ymax-this.ymin)*0.5;
+  for(var i=0;i<xs.length;i++){
+    var y=ys[i];
+    if(!isFinite(y) || y<yLo || y>yHi){ if(pts.length){segs.push(pts); pts=[];} continue; }
+    if(this.logX && xs[i]<=0){ continue; }
+    pts.push(this.X(xs[i]).toFixed(2)+','+this.Y(y).toFixed(2));
+  }
+  if(pts.length) segs.push(pts);
+  for(var s=0;s<segs.length;s++){
+    this.add(svgEl('polyline',{points:segs[s].join(' '),fill:'none',
+      stroke:o.color||this.c.accent,'stroke-width':o.width||1.9,
+      'stroke-dasharray':o.dash||null,'stroke-linejoin':'round','stroke-linecap':'round',
+      'stroke-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  }
+  return this;
+};
+Plot.prototype.hline = function(y,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.padL+','+this.Y(y)+' H'+(this.w-this.padR),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.vline = function(x,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.X(x)+','+this.padT+' V'+(this.h-this.padB),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.dot = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||4,
+    fill:o.fill||o.color||this.c.accent, stroke:o.stroke||'none','stroke-width':o.sw||0,
+    'fill-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  return this;
+};
+/** 叉号，用来标极点 */
+Plot.prototype.cross = function(x,y,opt){
+  var o=opt||{}, r=o.r||5, px=this.X(x), py=this.Y(y);
+  this.add(svgEl('path',{d:'M'+(px-r)+','+(py-r)+' L'+(px+r)+','+(py+r)+
+    ' M'+(px-r)+','+(py+r)+' L'+(px+r)+','+(py-r),
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2,'stroke-linecap':'round'}));
+  return this;
+};
+/** 空心圆，用来标零点 */
+Plot.prototype.circleMark = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||5,fill:'none',
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2}));
+  return this;
+};
+Plot.prototype.text = function(x,y,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:this.X(x)+(o.dx||0), y:this.Y(y)+(o.dy||0),
+    'text-anchor':o.anchor||'middle', fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),
+    'font-size':o.size||'11.5','font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 像素坐标直接放文字（图例等） */
+Plot.prototype.pxText = function(px,py,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:px,y:py,'text-anchor':o.anchor||'start',fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),'font-size':o.size||'11.5',
+    'font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 图例：items=[{label,color,dash}] */
+Plot.prototype.legend = function(items, px, py){
+  var y=py;
+  for(var i=0;i<items.length;i++){
+    this.add(svgEl('path',{d:'M'+px+','+(y-4)+' h18',stroke:items[i].color,
+      'stroke-width':items[i].width||2.2,'stroke-dasharray':items[i].dash||null}));
+    this.pxText(px+24, y, items[i].label, {size:'11'});
+    y += 15;
+  }
+  return this;
+};
+/** 一段折线的极坐标圆弧（画等阻尼线、圆形轨迹用） */
+Plot.prototype.arc = function(cx0, cy0, r, a0, a1, opt){
+  var o=opt||{}, pts=[], N=o.N||120;
+  for(var i=0;i<=N;i++){
+    var a=a0+(a1-a0)*i/N;
+    pts.push(this.X(cx0+r*Math.cos(a)).toFixed(2)+','+this.Y(cy0+r*Math.sin(a)).toFixed(2));
+  }
+  this.add(svgEl('polyline',{points:pts.join(' '),fill:'none',stroke:o.color||this.c.faint,
+    'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||null,
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.7)}));
+  return this;
+};
+/** 挂到容器里（先清空） */
+Plot.prototype.mountTo = function(elOrId){
+  var host = (typeof elOrId==='string') ? document.getElementById(elOrId) : elOrId;
+  if(!host) return this;
+  host.innerHTML='';
+  host.appendChild(this.svg);
+  return this;
+};
+
+/* ===================== A-III 交互件 ===================== */
+
+/* 把一次点击的屏幕坐标换算成某个 Plot 的数据坐标。
+   SVG 按容器宽度缩放，所以要先用 viewBox 宽度 / 实际宽度求缩放比。 */
+function plotPick(plot, evt){
+  var r = plot.svg.getBoundingClientRect();
+  var k = plot.w / r.width;
+  var px = (evt.clientX - r.left) * k;
+  var py = (evt.clientY - r.top)  * k;
+  return {x: plot.invX(px), y: plot.invY(py), px:px, py:py,
+          inside: px>=plot.padL && px<=plot.w-plot.padR && py>=plot.padT && py<=plot.h-plot.padB};
+}
+
+/* ---------- 3.1 阻尼比 ζ 与极点位置 ---------- */
+function dzSet(v){ document.getElementById('dzZ').value=v; dzGo(); }
+function dzGo(){
+  var z=parseFloat(document.getElementById('dzZ').value);
+  if(!isFinite(z)||z<0.05) z=0.05;
+  document.getElementById('dzZv').textContent=z.toFixed(2);
+  var wn=1;
+
+  /* 左：s 平面 */
+  var sp=new Plot({w:320,h:300,xmin:-2.0,xmax:0.4,ymin:-1.3,ymax:1.3,padL:44,padB:38,padR:14,
+    xlabel:'Re', ylabel:'Im', title:'极点随 ζ 在半径 ωn 的圆上移动'});
+  sp.axes({xTicks:4,yTicks:4});
+  sp.arc(0,0,wn,Math.PI/2,3*Math.PI/2,{color:sp.c.faint,dash:'4 3',width:1.2});
+  sp.pxText(sp.X(-0.72),sp.Y(0.78),'半径 = ωn = 1',{size:'10.5',opacity:.6,anchor:'middle'});
+  var sig, om, cls;
+  if(z<1){ sig=-z*wn; om=wn*Math.sqrt(1-z*z); cls= z<1e-9?'无阻尼':'欠阻尼'; }
+  else if(Math.abs(z-1)<1e-9){ sig=-wn; om=0; cls='临界阻尼'; }
+  else { om=0; cls='过阻尼'; }
+  if(z<=1){
+    sp.vline(sig,{color:sp.c.exam,dash:'3 3',width:1.2,opacity:.75});
+    sp.pxText(sp.X(sig),sp.padT+14,'Re = −ζωn = '+nf(sig,3),
+      {color:sp.c.exam,size:'10.5',anchor:'middle',opacity:1});
+    sp.cross(sig,om,{color:'#2F6F8F',r:7,width:2.6});
+    if(om>1e-9) sp.cross(sig,-om,{color:'#2F6F8F',r:7,width:2.6});
+    if(z>1e-6 && z<1){
+      // 极角 arccos ζ
+      sp.g.appendChild(svgEl('path',{d:'M'+sp.X(0)+','+sp.Y(0)+' L'+sp.X(sig)+','+sp.Y(om),
+        stroke:sp.c.accent,'stroke-width':1.3,'stroke-opacity':.6}));
+      sp.pxText(sp.X(sig/2)-4,sp.Y(om/2)-6,'θ = arccos ζ = '+(Math.acos(z)*180/Math.PI).toFixed(1)+'°',
+        {color:sp.c.accent,size:'10.5',anchor:'end',opacity:1});
+    }
+  } else {
+    var d=wn*Math.sqrt(z*z-1);
+    sp.cross(-z*wn+d,0,{color:'#2F6F8F',r:7,width:2.6});
+    sp.cross(-z*wn-d,0,{color:'#2F6F8F',r:7,width:2.6});
+    sp.pxText(sp.X(-1.0),sp.padT+14,'两个实极点，已离开圆',{size:'10.5',anchor:'middle',opacity:.7});
+  }
+  sp.mountTo('dzPlane');
+
+  /* 右：阶跃响应 */
+  var r=stepResponse([wn*wn],[1,2*z*wn,wn*wn],20,1200);
+  var si=stepInfo(r);
+  var hp=new Plot({w:380,h:300,xmin:0,xmax:20,ymin:0,ymax:2.0,padL:46,padB:38,padR:14,
+    xlabel:'时间 t', ylabel:'y(t)', title:'对应的单位阶跃响应'});
+  hp.axes({xTicks:5,yTicks:5});
+  hp.hline(1,{color:hp.c.muted,dash:'5 4',width:1.2});
+  hp.hline(1.02,{color:hp.c.faint,dash:'2 3',width:1,opacity:.5});
+  hp.hline(0.98,{color:hp.c.faint,dash:'2 3',width:1,opacity:.5});
+  hp.pxText(hp.w-hp.padR-4,hp.Y(1.02)-4,'±2% 带',{size:'10',anchor:'end',opacity:.5});
+  hp.curve(r.t,r.y,{color:'#2F6F8F',width:2.3});
+  if(si.Mp>0.5){
+    hp.dot(si.tPeak,si.peak,{color:hp.c.warn,r:4});
+    hp.pxText(hp.X(si.tPeak),hp.Y(si.peak)-9,'Mp = '+si.Mp.toFixed(1)+'%',
+      {color:hp.c.warn,size:'11',weight:'600',anchor:'middle',opacity:1});
+  }
+  if(si.ts>0 && si.ts<20){
+    hp.vline(si.ts,{color:hp.c.ok,dash:'3 3',width:1.2,opacity:.8});
+    hp.pxText(hp.X(si.ts)+5,hp.h-hp.padB-8,'ts = '+si.ts.toFixed(2),
+      {color:hp.c.ok,size:'11',weight:'600',opacity:1});
+  }
+  hp.mountTo('dzResp');
+
+  var MpTheory = z<1 ? Math.exp(-Math.PI*z/Math.sqrt(1-z*z))*100 : 0;
+  document.getElementById('dzOut').innerHTML=
+    '<div class="three">'+
+    '<div><div class="lab">阻尼分类</div><div class="val" style="font-size:1.1rem">'+cls+'</div></div>'+
+    '<div><div class="lab">超调 Mp</div><div class="val">'+si.Mp.toFixed(2)+'%</div></div>'+
+    '<div><div class="lab">调节时间 ts (2%)</div><div class="val">'+si.ts.toFixed(2)+'</div></div>'+
+    '</div>'+
+    '<div style="margin-top:.7rem">'+
+    (z<1 ? '解析式 <span class="m">M<sub>p</sub> = e<sup> −πζ/√(1−ζ²)</sup></span> = <strong>'+MpTheory.toFixed(2)+'%</strong>，与上面实测一致。'
+         : '<span class="m">ζ ≥ 1</span> 时没有超调，解析式不适用。')+
+    '<div style="margin-top:.35rem;opacity:.75">超调只由<strong>极角</strong>（也就是 ζ）决定；'+
+    '调节时间只由<strong>实部</strong> <span class="m">−ζω<sub>n</sub></span> 决定。'+
+    'ωn 固定时，把 ζ 调小 ⇒ 极点沿圆往上走 ⇒ 极角变大 ⇒ 超调变大、实部变小 ⇒ ts 变长。</div></div>';
+}
+
+/* ---------- 3.2 无人机定高：K 与阻尼 ---------- */
+function dgSet(v){ document.getElementById('dgK').value=v; dgGo(); }
+function dgGo(){
+  var K=parseFloat(document.getElementById('dgK').value);
+  if(!isFinite(K)||K<1) K=1;
+  document.getElementById('dgKv').textContent=K.toFixed(0);
+  var wn=Math.sqrt(K), z=5/Math.sqrt(K);
+
+  /* 左：极点随 K 的走法（整条轨迹 + 当前点） */
+  var sp=new Plot({w:330,h:300,xmin:-22,xmax:2,ymin:-22,ymax:22,padL:46,padB:38,padR:14,
+    xlabel:'Re', ylabel:'Im', title:'K/(s²+10s+K) 的闭环极点随 K 的走法'});
+  sp.axes({xTicks:4,yTicks:5});
+  // 轨迹：两支从 0 与 −10 相向而行，K=25 在 −5 相遇后上下分开
+  var seg1x=[],seg1y=[],seg2x=[],seg2y=[],vx=[],vy=[],vx2=[],vy2=[];
+  for(var i=0;i<=200;i++){
+    var kk=25*i/200, d=Math.sqrt(Math.max(0,25-kk));
+    seg1x.push(-5+d); seg1y.push(0); seg2x.push(-5-d); seg2y.push(0);
+  }
+  for(var j=0;j<=200;j++){
+    var k2=25+(500-25)*j/200, dd=Math.sqrt(k2-25);
+    vx.push(-5); vy.push(dd); vx2.push(-5); vy2.push(-dd);
+  }
+  sp.curve(seg1x,seg1y,{color:sp.c.faint,width:2.4,opacity:.55});
+  sp.curve(seg2x,seg2y,{color:sp.c.faint,width:2.4,opacity:.55});
+  sp.curve(vx,vy,{color:sp.c.faint,width:2.4,opacity:.55});
+  sp.curve(vx2,vy2,{color:sp.c.faint,width:2.4,opacity:.55});
+  sp.cross(0,0,{color:sp.c.muted,r:5,width:1.8});
+  sp.cross(-10,0,{color:sp.c.muted,r:5,width:1.8});
+  sp.pxText(sp.X(0)+4,sp.Y(0)+16,'开环极点 0',{size:'10',anchor:'start',opacity:.55});
+  sp.pxText(sp.X(-10),sp.Y(0)+16,'−10',{size:'10',anchor:'middle',opacity:.55});
+  sp.dot(-5,0,{color:sp.c.exam,r:4});
+  sp.pxText(sp.X(-5),sp.Y(0)-9,'K=25 相遇于 −5',{color:sp.c.exam,size:'10.5',anchor:'middle',weight:'600',opacity:1});
+  // 当前极点
+  var pol=roots([1,10,K]);
+  pol.forEach(function(v){ sp.cross(v.re,v.im,{color:'#2F6F8F',r:7,width:2.6}); });
+  if(K>25) sp.pxText(sp.X(-5)-8,sp.Y(Math.sqrt(K-25)),'实部钉在 −5',
+    {color:'#2F6F8F',size:'10.5',anchor:'end',weight:'600',opacity:1});
+  sp.mountTo('dgPlane');
+
+  /* 右：阶跃响应 */
+  var tEnd = K<20 ? 6 : 2.5;
+  var r=stepResponse([K],[1,10,K],tEnd,1500);
+  var si=stepInfo(r);
+  var hp=new Plot({w:370,h:300,xmin:0,xmax:tEnd,ymin:0,ymax:1.7,padL:46,padB:38,padR:14,
+    xlabel:'时间 t (s)', ylabel:'高度 y', title:'对应的单位阶跃响应'});
+  hp.axes({xTicks:5,yTicks:5});
+  hp.hline(1,{color:hp.c.muted,dash:'5 4',width:1.2});
+  hp.curve(r.t,r.y,{color:'#2F6F8F',width:2.3});
+  if(si.Mp>0.5){
+    hp.dot(si.tPeak,si.peak,{color:hp.c.warn,r:4});
+    hp.pxText(hp.X(si.tPeak),hp.Y(si.peak)-9,'Mp = '+si.Mp.toFixed(1)+'%',
+      {color:hp.c.warn,size:'11',weight:'600',anchor:'middle',opacity:1});
+  }
+  if(si.ts>0 && si.ts<tEnd){
+    hp.vline(si.ts,{color:hp.c.ok,dash:'3 3',width:1.2,opacity:.8});
+    hp.pxText(hp.X(si.ts)+5,hp.h-hp.padB-8,'ts = '+si.ts.toFixed(3)+' s',
+      {color:hp.c.ok,size:'11',weight:'600',opacity:1});
+  }
+  hp.mountTo('dgResp');
+
+  var cls = K<25 ? '过阻尼' : (K>25 ? '欠阻尼' : '临界阻尼');
+  document.getElementById('dgOut').innerHTML=
+    '<div class="three">'+
+    '<div><div class="lab">ωn = √K</div><div class="val">'+wn.toFixed(2)+'</div></div>'+
+    '<div><div class="lab">ζ = 5/√K</div><div class="val">'+z.toFixed(3)+'</div></div>'+
+    '<div><div class="lab">阻尼分类</div><div class="val" style="font-size:1.1rem">'+cls+'</div></div>'+
+    '<div><div class="lab">超调 Mp</div><div class="val">'+si.Mp.toFixed(2)+'%</div></div>'+
+    '<div><div class="lab">ts (2%)</div><div class="val">'+si.ts.toFixed(3)+' s</div></div>'+
+    '</div>'+
+    '<div style="margin-top:.7rem;opacity:.8">'+
+    (K>25 ? '<strong>K &gt; 25 之后实部钉死在 −5</strong>：ts 稳在 0.8 s 上下不再明显改善，超调却一路涨上去——增益的收益会饱和，代价不会。'
+          : (K<25 ? '两个实极点，无超调；但慢极点靠近原点，ts 很长。'
+                  : '两个实极点在 −5 重合：极点意义上的临界阻尼。'))+
+    '</div>';
+}
+
+/* ---------- 4.1 根轨迹浏览器 ---------- */
+var RL_SYS = {
+  arm:   {num:[1,2],   den:[1,-4,13],                    label:'机械臂  K(s+2)/(s²−4s+13)',  Kmax:60,  K0:18},
+  drone: {num:[1],     den:[1,10,0],                     label:'无人机  K/(s(s+10))',         Kmax:400, K0:100},
+  third: {num:[1],     den:[1,6,5,0],                    label:'经典三阶  K/(s(s+1)(s+5))',    Kmax:60,  K0:10},
+  brk:   {num:[1,-8,15],den:[1,3,2],                     label:'§5.1  K(s−3)(s−5)/((s+1)(s+2))', Kmax:3, K0:0.4}
+};
+function rlPick(){
+  var k=document.getElementById('rlSys').value, s=RL_SYS[k];
+  var sl=document.getElementById('rlK');
+  sl.max=s.Kmax; sl.step=s.Kmax/500; sl.value=s.K0;
+  rlGo();
+}
+function rlGo(){
+  var key=document.getElementById('rlSys').value, sys=RL_SYS[key];
+  var K=parseFloat(document.getElementById('rlK').value);
+  if(!isFinite(K)||K<0) K=0;
+  document.getElementById('rlKv').textContent = K<10?K.toFixed(2):K.toFixed(1);
+
+  var RL=rootLocus(sys.num, sys.den, 0, sys.Kmax, 500);
+  // 自动定视窗
+  var allRe=[],allIm=[];
+  RL.branches.forEach(function(br){ br.forEach(function(v){
+    if(isFinite(v.re)){ allRe.push(v.re); allIm.push(v.im); } }); });
+  var zs=roots(sys.num), ps=roots(sys.den);
+  zs.concat(ps).forEach(function(v){ allRe.push(v.re); allIm.push(v.im); });
+  var xlo=Math.min.apply(null,allRe), xhi=Math.max.apply(null,allRe);
+  var ylim=Math.max(1, Math.max.apply(null,allIm.map(Math.abs)));
+  var xpad=(xhi-xlo)*0.12+0.5;
+  xlo=Math.max(xlo-xpad, -60); xhi=xhi+xpad; ylim=Math.min(ylim*1.15, 40);
+
+  var sp=new Plot({w:380,h:320,xmin:xlo,xmax:xhi,ymin:-ylim,ymax:ylim,padL:48,padB:40,padR:14,
+    xlabel:'Re', ylabel:'Im', title:'根轨迹与当前 K 对应的闭环极点'});
+  sp.axes({xTicks:5,yTicks:5});
+  if(xhi>0) sp.g.insertBefore(svgEl('rect',{x:sp.X(0),y:sp.padT,width:sp.X(xhi)-sp.X(0),
+    height:sp.plotH(),fill:sp.c.warn,'fill-opacity':.06}), sp.g.firstChild);
+  RL.branches.forEach(function(br){
+    sp.curve(br.map(function(v){return v.re;}), br.map(function(v){return v.im;}),
+      {color:sp.c.accent,width:3.2,opacity:.28});
+  });
+  ps.forEach(function(v){ sp.cross(v.re,v.im,{color:sp.c.muted,r:5.5,width:1.9}); });
+  zs.forEach(function(v){ sp.circleMark(v.re,v.im,{color:sp.c.muted,r:5.5,width:1.9}); });
+  var T=feedbackUnity(sys.num, sys.den, K);
+  var cp=roots(T.den);
+  cp.forEach(function(v){ sp.cross(v.re,v.im,{color:'#2F6F8F',r:7.5,width:2.8}); });
+  sp.pxText(sp.padL+6,sp.padT+14,'× 开环极点　○ 开环零点',{size:'10',opacity:.5});
+  sp.mountTo('rlPlane');
+
+  /* 阶跃响应 */
+  var unstable = cp.some(function(v){return v.re>1e-7;});
+  var slow = Math.min.apply(null, cp.filter(function(v){return v.re<0;}).map(function(v){return -v.re;}));
+  var tEnd = unstable ? 3 : Math.max(1, Math.min(30, 8/Math.max(0.15,slow)));
+  var r=stepResponse(T.num, T.den, tEnd, 1500);
+  var si=stepInfo(r);
+  var ymax=unstable?Math.max(3,Math.min(12,Math.max.apply(null,r.y.slice(0,200)))):Math.max(1.6, si.peak*1.15);
+  var hp=new Plot({w:360,h:320,xmin:0,xmax:tEnd,ymin:Math.min(-0.3,unstable?-ymax*0.3:-0.3),ymax:ymax,
+    padL:48,padB:40,padR:14,xlabel:'时间 t', ylabel:'y(t)', title:'对应的单位阶跃响应'});
+  hp.axes({xTicks:5,yTicks:5});
+  hp.hline(1,{color:hp.c.muted,dash:'5 4',width:1.2});
+  hp.curve(r.t,r.y,{color: unstable?hp.c.warn:'#2F6F8F', width:2.3});
+  hp.mountTo('rlResp');
+
+  var dc=dcGain(T.num,T.den);
+  document.getElementById('rlOut').innerHTML=
+    '<div>闭环极点：<span class="mono">'+cp.map(function(v){
+      return nfc(v,4); }).join('　')+'</span></div>'+
+    '<div style="margin-top:.45rem">'+
+      (unstable ? '<strong class="bad">有极点落在右半平面 ⇒ 不稳定</strong>'
+                : '<strong class="good">全部极点在左半平面 ⇒ 稳定</strong>')+
+      '　｜　T(0) = <strong>'+(isFinite(dc)?dc.toFixed(4):'∞')+'</strong>'+
+      (isFinite(dc)&&Math.abs(dc)<10 ? '（静差 '+((1-dc)*100).toFixed(1)+'%）' : '')+
+      (unstable?'':'　｜　超调 <strong>'+si.Mp.toFixed(1)+'%</strong>　｜　ts <strong>'+si.ts.toFixed(3)+'</strong>')+
+    '</div>';
+}
+
+/* ---------- 4.4 矢量法计算器 ---------- */
+var VM_SYS = {num:[1,7,12], den:[1,3,2]};    // K(s+3)(s+4)/((s+1)(s+2))
+var vmPlot=null, vmS={re:-2, im:3};
+function vmSetPoint(re,im){ vmS={re:re,im:im}; vmGo(); }
+function vmClick(evt){
+  if(!vmPlot) return;
+  var q=plotPick(vmPlot, evt);
+  if(!q.inside) return;
+  vmS={re:Math.round(q.x*100)/100, im:Math.round(Math.abs(q.y)*100)/100};
+  vmGo();
+}
+function vmGo(){
+  var s=cx(vmS.re, vmS.im);
+  var v=vectorEval(VM_SYS.num, VM_SYS.den, s);
+
+  var sp=new Plot({w:380,h:320,xmin:-5.5,xmax:1.5,ymin:-1,ymax:5,padL:46,padB:40,padR:14,
+    xlabel:'Re', ylabel:'Im', title:'在 s 平面上取一点，量四个向量'});
+  sp.axes({xTicks:5,yTicks:5});
+  // 根轨迹作背景
+  var RL=rootLocus(VM_SYS.num, VM_SYS.den, 0, 300, 300);
+  RL.branches.forEach(function(br){
+    sp.curve(br.map(function(q){return q.re;}), br.map(function(q){return q.im;}),
+      {color:sp.c.accent,width:3.4,opacity:.26});
+  });
+  sp.pxText(sp.padL+6,sp.h-sp.padB-8,'淡蓝粗线 = 根轨迹',{color:sp.c.accent,size:'10',opacity:.75});
+  // 向量
+  v.zeros.forEach(function(z){
+    sp.g.appendChild(svgEl('path',{d:'M'+sp.X(z.root.re)+','+sp.Y(z.root.im)+
+      ' L'+sp.X(s.re)+','+sp.Y(s.im), stroke:sp.c.ok,'stroke-width':1.6,'stroke-opacity':.8}));
+    sp.circleMark(z.root.re,z.root.im,{color:sp.c.ok,r:5.5,width:2});
+  });
+  v.poles.forEach(function(p){
+    sp.g.appendChild(svgEl('path',{d:'M'+sp.X(p.root.re)+','+sp.Y(p.root.im)+
+      ' L'+sp.X(s.re)+','+sp.Y(s.im), stroke:sp.c.warn,'stroke-width':1.6,'stroke-opacity':.8,
+      'stroke-dasharray':'5 3'}));
+    sp.cross(p.root.re,p.root.im,{color:sp.c.warn,r:5.5,width:2});
+  });
+  sp.dot(s.re,s.im,{color:'#2F6F8F',r:6});
+  sp.pxText(sp.X(s.re)+9,sp.Y(s.im)-7,'s = '+nfc(s,2),
+    {color:'#2F6F8F',size:'11',weight:'600',anchor:'start',opacity:1});
+  sp.pxText(sp.padL+6,sp.padT+14,'○ 零点（实线，相角相加）　× 极点（虚线，相角相减）',{size:'10',opacity:.55});
+  sp.mountTo('vmPlane');
+  vmPlot=sp;
+
+  var rows='';
+  v.zeros.forEach(function(z,i){
+    rows+='<tr><td><span class="m">s − ẑ<sub>'+(i+1)+'</sub></span>（零点 '+nf(z.root.re,2)+'）</td>'+
+      '<td class="mono">'+z.mag.toFixed(4)+'</td><td class="mono good" style="white-space:nowrap">+ '+nf(z.ang,2)+'°</td></tr>';
+  });
+  v.poles.forEach(function(p,i){
+    rows+='<tr><td><span class="m">s − p̂<sub>'+(i+1)+'</sub></span>（极点 '+nf(p.root.re,2)+'）</td>'+
+      '<td class="mono">'+p.mag.toFixed(4)+'</td><td class="mono bad" style="white-space:nowrap">− '+nf(p.ang,2)+'°</td></tr>';
+  });
+  document.getElementById('vmTable').innerHTML=
+    '<table class="compact" style="max-width:100%"><thead><tr><th>向量</th>'+
+    '<th style="width:5.5rem">模</th><th style="width:6.5rem">相角</th></tr></thead><tbody>'+rows+'</tbody></table>';
+
+  var norm=((v.angle%360)+360)%360;
+  document.getElementById('vmOut').innerHTML=
+    '<div>相角合计 <span class="m">∠G(s)</span> = <strong>'+nf(v.angle,2)+'°</strong>'+
+      '（折算到 0–360° 是 '+norm.toFixed(2)+'°）</div>'+
+    '<div style="margin-top:.4rem"><strong class="'+(v.onLocus?'good':'bad')+'">'+
+      (v.onLocus ? '≈ 180°，满足相角条件 ⇒ 这个点在根轨迹上'
+                 : '≠ 180°（差 '+Math.abs(norm-180).toFixed(2)+'°）⇒ 这个点不在根轨迹上，任何正的 K 都无法把闭环极点搬到这里')+
+    '</strong></div>'+
+    '<div style="margin-top:.5rem">幅值 <span class="m">|G(s)|</span> = <strong>'+v.mag.toFixed(4)+'</strong>，'+
+      '形式上算得 <span class="m">K = 1/|G|</span> = <strong>'+(isFinite(v.K)?v.K.toFixed(4):'∞')+'</strong>'+
+      (v.onLocus ? '，这就是把极点放到该点所需的增益。'
+                 : '<span class="bad">——但该点不在轨迹上，这个 K 没有意义。这正是「先判角、再算 K」的原因：任何一点都能算出一个正数。</span>')+
+    '</div>';
+}
+
+/* ---------- 6.1 机械臂完整根轨迹 ---------- */
+function drawArmLocus(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  var num=[1,2], den=[1,-4,13];
+  var p=new Plot({w:660,h:400,xmin:-9,xmax:5,ymin:-6.5,ymax:6.5,padL:50,padB:40,
+    xlabel:'Re', ylabel:'Im',
+    title:'K(s+2)/(s²−4s+13) 的根轨迹：以零点 −2 为心、半径 5 的圆'});
+  p.axes({xTicks:6,yTicks:6});
+  p.g.insertBefore(svgEl('rect',{x:p.X(0),y:p.padT,width:p.X(5)-p.X(0),height:p.plotH(),
+    fill:p.c.warn,'fill-opacity':.07}), p.g.firstChild);
+  p.pxText(p.X(2.6),p.padT+15,'右半平面 = 不稳定',{color:p.c.warn,size:'11',anchor:'middle',opacity:.85});
+
+  // K>0 的轨迹
+  var RL=rootLocus(num,den,0,60,400);
+  RL.branches.forEach(function(br){
+    p.curve(br.map(function(v){return v.re;}), br.map(function(v){return v.im;}),
+      {color:'#2F6F8F',width:2.4});
+  });
+  // 圆（理论）
+  p.arc(-2,0,5,0,2*Math.PI,{color:p.c.faint,dash:'4 4',width:1.2,opacity:.8});
+  p.pxText(p.X(-4.2),p.Y(5)-8,'圆心 = 零点 −2，半径 √(|ẑ−p̂₁|·|ẑ−p̂₂|) = 5',
+    {size:'10.5',anchor:'middle',opacity:.65});
+  // K<0 的补轨迹（虚线）
+  var neg=rootLocus(num,den,-30,0,300);
+  neg.branches.forEach(function(br){
+    p.curve(br.map(function(v){return v.re;}), br.map(function(v){return v.im;}),
+      {color:p.c.muted,width:1.5,dash:'4 4',opacity:.6});
+  });
+  // 开环零极点
+  p.cross(2,3,{color:p.c.warn,r:6.5,width:2.4});
+  p.cross(2,-3,{color:p.c.warn,r:6.5,width:2.4});
+  p.circleMark(-2,0,{color:p.c.ok,r:6.5,width:2.4});
+  p.pxText(p.X(2)-10,p.Y(3)+18,'开环极点 2 ± j3',{color:p.c.warn,size:'11',anchor:'end',weight:'600',opacity:1});
+  p.pxText(p.X(2)-10,p.Y(3)+32,'（系统开环本就不稳定）',{color:p.c.warn,size:'10',anchor:'end',opacity:.8});
+  p.pxText(p.X(-2),p.Y(0)+18,'开环零点 −2',{color:p.c.ok,size:'11',anchor:'middle',weight:'600',opacity:1});
+  // 关键点
+  p.dot(0,4.582576,{color:p.c.exam,r:5}); p.dot(0,-4.582576,{color:p.c.exam,r:5});
+  p.pxText(p.X(0)-12,p.Y(4.582576)+4,'K = 4 穿虚轴于 ± j4.583',{color:p.c.exam,size:'11',anchor:'end',weight:'600',opacity:1});
+  p.dot(-7,0,{color:p.c.exam,r:5});
+  p.pxText(p.X(-7),p.Y(0)-10,'K = 18 两支会合于 −7',{color:p.c.exam,size:'11',anchor:'middle',weight:'600',opacity:1});
+  // 出射角
+  var a=126.8699*Math.PI/180, L=1.5;
+  p.g.appendChild(svgEl('path',{d:'M'+p.X(2)+','+p.Y(3)+' L'+p.X(2+L*Math.cos(a))+','+p.Y(3+L*Math.sin(a)),
+    stroke:p.c.exam,'stroke-width':2.4,'stroke-opacity':1,'stroke-dasharray':'5 3'}));
+  p.pxText(p.X(2)+12,p.Y(3)-16,'出射角 126.87°',
+    {color:p.c.exam,size:'11',anchor:'start',weight:'600',opacity:1});
+  p.legend([
+    {label:'K > 0 根轨迹',color:'#2F6F8F',width:2.4},
+    {label:'K < 0 补轨迹',color:p.c.muted,dash:'4 4',width:1.5},
+    {label:'理论圆',color:p.c.faint,dash:'4 4',width:1.2}
+  ], p.padL+8, p.h-p.padB-46);
+  p.mountTo(host);
+}
+
+/* ---------- 6.2 机械臂阶跃响应族 ---------- */
+function drawArmSteps(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  var num=[1,2], den=[1,-4,13];
+  var Ks=[10,18,25,40,100,200];
+  var cols=null;
+  var p=new Plot({w:700,h:360,xmin:0,xmax:3,ymin:0,ymax:1.45,padL:50,padB:40,
+    xlabel:'时间 t (s)', ylabel:'y(t)',
+    title:'机械臂闭环阶跃响应族：K = 10 / 18 / 25 / 40 / 100 / 200'});
+  p.axes({xTicks:6,yTicks:5});
+  cols=[p.c.warn,'#2F6F8F',p.c.exam,p.c.ok,p.c.muted,p.c.faint];
+  p.hline(1,{color:p.c.muted,dash:'6 4',width:1.5});
+  p.pxText(p.w-p.padR-6,p.Y(1)-7,'参考值 r = 1',{size:'11',anchor:'end',opacity:.7});
+  var items=[], rows=[];
+  Ks.forEach(function(K,i){
+    var T=feedbackUnity(num,den,K);
+    var r=stepResponse(T.num,T.den,3,1500);
+    var si=stepInfo(r);
+    p.curve(r.t,r.y,{color:cols[i],width:(K===18?2.8:1.8),opacity:(K===18?1:.85)});
+    items.push({label:'K = '+K+(K===18?'（临界阻尼点）':''),color:cols[i],width:(K===18?2.8:1.8)});
+    rows.push({K:K,Mp:si.Mp,ts:si.ts,yf:si.yFinal});
+  });
+  p.legend(items, p.w-218, p.padT+18);
+  // 静差示意
+  var last=rows[rows.length-1];
+  p.mountTo(host);
+
+  var note=document.getElementById(hostId+'Note');
+  if(note){
+    var h='<table class="compact" style="max-width:100%"><thead><tr><th>K</th><th>超调 Mp</th>'+
+      '<th>调节时间 ts (2%)</th><th>终值 T(0)</th><th>静差</th></tr></thead><tbody>';
+    rows.forEach(function(q){
+      h+='<tr><td class="mono"'+(q.K===18?' style="font-weight:700"':'')+'>'+q.K+'</td>'+
+        '<td class="mono">'+q.Mp.toFixed(2)+'%</td><td class="mono">'+q.ts.toFixed(3)+' s</td>'+
+        '<td class="mono">'+q.yf.toFixed(4)+'</td><td class="mono">'+((1-q.yf)*100).toFixed(1)+'%</td></tr>';
+    });
+    h+='</tbody></table>';
+    note.innerHTML=h;
+  }
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+dzGo();
+dgGo();
+rlPick();
+vmGo();
+drawArmLocus('armLocus');
+drawArmSteps('armSteps');
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+</script>
+</body>
+</html>
