@@ -33,13 +33,14 @@
  *   Start from the resolution we want rather than from the period: one count
  *   per microsecond makes every number below readable directly in microseconds.
  *
- *       counter clock = 1 MHz  =>  PSC + 1 = 64 MHz / 1 MHz = 64  =>  PSC = 63
+ *       counter clock = 1 MHz  =>  PSC + 1 = f_TIM4 / 1 MHz
+ *                                     ( = 8 on an 8 MHz project, 64 on a 64 MHz one )
  *
  *   Then choose the frame:
  *
  *       20 ms at 1 us per tick  =>  ARR + 1 = 20 000  =>  ARR = 19 999
- *       check: f = 64e6 / (64 * 20 000) = 50.00 Hz exactly
- *       both 64 and 20 000 are below 65 536, so both registers fit in 16 bits
+ *       check: 1 MHz / 20 000 = 50.00 Hz exactly, whatever the system clock is
+ *       both factors are below 65 536, so both registers fit in 16 bits
  *
  *   The compare register is now simply the pulse width in microseconds:
  *
@@ -94,9 +95,13 @@
  *      CPOL Low, CPHA 1 Edge, hardware NSS disabled
  *   3. PC7 -> GPIO_Output, label SPI_CS, initial level HIGH
  *   4. TIM4: Internal Clock, Channel1 = PWM Generation CH1
- *   5. TIM4 Parameter Settings:  Prescaler = 63,  Counter Period = 19999,
+ *   5. TIM4 Parameter Settings:  Prescaler = f_TIM4 / 1 MHz - 1  (7 for an
+ *      8 MHz project, 63 for a 64 MHz one),  Counter Period = 19999,
  *      Counter Mode = Up, PWM mode 1, Pulse = 1500, CH Polarity = High
  *      (Pulse 1500 means the servo sits in the middle at power-up.)
+ *      The code re-asserts both values, so what really matters is TIMCLK_HZ.
+ *   5b. Check PA5: if CubeMX assigned it to the on-board LED LD2 at project
+ *      creation, change it to SPI1_SCK.
  *   6. Ctrl+S.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
@@ -127,6 +132,16 @@
 #define CMD_HIGH_BYTE  0x01U
 #define CMD_DUMMY      0x00U
 
+/* ---- the live blank: read "APB1 timer clocks (MHz)" in CubeMX ------------- */
+/* A project created WITHOUT the board defaults sits on the internal 8 MHz
+ * oscillator. With the 64 MHz PLL setup, write 64000000UL here instead.
+ * Everything below is derived from this one number.                          */
+#define TIMCLK_HZ      8000000UL
+#define TICK_HZ        1000000UL           /* 1 us per counter tick          */
+#define TIM_PSC        ((TIMCLK_HZ / TICK_HZ) - 1UL)   /* 7 at 8 MHz, 63 at 64 */
+#define SERVO_FRAME_US 20000UL             /* 20 ms frame = 50 Hz            */
+#define TIM_ARR        (SERVO_FRAME_US - 1UL)          /* 19999              */
+
 #define ADC_MAX        1023U               /* 10-bit ADC, largest value      */
 #define SERVO_MIN_US   1000U               /* one end of the travel          */
 #define SERVO_MAX_US   2000U               /* the other end                  */
@@ -146,10 +161,22 @@ static void uart_print(const char *s)
     HAL_UART_Transmit(&huart2, (uint8_t *)s, (uint16_t)strlen(s), HAL_MAX_DELAY);
 }
 
+/* The AVR interrupt needs a few microseconds to load its answer. A short busy
+ * wait is used rather than HAL_Delay(1), which would idle for one to two
+ * milliseconds and widen the window in which the slave's loop() can refresh
+ * the value between the two halves of one reading.                          */
+static void slave_settle(void)
+{
+    for (volatile uint32_t i = 0U; i < 300U; i++) { __NOP(); }
+}
+
 static uint8_t spi_swap(uint8_t tx)
 {
     uint8_t rx = 0U;
-    HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1U, SPI_TIMEOUT);
+    if (HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1U, SPI_TIMEOUT) != HAL_OK)
+    {
+        uart_print("  SPI transfer failed (timeout).\r\n");
+    }
     return rx;
 }
 
@@ -162,11 +189,11 @@ static uint16_t nano_read_analog(void)
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);
 
     (void)spi_swap(CMD_LOW_BYTE);
-    HAL_Delay(1U);
+    slave_settle();
     lo = spi_swap(CMD_DUMMY);
 
     (void)spi_swap(CMD_HIGH_BYTE);
-    HAL_Delay(1U);
+    slave_settle();
     hi = spi_swap(CMD_DUMMY);
 
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);
@@ -185,6 +212,14 @@ static uint16_t nano_read_analog(void)
                "Frame 50 Hz, pulse 1.000 to 2.000 ms, 1 us per counter tick.\r\n");
 
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);
+
+    /* Re-assert the timing in software. PSC is buffered (the shadow-register
+     * behaviour met in Lab 1), so force an update event to load it.        */
+    __HAL_TIM_SET_PRESCALER(&htim4, TIM_PSC);
+    __HAL_TIM_SET_AUTORELOAD(&htim4, TIM_ARR);
+    htim4.Instance->EGR = TIM_EGR_UG;
+    __HAL_TIM_CLEAR_FLAG(&htim4, TIM_FLAG_UPDATE);
+
     __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 1500U);   /* start centred */
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
     HAL_Delay(500U);                                       /* let it get there */
@@ -243,4 +278,10 @@ static uint16_t nano_read_analog(void)
  *   Check the SPI side first with Task 3, where an LED shows immediately
  *   whether the analog value is arriving. Only once that works is it worth
  *   debugging the servo.
+ *
+ * DO NOT TOGGLE THE CHIP SELECT PER BYTE
+ *   The megaAVR-0 data sheet says the client-mode SPI state machine is reset
+ *   when SS is driven high, and data in flight is lost. This slave's protocol
+ *   depends on the byte loaded by one interrupt surviving until the next
+ *   transfer, so SS has to stay low across all four.
  *============================================================================*/

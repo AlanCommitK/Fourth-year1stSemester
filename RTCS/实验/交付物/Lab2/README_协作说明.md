@@ -9,15 +9,21 @@
 
 ## 0. 先确认三件事（这一步最急，缺件要买）
 
-> [!important] 请先回我这三个问题，别的都可以慢慢来
+> [!note] 硬件已确认（2026-09-17）
+> Arduino 是 **Nano Every** ✓（Task 3/4 必须是它——老师给的 SPI 代码用的 `SPI0.CTRLA`、
+> `ISR(SPI0_INT_vect)` 是 ATmega4809 独有的，普通 Nano 编译都过不了）。舵机 ✓。
+> 还要备：电位器 ×1、LED ×2、220–330 Ω ×2、10 kΩ 与 20 kΩ 各 ×1（给 MISO 分压）、面包板、杜邦线。
+
+> [!important] 建 Lab 2 工程之前，先决定时钟，并把 Clock Configuration 截图发我
+> 你 Lab 1 的工程跑在 **8 MHz**（HSI，各级分频都是 1）。Lab 2 的手册通篇按 **64 MHz** 写，
+> 所以它给的 SPI「预分频 128 → 500 kbit/s」在 8 MHz 下实际是 62.5 kbit/s。两种都能用，
+> **我给的代码里定时器参数是从一个宏推出来的，8 MHz 和 64 MHz 都自动算对**，只要那个宏填对。
 >
-> 1. **你手上的 Arduino 是「Nano Every」还是普通的「Nano」？**
->    板子背面 / 正面丝印会写。**Task 3 和 Task 4 必须是 Nano Every**——老师给的
->    `SPI_ArduinoNanoEvery_Slave.ino` 里用的 `SPI0.CTRLA`、`ISR(SPI0_INT_vect)` 是
->    ATmega4809（Nano Every 的芯片）独有的，普通 Nano（ATmega328P）**编译都过不了**。
->    Task 2 的 I2C 两种板子都能跑。
-> 2. **有没有舵机？** Task 4 要一个普通的 SG90／MG90S 之类的小舵机。手册从头到尾没提要准备它。
-> 3. **有没有这些小件**：电位器 ×1、LED ×2、220～330 Ω 电阻 ×2、1 kΩ 电阻 ×1、面包板、杜邦线若干。
+> - 想省事：**照 Lab 1 那样留在 8 MHz**，代码里 `TIMCLK_HZ` 保持 `8000000UL`，什么都不用改。
+> - 想和手册一致：在 Clock Configuration 里把 SYSCLK 配到 64 MHz（HSI → PLL ×16），
+>   然后把四个 `.c` 里的 `TIMCLK_HZ` 改成 `64000000UL`。
+>
+> 无论选哪种，**Clock Configuration 的截图都要发我**，报告里要写明。
 
 ### 四个任务的硬件需求，按「好做」排序
 
@@ -42,8 +48,10 @@
 ```
 Nucleo 排针 SCL (PB8)  ──►  Nano A5
 Nucleo 排针 SDA (PB9)  ──►  Nano A4      ← 手册图 9 画到了 A6，A6 没有 I2C 功能
-Nucleo GND             ──►  Nano GND     ← 手册文字表漏了，但必须接
-Nucleo 5V              ──►  Nano VIN     （或者 Nano 自己插 USB 供电）
+Nucleo GND             ──►  Nano GND     ← 手册这张表里有，别漏接
+Nucleo 5V              ──►  Nano 的 5V 脚  ← 不是 VIN！VIN 是 Nano 板载稳压器的输入，
+                                            要 7 V 以上；喂 5 V 进去 Nano 只能得到 4 V 上下。
+                                            或者干脆让 Nano 自己插 USB 供电
 
 电位器：两个外侧脚 → Nano 5V 和 GND，中间脚 → Nano A1
 ```
@@ -58,7 +66,7 @@ Nucleo 5V              ──►  Nano VIN     （或者 Nano 自己插 USB 供�
 | MOSI | **D11** (PA7) | → | **D11** | D12 ✗ |
 | MISO | **D12** (PA6) | ← | **D12** | D11 ✗ |
 | CS | **D9** (PC7) | → | **D8** | D10 ✗ |
-| GND | 任一 GND | — | GND | 漏写 |
+| GND | 任一 GND | — | GND | **整行漏写** |
 
 三件事解释一下，免得你觉得我在瞎改：
 
@@ -74,7 +82,10 @@ Nucleo 5V              ──►  Nano VIN     （或者 Nano 自己插 USB 供�
 再加三个小件：
 
 ```
-MISO 线上串一个 1 kΩ         ← PA6 不是 5V 容忍脚，Arduino 是 5V 输出
+MISO 线上做个分压：Nano D12 → 10 kΩ → PA6，PA6 再经 20 kΩ 到 GND
+                             ← PA6 不是 5V 容忍脚（它同时是 ADC 输入），5×20/30 = 3.33 V
+                             ← 只串 1 kΩ 是常见的偷懒做法，但它并不限压，只是把灌进保护
+                               二极管的电流压到 1 mA 左右，而且会扰动 ADC
 Nano D2  → 330Ω → LED → GND  ← Arduino 自己闪的灯
 Nucleo D10 (PB6) → 330Ω → LED → GND   ← Task 3 要看的 PWM 调光灯
 舵机信号线 → Nucleo D10 (PB6)          ← Task 4，此时把上面那个 LED 拆掉
@@ -108,8 +119,26 @@ SPI0.CTRLA = (SPI0.CTRLA | SPI_ENABLE_bm) & ~(SPI_MASTER_bm | SPI_DORD_bm);
 
 ## 3. 四个任务怎么做
 
-每个任务建一个独立的 CubeMX 工程（`Lab2_Task1` … `Lab2_Task4`），
-建工程时「Initialize all peripherals with their default Mode?」选 **Yes**。
+每个任务建一个独立的 CubeMX 工程（`Lab2_Task1` … `Lab2_Task4`）。
+
+> [!warning] 两个粘贴/配置上的坑，先看
+> **一、`USER CODE BEGIN 3` 和 `USER CODE END 3` 之间隔着 `while(1)` 的右花括号。**
+> CubeMX 生成的是这样：
+> ```c
+> while (1)
+> {
+>   /* USER CODE END WHILE */
+>
+>   /* USER CODE BEGIN 3 */
+> }
+> /* USER CODE END 3 */
+> ```
+> 那个 `}` 在两个标记**中间**。我给的 `.c` 文件里为了好读把 `BEGIN 3` / `END 3` 写成了成对的，
+> **你粘的时候只粘中间的代码，粘到 `BEGIN 3` 之后、`}` 之前**，别把花括号删掉。
+>
+> **二、PA5 就是板载绿灯 LD2，也是 SPI1_SCK。** 建工程时如果选了 "Initialize all peripherals"，
+> CubeMX 会先把 PA5 配成 LD2 的 `GPIO_Output`；做 Task 3/4 时要手动把它改成 **SPI1_SCK**。
+> 改完之后传输时 LD2 会跟着时钟闪，**那是正常的**，不是故障。
 每个 `.c` 文件开头都写了该任务要在 CubeMX 里点哪些、粘哪几段，**照着文件里的清单做**，
 这里只列要验证什么、要拍什么。
 
@@ -117,7 +146,8 @@ SPI0.CTRLA = (SPI0.CTRLA | SPI_ENABLE_bm) & ~(SPI_MASTER_bm | SPI_DORD_bm);
 
 代码：`代码/Task1_uart_calculator.c`
 
-**串口终端波特率要改成 9600**，和 CubeMX 里一致。板子出厂的虚拟串口是 115200，不改就是乱码。
+**串口终端波特率要设成 9600**，和 CubeMX 里一致。
+（ST-LINK 的虚拟串口本身没有固定波特率，它跟着你终端的设置走；真正默认 115200 的是 CubeMX 里 USART2 的参数，手册让你改成 9600。）
 
 验证：输入三个两位数、再输 `a` 或 `m`，看结果对不对。
 
@@ -170,9 +200,9 @@ SPI0.CTRLA = (SPI0.CTRLA | SPI_ENABLE_bm) & ~(SPI_MASTER_bm | SPI_DORD_bm);
 
 ## 4. 做完请回我这些
 
-1. 第 0 节那**三个硬件问题**（Nano 型号 / 有没有舵机 / 小件齐不齐）——**这个最急，先回**
+1. **Clock Configuration 的截图**，以及你最后选的是 8 MHz 还是 64 MHz——**这个先回**，报告要写
 2. **图 1.1、1.2、2.1、2.2** 四张串口截图
-3. CubeMX 里 **Clock Configuration** 的截图一张（要能看清 APB1 timer clocks 和 APB2 的数字）
+3. 你有没有改 `.c` 里的 `TIMCLK_HZ`，改成了多少
 4. Task 3：LED 调光有没有成功？串口打印的数值转电位器时是不是跟着变？
 5. Task 4：舵机能不能转？实际脉宽范围是多少？
 6. SPI 的片选：我写的是「四次传输全程拉低」。如果你改成了「每字节拉一次」才通，告诉我
@@ -192,6 +222,7 @@ SPI0.CTRLA = (SPI0.CTRLA | SPI_ENABLE_bm) & ~(SPI_MASTER_bm | SPI_DORD_bm);
 | I2C 每次都 `no ACK` | SDA/SCL 接反、SDA 接到 A6、没共地、地址没左移 | 按第 1 节重接；地址必须是 `0x55<<1` |
 | SPI 读回来永远是 0x00 或 0xFF | `.ino` 第 17 行没改 / MOSI-MISO 接反 / CS 接了 D10 | 第 2 节 + 第 1 节 |
 | Nano Every 编译报 `SPI0` 未定义 | 板子选成了普通 Nano | 开发板选 **Arduino Nano Every** |
-| 普通 Nano 编译不过 SPI 代码 | 芯片不对，这份代码只能跑在 Nano Every | 见第 0 节问题 1 |
+| I2C 引脚跑到了 PB6/PB7 | CubeMX 给 I2C1 的默认引脚就是 PB6/PB7 | 在引脚图上点 PB8 选 `I2C1_SCL`、点 PB9 选 `I2C1_SDA`，CubeMX 会自动打开 I2C1 重映射 |
+| 编译报括号不配对 | 粘代码时把 `while(1)` 的 `}` 删掉了 | 见第 3 节开头那条警告 |
 | PWM 灯肉眼可见闪烁 | Prescaler/Counter Period 填成手册的 10 Hz 那组 | 按 `.c` 文件里的 63 / 999 |
 | 舵机一动板子就重启 | 舵机从 Nucleo 5V 取电 | 换独立电源，共地 |

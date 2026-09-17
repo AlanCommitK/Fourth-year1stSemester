@@ -14,7 +14,10 @@
  *   Nucleo SDA pin (PB9)  ->  Nano A4      <-- Figure 9 draws this to A6, which
  *                                              is an analog-only pin with no I2C
  *   Nucleo GND            ->  Nano GND     <-- a common ground is mandatory
- *   Nucleo 5V             ->  Nano VIN     (or power the Nano from its own USB)
+ *   Nucleo 5V             ->  Nano 5V      (the 5 V PIN, not VIN: VIN is the input
+ *                                          of the Nano's own regulator and needs
+ *                                          7 V or more) - or just power the Nano
+ *                                          from its own USB cable
  *   Potentiometer: outer legs to Nano 5V and GND, wiper to Nano A1
  *
  *   I2C is open-drain and needs pull-ups. Wire.begin() switches on the AVR's
@@ -258,6 +261,29 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         }
     }
 
+    HAL_UART_Receive_IT(huart, (uint8_t *)&rx_byte, 1U);
+}
+
+/* The receive interrupt is switched off by the HAL whenever a UART error is
+ * latched - most often OVERRUN, which happens if a byte arrives while the
+ * previous one has not been read out. Without this callback the program would
+ * simply stop receiving and look as if the board had hung. Clearing the flags
+ * and re-arming puts it back to work.                                        */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance != USART2)
+    {
+        return;
+    }
+
+    __HAL_UART_CLEAR_OREFLAG(huart);
+    __HAL_UART_CLEAR_NEFLAG(huart);
+    __HAL_UART_CLEAR_FEFLAG(huart);
+    __HAL_UART_CLEAR_PEFLAG(huart);
+    huart->ErrorCode = HAL_UART_ERROR_NONE;
+
+    line_len   = 0U;
+    line_ready = false;
     HAL_UART_Receive_IT(huart, (uint8_t *)&rx_byte, 1U);
 }
 

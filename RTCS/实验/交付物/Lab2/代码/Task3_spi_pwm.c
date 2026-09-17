@@ -36,10 +36,12 @@
  *
  *   NOTE ON 5 V: PA5, PA6 and PA7 of the STM32F103 are ADC inputs and are NOT
  *   5 V tolerant (datasheet DS5319 Table 5 marks the tolerant pins "FT"; these
- *   are not). MISO is the only wire that the 5 V Arduino drives INTO the
- *   Nucleo, so put a 1 kohm resistor in series with it. If you would rather do
- *   it properly, use a divider: Nano D12 -> 10 kohm -> PA6, and 20 kohm from
- *   PA6 to GND, which turns 5 V into 3.3 V.
+ *   are not). MISO is the only wire the 5 V Arduino drives INTO the Nucleo, so
+ *   it needs attention. Preferred: a divider - Nano D12 -> 10 kohm -> PA6, and
+ *   20 kohm from PA6 to GND, giving 5 x 20/30 = 3.33 V. A single 1 kohm in
+ *   series is the common shortcut, but it does not actually limit the voltage;
+ *   it only keeps the current into the pin's protection diode near 1 mA, and
+ *   injecting current into what is also an ADC input can disturb conversions.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │ 2. WHY CS IS ON PC7 AND NOT ON PB6                                       │
@@ -84,21 +86,30 @@
  *      initial level to HIGH (chip select is active low, so idle is high).
  *   5. Timers > TIM4 > Clock Source = Internal Clock, Channel1 = PWM
  *      Generation CH1
- *   6. TIM4 > Parameter Settings: Prescaler = 63, Counter Mode = Up,
+ *   6. TIM4 > Parameter Settings: Prescaler = TIMCLK / 1 MHz - 1
+ *      (7 for an 8 MHz project, 63 for a 64 MHz one), Counter Mode = Up,
  *      Counter Period = 999, and in PWM Generation Channel 1:
  *      Mode = PWM mode 1, Pulse = 0, CH Polarity = High
+ *      The code re-asserts both values anyway, so the important one to get
+ *      right is TIMCLK_HZ below.
+ *   6b. Also check PA5: with "initialize all peripherals" chosen at project
+ *      creation CubeMX assigns it to the on-board LED LD2. It has to become
+ *      SPI1_SCK here. LD2 then flickers during transfers - that is normal.
  *   7. Ctrl+S.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │ 5. THE CALCULATIONS THE TASK ASKS FOR                                    │
  * └──────────────────────────────────────────────────────────────────────────┘
- *   SPI bit rate.  SPI1 hangs off APB2, which runs at the system clock:
- *       64 MHz / 128 = 500 kbit/s,  so one byte takes 8 / 500 000 = 16 us.
+ *   SPI bit rate.  SPI1 hangs off APB2, which runs at the system clock, so the
+ *   prescaler of 128 gives 64 MHz / 128 = 500 kbit/s on a 64 MHz project (one
+ *   byte = 16 us) and 8 MHz / 128 = 62.5 kbit/s on an 8 MHz one (128 us). Both
+ *   work; only the throughput differs. State in the report which one applies.
  *
  *   PWM frequency.  f_pwm = f_TIM4 / ((PSC + 1) * (ARR + 1)).
- *       PSC + 1 = 64     -> the counter ticks at 64 MHz / 64 = 1 MHz, 1 us/tick
- *       ARR + 1 = 1000   -> one PWM period is 1000 us
- *       f_pwm   = 64e6 / (64 * 1000) = 1000 Hz
+ *       PSC + 1 = f_TIM4 / 1 MHz  -> the counter ticks once per microsecond
+ *                                    (8 at 8 MHz, 64 at 64 MHz)
+ *       ARR + 1 = 1000            -> one PWM period is 1000 us
+ *       f_pwm   = 1 MHz / 1000    = 1000 Hz, whatever the system clock is
  *   1 kHz is chosen instead of the 10 Hz of the handout because 10 Hz is far
  *   below the flicker-fusion frequency of the eye: the LED would visibly
  *   stutter instead of dimming. (The handout's own 10 Hz is also mis-computed:
@@ -131,7 +142,19 @@
 #define CMD_HIGH_BYTE  0x01U               /* "load the high byte of A1"     */
 #define CMD_DUMMY      0x00U               /* harmless byte used to clock    */
 
-#define PWM_TOP        1000U               /* ARR + 1, counts per period     */
+/* ---- the live blank: read "APB1 timer clocks (MHz)" in CubeMX ------------- */
+/* A project created WITHOUT the board defaults sits on the internal 8 MHz
+ * oscillator, and that is what the Lab 1 projects of this course read. With
+ * the 64 MHz PLL setup, write 64000000UL here instead. Everything below is
+ * derived from this one number, so nothing else has to change.               */
+#define TIMCLK_HZ      8000000UL
+#define TICK_HZ        1000000UL            /* aim for 1 us per counter tick  */
+#define TIM_PSC        ((TIMCLK_HZ / TICK_HZ) - 1UL)   /* 7 at 8 MHz, 63 at 64 */
+
+#define PWM_HZ         1000UL              /* 1 kHz: well above eye flicker  */
+#define PWM_TOP        (TICK_HZ / PWM_HZ)  /* ARR + 1 = 1000 counts / period */
+#define TIM_ARR        (PWM_TOP - 1UL)     /* 999                            */
+
 #define ADC_MAX        1023U               /* 10-bit ADC, largest value      */
 /* USER CODE END PD */
 
@@ -150,10 +173,20 @@ static void uart_print(const char *s)
 
 /* One 8-bit full-duplex exchange. The chip select is left to the caller,
  * because the four bytes of a reading must stay inside one selection.       */
+/* Roughly 20 us at 72 MHz, less at slower clocks - the AVR interrupt needs
+ * only a few microseconds, so this has margin either way.                   */
+static void slave_settle(void)
+{
+    for (volatile uint32_t i = 0U; i < 300U; i++) { __NOP(); }
+}
+
 static uint8_t spi_swap(uint8_t tx)
 {
     uint8_t rx = 0U;
-    HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1U, SPI_TIMEOUT);
+    if (HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1U, SPI_TIMEOUT) != HAL_OK)
+    {
+        uart_print("  SPI transfer failed (timeout).\r\n");
+    }
     return rx;
 }
 
@@ -183,12 +216,16 @@ static uint16_t nano_read_analog(void)
 
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);   /* select */
 
+    /* The slave's interrupt needs a few microseconds to write the answer into
+     * SPI0.DATA. A short busy wait is used rather than HAL_Delay(1), which
+     * would idle for one to two milliseconds and widen the window in which
+     * loop() can refresh the value between our two halves.                 */
     (void)spi_swap(CMD_LOW_BYTE);
-    HAL_Delay(1U);                    /* let the slave ISR load SPI0.DATA */
+    slave_settle();
     lo = spi_swap(CMD_DUMMY);
 
     (void)spi_swap(CMD_HIGH_BYTE);
-    HAL_Delay(1U);
+    slave_settle();
     hi = spi_swap(CMD_DUMMY);
 
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);     /* deselect */
@@ -206,6 +243,16 @@ static uint16_t nano_read_analog(void)
                "SPI reads the potentiometer, PWM on PB6 follows it.\r\n");
 
     HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);   /* idle high */
+
+    /* Re-assert the timing in software, so it does not depend on what was
+     * typed into the CubeMX dialog. PSC is a buffered register (the same
+     * shadow-register behaviour met in Lab 1), so an update event is forced
+     * to load it before the timer runs.                                   */
+    __HAL_TIM_SET_PRESCALER(&htim4, TIM_PSC);
+    __HAL_TIM_SET_AUTORELOAD(&htim4, TIM_ARR);
+    htim4.Instance->EGR = TIM_EGR_UG;
+    __HAL_TIM_CLEAR_FLAG(&htim4, TIM_FLAG_UPDATE);
+
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
 /* USER CODE END 2 */
@@ -237,8 +284,9 @@ static uint16_t nano_read_analog(void)
  * WHAT TO OBSERVE
  *   Turning the potentiometer from one end to the other takes the LED on
  *   Nucleo D10 from fully off to fully on, smoothly, while the console prints
- *   the raw value and the duty cycle. The LED on Nano D2 keeps blinking at
- *   whatever rate was last commanded; this task never changes it.
+ *   the raw value and the duty cycle. The LED on Nano D2 is a separate matter:
+ *   this task never sends 0x80..0x83, so the sketch keeps time = 0 and toggles
+ *   D2 with no delay at all, which looks almost dark rather than blinking.
  *
  * IF EVERY READING IS 0x00 OR 0xFF
  *   - the fix of section 3 above was not applied to the sketch, so its SPI
@@ -248,9 +296,20 @@ static uint16_t nano_read_analog(void)
  *   - CS is on Nano D10 instead of D8;
  *   - no common ground.
  *
+ * DO NOT TOGGLE THE CHIP SELECT PER BYTE
+ *   Keeping it low across all four transfers is not a preference, it is
+ *   required. The megaAVR-0 data sheet states that in client mode the SPI
+ *   state machine is RESET when SS is driven high, and that data being sent or
+ *   received at that moment must be considered lost. The whole protocol of
+ *   this slave depends on state surviving from one transfer to the next - the
+ *   byte its interrupt writes into SPI0.DATA is shifted out on the FOLLOWING
+ *   transfer - so raising SS in between would throw that byte away.
+ *
  * IF THE VALUE JITTERS BUT ROUGHLY FOLLOWS THE KNOB
- *   Keeping the chip select low across all four bytes is what the code above
- *   does. Some slaves want it toggled per byte instead. To try that, move the
- *   two HAL_GPIO_WritePin() calls into spi_swap(), around the single transfer.
- *   Note which of the two was used - the report has to state it.
+ *   That is the sketch, not the wiring. Its case 0x0 returns the snapshot
+ *   variable lower_val while case 0x1 returns the live analog_val >> 8, and
+ *   loop() refreshes them between our transfers, so the two halves can come
+ *   from two different conversions. The clamp below hides the worst of it.
+ *   A clean fix belongs on the Arduino side: take one snapshot of analog_val
+ *   in case 0x0 and serve both bytes from it.
  *============================================================================*/

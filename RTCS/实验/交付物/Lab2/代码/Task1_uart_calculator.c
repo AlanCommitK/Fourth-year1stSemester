@@ -227,6 +227,29 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     HAL_UART_Receive_IT(huart, (uint8_t *)&rx_byte, 1U);
 }
 
+/* The receive interrupt is switched off by the HAL whenever a UART error is
+ * latched - most often OVERRUN, which happens if a byte arrives while the
+ * previous one has not been read out. Without this callback the program would
+ * simply stop receiving and look as if the board had hung. Clearing the flags
+ * and re-arming puts it back to work.                                        */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance != USART2)
+    {
+        return;
+    }
+
+    __HAL_UART_CLEAR_OREFLAG(huart);
+    __HAL_UART_CLEAR_NEFLAG(huart);
+    __HAL_UART_CLEAR_FEFLAG(huart);
+    __HAL_UART_CLEAR_PEFLAG(huart);
+    huart->ErrorCode = HAL_UART_ERROR_NONE;
+
+    line_len   = 0U;
+    line_ready = false;
+    HAL_UART_Receive_IT(huart, (uint8_t *)&rx_byte, 1U);
+}
+
 /* USER CODE END 4 */
 
 

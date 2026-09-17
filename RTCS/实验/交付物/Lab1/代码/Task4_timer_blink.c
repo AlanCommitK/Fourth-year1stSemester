@@ -18,7 +18,7 @@
  *  1. Pinout & Configuration > Timers > TIM2
  *        Clock Source = Internal Clock
  *  2. TIM2 > Parameter Settings
- *        Prescaler        = see table below   (31999 if APB1 timer clk = 64 MHz)
+ *        Prescaler        = see table below   (3999 if APB1 timer clk = 8 MHz)
  *        Counter Mode     = Up
  *        Counter Period   = 2999
  *        auto-reload preload = Disable
@@ -50,11 +50,11 @@
  *
  *    f_TIMxCLK | PSC+1  | Prescaler field | Counter Period field | period
  *    ----------+--------+-----------------+----------------------+---------
- *      8 MHz   |  4 000 |      3999       |        2999          | 1.5000 s
+ *      8 MHz   |  4 000 |      3999       |        2999          | 1.5000 s   <-- this board
  *     32 MHz   | 16 000 |     15999       |        2999          | 1.5000 s
  *     36 MHz   | 18 000 |     17999       |        2999          | 1.5000 s
  *     48 MHz   | 24 000 |     23999       |        2999          | 1.5000 s
- *     64 MHz   | 32 000 |     31999       |        2999          | 1.5000 s   <-- default
+ *     64 MHz   | 32 000 |     31999       |        2999          | 1.5000 s
  *     72 MHz   | 36 000 |     35999       |        2999          | 1.5000 s
  *
  * This file is a set of snippets, not a compilable translation unit. Each block
@@ -70,13 +70,17 @@
 
 /* USER CODE BEGIN PD */
 /* ---- the live blank: read "APB1 timer clocks (MHz)" in CubeMX ------------- */
-#define TIMCLK_HZ    64000000UL      /* <== CHANGE THIS IF THE BOX SAYS OTHERWISE */
+#define TIMCLK_HZ    8000000UL       /* <== CHANGE THIS IF THE BOX SAYS OTHERWISE.
+                                      * 8 MHz is what a project created without the
+                                      * board defaults reads: HSI 8 MHz, every bus
+                                      * prescaler 1. With the 64 MHz PLL setup put
+                                      * 64000000UL here instead.                  */
 
 #define TICK_HZ      2000UL          /* post-prescaler tick rate, chosen so that
                                         both registers stay inside 16 bits      */
 #define BLINK_MS     1500UL          /* time between two LED state changes      */
 
-#define TIM2_PSC     ((TIMCLK_HZ / TICK_HZ) - 1UL)              /* 31999 @64MHz */
+#define TIM2_PSC     ((TIMCLK_HZ / TICK_HZ) - 1UL)              /* 3999 @ 8 MHz */
 #define TIM2_ARR     ((TICK_HZ * BLINK_MS / 1000UL) - 1UL)      /* 2999         */
 
 #define LED_PORT     GPIOA
