@@ -112,6 +112,36 @@ def resolve_root(candidates, label, required=True):
     return None
 
 
+REPORT_DIR_NAMES = {"报告", "report", "reports"}
+# 校方发的实验手册的命名：Lab1H-RTCSA_2026-2027.pdf / Lab0H-... 。
+# 我们自己的文件是 Lab1_Report / Lab1_xxx（下划线），不会命中。
+SCHOOL_HANDOUT = re.compile(r"^Lab\d+[A-Za-z]?-", re.I)
+# 校方随手册附带的配套材料目录
+SCHOOL_DIR_HINT = ("supplemental", "supplementary", "provided")
+# 成品文档：要么是校方手册，要么是我们的报告，两类都不发布
+BINARY_DOC_EXTS = {".pdf", ".doc", ".docx", ".ppt", ".pptx"}
+
+
+def _is_report(rel) -> bool:
+    """路径里任何一级目录叫「报告」/report 就算报告，整棵子树都不发布。"""
+    return any(part.lower() in REPORT_DIR_NAMES for part in rel.parts[:-1])
+
+
+def _is_school_material(rel) -> bool:
+    """校方发的实验手册与配套材料不进仓库——仓库只放我们自己的产出。
+
+    2026-09-17：手册被挪进了 Lab1/ Lab2/ 子目录，原先「只收子目录」的判据不再
+    足以挡住它们，改用文件名与目录名判定。
+    """
+    if SCHOOL_HANDOUT.match(rel.name):
+        return True
+    if any(h in part.lower() for part in rel.parts[:-1] for h in SCHOOL_DIR_HINT):
+        return True
+    if rel.suffix.lower() in BINARY_DOC_EXTS:
+        return True
+    return False
+
+
 def build_rules(vault, school, repo):
     rules = []
     for c in COURSES:
@@ -128,8 +158,13 @@ def build_rules(vault, school, repo):
                 name=f"{c} · 实验交付物",
                 src=school / c / "实验",
                 dst=repo / c / "实验" / "交付物",
-                # 只收子目录里的东西。直接躺在「实验/」根下的是校方发的实验手册，不发布。
-                accept=lambda rel: len(rel.parts) > 1,
+                # 两条过滤：
+                # 1) 只收子目录里的东西——直接躺在「实验/」根下的是校方发的实验手册，不发布。
+                # 2) 报告一律不发布（2026-09-17 用户拍板）：报告是要提交评分的个人交付物，
+                #    放进公开仓库有学术诚信风险。代码与协作说明照旧发布。
+                accept=lambda rel: (len(rel.parts) > 1
+                                    and not _is_report(rel)
+                                    and not _is_school_material(rel)),
             ))
             rules.append(Rule(
                 name=f"{c} · 往届真题",
