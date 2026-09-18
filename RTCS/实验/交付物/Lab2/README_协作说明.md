@@ -112,6 +112,14 @@ SPI0.CTRLA = (SPI0.CTRLA | SPI_ENABLE_bm) & ~(SPI_MASTER_bm | SPI_DORD_bm);
 （使能 = 1、主机位 = 0 表示从机、DORD = 0 表示高位先发，和 CubeMX 里的 MSB First 对上。
 顺带一提，那行上面的注释写「set MSB first」，但置 DORD 恰恰是低位先发，注释也是错的。）
 
+我把改好的整份文件给你了（`SPI_ArduinoNanoEvery_Slave_FIXED.ino`），直接烧它就行。
+里面除了上面这一行，还顺手修了两处：
+
+- 跨中断共享的 `analog_val` / `lower_val` / `time` **加了 `volatile`**。原文没加，编译器可以把它们
+  缓存在寄存器里，loop() 改了而 ISR 看不到（或反过来）。
+- **高低字节改成从同一次快照里出**。原文 `0x00` 分支发的是快照变量、`0x01` 分支发的是实时值，
+  两个半字节可能来自两次不同的 ADC 转换，读回来的数会偶尔跳一下。
+
 `i2c_arduino.ino` 不用改。但如果 Task 2 通信不稳，**先把第 20 行 `Serial.println(RxByte);` 注释掉**
 ——它在 I2C 接收中断里做串口输出，会拖长中断、干扰时序。
 
