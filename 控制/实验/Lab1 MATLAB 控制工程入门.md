@@ -27,11 +27,14 @@ status: 已完成
 
 ## 2 手册里的三个坑
 
-> [!warning] 坑一：手册用的三个函数都住在 MATLAB 的"过时"目录里
-> `printsys`、`rlocfind`、`sgrid` 在 R2026a 上**都还能用**，但 `which` 一查就露馅——三个都在 `toolbox/control/ctrlobsolete/` 下，MathWorks 已把它们标成 obsolete，将来可能移除。
-> 实测（R2026a Update 5）：`printsys(num, den, 's')` 正常打印，`rlocfind` 与 `sgrid` 也都正常。所以不必回避，但知道它们的状态有好处：`printsys` 的现代替代是直接显示 `tf(num, den)` 对象；`rlocfind` 除了在图上点，还有非交互形式 `rlocfind(sys, point)`，可复现，更适合写进脚本。
->
-> **真正会报错的是另一处**：`sgrid` 的第二个参数不能写 0。`sgrid(0.45, 0)` 在 R2026a 会抛 `'GridFrequencySpec' ... 值必须为正值`，必须写成 **`sgrid(0.45, [])`**。我第一版就是在这里栽的。
+**坑一：手册用的三个函数都住在 MATLAB 的"过时"目录里。** `printsys`、`rlocfind`、`sgrid` 在 R2026a 上**都还能用**，
+但 `which` 一查就露馅——三个都在 `toolbox/control/ctrlobsolete/` 下，MathWorks 已把它们标成 obsolete，将来可能移除。
+实测（R2026a Update 5）：`printsys(num, den, 's')` 正常打印，`rlocfind` 与 `sgrid` 也都正常。
+所以不必回避，但知道它们的状态有好处：`printsys` 的现代替代是直接显示 `tf(num, den)` 对象；
+`rlocfind` 除了在图上点，还有非交互形式 `rlocfind(sys, point)`，可复现，更适合写进脚本。
+
+这三个里**真正会报错的是 `sgrid` 的第二个参数**：它不能写 0。`sgrid(0.45, 0)` 在 R2026a 会抛
+`'GridFrequencySpec' ... 值必须为正值`，必须写成 **`sgrid(0.45, [])`**。
 
 > [!warning] 坑二：§5.1 的分离点方程有两个解，但**一个都不作数**
 > 对 $G_1(s)=\dfrac{(s+1)(s+2)}{s(s+3)(s+4)}$ 套 [[A-III 增益、根轨迹与系统特性#5.1 分离点与会合点\|倒数和公式]]，会解出 $\sigma=-3.3996$ 与 $\sigma=-1.5567$。
@@ -39,9 +42,10 @@ status: 已完成
 > 真实情况是：**这个系统的三条分支全程留在实轴上，根本没有分离点**（数值验证见下）。那两个解属于 $K<0$ 的补轨迹。
 > 这正是讲义里强调"解出来必须用实轴判据筛"的原因——照着公式算完就报答案，这题会全错。
 
-> [!warning] 坑三：§3 最后那个系统，就是 Tutorial A 的 Q1(b)
-> 手册第 4 页那张框图的前向通道是 $\dfrac{K(s+1)}{s(s-1)(s+6)}$，与 [[Tutorial A 全解#(b) 比例控制加单位负反馈的三阶系统\|Tutorial A Q1(b)]] 的被控对象完全相同。
-> 它让你算 $K=1、7.5、13、25$ 四个值下的零极点——**7.5 正是那题 Routh 算出的稳定边界**。所以这一小题是 Tutorial A 那道题的数值验证版，两边答案必须对得上。
+**坑三：§3 最后那个系统，就是 Tutorial A 的 Q1(b)。** 手册第 4 页那张框图的前向通道是 $\dfrac{K(s+1)}{s(s-1)(s+6)}$，
+与 [[Tutorial A 全解#(b) 比例控制加单位负反馈的三阶系统|Tutorial A Q1(b)]] 的被控对象完全相同。
+它让你算 $K=1、7.5、13、25$ 四个值下的零极点——**7.5 正是那题 Routh 算出的稳定边界**。
+所以这一小题是 Tutorial A 那道题的数值验证版，两边答案必须对得上。
 
 ## 3 逐节的答案与要点
 
