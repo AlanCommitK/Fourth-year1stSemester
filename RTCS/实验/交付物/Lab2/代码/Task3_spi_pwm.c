@@ -7,6 +7,26 @@
  *          uses ISR(SPI0_INT_vect), which only exist on the ATmega4809.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │ 0. AS BUILT  --  what was actually run on the bench                      │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *   This file is the design note. The project that was actually built and
+ *   demonstrated differs from it in two places, and the submitted report
+ *   documents the built version, not this one:
+ *
+ *     chip select   built on PB5 (Arduino header D4), not PC7 (D9)
+ *     TIM4          built with Prescaler 63999 and Counter Period 99 on a
+ *                   64 MHz project - i.e. the handout's 10 Hz, not the 1 kHz
+ *                   derived below
+ *
+ *   Both choices work. PB5 and PC7 are equally free once PB6 is reserved for
+ *   TIM4_CH1; PC7 is only tidier, because it sits next to D10..D13. The
+ *   frequency is the one that matters. At 10 Hz the LED's average power does
+ *   follow the knob, but 10 Hz is below the eye's flicker-fusion threshold, so
+ *   what you see is a blink whose mark-space ratio changes rather than a lamp
+ *   that dims smoothly. Building this fresh: use the 1 kHz values below.
+ *   Reproducing the submitted report: use 63999 / 99.
+ *
+ * ┌──────────────────────────────────────────────────────────────────────────┐
  * │ 1. WIRING  -- THE HANDOUT'S TABLE IS WRONG IN THREE PLACES               │
  * └──────────────────────────────────────────────────────────────────────────┘
  *   signal | Nucleo header (STM32 pin) |    | Nano Every | handout says

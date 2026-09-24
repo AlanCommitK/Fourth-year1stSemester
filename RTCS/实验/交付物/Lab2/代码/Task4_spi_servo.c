@@ -8,6 +8,20 @@
  * pulse.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │ 0. AS BUILT  --  what was actually run on the bench                      │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *   This file is the design note. The project that was actually built and
+ *   demonstrated put the chip select on PB5 (Arduino header D4) rather than
+ *   on PC7 (D9); the submitted report documents PB5. Either pin works - both
+ *   are free once PB6 is reserved for TIM4_CH1, and PC7 is only tidier
+ *   because it sits next to D10..D13.
+ *
+ *   The timer values below are the ones that were built: on the 64 MHz
+ *   project, Prescaler 63 and Counter Period 19999, with the channel pulse
+ *   preset to 1500. Unlike Task 3 there is nothing to choose here - the servo
+ *   fixes both numbers.
+ *
+ * ┌──────────────────────────────────────────────────────────────────────────┐
  * │ 1. WHAT A HOBBY SERVO ACTUALLY LISTENS TO                                │
  * └──────────────────────────────────────────────────────────────────────────┘
  *   A standard RC servo expects a pulse repeated every 20 ms, i.e. at 50 Hz,
