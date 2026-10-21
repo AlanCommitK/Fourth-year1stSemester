@@ -11,6 +11,15 @@
 - [[L3 分组密码与 DES]]
 - [[L4 AES]]
 
+## 浏览器版学习页
+
+自包含 HTML，离线可用，带交互件（凯撒与 Playfair 的逐步演示、DES 与 AES 的现算工具等）。
+
+- [L1 信息安全基础](笔记/HTML/L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html)
+- [L2 古典密码与密码分析](笔记/HTML/L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html)
+- [L3 分组密码与 DES](笔记/HTML/L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html)
+- [L4 AES](笔记/HTML/L4%20AES.html)
+
 ## 实验
 
 - [[Lab1-2 古典密码的 MATLAB 实现]]

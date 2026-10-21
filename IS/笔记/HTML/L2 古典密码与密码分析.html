@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L2 古典密码与密码分析 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（与控制课 build.py 相同的一组） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+    color:var(--accent); min-width:2.2rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+/* ---------- 本课补充 ---------- */
+.m .up{font-style:normal}
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+textarea{font:inherit; font-size:14.5px; padding:.4rem .55rem; width:100%; resize:vertical;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+textarea:focus{outline:2px solid var(--accent); outline-offset:1px}
+.tool input[type=text]{max-width:100%}
+.tool .three .val{font-size:1.1rem}
+main code{overflow-wrap:anywhere}
+@media print{ details.box::details-content{content-visibility:visible; display:block} details.box>summary::before{content:""} }
+.chk{display:inline-flex; align-items:center; gap:.35rem; font-size:14px; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 2</div>
+  <div class="tt">古典密码与密码分析</div>
+  <div class="toc">
+<a href="#s1">1 · 对称密码的模型</a>
+<a href="#s1-1" class="sub">1.1 五个组成部分</a>
+<a href="#s1-2" class="sub">1.2 两个前提</a>
+<a href="#s1-3" class="sub">1.3 三个分类维度</a>
+<a href="#s2">2 · 攻击者手里有什么</a>
+<a href="#s2-1" class="sub">2.1 四种攻击模型</a>
+<a href="#s2-2" class="sub">2.2 无条件与计算安全</a>
+<a href="#s2-3" class="sub">2.3 暴力破解要花多少</a>
+<a href="#s3">3 · 凯撒密码</a>
+<a href="#s3-1" class="sub">3.1 模 26 加法</a>
+<a href="#s3-2" class="sub">3.2 为什么一下午就能破</a>
+<a href="#s4">4 · 单表代换与频率分析</a>
+<a href="#s4-1" class="sub">4.1 26! 也救不了它</a>
+<a href="#s4-2" class="sub">4.2 语言的统计指纹</a>
+<a href="#s4-3" class="sub">4.3 频率攻击四步</a>
+<a href="#s4-4" class="sub">4.4 凯撒是最简单的情形</a>
+<a href="#s5">5 · 压平频率的两条路</a>
+<a href="#s6">6 · Playfair 密码</a>
+<a href="#s6-1" class="sub">6.1 造矩阵</a>
+<a href="#s6-2" class="sub">6.2 明文预处理</a>
+<a href="#s6-3" class="sub">6.3 三条规则与解密</a>
+<a href="#s6-4" class="sub">6.4 算一遍 balloon</a>
+<a href="#s6-5" class="sub">6.5 强在哪、怎么被破</a>
+<a href="#s7">7 · Vigenère 密码</a>
+<a href="#s7-1" class="sub">7.1 轮换使用的凯撒</a>
+<a href="#s7-2" class="sub">7.2 Kasiski 方法</a>
+<a href="#s7-3" class="sub">7.3 自动密钥</a>
+<a href="#s7-4" class="sub">7.4 一张表看规律</a>
+<a href="#s8">8 · 一次一密</a>
+<a href="#s8-1" class="sub">8.1 Vernam 与异或</a>
+<a href="#s8-2" class="sub">8.2 三个条件</a>
+<a href="#s8-3" class="sub">8.3 为什么不可破</a>
+<a href="#s8-4" class="sub">8.4 为什么几乎不用</a>
+<a href="#s8-5" class="sub">8.5 密钥重用的代价</a>
+<a href="#s9">9 · 置换密码</a>
+<a href="#s9-1" class="sub">9.1 栅栏密码</a>
+<a href="#s9-2" class="sub">9.2 列置换与双重置换</a>
+<a href="#s9-3" class="sub">9.3 一眼认出置换</a>
+<a href="#s10">10 · 隐写术</a>
+<a href="#s11">11 · 四条教训</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 2 — Classical Cryptography and Cryptanalysis</div>
+  <h1>古典密码与密码分析</h1>
+  <p>一串古典密码依次拿出来，每个都先学会用、再亲手破掉。贯穿全讲只有一个问题：<strong>密文把明文的什么结构漏了出来？</strong>每一种新密码都是对上一种泄露的修补，每一种攻击都在找修补后残留的统计痕迹；一路修补到底，就是不可破却几乎没法用的一次一密。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+  <p>这一讲把一串古典密码依次拿出来，每个都先学会用、再亲手破掉。贯穿全讲的问题只有一个：<strong>密文把明文的什么结构漏了出来？</strong></p>
+  <p>凯撒漏的是「密钥太少」，单表代换漏的是单字母频率，Playfair 漏的是双字母频率，Vigenère 漏的是密钥的重复周期——每一种新密码都是对上一种泄露的修补，每一种攻击都在找修补后残留的统计痕迹。</p>
+  <p>一路修补到底，就是唯一真正不可破的一次一密；它不可破，却几乎没法用。这条张力把后面几讲（DES、AES）引了出来。</p>
+  <p>这里提到的每一种密码和攻击，都在下文对应小节里定义。</p>
+  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Lecture2_ClassicalCryptography_TUL26</code>，39 页；教材 Stallings 第 8 版第 3 章。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>两种都要会：手算加解密，手工走攻击</div>
+  <p>课件原话：“‘Apply’ is the operative word. Recognising a cipher is not enough; you must be able to run it, and to run the attack against it. <strong>The exam will ask you to do both by hand.</strong>”</p>
+  <p>结尾又强调一次：“You can now encrypt and decrypt by hand with Caesar and Vigenère. That is ILO 1, and it will be examined.”</p>
+  <p style="margin-bottom:0">所以本讲的每一种密码都要能<strong>手算加解密</strong>，每一种攻击都要能<strong>手工走一遍</strong>。结尾那句只点名了凯撒和 Vigenère，但开头的学习目标里有 Playfair，实验也考 Playfair，按「会考」准备。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>对称密码的模型</h2>
+
+<h3 id="s1-1"><span class="n">1.1</span>五个组成部分</h3>
+
+<p>一个<span class="term">对称密码</span><span class="en">（symmetric cipher，加密与解密用同一把密钥的密码）</span>由五样东西组成：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7rem">组成</th><th>是什么</th></tr></thead>
+<tbody>
+<tr><td><span class="term">明文</span><br><span class="en">plaintext</span></td><td>原始的可读消息，加密算法的输入</td></tr>
+<tr><td><span class="term">加密算法</span><br><span class="en">encryption algorithm</span></td><td>对明文做各种代换（把一个符号换成另一个，见 <a href="#s1-3">1.3</a>）与变换</td></tr>
+<tr><td><span class="term">密钥</span><br><span class="en">secret key</span></td><td>也是算法的输入，但独立于算法和明文；<strong>具体做哪些代换由密钥决定</strong></td></tr>
+<tr><td><span class="term">密文</span><br><span class="en">ciphertext</span></td><td>加密后的乱码输出；同一条消息用两把不同的密钥会得到两段不同的密文</td></tr>
+<tr><td><span class="term">解密算法</span><br><span class="en">decryption algorithm</span></td><td>加密算法倒着跑：拿密文和<strong>同一把</strong>密钥还原出明文</td></tr>
+</tbody></table></div>
+
+<p>把它们连成一条线：发送方用密钥 <span class="m">K</span> 把明文 <span class="m">X</span> 加密成密文 <span class="m">Y = E(K, X)</span>，经不安全的信道送出；接收方用同一个 <span class="m">K</span> 解密，<span class="m">X = D(K, Y)</span>。这里 <span class="m">E</span> 和 <span class="m">D</span> 分别是加密函数与解密函数，括号里写的是「用哪把密钥、作用在什么上」。</p>
+
+<figure>
+<svg viewBox="0 0 780 226" role="img" aria-label="对称密码模型：明文 X 经加密算法得到密文 Y = E(K, X)，经不安全信道送到接收方，解密算法用同一把密钥 K 还原出 X = D(K, Y)；密钥 K 经安全信道预先送到双方；密码分析者在不安全信道上能看到 Y，想得到 K">
+  <defs><marker id="arM" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="currentColor" opacity=".55"/></marker></defs>
+  <g font-family="inherit" font-size="13" text-anchor="middle">
+    <g fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4" marker-end="url(#arM)">
+      <path d="M62,112 H104"/>
+      <path d="M244,112 H530"/>
+      <path d="M670,112 H712"/>
+      <path d="M387,118 V160"/>
+    </g>
+    <g fill="none" stroke="#2F6F8F" stroke-opacity=".6" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arM)">
+      <path d="M322,34 H174 V86"/>
+      <path d="M452,34 H600 V86"/>
+    </g>
+    <text x="34" y="117" fill="#2F6F8F" font-weight="600">X</text>
+    <text x="34" y="96" fill="currentColor" font-size="11" opacity=".6">明文</text>
+    <rect x="106" y="88" width="138" height="48" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="175" y="108" fill="currentColor">加密算法</text>
+    <text x="175" y="126" fill="#2F6F8F" font-size="12">Y = E(K, X)</text>
+    <text x="387" y="104" fill="#2F6F8F" font-weight="600">Y</text>
+    <text x="300" y="104" fill="currentColor" font-size="11" opacity=".6">密文</text>
+    <text x="474" y="104" fill="currentColor" font-size="11" opacity=".6">不安全信道</text>
+    <rect x="532" y="88" width="138" height="48" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3"/>
+    <text x="601" y="108" fill="currentColor">解密算法</text>
+    <text x="601" y="126" fill="#2F6F8F" font-size="12">X = D(K, Y)</text>
+    <text x="744" y="117" fill="#2F6F8F" font-weight="600">X</text>
+    <text x="744" y="96" fill="currentColor" font-size="11" opacity=".6">明文</text>
+    <rect x="322" y="14" width="130" height="40" rx="7" fill="none" stroke="#2F6F8F" stroke-opacity=".5"/>
+    <text x="387" y="39" fill="#2F6F8F" font-weight="600">密钥 K</text>
+    <text x="240" y="26" fill="#2F6F8F" font-size="11">安全信道</text>
+    <text x="534" y="26" fill="#2F6F8F" font-size="11">安全信道</text>
+    <rect x="317" y="162" width="140" height="44" rx="7" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 3"/>
+    <text x="387" y="181" fill="currentColor">密码分析者</text>
+    <text x="387" y="198" fill="currentColor" font-size="11" opacity=".6">看得到 Y，想要的是 K</text>
+  </g>
+</svg>
+<figcaption>对称密码的模型。双方用同一把 <span class="m">K</span>；虚线表示 <span class="m">K</span> 要事先经安全信道送到——这正是下面说的密钥分发问题。</figcaption>
+</figure>
+
+<p>信道上的窃听者——<span class="term">密码分析者</span><span class="en">（cryptanalyst）</span>——能看到 <span class="m">Y</span>。他最想拿到的不是这一条明文，而是<strong>密钥</strong> <span class="m">K</span>：拿到密钥，用这把密钥发过的每一条消息就都暴露了。</p>
+
+<p>这张图里藏着一个回避不掉的问题：<span class="m">K</span> 要事先通过一条<strong>安全信道</strong>送到双方手里。可如果真有一条安全信道，为什么不直接用它传消息？这就是<span class="term">密钥分发问题</span><span class="en">（key distribution problem）</span>，课件说要到 Lecture 6 才解决。</p>
+
+<p>对称加密也叫传统加密<span class="en">（conventional encryption）</span>或单钥加密<span class="en">（single-key encryption）</span>。在 1970 年代公钥密码出现之前，它是唯一的加密方式；今天它仍然是用得最多的一种。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>安全使用的两个前提</h3>
+
+<ol>
+<li><strong>算法要强</strong>：对手即使知道算法、手里有一段或多段密文，也解不出明文、推不出密钥。</li>
+<li><strong>密钥要秘密地拿到、秘密地保管</strong>：谁拿到了密钥，用这把密钥的全部通信对他都是透明的。</li>
+</ol>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>柯克霍夫原则 <span class="en">Kerckhoffs's principle</span></div>
+  <p>两条合起来就是 L1《信息安全基础》第 7.3 节讲过的<strong>开放设计</strong>，也叫柯克霍夫原则：<strong>算法不需要保密，只有密钥需要保密。</strong></p>
+  <p style="margin-bottom:0">这条原则的好处是工程上的：算法可以公开，就能有便宜、普及的实现，厂商能把它做进芯片，也不必为每个用户单独设计、测试一套新算法。</p>
+</div>
+
+<p>它的前提是「只知道密文和算法时，解密是<strong>不现实的</strong>（impractical）」。这一讲的大半篇幅，就是在看这个「不现实」一次次被证明是假的。</p>
+
+<h3 id="s1-3"><span class="n">1.3</span>给密码分类的三个维度</h3>
+
+<p>任何密码系统都可以沿三个彼此独立的维度来描述：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7.5rem">维度</th><th>两种取值</th></tr></thead>
+<tbody>
+<tr><td>做什么运算</td><td><span class="term">代换</span><span class="en">（substitution）</span>：把明文的每个元素换成另一个元素；<span class="term">置换</span><span class="en">（transposition）</span>：元素不变，只改变位置。多数系统两种都用、分好几级</td></tr>
+<tr><td>用几把密钥</td><td><strong>对称</strong>：双方同一把密钥；<strong>非对称</strong><span class="en">（asymmetric，也叫公钥）</span>：双方用不同的密钥</td></tr>
+<tr><td>怎么处理明文</td><td><span class="term">分组密码</span><span class="en">（block cipher）</span>：一次处理一整块，每块输出一块；<span class="term">流密码</span><span class="en">（stream cipher）</span>：连续处理，一次输出一个元素</td></tr>
+</tbody></table></div>
+
+<p>第一行有一条约束管着所有运算：<strong>不能丢信息，每一步都必须可逆</strong>——接收方要一字不差地还原明文。用两个四字母的例子看清代换与置换的区别：</p>
+
+<ul>
+<li>代换：MEET → PHHW（凯撒，移 3 位）。字母变了，位置没变。</li>
+<li>置换：MEET → ETME。位置变了，字母没变。</li>
+</ul>
+
+<p>课件的总结是：古典密码只做这两件事；现代密码也只做这两件事，只不过高速地重复很多次。本讲和 Lecture 3 到 5 讲的全是对称密码。</p>
+
+<h2 id="s2"><span class="n">2</span>攻击者手里有什么</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>四种攻击模型</h3>
+
+<p>破解的难度完全取决于攻击者一开始手里有多少东西。按由少到多：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:8rem">攻击模型</th><th>攻击者已知</th><th>什么时候现实</th></tr></thead>
+<tbody>
+<tr><td><span class="term">唯密文</span><br><span class="en">ciphertext only</span></td><td>加密算法 + 密文</td><td>永远可以假设。这是最弱的位置</td></tr>
+<tr><td><span class="term">已知明文</span><br><span class="en">known plaintext</span></td><td>上面的 + 同一密钥下的一个或多个明密文对</td><td>消息开头可预测：报头、问候语、文件格式</td></tr>
+<tr><td><span class="term">选择明文</span><br><span class="en">chosen plaintext</span></td><td>上面的 + 攻击者<strong>自选</strong>明文所对应的密文</td><td>攻击者能提交数据给受害方加密</td></tr>
+<tr><td><span class="term">选择密文</span><br><span class="en">chosen ciphertext</span></td><td>上面的 + 攻击者<strong>自选</strong>密文所对应的明文</td><td>攻击者能把数据喂给一个解密接口（decryption oracle，解密预言机）并看到结果</td></tr>
+</tbody></table></div>
+
+<p>评判一个密码，看它<strong>扛得住的最强攻击</strong>：扛住唯密文攻击只是最低门槛；现代密码要求扛住选择密文攻击——这是能给对手的最大方便，扛得住它，弱一些的攻击自然都扛得住。</p>
+
+<div class="box def">
+  <div class="h">和教材的一处差异</div>
+  <p style="margin-bottom:0">Stallings 的同一张表（Table 3.1）有第五类 <strong>chosen text</strong>（选择文本）：选择明文与选择密文两种能力同时具备。课件只列了四种；考试按课件的四种答，知道有第五种即可。</p>
+</div>
+
+<p>除了这些「巧攻」，永远还有一条笨路：<span class="term">暴力破解</span><span class="en">（brute force，也叫穷举密钥搜索 exhaustive key search）</span>——把每一把可能的密钥都试一遍，直到出现一段读得通的明文。它不需要任何技巧，最终一定成功；平均要试<strong>一半</strong>的密钥空间。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>无条件安全与计算安全</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>两种安全</div>
+  <ul style="margin-bottom:0">
+    <li><strong>无条件安全</strong><span class="en">（unconditionally secure）</span>：不管截获多少密文、对手的算力有多大，密文里都没有足够的信息唯一确定明文。只有一种加密算法做得到，见<a href="#s8">第 8 节的一次一密</a>。</li>
+    <li><strong>计算安全</strong><span class="en">（computationally secure）</span>：满足下面两条之一——破解的成本超过被加密信息的价值；破解所需的时间超过信息的有效期。</li>
+  </ul>
+</div>
+
+<p>现实中的所有密码都只追求计算安全。它本质上是一句经济学判断：L1 第 2.2 节的相称性原则「防护成本不应超过被保护对象的价值」，在这里成了密码强度的工作定义。</p>
+
+<h3 id="s2-3"><span class="n">2.3</span>暴力破解要花多少</h3>
+
+<p>估算暴力破解需要三个数：<strong>密钥空间多大、攻击者每秒试多少把、平均只需试一半</strong>。</p>
+
+<div class="eq"><span class="m"><span class="up">平均耗时</span> = <span class="frac"><span><span class="up">密钥数</span> / 2</span><span><span class="up">每秒尝试次数</span></span></span></span><span class="lbl">(1)</span></div>
+
+<p>课件里穿插着若干「课堂活动」（Activity），是课上限时做的练习，本笔记把它们的解答放在对应位置的折叠块里。课堂活动 1 取每秒试 <span class="m">10<sup>9</sup></span> 把、一年按 <span class="m">3.156 × 10<sup>7</sup></span> 秒算。表中的凯撒、单表代换在第 3、4 节讲；DES（Data Encryption Standard，数据加密标准，1977 年的美国标准，56 位密钥）和 AES（Advanced Encryption Standard，高级加密标准，2001 年起取代 DES，128 位及以上密钥）是 Lecture 3、4 的主角，这里只看它们的密钥数：</p>
+
+<div class="tw"><table>
+<thead><tr><th>密码</th><th>密钥数</th><th>全部试完</th><th>平均（试一半）</th></tr></thead>
+<tbody>
+<tr><td>凯撒</td><td>25</td><td><span class="m">2.5 × 10<sup>−8</sup></span> s（25 纳秒）</td><td>12.5 纳秒</td></tr>
+<tr><td>单表代换</td><td><span class="m">26! ≈ 4.03 × 10<sup>26</sup></span></td><td><span class="m">1.28 × 10<sup>10</sup></span> 年</td><td><span class="m">6.39 × 10<sup>9</sup></span> 年</td></tr>
+<tr><td>DES（56 位密钥）</td><td><span class="m">2<sup>56</sup> ≈ 7.21 × 10<sup>16</sup></span></td><td>2.28 年</td><td>1.14 年</td></tr>
+<tr><td>AES（128 位密钥）</td><td><span class="m">2<sup>128</sup> ≈ 3.40 × 10<sup>38</sup></span></td><td><span class="m">1.08 × 10<sup>22</sup></span> 年</td><td><span class="m">5.39 × 10<sup>21</sup></span> 年</td></tr>
+</tbody></table></div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>「全部试完」与「平均一半」是两种口径</div>
+  <p style="margin-bottom:0">课件的表头写的是「全部试完」，而正文和教材都强调「平均一半」，两种口径都要会算，答题时写清用的是哪一种。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 1 的追问：哪个只靠暴力就能破？哪个密钥空间巨大你却不信任？</summary>
+  <ul style="margin-bottom:0">
+    <li>只靠暴力就破的：<strong>凯撒</strong>（25 纳秒）。DES 在每秒 <span class="m">10<sup>9</sup></span> 次下也只要一两年，用专用硬件快得多——它已经不够用了，这正是 Lecture 3 的话题。</li>
+    <li>密钥空间巨大却不可信的：<strong>单表代换</strong>。六十多亿年的暴力破解时间毫无意义，因为它根本不用暴力破解：<a href="#s4">频率分析</a>几分钟就能破。这就是课件说的「真正出人意料」的答案——<strong>密钥空间大是必要条件，不是充分条件</strong>。</li>
+  </ul>
+</details>
+
+<h2 id="s3"><span class="n">3</span>凯撒密码</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>规则：把字母变成数，做模 26 加法</h3>
+
+<p><span class="term">凯撒密码</span><span class="en">（Caesar cipher）</span>是已知最早的代换密码，由尤利乌斯·凯撒使用：把每个字母换成字母表里往后数第 3 个，到末尾绕回开头（x→A，y→B，z→C）。推广到任意移位 <span class="m">k</span>：</p>
+
+<p>先给字母编号 a=0, b=1, …, z=25，然后</p>
+
+<div class="eq"><span class="m">C = E(k, p) = (p + k) <span class="up">mod</span> 26,　　p = D(k, C) = (C − k) <span class="up">mod</span> 26</span><span class="lbl">(2)</span></div>
+
+<ul>
+<li><span class="m">p</span> 是明文字母的编号，<span class="m">C</span> 是密文字母的编号，<span class="m">k</span> 是密钥（移位量），取 1 到 25。</li>
+<li><span class="m"><span class="up">mod</span> 26</span>（模 26）是「除以 26 取余数」，结果总落在 0 到 25 之间。它就是「绕回开头」的数学写法：z 是 25，加 3 得 28，<span class="m">28 <span class="up">mod</span> 26 = 2</span>，即 c。</li>
+<li>解密时减法可能出负数，模运算照样把它拉回 0 到 25：密文 c（2）用 <span class="m">k = 5</span> 解，<span class="m">(2 − 5) <span class="up">mod</span> 26 = (−3) <span class="up">mod</span> 26 = 23</span>，即 x。</li>
+<li><span class="m">k = 0</span> 是原样输出，<span class="m">k = 26</span> 和 <span class="m">k = 0</span> 一样，所以<strong>有意义的密钥只有 25 个</strong>。</li>
+</ul>
+
+<p>课件的书写约定：明文小写，密文大写。这里用小写 <span class="m">k</span>、<span class="m">p</span>、<span class="m">C</span> 分别表示一个具体密码的密钥、明文字母、密文字母，对应 <a href="#s1-1">1.1</a> 一般模型里的 <span class="m">K</span>、<span class="m">X</span>、<span class="m">Y</span>。</p>
+
+<p>例：<span class="m">k = 3</span> 时，<code>meet me after the toga party</code> 加密为 <code>PHHW PH DIWHU WKH WRJD SDUWB</code>。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>为什么一下午就能破</h3>
+
+<p>课件列了三条，它们一起才构成「轻易可破」：</p>
+
+<ol>
+<li>加密和解密算法是已知的；</li>
+<li>只有 25 把密钥可试；</li>
+<li>明文的语言已知，而且一眼就能认出来。</li>
+</ol>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>第 3 条才是能推广的那条</div>
+  <p style="margin-bottom:0">暴力破解不只要能把密钥全试一遍，还要能<strong>认出哪一次试对了</strong>——可读的英文自己就会跳出来。如果加密前的数据本身就是随机的（比如压缩文件），把 25 个结果摆在面前也分不出哪个是对的。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 2 解答（凯撒手算）</summary>
+  <p>字母编号 a=0 … z=25。</p>
+  <p><strong>(a)</strong> 用 <span class="m">k = 5</span> 加密 <code>glasgow</code>：g(6)→11=L，l(11)→16=Q，a(0)→5=F，s(18)→23=X，g→L，o(14)→19=T，w(22)→27 mod 26=1=B。答案 <strong>LQFXLTB</strong>。</p>
+  <p><strong>(b)</strong> 用 <span class="m">k = 5</span> 解密 <code>XJHZWNYD</code>：每个字母减 5，得 <strong>security</strong>。</p>
+  <p><strong>(c)</strong> 没给密钥的 <code>QPYCKMG</code>：要试 <strong>25</strong> 把，因为凯撒只有 25 个非平凡移位。</p>
+  <p style="margin-bottom:0">课件在这里埋了一个伏笔：25 个移位全部试过也解不出英文——这段密文其实是用 Vigenère 加密的，到<a href="#s7-1">课堂活动 4</a> 才揭晓。它恰好说明了 3.2 的第 3 条：暴力破解依赖「能认出正确答案」，试遍了也没有一个读得通，就说明假设的密码类型错了。</p>
+</details>
+
+<div class="tool" id="csTool">
+  <h4>凯撒移位器：每个字母移同一个 k</h4>
+  <p class="sub">改输入或拖动 k。下面两张柱状图按 a…z 排列：密文那张就是明文那张<strong>整体循环右移 k 格</strong>，柱子高矮一点没变（每根柱上的短横是一般英文的参考值）。最后可以把 25 把密钥全试一遍，按 χ² 排序。</p>
+  <div class="row">
+    <span class="ctl"><label>方向</label>
+    <select id="csDir" onchange="csGo()"><option value="enc">加密：明文 → 密文</option><option value="dec">解密：密文 → 明文</option></select></span>
+    <span class="ctl"><label>密钥 k</label>
+    <input type="range" id="csK" min="1" max="25" step="1" value="3" oninput="csGo()">
+    <span class="rv" id="csKv">3</span></span>
+  </div>
+  <div class="row">
+    <label>输入</label>
+    <input type="text" id="csIn" value="meet me after the toga party" style="width:30rem;max-width:calc(100% - 3.8rem)" oninput="csGo()">
+  </div>
+  <div class="row">
+    <button class="btn" onclick="csSet('meet me after the toga party',3,'enc')">toga party，k = 3</button>
+    <button class="btn" onclick="csSet('glasgow',5,'enc')">活动 2(a) glasgow，k = 5</button>
+    <button class="btn" onclick="csSet('XJHZWNYD',5,'dec')">活动 2(b) 解 XJHZWNYD</button>
+    <button class="btn" onclick="csSet('QPYCKMG',1,'dec')">活动 2(c) QPYCKMG</button>
+    <button class="btn" onclick="csSet(LAB_TEXT,16,'enc')">实验明文，k = 16</button>
+  </div>
+  <div class="result" id="csOut"></div>
+  <div class="panes"><div id="csFreqP"></div><div id="csFreqC"></div></div>
+  <div class="row" style="margin-top:.6rem"><button class="btn" onclick="csBrute()">暴力破解：对这段密文试遍 k = 1…25</button></div>
+  <div class="tw" id="csBrute"></div>
+</div>
+
+<h2 id="s4"><span class="n">4</span>单表代换与频率分析</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>密钥空间 26! 也救不了它</h3>
+
+<p>凯撒只有 25 把密钥，太少。最直接的补救：不再整体平移，而是允许<strong>任意</strong>一一对应——把 26 个字母随便打乱，打乱后的顺序就是密钥。这叫<span class="term">单表代换密码</span><span class="en">（monoalphabetic substitution cipher）</span>，「单表」指整篇消息自始至终只用这一张代换表。</p>
+
+<div class="tw"><table class="compact mono" style="font-size:14px">
+<tbody>
+<tr><th>明文</th><td>a</td><td>b</td><td>c</td><td>d</td><td>e</td><td>f</td><td>g</td><td>h</td><td>i</td><td>j</td><td>k</td><td>l</td><td>m</td><td>n</td><td>o</td><td>p</td><td>q</td><td>r</td><td>s</td><td>t</td><td>u</td><td>v</td><td>w</td><td>x</td><td>y</td><td>z</td></tr>
+<tr><th>密文</th><td>D</td><td>K</td><td>V</td><td>Q</td><td>F</td><td>I</td><td>B</td><td>J</td><td>W</td><td>P</td><td>E</td><td>S</td><td>C</td><td>X</td><td>H</td><td>T</td><td>M</td><td>Y</td><td>A</td><td>U</td><td>O</td><td>L</td><td>R</td><td>G</td><td>Z</td><td>N</td></tr>
+</tbody></table></div>
+
+<p>密钥从一个数变成了一整行 26 个字母。可能的排列数是 <span class="m">26! = 403,291,461,126,605,635,584,000,000 ≈ 4 × 10<sup>26</sup></span>。它比 DES 的 <span class="m">2<sup>56</sup></span> 大约 <span class="m">5.6 × 10<sup>9</sup></span> 倍，将近 10 个数量级；按<a href="#s2-3">上面的估算</a>，暴力破解要几十亿年。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>不是「超过 10 个数量级」</div>
+  <p style="margin-bottom:0">课件写成「超过 10 个数量级」，按数算是 9.75 个，考试按 <span class="m">5.6 × 10<sup>9</sup></span> 倍、约 10 个数量级答。</p>
+</div>
+
+<p>可它还是一碰就碎，原因不在密钥，而在<strong>结构</strong>：单表代换把每个明文字母<strong>每次</strong>都映射到<strong>同一个</strong>密文字母，所以密文原封不动地继承了明文的统计特征。英文里 e 最常见，那么 e 被换成的那个字母就是密文里最常见的。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>单表代换漏了什么</div>
+  <p style="margin-bottom:0"><strong>密码藏住了「是哪个字母」，没藏住「出现得有多频繁」</strong>。密钥再大也改变不了这一点。</p>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>语言的统计指纹</h3>
+
+<figure>
+<div id="efPlot"></div>
+<figcaption>一般英文的字母频率，按从高到低排序（数据同 Stallings 第 3 章，与实验程序的参考表一致）。头部极陡、尾部极平：前 3 个字母占了约三成，最后 4 个加起来还不到半个百分点。单表代换把这条曲线原封不动地交给了攻击者，只是把横轴上的字母名字换掉了。</figcaption>
+</figure>
+
+<p>一般英文文本里各字母的出现比例（Stallings 第 3 章的数据）：</p>
+
+<ul>
+<li>E 12.7%、T 9.1%、A 8.2% 三个字母加起来约占全部字母的 30%；</li>
+<li>最常见的 9 个（E T A O I N S H R）约占 70%；</li>
+<li>J、X、Q、Z 都不到 0.2%。</li>
+</ul>
+
+<p>泄露的不只是单字母：</p>
+
+<ul>
+<li>最常见的<span class="term">双字母组</span><span class="en">（digram）</span>：TH HE IN ER AN RE ON AT；</li>
+<li>最常见的<span class="term">三字母组</span><span class="en">（trigram）</span>：THE AND ING ENT ION。<strong>THE 遥遥领先</strong>，通常是攻击者最有用的落脚点；</li>
+<li>词长和位置也会泄露：只有一个字母的词只能是 a 或 I，两个字母的词选择也很少（这条只在保留了空格时可用）。</li>
+</ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>这些比例是大量文本的平均值</div>
+  <p style="margin-bottom:0">一段几百字母的短文可能明显偏离它，偏离多少取决于文本的用词——本课实验给的那段 634 个字母的明文，最多的字母就是 t 而不是 e，见实验笔记《Lab1-2 古典密码的 MATLAB 实现》第 5.2 节。下面 <a href="#s4-4">4.4</a> 的交互件里可以直接看到这件事。</p>
+</div>
+
+<h3 id="s4-3"><span class="n">4.3</span>频率攻击的四步</h3>
+
+<ol>
+<li><strong>计数</strong>：数出密文里每个字母的出现次数，按频率排序。</li>
+<li><strong>猜测</strong>：把排在最前的几个密文字母对上 E、T、A。这是假设，不是答案。</li>
+<li><strong>确认</strong>：找重复的三字母组，最常见的几乎总是 THE，一次就定下三个字母。</li>
+<li><strong>扩展</strong>：把半可读的词补全；每解出一个词就多知道几个字母，又能读出更多词，越破越快。</li>
+</ol>
+
+<details class="box">
+  <summary>课堂活动 3 解答（破一段单表代换）</summary>
+  <p>密文（69 个字母，保留空格）：</p>
+  <p><code>Q EOHITK DXLZ WT LTEXKT TCTF VITF ZIT TFTDN AFGVL TCTKNZIOFU QWGXZ OZ TBETHZ ZIT ATN</code></p>
+  <p>课件给的频数：T 16、Z 7、I 5、F 5，其余都在 3 次以下。</p>
+  <p><strong>(a)</strong> 哪个密文字母几乎肯定是 e？<strong>T</strong>——16 次，远超第二名的 7 次。</p>
+  <p><strong>(b)</strong> 重复的三字母组 ZIT 是什么？是 <strong>THE</strong>，于是得到 Z→t、I→h、T→e。</p>
+  <div class="box warn">
+    <div class="h"><span class="tag">勘误</span>ZIT 只出现 2 次</div>
+    <p style="margin-bottom:0">课件提示说「有一个三字母组出现了三次」，实际 ZIT 在密文里只出现 <strong>2 次</strong>（"ZIT TFTDN" 与 "ZIT ATN"），提示的次数是错的，不影响解题。</p>
+  </div>
+  <p><strong>(c)</strong> 前四个词，用已知的 Z→t、I→h、T→e 逐词扩展：</p>
+  <ul>
+    <li>第二个词 EOHITK 的模式是 ? ? ? h e ?，六个字母、第 4、5 位是 he，最自然的是 <strong>cipher</strong>，得 E→c、O→i、H→p、K→r；</li>
+    <li>第一个词 Q 只有一个字母，是 a 或 I；O 已经是 i，所以 Q→<strong>a</strong>；</li>
+    <li>第三个词 DXLZ 是 ? ? ? t，第四个词 WT 是 ? e；读成 <strong>must be</strong> 与上下文吻合，得 D→m、X→u、L→s、W→b。</li>
+  </ul>
+  <p>前四个词：<strong>a cipher must be</strong>。</p>
+  <p style="margin-bottom:0">全文：“A cipher must be secure even when the enemy knows everything about it except the key.”——正是<a href="#s1-2">柯克霍夫原则</a>。</p>
+</details>
+
+<h3 id="s4-4"><span class="n">4.4</span>凯撒是频率攻击最简单的情形</h3>
+
+<p>凯撒也是单表代换，只是代换表被限制成了「整体平移 <span class="m">k</span> 位」。这个限制让频率攻击变得极其便宜：一般单表代换要把 26 个字母的对应关系一个个猜出来，凯撒只要<strong>猜对一个字母</strong>——所有字母移的是同一个 <span class="m">k</span>，一个对上了，<span class="m">k</span> 就定了：</p>
+
+<div class="eq"><span class="m">k = (<span class="up">密文中最高频字母的编号</span> − <span class="up">它所代表的明文字母的编号</span>) <span class="up">mod</span> 26</span><span class="lbl">(3)</span></div>
+
+<p>例如假设密文最高频的字母 j（9）代表 e（4），就得 <span class="m">k = (9 − 4) <span class="up">mod</span> 26 = 5</span>。如果用这个 <span class="m">k</span> 解出来不是英文，说明那个字母代表的不是 e，就换 t（19）再试：<span class="m">k = (9 − 19) <span class="up">mod</span> 26 = 16</span>。</p>
+
+<p>从直方图上看，凯撒密文的字母频率图就是明文频率图<strong>整体循环平移了 <span class="m">k</span> 格</strong>，形状完全不变（第 3 节的移位器里两张图并排可见）。</p>
+
+<div class="tool" id="faTool">
+  <h4>频率攻击：只猜一个字母</h4>
+  <p class="sub">取密文里第 r 高频的字母，分别假设它是 e 和 t，按式 (3) 算出 k 并解密。这就是实验手册的方法——看它与 e 或 t 的「距离」。默认样本是实验那段 634 个字母的明文用 k = 16 加密的结果：它最高频的明文字母是 t 而不是 e。</p>
+  <div class="row">
+    <button class="btn" onclick="faSet('lab')">实验密文（k = 16）</button>
+    <button class="btn" onclick="faSet('toga')">PHHW PH DIWHU…</button>
+    <button class="btn" onclick="faSet('act3')">课堂活动 3（单表代换，不是凯撒）</button>
+    <span class="ctl"><label>取第</label>
+    <select id="faRank" onchange="faGo()"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+    <label>高频的密文字母</label></span>
+  </div>
+  <textarea id="faIn" rows="4" oninput="faGo()" aria-label="密文"></textarea>
+  <div class="result" id="faOut"></div>
+  <div class="toolfig" id="faFreq" style="margin-top:.9rem;max-width:470px"></div>
+</div>
+
+<h2 id="s5"><span class="n">5</span>压平频率的两条路</h2>
+
+<p>单表代换的病根是「一个明文字母永远对应同一个密文字母」。要打断这个对应，只有两大类办法：</p>
+
+<ul>
+<li><strong>A. 一次加密多个字母</strong>：不再一个字母一个字母地换，而是成对（或更大的组）地换。双字母组的频率分布比单字母平坦得多，攻击者能利用的东西少很多。例子：Playfair、Hill 密码。</li>
+<li><strong>B. 用多张代换表</strong>：仍然一个字母一个字母地换，但换着用不同的代换表，于是同一个明文字母在不同位置变成不同的密文字母。例子：Vigenère、自动密钥、Vernam。决定每个位置用哪张表（或加上哪个数）的那一串值，叫<span class="term">密钥流</span><span class="en">（keystream）</span>。</li>
+</ul>
+
+<p>这两条路都活到了今天：A 是分组密码的思路（AES 一次处理 128 位的一整块），B 是流密码的思路（每个位置用一个新的密钥流值）。课件说 Lecture 3 走 A，Lecture 5 走 B。</p>
+
+<div class="box def">
+  <div class="h">Hill 密码只点了名</div>
+  <p style="margin-bottom:0">课件在这里提到了 Hill 密码（用矩阵乘法模 26 一次加密一组字母），但全讲没有讲它的规则和例子。教材 3.2 节有。课件没有表态考不考，按课件覆盖范围，暂不展开。</p>
+</div>
+
+<h2 id="s6"><span class="n">6</span>Playfair 密码</h2>
+
+<p>Playfair 是最有名的<span class="term">多字母代换</span><span class="en">（polygraphic substitution，一次代换一组字母）</span>密码：把<strong>双字母组</strong>当作一个单位，借助一个由关键词生成的 <span class="m">5 × 5</span> 矩阵，把每一对明文字母换成一对密文字母。</p>
+
+<h3 id="s6-1"><span class="n">6.1</span>造矩阵</h3>
+
+<p>以关键词 MONARCHY 为例：</p>
+
+<div class="tw"><table class="compact mono" style="width:auto;font-size:15px">
+<thead><tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+<tbody>
+<tr><th>0</th><td>M</td><td>O</td><td>N</td><td>A</td><td>R</td></tr>
+<tr><th>1</th><td>C</td><td>H</td><td>Y</td><td>B</td><td>D</td></tr>
+<tr><th>2</th><td>E</td><td>F</td><td>G</td><td>I/J</td><td>K</td></tr>
+<tr><th>3</th><td>L</td><td>P</td><td>Q</td><td>S</td><td>T</td></tr>
+<tr><th>4</th><td>U</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr>
+</tbody></table></div>
+
+<p>三条规则，每条都有它的理由：</p>
+
+<ol>
+<li><strong>先填关键词，从左到右、从上到下，重复的字母只留第一次出现的。</strong>矩阵里每个字母只能出现一次，否则加密时「这个字母在哪一格」就有两个答案，加密不再唯一。MONARCHY 恰好没有重复字母；EXCEEDING 去重后只剩 E X C D I N G。</li>
+<li><strong>再按字母表顺序填剩下的字母。</strong>这样整个矩阵完全由关键词决定，收发双方只需共享一个容易记的词。</li>
+<li><strong>I 和 J 共用一格。</strong>26 个字母放不进 25 格，必须合并两个；选 I/J 是因为 J 在英文里极少见（约 0.15%），合并后几乎不产生歧义，读者靠上下文就能分辨。</li>
+</ol>
+
+<h3 id="s6-2"><span class="n">6.2</span>明文预处理</h3>
+
+<p>加密前先把明文整理成一串双字母组：</p>
+
+<ol>
+<li>只留字母（去掉空格、标点、数字），统一大写，J 一律当作 I。</li>
+<li>从左到右两两分组。<strong>如果一组里两个字母相同，就在第一个后面插入填充字母 X</strong>，第二个字母顺延到下一组重新配对。例：balloon → BA LX LO ON。</li>
+<li>如果最后剩下一个落单的字母，补一个 X 凑成一对。</li>
+</ol>
+
+<p>第 2 条为什么必要：下面的三条加密规则都是按「两个字母在矩阵里的相对位置」来定的，<strong>同一个字母和它自己没有相对位置</strong>——它既在同一行、又在同一列，规则无从下手；即使硬套「同行」规则，相同明文对也会变成固定的相同模式，白白泄露「这里有一对重复字母」。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>字母本身是 X 时会得到 XX</div>
+  <p style="margin-bottom:0">第 2、3 条有一个角落值得注意：<strong>重复的字母或落单的字母本身就是 X</strong>（如 TAXXI、BOX）。照规则插或补 X，会得到 XX 这一对——恰好是第 2 条要避免的同字母对。本课实验手册的规则要求照做（BOX → BO XX），XX 按同行规则加密，仍然能解回来；另有一种常见的变通约定，在这种情况下改用另一个罕见字母（如 Q）做填充（BOX → BO XQ）。实验程序默认按手册，见实验笔记《Lab1-2 古典密码的 MATLAB 实现》第 6.2 节。</p>
+</div>
+
+<h3 id="s6-3"><span class="n">6.3</span>三条加密规则与解密</h3>
+
+<p>设一对字母在矩阵里分别位于第 <span class="m">r<sub>1</sub></span> 行第 <span class="m">c<sub>1</sub></span> 列、第 <span class="m">r<sub>2</sub></span> 行第 <span class="m">c<sub>2</sub></span> 列：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:5rem">情形</th><th>加密</th><th>解密</th><th style="width:7.5rem">例子（MONARCHY）</th></tr></thead>
+<tbody>
+<tr><td>同一行</td><td>各自换成<strong>右边</strong>一格，最右一列绕回最左</td><td>各自换成<strong>左边</strong>一格</td><td class="mono">ar → RM</td></tr>
+<tr><td>同一列</td><td>各自换成<strong>下面</strong>一格，最下一行绕回最上</td><td>各自换成<strong>上面</strong>一格</td><td class="mono">mu → CM</td></tr>
+<tr><td>其他</td><td>各自换成「<strong>自己这一行</strong>、<strong>对方那一列</strong>」的字母</td><td>规则相同</td><td class="mono">hs → BP</td></tr>
+</tbody></table></div>
+
+<p>第三种情形可以这样看：两个字母是一个矩形的两个对角，加密就是换成<strong>同一行上的另外两个角</strong>。注意顺序——第一个字母换成和它同一行的那个角，不能对调，否则解密对不上。</p>
+
+<p>为什么解密时同行要往左、同列要往上，而矩形规则不变？因为解密必须是加密的逆运算：往右挪一格的逆是往左挪一格；而「换成同行另一个角」再做一次就回到原来的角，<strong>矩形规则本身就是自己的逆</strong>。</p>
+
+<p>从三条规则还能直接推出两个性质：</p>
+
+<ul>
+<li><strong>明文对的两个字母不同时，密文对的两个字母也一定不同</strong>：同行右移、同列下移，两个不同的格子移完仍是两个不同的格子；矩形情形取的两个角分处两行，自然不同。</li>
+<li><strong>一个字母不会被加密成它自己</strong>：同行、同列时它挪了一格；矩形时它换到了另一列。</li>
+</ul>
+
+<p>预处理让绝大多数明文对的两个字母不同；唯一的例外是上一节说的 XX，它会变成 ZZ 这类同字母密文对。这两点加上「密文长度为偶数、不含 J」，就是从一段密文认出它是 Playfair 的线索。</p>
+
+<p>解密得到的仍是带填充 X、并且 J 已经变成 I 的明文（如 BA LX LO ON）。去掉填充、把 I 还原成 J 需要读者凭上下文判断，因为程序分不清一个 X 是填充的还是原文本来就有的。</p>
+
+<h3 id="s6-4"><span class="n">6.4</span>完整算一遍 balloon</h3>
+
+<p>关键词 MONARCHY，明文 balloon，预处理为 BA LX LO ON：</p>
+
+<ol>
+<li><strong>BA</strong>：B 在 (1,3)，A 在 (0,3)，同一列（第 3 列）→ 各取下一格：B→I（(2,3)），A→B（(1,3)）。得 <strong>IB</strong>。</li>
+<li><strong>LX</strong>：L 在 (3,0)，X 在 (4,3)，不同行不同列 → L 取本行、X 的列：(3,3)=S；X 取本行、L 的列：(4,0)=U。得 <strong>SU</strong>。</li>
+<li><strong>LO</strong>：L 在 (3,0)，O 在 (0,1) → L 取 (3,1)=P；O 取 (0,0)=M。得 <strong>PM</strong>。</li>
+<li><strong>ON</strong>：O 在 (0,1)，N 在 (0,2)，同一行 → 各取右边一格：O→N，N→A。得 <strong>NA</strong>。</li>
+</ol>
+
+<p>密文 <strong>IB SU PM NA</strong>。反过来用解密规则逐对还原，回到 BA LX LO ON。</p>
+
+<div class="tool" id="pfTool">
+  <h4>Playfair：造矩阵，再一对一对地走</h4>
+  <p class="sub">蓝框是当前这一对字母，绿色虚线框是它们变成的字母，箭头从前者指向后者（虚线箭头表示绕回）。用「下一对」逐步走，右侧写明这一对适用哪条规则。</p>
+  <div class="row">
+    <span class="ctl"><label>关键词</label><input type="text" id="pfKey" value="monarchy" style="width:10rem;max-width:calc(100% - 3.8rem)" oninput="pfBuild()"></span>
+    <span class="ctl"><label>方向</label>
+    <select id="pfDir" onchange="pfBuild()"><option value="enc">加密</option><option value="dec">解密</option></select></span>
+    <span class="ctl"><label>填充</label>
+    <select id="pfFill" onchange="pfBuild()" style="max-width:calc(100vw - 8rem)"><option value="x">手册：一律 X（可能得 XX）</option><option value="q">变通：字母本身是 X 时改用 Q</option></select></span>
+  </div>
+  <div class="row">
+    <label>输入</label><input type="text" id="pfIn" value="balloon" style="width:18rem;max-width:calc(100% - 3.8rem)" oninput="pfBuild()">
+  </div>
+  <div class="row">
+    <button class="btn" onclick="pfSet('monarchy','balloon','enc')">balloon</button>
+    <button class="btn" onclick="pfSet('monarchy','IB SU PM NA','dec')">解 IB SU PM NA</button>
+    <button class="btn" onclick="pfSet('monarchy','ar','enc')">ar 同行</button>
+    <button class="btn" onclick="pfSet('monarchy','mu','enc')">mu 同列</button>
+    <button class="btn" onclick="pfSet('monarchy','hs','enc')">hs 矩形</button>
+    <button class="btn" onclick="pfSet('monarchy','box','enc','x')">BOX（得 XX）</button>
+    <button class="btn" onclick="pfSet('monarchy','taxxi','enc','x')">TAXXI</button>
+    <button class="btn" onclick="pfSet('exceeding','balloon','enc')">关键词 EXCEEDING</button>
+  </div>
+  <div class="result" id="pfPre" style="margin-top:0"></div>
+  <div class="panes"><div id="pfMat" style="max-width:340px"></div><div><div class="result" id="pfInfo" style="margin-top:0"></div></div></div>
+  <div class="row">
+    <button class="btn" onclick="pfStep(-99)">⏮ 从头</button>
+    <button class="btn" onclick="pfStep(-1)">◀ 上一对</button>
+    <button class="btn" onclick="pfStep(1)">下一对 ▶</button>
+    <button class="btn" onclick="pfAll()">全部 ⏭</button>
+  </div>
+  <div class="result" id="pfOut"></div>
+</div>
+
+<h3 id="s6-5"><span class="n">6.5</span>它强在哪、为什么还是被破</h3>
+
+<p>强在哪：</p>
+
+<ul>
+<li>双字母组有 <span class="m">26 × 26 = 676</span> 种，比 26 个单字母多得多，统计表难建得多，分布也平坦得多；</li>
+<li>单个双字母组的相对频率差别比单字母小得多，逐个辨认更难；</li>
+<li>一战时它是英国陆军的标准野战密码，二战时美军和盟军仍有使用。</li>
+</ul>
+
+<p>为什么还是被破：</p>
+
+<ul>
+<li>它保留了明文语言的大量结构，<strong>几百个字母的密文通常就够破解</strong>；</li>
+<li>双字母频率比单字母平坦，但<strong>不是均匀的</strong>——指纹变淡了，没有消失。</li>
+</ul>
+
+<p>具体怎么破（课件只给了结论，这里补上思路）：</p>
+
+<ol>
+<li>统计密文的双字母组频率，把最常见的几组对上英文最常见的 TH、HE、IN、ER、AN；</li>
+<li>利用一个对称性：如果 AB 加密成 XY，那么 BA 一定加密成 YX（三条规则对两个字母的作用是对称的）——密文里同时出现 XY 和 YX，明文多半是一对互逆的常见组合，如 ER 和 RE；</li>
+<li>每确定一对，就知道了矩阵里几个字母的相对位置（同行、同列或矩形对角），逐步把矩阵拼出来；如果手里有一段已知的明文，拼得更快。</li>
+</ol>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>676 是双字母组的种数，不是密钥数</div>
+  <p>课件和教材都用 676（<span class="m">26 × 26</span>）说明 Playfair 的强度，这是「有多少种不同的双字母组」；考试按 676 写即可。严格说，合并 I/J 并排除同字母对后，真正可能出现的明文对只有 <span class="m">25 × 24 = 600</span> 种。</p>
+  <p style="margin-bottom:0">Playfair 的<strong>密钥</strong>是整个矩阵，最多有 <span class="m">25! ≈ 1.55 × 10<sup>25</sup></span> 种排列；其中把所有行（或所有列）整体循环挪一位得到的矩阵，加密结果完全相同，所以真正不同的密钥还要少一些。两个数衡量的是不同的东西，别混用。</p>
+</div>
+
+<h2 id="s7"><span class="n">7</span>Vigenère 密码</h2>
+
+<h3 id="s7-1"><span class="n">7.1</span>一组轮换使用的凯撒</h3>
+
+<p>Vigenère 密码是最有名、也最简单的<span class="term">多表代换</span><span class="en">（polyalphabetic substitution）</span>密码：它就是 26 个凯撒密码的集合，由一个关键词决定每个位置用哪一个。设关键词长度为 <span class="m">m</span>，字母编号同凯撒：</p>
+
+<div class="eq"><span class="m">C<sub>i</sub> = (p<sub>i</sub> + k<sub>i mod m</sub>) <span class="up">mod</span> 26,　　p<sub>i</sub> = (C<sub>i</sub> − k<sub>i mod m</sub>) <span class="up">mod</span> 26</span><span class="lbl">(4)</span></div>
+
+<ul>
+<li><span class="m">i</span> 是字母的位置，在公式里从 0 数起；<span class="m">k<sub>i mod m</sub></span> 是关键词第 <span class="m">(i <span class="up">mod</span> m)</span> 个字母（也从 0 数）的编号，即关键词循环使用。下文正文里说「第几位」时，按日常习惯从 1 数。</li>
+<li>用人话说：把关键词反复写在明文上方，每一列「上下两个字母相加，模 26」。关键词字母 A 移 0 位，B 移 1 位，以此类推。</li>
+</ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件公式的写法</div>
+  <p style="margin-bottom:0">课件写成 <span class="m">C<sub>i</sub> = (p<sub>i</sub> + k<sub>i</sub> <span class="up">mod</span> m) <span class="up">mod</span> 26</span>，「<span class="m"><span class="up">mod</span> m</span>」没有放进下标，字面上会读成「<span class="m">k<sub>i</sub></span> 先模 <span class="m">m</span>」。它的本意是「取关键词的第 <span class="m">i <span class="up">mod</span> m</span> 个字母」，按上式写。</p>
+</div>
+
+<p>例（关键词 deceptive，<span class="m">m = 9</span>）：</p>
+
+<div class="tw"><table class="compact mono" style="font-size:13.5px">
+<tbody>
+<tr><th>密钥</th><td>d</td><td>e</td><td>c</td><td>e</td><td>p</td><td>t</td><td>i</td><td>v</td><td>e</td><td>d</td><td>e</td><td>c</td><td>e</td><td>p</td><td>t</td><td>i</td><td>v</td><td>e</td><td>d</td><td>e</td><td>c</td><td>e</td><td>p</td><td>t</td><td>i</td></tr>
+<tr><th>明文</th><td>w</td><td>e</td><td>a</td><td>r</td><td>e</td><td>d</td><td>i</td><td>s</td><td>c</td><td>o</td><td>v</td><td>e</td><td>r</td><td>e</td><td>d</td><td>s</td><td>a</td><td>v</td><td>e</td><td>y</td><td>o</td><td>u</td><td>r</td><td>s</td><td>e</td></tr>
+<tr><th>密文</th><td>Z</td><td>I</td><td>C</td><td>V</td><td>T</td><td>W</td><td>Q</td><td>N</td><td>G</td><td>R</td><td>Z</td><td>G</td><td>V</td><td>T</td><td>W</td><td>A</td><td>V</td><td>Z</td><td>H</td><td>C</td><td>Q</td><td>Y</td><td>G</td><td>L</td><td>M</td></tr>
+</tbody></table></div>
+
+<p>明文 e 在第 2、5、12、14、19、25 位（从 1 数），依次变成 <strong>I, T, G, T, H, M</strong>——同一个明文字母变成了不同的密文字母，一一对应被打断了。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>第 4 个不是 V</div>
+  <p style="margin-bottom:0">课件把第 4 个写成 V，是错的；第 13 位的 V 来自明文 r。</p>
+</div>
+
+<p>强在哪：每个明文字母对应多个密文字母，有几个不同的关键词字母就有几个，所以字母频率被抹平了一部分，但不彻底。长度为 <span class="m">m</span> 的关键词有 <span class="m">26<sup>m</sup></span> 种，<span class="m">m = 10</span> 时约 <span class="m">1.4 × 10<sup>14</sup></span>，而且关键词可以任意长。</p>
+
+<details class="box">
+  <summary>课堂活动 4 解答（Vigenère 手算）</summary>
+  <p>关键词 KEY，移位依次是 K=10、E=4、Y=24，循环。</p>
+  <p><strong>(a)</strong> 加密 <code>security</code>：先把 KEYKEYKE 写在上方。s(18)+10=28→2=C，e(4)+4=8=I，c(2)+24=26→0=A，u(20)+10=30→4=E，r(17)+4=21=V，i(8)+24=32→6=G，t(19)+10=29→3=D，y(24)+4=28→2=C。答案 <strong>CIAEVGDC</strong>。</p>
+  <p><strong>(b)</strong> 解密 <code>QPYCKMG</code>：逐位减 10、4、24，得 <strong>glasgow</strong>——正是课堂活动 2(c) 里怎么移位都解不开的那段密文。</p>
+  <p style="margin-bottom:0"><strong>(c)</strong> 长度为 3 的关键词有 <span class="m">26<sup>3</sup> = 17,576</span> 种。这不是真实的安全水平：一旦知道周期是 3，密文就拆成 3 条子序列，每条都只是一个凯撒，各试 26 次（共 <span class="m">3 × 26 = 78</span> 次）或各做一次频率分析就破了；何况 17,576 本身也瞬间就能穷举完。</p>
+</details>
+
+<div class="tool" id="vgTool">
+  <h4>Vigenère：关键词写在明文上方，逐列相加</h4>
+  <p class="sub">三行对齐：每一列的密文 = 明文 + 该列关键词字母的移位（模 26）。勾选高亮后，所有「明文是某个字母」的列会被标出来——同一个明文字母在不同位置变成了不同的密文字母。</p>
+  <div class="row">
+    <span class="ctl"><label>关键词</label><input type="text" id="vgKey" value="deceptive" style="width:9rem;max-width:calc(100% - 3.8rem)" oninput="vgGo()"></span>
+    <span class="ctl"><label>方向</label>
+    <select id="vgDir" onchange="vgGo()"><option value="enc">加密</option><option value="dec">解密</option></select></span>
+    <span class="ctl"><label class="chk"><input type="checkbox" id="vgHiOn" checked onchange="vgGo()">高亮明文字母</label>
+    <input type="text" id="vgHi" value="e" maxlength="1" style="width:2.6rem" oninput="vgGo()" aria-label="要高亮的明文字母"></span>
+  </div>
+  <div class="row">
+    <label>输入</label><input type="text" id="vgIn" value="we are discovered save yourse" style="width:22rem;max-width:calc(100% - 3.8rem)" oninput="vgGo()">
+  </div>
+  <div class="row">
+    <button class="btn" onclick="vgSet('deceptive','we are discovered save yourse','enc')">deceptive 例</button>
+    <button class="btn" onclick="vgSet('KEY','security','enc')">活动 4(a) KEY / security</button>
+    <button class="btn" onclick="vgSet('KEY','QPYCKMG','dec')">活动 4(b) 解 QPYCKMG</button>
+    <button class="btn" onclick="vgToKasiski()">把这段密文送去 Kasiski ↓</button>
+  </div>
+  <div class="tw" id="vgTable"></div>
+  <div class="result" id="vgOut"></div>
+</div>
+
+<h3 id="s7-2"><span class="n">7.2</span>重复泄露周期：Kasiski 方法</h3>
+
+<p>Vigenère 曾被称作「不可破译的密码」（le chiffre indéchiffrable）长达约三个世纪。它的破绽是<strong>重复</strong>：关键词循环使用，同一段明文碰上同一段关键词，就产生同一段密文。</p>
+
+<p>上例里，密文 VTW 出现在第 4 位和第 13 位，相距 <strong>9</strong>——正好是 deceptive 的长度。两处都是明文 red 对上了关键词 ept。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>相距 9，不是 10</div>
+  <p style="margin-bottom:0">课件写成「第 4 和第 14 位，相距 10」，是错的：10 不能被关键词长度 9 整除，与它自己紧接着给出的规则矛盾。</p>
+</div>
+
+<p>据此，攻击分四步，这套方法叫 <span class="term">Kasiski 检验</span><span class="en">（Kasiski examination，1863 年由 Kasiski 发表，课件没给名字）</span>：</p>
+
+<ol>
+<li><strong>找重复</strong>：在密文里找三个字母以上的重复片段，记下它们之间的距离。</li>
+<li><strong>推周期</strong>：重复通常意味着同一段明文遇上了同一段关键词，这样产生的重复，距离一定能被<strong>关键词长度整除</strong>。所以周期 <span class="m">m</span> 是各个距离最大公因数的某个因数：先试最大公因数本身。偶尔有两段不同的明文碰巧加密成同一段密文，这种偶然重复的距离不满足整除关系，会干扰判断，要把它剔除。</li>
+<li><strong>拆成 <span class="m">m</span> 条</strong>：每隔 <span class="m">m</span> 个取一个字母，把密文拆成 <span class="m">m</span> 条子序列；每条都是用同一个关键词字母加密的，即一个凯撒。</li>
+<li><strong>再做频率分析</strong>：对每条子序列分别做<a href="#s4-3">频率攻击</a>。周期为 <span class="m">m</span> 的多表代换，就是 <span class="m">m</span> 个单表代换交错在一起。</li>
+</ol>
+
+<div class="tool" id="ksTool">
+  <h4>Kasiski 小工具：找重复，量间距，求 gcd</h4>
+  <p class="sub">在密文里找所有三个字母以上的重复片段（只列不能再向左右延长的那一段），给出位置与间距。上面的 Vigenère 交互件可以把它的密文直接送过来——换一个更长的明文试试。</p>
+  <textarea id="ksIn" rows="2" oninput="ksGo()" aria-label="Vigenère 密文">ZICVTWQNGRZGVTWAVZHCQYGLM</textarea>
+  <div class="row" style="margin-top:.5rem">
+    <button class="btn" onclick="ksSet('ZICVTWQNGRZGVTWAVZHCQYGLM')">课件例 ZICVTW…</button>
+  </div>
+  <div id="ksText"></div>
+  <div class="result" id="ksOut"></div>
+</div>
+
+<h3 id="s7-3"><span class="n">7.3</span>自动密钥</h3>
+
+<p>Vigenère 本人的修补：关键词用完后，接着用<strong>明文本身</strong>当密钥，这样密钥永远不会循环。这叫<span class="term">自动密钥</span><span class="en">（autokey）</span>系统。</p>
+
+<p>它更强，但仍可破：密钥和明文现在来自同一种语言，有着同样的字母频率，这本身又成了一个统计把手。</p>
+
+<p>所以要真正堵死，密钥必须<strong>既不重复、又不带语言的统计特征</strong>——这就引出了第 8 节。</p>
+
+<h3 id="s7-4"><span class="n">7.4</span>一张表看清规律</h3>
+
+<div class="tw"><table>
+<thead><tr><th>密码</th><th>规模</th><th>怎么被破</th></tr></thead>
+<tbody>
+<tr><td>凯撒</td><td>25 把密钥</td><td>把每把密钥都试一遍</td></tr>
+<tr><td>单表代换</td><td><span class="m">4 × 10<sup>26</sup></span> 把密钥</td><td>单字母频率</td></tr>
+<tr><td>Playfair</td><td>676 种双字母组</td><td>双字母频率，给几百个字母就够</td></tr>
+<tr><td>Vigenère</td><td><span class="m">26<sup>m</sup></span> 把密钥</td><td>先找周期，再在每个位置上做频率分析</td></tr>
+</tbody></table></div>
+
+<p>每一种密码都让指纹变淡一些，<strong>没有一种把它去掉</strong>。「更难看出的规律」不等于「没有规律」。</p>
+
+<h2 id="s8"><span class="n">8</span>完善保密：一次一密</h2>
+
+<h3 id="s8-1"><span class="n">8.1</span>Vernam：用异或机械化</h3>
+
+<p>对付第 7 节那些攻击的终极办法：选一个<strong>和明文一样长、又和明文没有任何统计关系</strong>的密钥。AT&amp;T 的工程师 Gilbert Vernam 在 1918 年把这个想法做成了机器，按比特工作：</p>
+
+<div class="eq"><span class="m">c<sub>i</sub> = p<sub>i</sub> ⊕ k<sub>i</sub>,　　p<sub>i</sub> = c<sub>i</sub> ⊕ k<sub>i</sub></span><span class="lbl">(5)</span></div>
+
+<p><span class="m">⊕</span> 是<span class="term">异或</span><span class="en">（exclusive-OR，XOR）</span>：两位相同得 0，不同得 1，即 <span class="m">0 ⊕ 0 = 0</span>，<span class="m">0 ⊕ 1 = 1</span>，<span class="m">1 ⊕ 0 = 1</span>，<span class="m">1 ⊕ 1 = 0</span>。由此对任何 <span class="m">p</span>、<span class="m">k</span> 都有 <span class="m">(p ⊕ k) ⊕ k = p</span>——异或两次同一个 <span class="m">k</span> 就抵消了。所以<strong>加密和解密是同一个操作</strong>，这一个恒等式就是整个密码。这里和明文逐位异或的那串比特 <span class="m">k<sub>i</sub></span>，就是<a href="#s5">第 5 节</a>说的密钥流。</p>
+
+<p>Vernam 的密钥流来自一圈循环的穿孔纸带。纸带终究会转回开头，而一个会重复的密钥流，无论多长，都给了分析者和重复的 Vigenère 关键词一样的把手。周期很长只是让攻击变贵，并没有让它变得不可能。</p>
+
+<p>「生成密钥流、和明文异或」至今仍是流密码的基本形状（ChaCha20 和 RC4 是两种实际使用过的流密码，AES 也有按这种方式工作的模式，后面几讲会讲），难点全都集中到了一个问题上：<strong>密钥流从哪里来？</strong></p>
+
+<h3 id="s8-2"><span class="n">8.2</span>一次一密的三个条件</h3>
+
+<p>美国陆军通信兵团的 Joseph Mauborgne 对 Vernam 做了一个改进，得到了唯一不可破的密码——<span class="term">一次一密</span><span class="en">（one-time pad，OTP）</span>：</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>一次一密 <span class="en">one-time pad</span></div>
+  <p style="margin-bottom:0">用一个<strong>真随机</strong>的、<strong>和消息一样长</strong>的、<strong>永不重复使用</strong>的密钥。</p>
+</div>
+
+<div class="tw"><table>
+<thead><tr><th style="width:9rem">条件</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>真随机<br><span class="en">truly random</span></td><td>不是伪随机（pseudorandom，由算法从一个较短的种子 seed 扩展出来的序列），而是真正不可预测</td></tr>
+<tr><td>和消息一样长</td><td>每个明文符号都有自己独立的密钥符号，没有任何密钥符号被摊到两个位置上</td></tr>
+<tr><td>永不重用</td><td>「one-time」不是建议，是这个要求的名字</td></tr>
+</tbody></table></div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>三条缺一不可</div>
+  <p style="margin-bottom:0">三条缺任何一条，保证就<strong>彻底</strong>消失。</p>
+</div>
+
+<h3 id="s8-3"><span class="n">8.3</span>为什么不可破</h3>
+
+<p>密钥是随机的、和消息一样长，所以密文和明文之间没有任何统计关系。前面所有攻击都要一个统计落脚点，这里一个也没有。</p>
+
+<p>课件用一个演示把这一点说透（这里用的是字母模 26 减法，和 Vigenère 同样的运算，不是比特异或）。截获密文 <code>JZUIEOTGSDQQOIILUS</code>（18 个字母），假设分析者运气好到找出了两把候选密钥：</p>
+
+<ul>
+<li>密钥 1 <code>XVQPSKTNZWMFGHRLDU</code> → 解出 <strong>meet me at the library</strong>；</li>
+<li>密钥 2 <code>JGBICETNPDUDAVWXHP</code> → 解出 <strong>attack at dawn on mond</strong>。</li>
+</ul>
+
+<p>两把密钥都合法，两段明文都说得通，没有任何办法分辨。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>不是 monday</div>
+  <p style="margin-bottom:0">课件把第二段写成 "attack at dawn on monday"，那有 20 个字母，比密文多两个，不可能由这 18 个字母解出；论点不受影响。</p>
+</div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>密文和每一条同长的消息都相容</div>
+  <p style="margin-bottom:0">更进一步：<strong>给定任何一段同样长度的明文，都存在一把密钥能把它加密成这段密文</strong>——用密文减去这段明文，差就是那把密钥。所以这段密文和该长度的<strong>每一条</strong>可能的消息都相容，分析者没有理由偏向其中任何一条。<strong>密文不含有关明文的任何信息</strong>——这就是<a href="#s2-2">无条件安全</a>，它是一个证明，不是对当前计算能力的判断。</p>
+</div>
+
+<div class="tool" id="otTool">
+  <h4>任给一段明文，都有一把密钥对得上</h4>
+  <p class="sub">密文固定为课件那段 18 个字母。随便输入一段 18 个字母的「明文」，逐位算 <span class="m">K = (C − p) <span class="up">mod</span> 26</span> 就得到一把把它变成这段密文的密钥——所以分析者无从分辨哪一条才是真的。</p>
+  <div class="row">
+    <label>密文</label><input type="text" id="otC" value="JZUIEOTGSDQQOIILUS" style="width:15rem;max-width:calc(100% - 3.8rem)" oninput="otGo()">
+  </div>
+  <div class="row">
+    <label>明文</label><input type="text" id="otP" value="meet me at the library" style="width:20rem;max-width:calc(100% - 3.8rem)" oninput="otGo()">
+  </div>
+  <div class="row">
+    <button class="btn" onclick="otSet('meet me at the library')">meet me at the library</button>
+    <button class="btn" onclick="otSet('attack at dawn on mond')">attack at dawn on mond</button>
+    <button class="btn" onclick="otSet('attack at dawn on monday')">课件原文 …monday</button>
+    <button class="btn" onclick="otSet('cancel the attack now')">随便一句：cancel the attack now</button>
+  </div>
+  <div class="tw" id="otTable"></div>
+  <div class="result" id="otOut"></div>
+</div>
+
+<h3 id="s8-4"><span class="n">8.4</span>为什么几乎不用</h3>
+
+<ol>
+<li><strong>造密钥</strong>：大量生成真随机字符本身就是难事，一个繁忙的系统可能经常需要数百万个随机字符。</li>
+<li><strong>送密钥</strong>：每发一条消息，收发双方都要有一把同样长的密钥。要发 1 GB 的文件，得先安全地送过去 1 GB 的密钥。</li>
+</ol>
+
+<p>第 2 条是个循环：如果你有一条能送那么长密钥的安全信道，你本可以直接用它送消息。一次一密没有解决通信问题，只是把它换成了一个<strong>同样大小的密钥分发问题</strong>。</p>
+
+<p>它真正用到的地方：带宽极低、价值极高的通信（外交、情报），密钥能提前由信使当面送达的场合，历史上的莫斯科—华盛顿热线。</p>
+
+<p>课件的结论：<strong>完美的安全存在，但用不了</strong>。从 Lecture 3 开始的一切都是工程上的妥协——放弃证明，保住实用，并把破解的代价抬到没人愿意付。</p>
+
+<h3 id="s8-5"><span class="n">8.5</span>密钥重用的代价</h3>
+
+<p>课堂活动 5（课后作业）的第一题课件说「最重要」。设两条消息用了<strong>同一段</strong>密钥流：<span class="m">c<sub>1</sub> = p<sub>1</sub> ⊕ k</span>，<span class="m">c<sub>2</sub> = p<sub>2</sub> ⊕ k</span>。把两段密文异或：</p>
+
+<div class="eq"><span class="m">c<sub>1</sub> ⊕ c<sub>2</sub> = (p<sub>1</sub> ⊕ k) ⊕ (p<sub>2</sub> ⊕ k) = p<sub>1</sub> ⊕ p<sub>2</sub> ⊕ (k ⊕ k) = p<sub>1</sub> ⊕ p<sub>2</sub></span><span class="lbl">(6)</span></div>
+
+<p>每一步只用到异或的交换律、结合律、<span class="m">k ⊕ k = 0</span> 和 <span class="m">x ⊕ 0 = x</span>。<strong>密钥完全消失了</strong>。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>为什么是灾难</div>
+  <p><span class="m">p<sub>1</sub> ⊕ p<sub>2</sub></span> 只取决于两段明文，带着两段自然语言的全部统计结构。攻击者猜中其中一段某处的一个词（比如 the），把它和 <span class="m">p<sub>1</sub> ⊕ p<sub>2</sub></span> 对应位置异或，就直接得到另一段那个位置的明文——一路滑动着猜下去，两段都能逐步还原。这一步不需要任何算力，只需要一次异或。</p>
+  <p style="margin-bottom:0">违反的是「永不重用」这一条；丢掉的安全目标是机密性（L1 第 4.1 节 CIA 三要素）。</p>
+</div>
+
+<h2 id="s9"><span class="n">9</span>置换密码</h2>
+
+<p>前面的技术全是代换。<span class="term">置换密码</span><span class="en">（transposition cipher）</span>不换字母，只对明文字母做一个重新排列：每个字母都还在，只是顺序变了。</p>
+
+<h3 id="s9-1"><span class="n">9.1</span>栅栏密码</h3>
+
+<p><span class="term">栅栏密码</span><span class="en">（rail fence cipher）</span>：把消息沿对角线「一下一上」地写在若干行（行数叫深度，depth）上，然后逐行读出。深度 2、明文 <code>meet me after the toga party</code>：</p>
+
+<div class="tw"><table class="compact mono" style="font-size:14px">
+<tbody>
+<tr><th style="width:4.5rem">第 1 行</th><td>m</td><td>e</td><td>m</td><td>a</td><td>t</td><td>r</td><td>h</td><td>t</td><td>g</td><td>p</td><td>r</td><td>y</td></tr>
+<tr><th>第 2 行</th><td>e</td><td>t</td><td>e</td><td>f</td><td>e</td><td>t</td><td>e</td><td>o</td><td>a</td><td>a</td><td>t</td><td></td></tr>
+</tbody></table></div>
+
+<p>深度为 2 时，第 1 行就是第 1、3、5…个字母，第 2 行是第 2、4、6…个字母。先读第 1 行再读第 2 行，密文 <strong>MEMATRHTGPRYETEFETEOAAT</strong>。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件图里两行画反了</div>
+  <p style="margin-bottom:0">课件图里两行的后半段画反了，但它给出的密文是对的，按上表理解。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 5 第 4 题：深度 3 加密 information security</summary>
+  <p>深度 3 时依次落在第 1、2、3、2、1、2、3…行（到底就折返）。三行分别是 <code>i r i e i</code>、<code>n o m t o s c r t</code>、<code>f a n u y</code>，逐行读出得 <strong>IRIEINOMTOSCRTFANUY</strong>。</p>
+  <p style="margin-bottom:0">怎么只凭密文看出这是置换而不是代换：密文的字母和明文一个不差，只是顺序变了，所以字母频率与明文本身完全一致；明文是够长的普通英文时，它也就接近英文的频率分布——见 <a href="#s9-3">9.3</a>。</p>
+</details>
+
+<div class="tool" id="rfTool">
+  <h4>栅栏密码：沿锯齿写，逐行读</h4>
+  <p class="sub">字母一下一上地落在各行（到底就折返），每行一种颜色；字母右上角的小号数字是它在密文里的位置。拖动深度看排布怎么变。</p>
+  <div class="row">
+    <span class="ctl"><label>深度</label>
+    <input type="range" id="rfD" min="2" max="8" step="1" value="2" oninput="rfGo()">
+    <span class="rv" id="rfDv">2</span></span>
+    <button class="btn" onclick="rfSet('meet me after the toga party',2)">toga party，深度 2</button>
+    <button class="btn" onclick="rfSet('information security',3)">活动 5 第 4 题，深度 3</button>
+  </div>
+  <div class="row">
+    <label>明文</label><input type="text" id="rfIn" value="meet me after the toga party" style="width:22rem;max-width:calc(100% - 3.8rem)" oninput="rfGo()">
+  </div>
+  <div class="toolfig" id="rfFig"></div>
+  <div class="result" id="rfOut"></div>
+</div>
+
+<h3 id="s9-2"><span class="n">9.2</span>列置换与双重置换</h3>
+
+<p>更复杂一些的<span class="term">列置换</span><span class="en">（columnar transposition）</span>：把消息按行写进一个矩形，再按密钥规定的列顺序逐列读出。密钥就是这个列顺序。</p>
+
+<p>例：密钥 4 3 1 2 5 6 7，明文 attack postponed until two am，末尾补 xyz 填满 <span class="m">4 × 7</span> 的矩形：</p>
+
+<div class="tw"><table class="compact mono" style="width:auto;font-size:15px">
+<thead><tr><th>4</th><th>3</th><th>1</th><th>2</th><th>5</th><th>6</th><th>7</th></tr></thead>
+<tbody>
+<tr><td>a</td><td>t</td><td>t</td><td>a</td><td>c</td><td>k</td><td>p</td></tr>
+<tr><td>o</td><td>s</td><td>t</td><td>p</td><td>o</td><td>n</td><td>e</td></tr>
+<tr><td>d</td><td>u</td><td>n</td><td>t</td><td>i</td><td>l</td><td>t</td></tr>
+<tr><td>w</td><td>o</td><td>a</td><td>m</td><td>x</td><td>y</td><td>z</td></tr>
+</tbody></table></div>
+
+<p>按标号 1、2、3…的顺序读列（标号 1 的列是物理上的第 3 列，从上往下读 t t n a），得 <strong>TTNA APTM TSUO AODW COIX KNLY PETZ</strong>。</p>
+
+<p>把这串输出当作新明文，用同一个密钥再做一遍，得 <strong>NSCY AUOP TTWL TMDN AOIE PAXT TOKZ</strong>。这叫<span class="term">双重置换</span><span class="en">（double transposition）</span>。</p>
+
+<p>为什么做两遍强得多：做一遍之后，明文里相邻的字母在密文里仍处在可预测的相邻位置，分析者可以拼词的片段；再做一遍，这种结构被彻底打散，相邻字母被甩到很远、没有简单规律可循。</p>
+
+<div class="tool" id="ctTool">
+  <h4>列置换：按行写入，按列标号读出</h4>
+  <p class="sub">密钥是列的读出顺序（1 到 n 的一个排列）。勾选「双重置换」，把第一遍的输出原样当作明文，用同一个密钥再做一遍。</p>
+  <div class="row">
+    <span class="ctl"><label>列密钥</label><input type="text" id="ctKey" value="4 3 1 2 5 6 7" style="width:9rem;max-width:calc(100% - 3.8rem)" oninput="ctGo()"></span>
+    <label class="chk"><input type="checkbox" id="ctDbl" checked onchange="ctGo()">双重置换</label>
+  </div>
+  <div class="row">
+    <label>明文</label><input type="text" id="ctIn" value="attack postponed until two am" style="width:20rem;max-width:calc(100% - 3.8rem)" oninput="ctGo()">
+    <button class="btn" onclick="ctSet('4 3 1 2 5 6 7','attack postponed until two am',true)">课件例</button>
+  </div>
+  <div class="result" id="ctOut"></div>
+</div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>带进 Lecture 3 最重要的一个想法</div>
+  <p style="margin-bottom:0"><strong>重复一个弱的操作，可以得到一个强的操作</strong>（前提是被重复的操作含非线性部件，见 L3《分组密码与 DES》第 4.5 节）。课件说这是带进 Lecture 3 最重要的一个想法：DES 把一个弱的<span class="term">轮函数</span><span class="en">（round function，每一轮对数据做的那一套固定的代换与置换）</span>重复 16 次，AES 把四种变换重复很多轮。</p>
+</div>
+
+<h3 id="s9-3"><span class="n">9.3</span>怎么一眼认出置换</h3>
+
+<p>纯置换很容易识别：<strong>它的字母频率和原明文一模一样</strong>，因为字母一个没换。明文是足够长的普通英文时，由此有两条诊断：</p>
+
+<ul>
+<li>字母频率像英文、文本却读不通 → 是<strong>置换</strong>；</li>
+<li>字母频率不像英文 → 是<strong>代换</strong>。</li>
+</ul>
+
+<p>频率分布在动手破解之前就告诉了你该用哪类方法。对简单的列置换，分析者把密文写成矩阵，挪动各列的位置试一试即可，合理的列数不多。</p>
+
+<h2 id="s10"><span class="n">10</span>隐写术</h2>
+
+<p>加密让消息读不懂；<span class="term">隐写术</span><span class="en">（steganography）</span>则隐藏「有消息存在」这件事本身——消息就在眼前，只是没人知道该去找。</p>
+
+<p>古典方法：</p>
+
+<ul>
+<li><strong>字符标记</strong>：在印刷文本的选定字母上用铅笔描一遍，只有把纸斜对着光才看得出；</li>
+<li><strong>隐形墨水</strong>：加热或用化学品处理前不留痕迹；</li>
+<li><strong>针刺</strong>：在选定字母上扎小孔，对着光才看得见；</li>
+<li><strong>打字机修正带</strong>：在行间打字，只有强光下可读。</li>
+</ul>
+
+<p>现代对应物：把消息藏进图像或音频的<span class="term">最低有效位</span><span class="en">（least significant bit，LSB）</span>。改动每个颜色值的最低一位，画面的变化人眼完全察觉不到。一张 <span class="m">1024 × 768</span> 的图，每个像素 3 个颜色通道各藏 1 位，共 <span class="m">1024 × 768 × 3 = 2,359,296</span> 位，即约 295 KB——课件说的「约 300 KB」。同样的想法也用于<span class="term">数字水印</span><span class="en">（digital watermarking）</span>，只不过藏的是所有者标识，不是秘密。</p>
+
+<p>和加密相比的缺点：</p>
+
+<ul>
+<li>为了藏很少的信息要付出很大的开销；</li>
+<li>方法一旦被发现就几乎一文不值，没有密钥可以更换；</li>
+<li>安全性完全依赖方法本身保密，这正是柯克霍夫原则所禁止的。</li>
+</ul>
+
+<p>它有一个加密给不了的优点：加密的流量本身就宣告「这里有东西被藏起来了」。在使用加密本身就会招来怀疑、甚至违法的环境里，这个宣告可能就是全部问题。L1 第 5.3 节讲过的<strong>流量分析</strong>（traffic analysis）也是一样：有时「你发了一条消息」比消息内容更能说明问题。隐写术和加密防的是不同的东西，可以合起来用。</p>
+
+<h2 id="s11"><span class="n">11</span>四条教训</h2>
+
+<p>课件这一页的标题是「五个被破掉的密码教会了我们什么」，下面列了四条：</p>
+
+<ol>
+<li><strong>密钥空间大是必要条件，不是充分条件</strong>：单表代换有 <span class="m">4 × 10<sup>26</sup></span> 把密钥，课堂活动 3 限时七分钟，一支铅笔就破了。结构比规模更重要。</li>
+<li><strong>明文的结构能穿透弱加密</strong>：这一讲的每一个攻击利用的都是英文的统计特征，而不是算法里的算术漏洞。密码必须<strong>摧毁</strong>结构，而不只是伪装它。</li>
+<li><strong>重复一个弱的操作可以得到强的操作</strong>：双重置换远强于单次置换，这是所有现代分组密码的设计逻辑。</li>
+<li><strong>完美保密存在，但不可用</strong>：一次一密可证不可破，却几乎不实用。此后的一切都是有意识的妥协。</li>
+</ol>
+
+<p>页脚接着引出下一讲：香农（Claude Shannon）为这些问题起了名字——<span class="term">混淆与扩散</span><span class="en">（confusion and diffusion）</span>。粗略地说，混淆是让密文与密钥的关系尽量复杂，扩散是让明文的每一位影响密文的很多位、把统计结构摊薄；这是 Lecture 3 开门遇到的第一样东西。</p>
+
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+<li>对称密码五要素：明文、加密算法、密钥、密文、解密算法；<strong>只有密钥需要保密</strong>（柯克霍夫原则）。<span class="m">Y = E(K, X)</span>，<span class="m">X = D(K, Y)</span>。</li>
+<li>密钥要靠安全信道预先送达 → <strong>密钥分发问题</strong>，Lecture 6 解决。</li>
+<li>三维分类：代换/置换；对称/非对称；分组/流。所有运算必须可逆。</li>
+<li>攻击模型由弱到强：唯密文 → 已知明文 → 选择明文 → 选择密文（教材另有 chosen text）。现代密码要扛住选择密文攻击。</li>
+<li>无条件安全：信息论意义上不可破，<strong>只有一次一密</strong>；计算安全：破解成本超过信息价值，或破解时间超过信息有效期。</li>
+<li>暴力破解平均耗时 <span class="m">= <span class="frac"><span><span class="up">密钥数</span> / 2</span><span><span class="up">每秒尝试数</span></span></span></span>；它还要求<strong>能认出正确明文</strong>。</li>
+<li>凯撒：<span class="m">C = (p + k) <span class="up">mod</span> 26</span>，<span class="m">p = (C − k) <span class="up">mod</span> 26</span>，a=0…z=25，<strong>25 把密钥</strong>。</li>
+<li>单表代换：<span class="m">26! ≈ 4 × 10<sup>26</sup></span> 把密钥，但<strong>一一对应保留了字母频率</strong>，频率分析即破。英文 E 12.7%、T 9.1%、A 8.2%；ETA 约 30%，前 9 个约 70%；最常见三字母组 THE。</li>
+<li>频率攻击四步：计数 → 猜测 → 用 THE 确认 → 逐词扩展。凯撒只需猜对一个字母：<span class="m">k = (c − p) <span class="up">mod</span> 26</span>。</li>
+<li>压平频率两条路：一次加密多个字母（Playfair、Hill）；多张代换表轮换（Vigenère、自动密钥、Vernam）。</li>
+<li>Playfair：关键词去重先填、余下按字母表填、I/J 同格；明文去非字母、J→I、同对相同字母插 X、落单补 X（字母本身是 X 时照做会得 XX）；同行右移、同列下移、矩形取同行另一角；解密同行左移、同列上移、矩形不变。monarchy 加密 balloon → <strong>IB SU PM NA</strong>。676 是双字母组种数，密钥数 <span class="m">25!</span>。</li>
+<li>Vigenère：<span class="m">C<sub>i</sub> = (p<sub>i</sub> + k<sub>i mod m</sub>) <span class="up">mod</span> 26</span>，<span class="m">26<sup>m</sup></span> 把密钥。<strong>Kasiski</strong>：真正的重复（同一段明文遇上同一段关键词）距离被关键词长度整除 → 周期是距离最大公因数的某个因数 → 拆成 <span class="m">m</span> 个凯撒 → 各做频率分析。自动密钥用明文续接关键词，密钥与明文同分布，仍可破。</li>
+<li>Vernam：<span class="m">c = p ⊕ k</span>，加解密同一操作。一次一密：<strong>真随机、等长、不重用</strong>，缺一不可；不可破的原因是密文与同长度的每条明文都相容。不实用的原因：造随机密钥难、送等长密钥等于原问题。</li>
+<li><strong>密钥重用</strong>：<span class="m">c<sub>1</sub> ⊕ c<sub>2</sub> = p<sub>1</sub> ⊕ p<sub>2</sub></span>，密钥消失。</li>
+<li>置换：字母不变只改顺序，频率与明文完全相同；明文是长英文时，<strong>频率像英文却读不通 ⇒ 置换</strong>。栅栏深度 2 例 MEMATRHTGPRYETEFETEOAAT；列置换按列标号顺序读；双重置换远强于单次。</li>
+<li>隐写术藏的是「消息存在」本身；LSB 隐写；缺点是开销大、方法暴露即失效、违背柯克霍夫原则。</li>
+<li>四条教训：大密钥空间不充分；必须摧毁结构；重复弱操作得强操作；完美保密不可用。下一讲从混淆与扩散开始。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <strong>L3 分组密码与 DES</strong>：把「重复一个弱操作」和「摧毁结构」工程化——香农的混淆与扩散、Feistel 结构、DES。</p>
+<p>实验对应：《Lab1-2 古典密码的 MATLAB 实现》（凯撒、暴力破解、频率分析、Playfair 的程序实现与结果）。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L2 古典密码与密码分析.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   widgets-l2.js — IS L2《古典密码与密码分析》学习页的全部交互件
+   上半部分是纯函数（可在 Node 里单测），下半部分是渲染。
+   配色规则照模板：中性元素 currentColor + opacity；强调色硬编码 #2F6F8F；
+   其余语义色在绘制时用 getComputedStyle 从 CSS 变量读。
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 纯函数 */
+
+/* 一般英文字母频率（%），a…z。Stallings 第 3 章图 3.5 所用数据（Lewand 2000），
+   与实验程序 english_frequency.m 同一组数。 */
+var ENG = [8.167,1.492,2.782,4.253,12.702,2.228,2.015,6.094,6.966,0.153,
+           0.772,4.025,2.406,6.749,7.507,1.929,0.095,5.987,6.327,9.056,
+           2.758,0.978,2.360,0.150,1.974,0.074];
+
+/* 实验手册给的明文（Stallings 第 3 章开头一段，634 个字母）。用作频率攻击的样本。 */
+var LAB_TEXT = 'In this section and the next, we examine a sampling of what might be called classical encryption techniques. A study of these techniques enables us to illustrate the basic approaches to symmetric encryption used today and the types of cryptanalytic attacks that must be anticipated. The two basic building blocks of all encryption techniques are substitution and transposition. We examine these in the next two sections. Finally, we discuss a system that combines both substitution and transposition. A substitution technique is one in which the letters of plaintext are replaced by other letters or by numbers or symbols. If the plaintext is viewed as a sequence of bits, then substitution involves replacing plaintext bit patterns with ciphertext bit patterns.';
+
+/* 课堂活动 3 的单表代换密文（课件原文） */
+var ACT3_TEXT = 'Q EOHITK DXLZ WT LTEXKT TCTF VITF ZIT TFTDN AFGVL TCTKNZIOFU QWGXZ OZ TBETHZ ZIT ATN';
+
+function mod26(n){ return ((n % 26) + 26) % 26; }
+function onlyLetters(s){ return String(s).toUpperCase().replace(/[^A-Z]/g, ''); }
+function L2N(ch){ return ch.toUpperCase().charCodeAt(0) - 65; }
+function N2U(n){ return String.fromCharCode(65 + mod26(n)); }
+function N2L(n){ return String.fromCharCode(97 + mod26(n)); }
+function isLetter(ch){ return /[A-Za-z]/.test(ch); }
+function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while(b){ var t = a % b; a = b; b = t; } return a; }
+function divisors(n){ var r = []; for(var i = 1; i <= n; i++) if(n % i === 0) r.push(i); return r; }
+
+/** 凯撒：加密输出大写、解密输出小写（课件约定：明文小写、密文大写）；非字母原样保留 */
+function caesar(text, k, dec){
+  var s = dec ? -k : k, out = '';
+  for(var i = 0; i < text.length; i++){
+    var ch = text[i];
+    if(isLetter(ch)) out += dec ? N2L(L2N(ch) + s) : N2U(L2N(ch) + s);
+    else out += ch;
+  }
+  return out;
+}
+function letterCounts(text){
+  var c = []; for(var i = 0; i < 26; i++) c.push(0);
+  var t = onlyLetters(text);
+  for(var j = 0; j < t.length; j++) c[L2N(t[j])]++;
+  return c;
+}
+function letterPct(text){
+  var c = letterCounts(text), n = c.reduce(function(a, b){ return a + b; }, 0);
+  return { counts: c, n: n, pct: c.map(function(x){ return n ? 100 * x / n : 0; }) };
+}
+/** χ² = Σ (O − E)² / E，E = N·q。越小越像英文。与实验程序 caesar_bruteforce.m 同一公式。 */
+function chi2(text){
+  var c = letterCounts(text), n = c.reduce(function(a, b){ return a + b; }, 0), s = 0;
+  if(!n) return Infinity;
+  for(var i = 0; i < 26; i++){ var e = n * ENG[i] / 100; s += (c[i] - e) * (c[i] - e) / e; }
+  return s;
+}
+/** 暴力破解：k = 1…25 全试，按 χ² 升序 */
+function bruteForce(cipher){
+  var r = [];
+  for(var k = 1; k <= 25; k++){ var d = caesar(cipher, k, true); r.push({ k: k, text: d, chi: chi2(d) }); }
+  r.sort(function(a, b){ return a.chi - b.chi || a.k - b.k; });
+  return r;
+}
+/** 字母按出现次数降序；同次数按字母表顺序（与 MATLAB sort 'descend' 的稳定排序一致） */
+function rankLetters(text){
+  var c = letterCounts(text), arr = [];
+  for(var i = 0; i < 26; i++) arr.push({ i: i, n: c[i] });
+  arr.sort(function(a, b){ return b.n - a.n || a.i - b.i; });
+  return arr;
+}
+/** 频率攻击：把第 rank 高频的密文字母当作明文字母 assumed（0…25），k = (c − p) mod 26 */
+function freqGuess(cipher, rank, assumed){
+  var top = rankLetters(cipher)[rank - 1];
+  return { c: top.i, n: top.n, p: assumed, k: mod26(top.i - assumed) };
+}
+
+/* ---- Playfair ---- */
+var PF_ALPHA = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';            // 25 个字母，无 J
+function pfMatrix(kw){
+  var seq = onlyLetters(kw).replace(/J/g, 'I') + PF_ALPHA, m = '';
+  for(var i = 0; i < seq.length; i++) if(m.indexOf(seq[i]) < 0) m += seq[i];
+  return m;                                             // 长 25，按行展开
+}
+/** 预处理。qfill=false 为手册模式（字母本身是 X 时照样插/补 X，得 XX）；
+    qfill=true 为变通约定（仅这种情况改用 Q）。返回 [{a,b,why}]，why: ''|'dup'|'tail' */
+function pfPrepare(text, qfill){
+  var t = onlyLetters(text).replace(/J/g, 'I'), pairs = [], i = 0, n = t.length;
+  while(i < n){
+    var a = t[i];
+    if(i === n - 1 || t[i + 1] === a){
+      var f = (a === 'X' && qfill) ? 'Q' : 'X';
+      pairs.push({ a: a, b: f, why: (i === n - 1) ? 'tail' : 'dup' });
+      i += 1;
+    } else { pairs.push({ a: a, b: t[i + 1], why: '' }); i += 2; }
+  }
+  return pairs;
+}
+/** 解密的输入只做「只留字母、J→I、两两分组」，长度须为偶数 */
+function pfSplitCipher(text){
+  var t = onlyLetters(text).replace(/J/g, 'I'), pairs = [];
+  if(t.length % 2) return null;
+  for(var i = 0; i < t.length; i += 2) pairs.push({ a: t[i], b: t[i + 1], why: '' });
+  return pairs;
+}
+/** 一对字母过三条规则。同字母（XX）既同行又同列，按同行处理（与实验程序一致）。 */
+function pfPair(M, a, b, dec){
+  var p1 = M.indexOf(a), p2 = M.indexOf(b);
+  var r1 = Math.floor(p1 / 5), c1 = p1 % 5, r2 = Math.floor(p2 / 5), c2 = p2 % 5, s = dec ? 4 : 1;
+  var t1, t2, kind;
+  if(r1 === r2){ kind = 'row'; t1 = [r1, (c1 + s) % 5]; t2 = [r2, (c2 + s) % 5]; }
+  else if(c1 === c2){ kind = 'col'; t1 = [(r1 + s) % 5, c1]; t2 = [(r2 + s) % 5, c2]; }
+  else { kind = 'rect'; t1 = [r1, c2]; t2 = [r2, c1]; }
+  return { kind: kind, from: [[r1, c1], [r2, c2]], to: [t1, t2],
+           out: M[t1[0] * 5 + t1[1]] + M[t2[0] * 5 + t2[1]] };
+}
+function pfRun(M, pairs, dec){
+  return pairs.map(function(p){ return pfPair(M, p.a, p.b, dec).out; });
+}
+
+/* ---- Vigenère ---- */
+function vigenere(text, key, dec){
+  var t = onlyLetters(text), k = onlyLetters(key), out = '';
+  if(!k.length) return null;
+  for(var i = 0; i < t.length; i++){
+    var sh = L2N(k[i % k.length]);
+    out += dec ? N2L(L2N(t[i]) - sh) : N2U(L2N(t[i]) + sh);
+  }
+  return { t: t, k: k, out: out };
+}
+/** Kasiski：找长度 ≥ minLen 的极大重复片段（左右都不能再延长），返回各片段、位置（从 1 数）、间距与总 gcd */
+function kasiski(text, minLen){
+  minLen = minLen || 3;
+  var t = onlyLetters(text), n = t.length, found = {}, order = [];
+  for(var i = 0; i < n; i++){
+    for(var j = i + 1; j < n; j++){
+      if(i > 0 && t[i - 1] === t[j - 1]) continue;          // 左边还能延长，不是极大的起点
+      var L = 0; while(j + L < n && t[i + L] === t[j + L]) L++;
+      if(L < minLen) continue;
+      var s = t.substr(i, L);
+      if(!found[s]){ found[s] = { s: s, pos: [], d: [] }; order.push(s); }
+      var f = found[s];
+      if(f.pos.indexOf(i + 1) < 0) f.pos.push(i + 1);
+      if(f.pos.indexOf(j + 1) < 0) f.pos.push(j + 1);
+      f.d.push(j - i);
+    }
+  }
+  var reps = order.map(function(s){ var f = found[s]; f.pos.sort(function(a, b){ return a - b; }); return f; });
+  var g = 0; reps.forEach(function(f){ f.d.forEach(function(d){ g = gcd(g, d); }); });
+  return { n: n, reps: reps, gcd: g };
+}
+
+/* ---- 栅栏 ---- */
+function railRows(len, depth){
+  var rows = [], cyc = 2 * (depth - 1);
+  for(var i = 0; i < len; i++){ var r = i % cyc; if(r >= depth) r = cyc - r; rows.push(r); }
+  return rows;
+}
+function railFence(text, depth){
+  var t = onlyLetters(text), rows = railRows(t.length, depth), out = '', lines = [];
+  for(var r = 0; r < depth; r++){
+    var line = '';
+    for(var i = 0; i < t.length; i++) if(rows[i] === r) line += t[i];
+    lines.push(line); out += line;
+  }
+  return { t: t, rows: rows, lines: lines, out: out };
+}
+
+/* ---- 列置换 ---- */
+function parseColKey(s){
+  var k = String(s).trim().split(/[\s,，]+/).filter(function(x){ return x !== ''; }).map(Number);
+  var n = k.length;
+  if(n < 2) return null;
+  var sorted = k.slice().sort(function(a, b){ return a - b; });
+  for(var i = 0; i < n; i++) if(sorted[i] !== i + 1) return null;   // 必须是 1…n 的一个排列
+  return k;
+}
+/** 按行写入、按列标号 1、2、3… 的顺序逐列读出；不满的最后一行依次补 x y z x y z… */
+function columnar(text, key){
+  var t = onlyLetters(text).toLowerCase(), n = key.length;
+  var rows = Math.ceil(t.length / n), pad = 'xyz', padded = t, q = 0;
+  while(padded.length < rows * n){ padded += pad[q % 3]; q++; }
+  var grid = []; for(var r = 0; r < rows; r++) grid.push(padded.substr(r * n, n).split(''));
+  var cols = [];
+  for(var lab = 1; lab <= n; lab++){
+    var c = key.indexOf(lab), s = '';
+    for(var r2 = 0; r2 < rows; r2++) s += grid[r2][c];
+    cols.push(s.toUpperCase());
+  }
+  return { grid: grid, rows: rows, padN: q, cols: cols, out: cols.join('') };
+}
+
+/* ---- 一次一密（字母模 26 版本，与课件演示一致） ---- */
+function otpKey(cipher, plain){
+  var c = onlyLetters(cipher), p = onlyLetters(plain);
+  if(c.length !== p.length) return { err: true, nc: c.length, np: p.length };
+  var k = '', back = '';
+  for(var i = 0; i < c.length; i++){ k += N2U(L2N(c[i]) - L2N(p[i])); }
+  for(var j = 0; j < c.length; j++){ back += N2L(L2N(c[j]) - L2N(k[j])); }
+  return { c: c, p: p, k: k, back: back };
+}
+
+
+/* ===================== L2 交互件：渲染层 ===================== */
+/* 依赖 l2-core.js 的纯函数。事件一律内联绑定，函数均为顶层声明。 */
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+var AC = '#2F6F8F';
+function el(id){ return document.getElementById(id); }
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgText(parent, x, y, str, attrs){
+  var a = attrs || {}; a.x = x; a.y = y;
+  var t = svgEl('text', a); t.textContent = str; parent.appendChild(t); return t;
+}
+/** 数字转文本，负号用 U+2212 */
+function nf(v, d){ var s = (d === undefined) ? String(v) : Number(v).toFixed(d); return s.replace(/-/g, '−'); }
+function esc(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function themeColors(){
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  return { accent: g('--accent', AC), warn: g('--warn', '#B4534B'), ok: g('--ok', '#3F8A63'),
+           exam: g('--exam', '#9A6B2F'), muted: g('--muted', '#5C6673'), faint: g('--faint', '#8A929C') };
+}
+function newSvg(w, h, label){
+  var s = svgEl('svg', { viewBox: '0 0 ' + w + ' ' + h, role: 'img', 'aria-label': label });
+  s.style.display = 'block'; s.style.width = '100%'; s.style.height = 'auto';
+  return s;
+}
+function mount(host, node){ host = (typeof host === 'string') ? el(host) : host; if(!host) return; host.innerHTML = ''; host.appendChild(node); }
+function abc(i){ return String.fromCharCode(97 + i); }
+function ABC(i){ return String.fromCharCode(65 + i); }
+
+/* ---------------------------------------------------------------- 字母频率柱状图
+   opts: {title, ref:true 叠英文参考, marks:[{i,label,color}], color} */
+function freqBars(hostId, pct, opts){
+  var o = opts || {}, c = themeColors();
+  var W = 400, H = 226, L = 36, R = 8, T = 36, B = 26, pw = W - L - R, ph = H - T - B;
+  var mx = Math.max.apply(null, pct.concat(o.ref ? ENG : [0]));
+  var ymax = Math.max(10, Math.ceil((mx + 1.5) / 5) * 5);
+  function Y(v){ return T + (ymax - v) / ymax * ph; }
+  var bw = pw / 26;
+  var s = newSvg(W, H, o.title || '字母频率柱状图');
+  var g = svgEl('g', { 'font-family': 'inherit', 'font-size': '11' }); s.appendChild(g);
+  svgText(g, 8, 18, o.title || '', { fill: 'currentColor', 'fill-opacity': .85, 'font-size': '14', 'font-weight': '600' });
+  for(var v = 0; v <= ymax; v += 5){
+    g.appendChild(svgEl('path', { d: 'M' + L + ',' + Y(v) + ' H' + (W - R), stroke: 'currentColor', 'stroke-opacity': v ? .1 : .35 }));
+    svgText(g, L - 6, Y(v) + 4, String(v), { 'text-anchor': 'end', fill: 'currentColor', 'fill-opacity': .55, 'font-size': '11.5' });
+  }
+  svgText(g, 10, T + ph / 2, '%', { 'text-anchor': 'middle', fill: 'currentColor', 'fill-opacity': .55 });
+  var marked = {}; (o.marks || []).forEach(function(m){ marked[m.i] = m; });
+  for(var i = 0; i < 26; i++){
+    var x = L + i * bw, h = Y(0) - Y(pct[i]), m = marked[i];
+    g.appendChild(svgEl('rect', { x: (x + bw * .14).toFixed(2), y: Y(pct[i]).toFixed(2), width: (bw * .72).toFixed(2),
+      height: Math.max(0, h).toFixed(2), fill: m ? m.color : (o.color || AC), 'fill-opacity': m ? .95 : .7, rx: 1.5 }));
+    if(o.ref){
+      g.appendChild(svgEl('path', { d: 'M' + (x + bw * .06).toFixed(2) + ',' + Y(ENG[i]).toFixed(2) + ' h' + (bw * .88).toFixed(2),
+        stroke: 'currentColor', 'stroke-opacity': .7, 'stroke-width': 1.6 }));
+    }
+    svgText(g, x + bw / 2, H - 8, abc(i), { 'text-anchor': 'middle', fill: m ? m.color : 'currentColor',
+      'fill-opacity': m ? 1 : .6, 'font-size': '12.5', 'font-weight': m ? '700' : 'normal' });
+    if(m) svgText(g, Math.min(Math.max(x + bw / 2, L + 30), W - R - 30), Y(pct[i]) - 6, m.label,
+      { 'text-anchor': 'middle', fill: m.color, 'font-size': '12.5', 'font-weight': '600' });
+  }
+  if(o.ref){
+    g.appendChild(svgEl('path', { d: 'M' + (W - R - 118) + ',' + (T - 9) + ' h16', stroke: 'currentColor', 'stroke-opacity': .7, 'stroke-width': 1.6 }));
+    svgText(g, W - R - 96, T - 5, '一般英文参考', { fill: 'currentColor', 'fill-opacity': .7, 'font-size': '12' });
+  }
+  mount(hostId, s);
+}
+
+/* ---------------------------------------------------------------- 4.2 英文字母频率（排序） */
+function drawEngFreq(hostId){
+  var c = themeColors();
+  var idx = []; for(var i = 0; i < 26; i++) idx.push(i);
+  idx.sort(function(a, b){ return ENG[b] - ENG[a]; });
+  var W = 760, H = 300, L = 46, R = 14, T = 20, B = 46, pw = W - L - R, ph = H - T - B, ymax = 14;
+  function Y(v){ return T + (ymax - v) / ymax * ph; }
+  var bw = pw / 26;
+  var s = newSvg(W, H, '一般英文字母频率，按频率从高到低排序：E 12.7%、T 9.1%、A 8.2% 合计约 30%，前 9 个约 70%');
+  var g = svgEl('g', { 'font-family': 'inherit', 'font-size': '12' }); s.appendChild(g);
+  for(var v = 0; v <= ymax; v += 2){
+    g.appendChild(svgEl('path', { d: 'M' + L + ',' + Y(v) + ' H' + (W - R), stroke: 'currentColor', 'stroke-opacity': v ? .1 : .4 }));
+    svgText(g, L - 8, Y(v) + 4, String(v), { 'text-anchor': 'end', fill: 'currentColor', 'fill-opacity': .6, 'font-size': '11' });
+  }
+  var yl = svgText(g, 14, T + ph / 2, '字母占比 (%)', { 'text-anchor': 'middle', fill: 'currentColor', 'fill-opacity': .65,
+    transform: 'rotate(-90 14 ' + (T + ph / 2) + ')' });
+  var top3 = 0, top9 = 0;
+  idx.forEach(function(li, r){
+    var x = L + r * bw, col = r < 3 ? c.warn : (r < 9 ? AC : 'currentColor'), op = r < 9 ? .85 : .3;
+    if(r < 3) top3 += ENG[li]; if(r < 9) top9 += ENG[li];
+    g.appendChild(svgEl('rect', { x: (x + bw * .15).toFixed(2), y: Y(ENG[li]).toFixed(2), width: (bw * .7).toFixed(2),
+      height: (Y(0) - Y(ENG[li])).toFixed(2), fill: col, 'fill-opacity': op, rx: 1.5 }));
+    svgText(g, x + bw / 2, H - B + 17, ABC(li), { 'text-anchor': 'middle', fill: 'currentColor', 'fill-opacity': .75 });
+    if(r < 3) svgText(g, x + bw / 2, Y(ENG[li]) - 6, nf(ENG[li], 1), { 'text-anchor': 'middle', fill: c.warn, 'font-size': '11.5', 'font-weight': '600' });
+  });
+  svgText(g, L + pw / 2, H - 8, '字母（按频率从高到低排序）', { 'text-anchor': 'middle', fill: 'currentColor', 'fill-opacity': .65 });
+  svgText(g, L + pw * .5, T + 30, 'E + T + A ≈ ' + Math.round(top3) + '%', { fill: c.warn, 'font-weight': '600', 'font-size': '13' });
+  svgText(g, L + pw * .5, T + 50, '前 9 个（ETAOINSHR）≈ ' + Math.round(top9) + '%', { fill: AC, 'font-weight': '600', 'font-size': '13' });
+  var tail = idx.slice(22).map(function(i){ return ABC(i); }).join('、');
+  svgText(g, L + pw * .5, T + 70, tail + ' 都不到 0.2%', { fill: 'currentColor', 'fill-opacity': .7, 'font-size': '12' });
+  mount(hostId, s);
+}
+
+/* ---------------------------------------------------------------- ① 凯撒移位器 + 频率图 + 暴力破解 */
+function csSet(text, k, dir){
+  el('csIn').value = text; el('csK').value = k; el('csDir').value = dir; csGo();
+}
+function csHint(){
+  el('csBrute').innerHTML = '<p class="sub" style="margin:0">点上面的按钮，对当前这段密文把 k = 1…25 全部试一遍。</p>';
+}
+function csGo(){
+  var dec = el('csDir').value === 'dec', k = parseInt(el('csK').value, 10), raw = el('csIn').value;
+  el('csKv').textContent = k;
+  csHint();
+  var t = onlyLetters(raw), out = el('csOut');
+  if(!t.length){
+    out.innerHTML = '<span class="bad">输入里没有字母，没有可加密的东西。</span>';
+    el('csFreqP').innerHTML = '<p class="sub">（无字母）</p>'; el('csFreqC').innerHTML = '<p class="sub">（无字母）</p>';
+    return;
+  }
+  var res = caesar(raw, k, dec), plain = dec ? res : raw, ciph = dec ? raw : res;
+  var steps = '', shown = 0;
+  for(var i = 0; i < raw.length && shown < 8; i++){
+    if(!isLetter(raw[i])) continue;
+    var a = L2N(raw[i]), b = dec ? a - k : a + k, m = mod26(b);
+    var calc = dec ? (a + ' − ' + k + ' = ' + nf(b)) : (a + ' + ' + k + ' = ' + b);
+    if(m !== b) calc += '，' + nf(b) + ' mod 26 = ' + m;
+    steps += '<span class="mono" style="font-size:13.5px;white-space:nowrap">' + (dec ? raw[i].toUpperCase() : raw[i].toLowerCase()) +
+      '(' + a + ') → ' + calc + ' → <strong>' + (dec ? abc(m) : ABC(m)) + '</strong></span>';
+    shown++;
+  }
+  var more = t.length > 8 ? '<div style="opacity:.6;font-size:14px;margin-top:.2rem">……其余 ' + (t.length - 8) + ' 个字母同理，每个都移同一个 k。</div>' : '';
+  out.innerHTML =
+    '<div>' + (dec ? '解密 <span class="m">p = (C − k) <span class="up">mod</span> 26</span>' : '加密 <span class="m">C = (p + k) <span class="up">mod</span> 26</span>') +
+    '，<span class="m">k = ' + k + '</span>：</div>' +
+    '<div class="mono" style="word-break:break-all;margin:.3rem 0"><strong>' + esc(res) + '</strong></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:.15rem .9rem;margin-top:.4rem">' + steps + '</div>' + more;
+  /* 频率图：标出明文最高频字母与它在密文里的位置 */
+  var pp = letterPct(plain).pct, cp = letterPct(ciph).pct, c = themeColors();
+  var top = rankLetters(plain)[0].i, img = mod26(top + k);
+  freqBars('csFreqP', pp, { title: '明文字母频率（' + t.length + ' 个字母）', ref: true,
+    marks: [{ i: top, label: abc(top) + ' ' + nf(pp[top], 1) + '%', color: c.warn }] });
+  freqBars('csFreqC', cp, { title: '密文字母频率：整体右移 ' + k + ' 格', ref: true, color: c.exam,
+    marks: [{ i: img, label: abc(top) + ' → ' + abc(img), color: c.warn }] });
+}
+function csBrute(){
+  var dec = el('csDir').value === 'dec', k = parseInt(el('csK').value, 10), raw = el('csIn').value;
+  var ciph = dec ? raw : caesar(raw, k, false), n = onlyLetters(ciph).length;
+  if(!n){ el('csBrute').innerHTML = '<p class="sub bad" style="margin:0">没有字母可试。</p>'; return; }
+  var rows = bruteForce(ciph), html = '';
+  html += '<table class="compact"><thead><tr><th style="width:3rem">名次</th><th style="width:3rem">k</th><th style="width:6rem">χ²</th><th>候选明文（前 44 个字符）</th></tr></thead><tbody>';
+  rows.forEach(function(r, j){
+    var tag = (!dec && r.k === k) ? ' <span class="good">← 加密用的就是它</span>' : '';
+    html += '<tr' + (j === 0 ? ' style="font-weight:600"' : '') + '><td>' + (j + 1) + '</td><td>' + r.k + '</td><td class="mono">' +
+      nf(r.chi, 1) + '</td><td class="mono" style="word-break:break-all">' + esc(r.text.slice(0, 44)) + (r.text.length > 44 ? '…' : '') + tag + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  var note = '<p class="sub" style="margin:.2rem 0 .6rem">对 <strong>' + n + '</strong> 个字母的密文试遍 25 把密钥，按 χ² 从小到大排（越小越像英文）。' +
+    (n < 30 ? ' <span class="bad">字母这么少时，χ² 的排序不可靠——英文的统计规律要在足够长的文本上才显现，最终还得靠眼睛认出哪一行读得通。</span>' : '') + '</p>';
+  el('csBrute').innerHTML = note + html;
+}
+
+/* ---------------------------------------------------------------- ② 频率攻击 */
+function faSet(which){
+  var v = which === 'lab' ? caesar(LAB_TEXT, 16, false) : which === 'toga' ? 'PHHW PH DIWHU WKH WRJD SDUWB' : ACT3_TEXT;
+  el('faIn').value = v; faGo();
+}
+function faGo(){
+  var txt = el('faIn').value, rank = parseInt(el('faRank').value, 10), n = onlyLetters(txt).length, c = themeColors();
+  if(!n){ el('faOut').innerHTML = '<span class="bad">密文里没有字母。</span>'; el('faFreq').innerHTML = '<p class="sub">（无字母）</p>'; return; }
+  var rk = rankLetters(txt), pc = letterPct(txt).pct;
+  if(rk[rank - 1].n === 0) rank = 1;
+  var tops = rk.slice(0, 6).filter(function(x){ return x.n > 0; }).map(function(x, j){
+    return '<span' + (j === rank - 1 ? ' style="color:' + c.warn + ';font-weight:700"' : '') + '>' + abc(x.i) + ' ' + x.n + '</span>';
+  }).join('　');
+  var best = bruteForce(txt)[0];
+  function card(p){
+    var g = freqGuess(txt, rank, p), d = caesar(txt, g.k, true);
+    return '<div style="background:var(--surface)"><span class="lab" style="display:block">假设 ' + abc(g.c) + ' 是 ' + abc(p) + '</span>' +
+      '<span class="mono" style="display:block;font-size:14.5px">k = (' + g.c + ' − ' + p + ') mod 26 = <strong>' + g.k + '</strong></span>' +
+      '<span class="mono" style="display:block;font-size:13.5px;word-break:break-all;margin-top:.3rem">' + esc(d.slice(0, 70)) + (d.length > 70 ? '…' : '') + '</span>' +
+      '<span style="display:block;font-size:13px;opacity:.75;margin-top:.3rem">χ² = ' + nf(chi2(d), 1) + '</span></div>';
+  }
+  el('faOut').innerHTML =
+    '<div>共 ' + n + ' 个字母。出现最多的六个：<span class="mono">' + tops + '</span></div>' +
+    '<div class="three">' + card(4) + card(19) + '</div>' +
+    '<div style="margin-top:.7rem">读一读两个结果，哪个是英文？作为旁证：把 25 个移位全试一遍，χ² 最小的是 <strong>k = ' + best.k + '</strong>（χ² = ' + nf(best.chi, 1) + '）。</div>';
+  freqBars('faFreq', pc, { title: '这段密文的字母频率', ref: true, color: c.exam,
+    marks: [{ i: rk[rank - 1].i, label: '第 ' + rank + ' 高频：' + abc(rk[rank - 1].i), color: c.warn }] });
+}
+
+/* ---------------------------------------------------------------- ③ Playfair 逐对步进 */
+function pfPos(x){ return '(' + x[0] + ',' + x[1] + ')'; }
+var PF = { M: '', pairs: [], step: 0, dec: false, err: '' };
+function pfSet(kw, text, dir, fill){
+  el('pfKey').value = kw; el('pfIn').value = text; el('pfDir').value = dir; if(fill) el('pfFill').value = fill; pfBuild();
+}
+function pfBuild(){
+  var kw = el('pfKey').value, txt = el('pfIn').value;
+  PF.dec = el('pfDir').value === 'dec';
+  PF.M = pfMatrix(kw); PF.err = '';
+  if(!onlyLetters(txt).length){ PF.pairs = []; PF.err = '输入里没有字母。'; }
+  else if(PF.dec){
+    var sp = pfSplitCipher(txt);
+    if(!sp){ PF.pairs = []; PF.err = '密文去掉非字母后有 ' + onlyLetters(txt).length + ' 个字母，是奇数——Playfair 密文长度必为偶数，这段不可能是 Playfair 密文。'; }
+    else PF.pairs = sp;
+  } else PF.pairs = pfPrepare(txt, el('pfFill').value === 'q');
+  PF.step = PF.pairs.length ? 1 : 0;
+  pfDraw();
+}
+function pfStep(d){ if(!PF.pairs.length) return; PF.step = Math.min(PF.pairs.length, Math.max(1, PF.step + d)); pfDraw(); }
+function pfAll(){ PF.step = PF.pairs.length; pfDraw(); }
+function pfDraw(){
+  var c = themeColors(), M = PF.M;
+  /* 预处理说明 */
+  var pre = '';
+  if(PF.err){ pre = '<span class="bad">' + PF.err + '</span>'; }
+  else {
+    var notes = [];
+    PF.pairs.forEach(function(p){
+      if(p.why === 'dup') notes.push(p.a + p.b + '：两个 ' + p.a + ' 落在同一组，在第一个后面插 ' + p.b + '，第二个 ' + p.a + ' 顺延到下一组' + (p.a === 'X' && p.b === 'X' ? '（字母本身是 X，照手册插 X 得到 XX）' : (p.b === 'Q' ? '（变通约定：字母本身是 X，改用 Q）' : '')));
+      if(p.why === 'tail') notes.push(p.a + p.b + '：最后落单的 ' + p.a + ' 补 ' + p.b + (p.a === 'X' && p.b === 'X' ? '（落单的本身是 X，照手册补 X 得到 XX）' : (p.b === 'Q' ? '（变通约定：落单的是 X，改用 Q）' : '')));
+    });
+    pre = (PF.dec ? '密文分组：' : '预处理（只留字母、大写、J→I、两两分组）：') + '<span class="mono"><strong>' +
+      PF.pairs.map(function(p){ return p.a + p.b; }).join(' ') + '</strong></span>' +
+      (notes.length ? '<ul style="margin:.3rem 0 0">' + notes.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ul>' : '');
+  }
+  el('pfPre').innerHTML = pre;
+  /* 矩阵 */
+  var cur = PF.step ? pfPair(M, PF.pairs[PF.step - 1].a, PF.pairs[PF.step - 1].b, PF.dec) : null;
+  var S = 54, O = 30, W = O + 5 * S + 12, H = O + 5 * S + 12;
+  var s = newSvg(W, H, 'Playfair 5×5 矩阵，高亮当前一对字母与结果');
+  var defs = svgEl('defs'), mk = svgEl('marker', { id: 'pfArr', markerWidth: 9, markerHeight: 9, refX: 8, refY: 3, orient: 'auto' });
+  mk.appendChild(svgEl('path', { d: 'M0,0 L8,3 L0,6 z', fill: c.ok })); defs.appendChild(mk); s.appendChild(defs);
+  var g = svgEl('g', { 'font-family': 'inherit', 'text-anchor': 'middle' }); s.appendChild(g);
+  function cx(col){ return O + col * S + S / 2; } function cy(row){ return O + row * S + S / 2; }
+  for(var r = 0; r < 5; r++){
+    svgText(g, O / 2, cy(r) + 4, String(r), { fill: 'currentColor', 'fill-opacity': .45, 'font-size': '11' });
+    svgText(g, cx(r), O / 2 + 4, String(r), { fill: 'currentColor', 'fill-opacity': .45, 'font-size': '11' });
+  }
+  if(cur && cur.kind === 'row') g.appendChild(svgEl('rect', { x: O, y: O + cur.from[0][0] * S, width: 5 * S, height: S, fill: AC, 'fill-opacity': .07 }));
+  if(cur && cur.kind === 'col') g.appendChild(svgEl('rect', { x: O + cur.from[0][1] * S, y: O, width: S, height: 5 * S, fill: AC, 'fill-opacity': .07 }));
+  for(var i = 0; i < 25; i++){
+    var rr = Math.floor(i / 5), cc = i % 5;
+    g.appendChild(svgEl('rect', { x: O + cc * S, y: O + rr * S, width: S, height: S, fill: 'none', stroke: 'currentColor', 'stroke-opacity': .22 }));
+  }
+  if(cur){
+    if(cur.kind === 'rect'){
+      var x1 = Math.min(cx(cur.from[0][1]), cx(cur.from[1][1])), x2 = Math.max(cx(cur.from[0][1]), cx(cur.from[1][1]));
+      var y1 = Math.min(cy(cur.from[0][0]), cy(cur.from[1][0])), y2 = Math.max(cy(cur.from[0][0]), cy(cur.from[1][0]));
+      g.appendChild(svgEl('rect', { x: x1, y: y1, width: x2 - x1, height: y2 - y1, fill: 'none', stroke: AC, 'stroke-opacity': .6, 'stroke-dasharray': '5 4', 'stroke-width': 1.4 }));
+    }
+    cur.from.forEach(function(p){
+      g.appendChild(svgEl('rect', { x: O + p[1] * S + 2, y: O + p[0] * S + 2, width: S - 4, height: S - 4, rx: 6, fill: AC, 'fill-opacity': .16, stroke: AC, 'stroke-width': 2 }));
+    });
+    cur.to.forEach(function(p){
+      g.appendChild(svgEl('rect', { x: O + p[1] * S + 7, y: O + p[0] * S + 7, width: S - 14, height: S - 14, rx: 5, fill: c.ok, 'fill-opacity': .16, stroke: c.ok, 'stroke-width': 1.8, 'stroke-dasharray': '4 2' }));
+    });
+  }
+  for(var j = 0; j < 25; j++){
+    var r2 = Math.floor(j / 5), c2 = j % 5;
+    svgText(g, cx(c2), cy(r2) + 7, M[j] === 'I' ? 'I/J' : M[j], { fill: 'currentColor', 'font-size': M[j] === 'I' ? '15' : '19', 'font-weight': '600', 'fill-opacity': .85 });
+  }
+  if(cur){
+    cur.from.forEach(function(p, q){
+      var t = cur.to[q]; if(p[0] === t[0] && p[1] === t[1]) return;
+      var ax = cx(p[1]), ay = cy(p[0]), bx = cx(t[1]), by = cy(t[0]);
+      var dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy), ux = dx / len, uy = dy / len;
+      var wrap = (cur.kind === 'row' && (PF.dec ? t[1] > p[1] : t[1] < p[1])) || (cur.kind === 'col' && (PF.dec ? t[0] > p[0] : t[0] < p[0]));
+      var off = q ? 5 : -5, nx = -uy * off, ny = ux * off;
+      g.appendChild(svgEl('path', { d: 'M' + (ax + ux * 16 + nx) + ',' + (ay + uy * 16 + ny) + ' L' + (bx - ux * 18 + nx) + ',' + (by - uy * 18 + ny),
+        stroke: c.ok, 'stroke-width': 1.8, fill: 'none', 'stroke-dasharray': wrap ? '3 3' : null, 'marker-end': 'url(#pfArr)' }));
+    });
+  }
+  mount('pfMat', s);
+  /* 当前一对的说明 */
+  var info = '';
+  if(cur){
+    var p0 = PF.pairs[PF.step - 1], a = p0.a, b = p0.b, f = cur.from, t = cur.to;
+    var rule = cur.kind === 'row' ? (PF.dec ? '同一行 → 各取<strong>左边</strong>一格，最左一列绕回最右' : '同一行 → 各取<strong>右边</strong>一格，最右一列绕回最左')
+             : cur.kind === 'col' ? (PF.dec ? '同一列 → 各取<strong>上面</strong>一格，最上一行绕回最下' : '同一列 → 各取<strong>下面</strong>一格，最下一行绕回最上')
+             : '不同行不同列 → 矩形规则：各自取「<strong>自己这一行、对方那一列</strong>」' + (PF.dec ? '（解密规则相同，矩形规则是自己的逆）' : '');
+    if(a === b) rule += '<br><span style="opacity:.75">两个字母相同：既同行又同列，按同行规则处理。</span>';
+    info = '<div class="lab" style="font-size:13px;color:var(--muted)">第 ' + PF.step + ' / ' + PF.pairs.length + ' 对</div>' +
+      '<div style="font-size:1.5rem;font-weight:600" class="mono">' + a + b + ' → <span class="good">' + cur.out + '</span></div>' +
+      '<div class="mono" style="font-size:14px;margin:.3rem 0">' + a + ' 在 ' + pfPos(f[0]) + '，' + b + ' 在 ' + pfPos(f[1]) + '</div>' +
+      '<div style="font-size:14.5px">' + rule + '</div>' +
+      '<div class="mono" style="font-size:14px;margin-top:.3rem">' + a + ' → ' + cur.out[0] + ' ' + pfPos(t[0]) + '，' + b + ' → ' + cur.out[1] + ' ' + pfPos(t[1]) + '</div>';
+  } else info = '<span class="bad">没有可处理的字母对。</span>';
+  el('pfInfo').innerHTML = info;
+  /* 进度条与结果 */
+  var outs = pfRun(M, PF.pairs, PF.dec), chips = '';
+  PF.pairs.forEach(function(p, q){
+    var done = q < PF.step, now = q === PF.step - 1;
+    chips += '<span class="mono" style="display:inline-block;margin:.15rem .25rem .15rem 0;padding:.05rem .4rem;border-radius:5px;' +
+      (now ? 'background:var(--accent-bg);outline:1.5px solid var(--accent);' : '') + (done ? '' : 'opacity:.4;') + '">' +
+      p.a + p.b + (done ? '→<strong>' + outs[q] + '</strong>' : '') + '</span>';
+  });
+  var res = PF.pairs.length ? outs.slice(0, PF.step).join(' ') : '';
+  el('pfOut').innerHTML = PF.err ? '<span class="bad">' + PF.err + '</span>' :
+    '<div>' + chips + '</div><div style="margin-top:.4rem">' + (PF.dec ? '已还原：' : '已得密文：') + '<span class="mono"><strong>' + res + '</strong></span>' +
+    (PF.step === PF.pairs.length ? (PF.dec ? '<div style="font-size:13.5px;opacity:.75;margin-top:.2rem">解密结果仍带填充字母、J 已变成 I；去掉填充、还原 J 要靠读者凭上下文判断。</div>' : '') : '') + '</div>';
+}
+
+/* ---------------------------------------------------------------- ④ Vigenère 三行对齐 */
+function vgSet(key, text, dir){ el('vgKey').value = key; el('vgIn').value = text; el('vgDir').value = dir; vgGo(); }
+function vgGo(){
+  var dec = el('vgDir').value === 'dec', r = vigenere(el('vgIn').value, el('vgKey').value, dec);
+  var hiOn = el('vgHiOn').checked, hi = onlyLetters(el('vgHi').value).slice(0, 1);
+  if(!r){ el('vgOut').innerHTML = '<span class="bad">关键词里没有字母。</span>'; el('vgTable').innerHTML = ''; return; }
+  if(!r.t.length){ el('vgOut').innerHTML = '<span class="bad">输入里没有字母。</span>'; el('vgTable').innerHTML = ''; return; }
+  var P = dec ? r.out.toUpperCase() : r.t, C = dec ? r.t : r.out, n = r.t.length, html = '';
+  var BL = Math.max(6, Math.min(13, Math.floor(((el('vgTable').clientWidth || 600) - 64) / 30)));
+  for(var s0 = 0; s0 < n; s0 += BL){
+    var e0 = Math.min(n, s0 + BL), row = function(lab, f, style){
+      var h = '<tr><th style="width:3.2rem;white-space:nowrap">' + lab + '</th>';
+      for(var i = s0; i < e0; i++){
+        var on = hiOn && hi && P[i] === hi;
+        h += '<td style="text-align:center;padding:.25rem .1rem;min-width:1.75rem;' + (on ? 'background:var(--accent-bg);' : '') + (style || '') + '">' + f(i, on) + '</td>';
+      }
+      return h + '</tr>';
+    };
+    html += '<table class="compact mono" style="margin:0 0 .6rem;width:auto;font-size:14px"><tbody>' +
+      row('位置', function(i){ return '<span style="opacity:.5;font-size:11px">' + (i + 1) + '</span>'; }) +
+      row('密钥', function(i){ return r.k[i % r.k.length].toLowerCase(); }, 'color:var(--muted)') +
+      row('移位', function(i){ return '<span style="opacity:.55;font-size:11.5px">' + L2N(r.k[i % r.k.length]) + '</span>'; }) +
+      row('明文', function(i, on){ return on ? '<strong style="color:var(--accent)">' + P[i].toLowerCase() + '</strong>' : P[i].toLowerCase(); }) +
+      row('密文', function(i, on){ return on ? '<strong style="color:var(--warn)">' + C[i] + '</strong>' : C[i]; }) +
+      '</tbody></table>';
+  }
+  el('vgTable').innerHTML = html;
+  var msg = (dec ? '解密结果 ' : '密文 ') + '<span class="mono"><strong>' + (dec ? r.out : r.out) + '</strong></span>（' + n + ' 个字母，关键词长 <span class="m">m = ' + r.k.length + '</span>）';
+  if(hiOn && hi){
+    var pos = [], img = [];
+    for(var i = 0; i < n; i++) if(P[i] === hi){ pos.push(i + 1); img.push(C[i]); }
+    var uniq = img.filter(function(x, j){ return img.indexOf(x) === j; });
+    msg += pos.length ? '<div style="margin-top:.4rem">明文 ' + hi.toLowerCase() + ' 在第 ' + pos.join('、') + ' 位（从 1 数），依次变成 <strong class="mono">' + img.join(', ') +
+      '</strong>——同一个明文字母变成了 ' + uniq.length + ' 种不同的密文字母。</div>' : '<div style="margin-top:.4rem;opacity:.7">明文里没有字母 ' + hi.toLowerCase() + '。</div>';
+  }
+  el('vgOut').innerHTML = msg;
+}
+function vgToKasiski(){
+  var dec = el('vgDir').value === 'dec', r = vigenere(el('vgIn').value, el('vgKey').value, dec);
+  if(!r) return;
+  el('ksIn').value = dec ? r.t : r.out; ksGo();
+  var t = el('ksTool'); if(t && t.scrollIntoView) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------------------------------------------------------------- Kasiski 小工具 */
+function ksSet(v){ el('ksIn').value = v; ksGo(); }
+function ksGo(){
+  var res = kasiski(el('ksIn').value, 3), t = onlyLetters(el('ksIn').value);
+  if(!t.length){ el('ksOut').innerHTML = '<span class="bad">没有字母。</span>'; el('ksText').innerHTML = ''; return; }
+  /* 在密文上标出第一组重复 */
+  var mark = []; for(var i = 0; i < t.length; i++) mark.push(0);
+  res.reps.forEach(function(f, gi){ f.pos.forEach(function(p){ for(var q = 0; q < f.s.length; q++) if(!mark[p - 1 + q]) mark[p - 1 + q] = gi + 1; }); });
+  var txt = '';
+  for(var j = 0; j < t.length; j++){
+    txt += mark[j] ? '<strong style="color:' + (mark[j] % 2 ? 'var(--accent)' : 'var(--warn)') + ';text-decoration:underline">' + t[j] + '</strong>' : t[j];
+    if((j + 1) % 5 === 0) txt += ' ';
+  }
+  el('ksText').innerHTML = '<div class="mono" style="word-break:break-all;line-height:1.9">' + txt + '</div>';
+  if(!res.reps.length){
+    el('ksOut').innerHTML = '没有找到三个字母以上的重复片段（' + t.length + ' 个字母）。密文太短，或关键词比密文还长，Kasiski 就无从下手。';
+    return;
+  }
+  var rows = res.reps.map(function(f){
+    return '<tr><td class="mono"><strong>' + f.s + '</strong></td><td>' + f.pos.join('、') + '</td><td>' + f.d.join('、') + '</td></tr>';
+  }).join('');
+  el('ksOut').innerHTML =
+    '<table class="compact" style="margin:0 0 .6rem"><thead><tr><th>重复片段</th><th>出现位置（从 1 数）</th><th>间距</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div>所有间距的最大公因数 <strong>gcd = ' + res.gcd + '</strong>。周期 <span class="m">m</span> 是它的某个因数：<span class="mono">' +
+    divisors(res.gcd).join('、') + '</span>，先试 <strong>' + res.gcd + '</strong>。若有个别间距与其余的不成整除关系，可能是偶然重复，剔除后再求。</div>';
+}
+
+/* ---------------------------------------------------------------- ⑤ 一次一密：给任一明文反算密钥 */
+function otSet(p){ el('otP').value = p; otGo(); }
+function otGo(){
+  var r = otpKey(el('otC').value, el('otP').value);
+  if(r.err){
+    el('otOut').innerHTML = '<span class="bad">密文有 ' + r.nc + ' 个字母，这段明文有 ' + r.np + ' 个——长度不同，不可能由这段密文解出。</span>';
+    el('otTable').innerHTML = ''; return;
+  }
+  if(!r.c.length){ el('otOut').innerHTML = '<span class="bad">没有字母。</span>'; el('otTable').innerHTML = ''; return; }
+  var n = r.c.length, html = '';
+  var BL = Math.max(5, Math.min(18, Math.floor(((el('otTable').clientWidth || 600) - 92) / 34)));
+  for(var s0 = 0; s0 < n; s0 += BL){
+    var e0 = Math.min(n, s0 + BL);
+    var row = function(lab, f){ var h = '<tr><th style="white-space:nowrap">' + lab + '</th>'; for(var i = s0; i < e0; i++) h += '<td style="text-align:center;padding:.2rem .1rem;min-width:2rem;line-height:1.25">' + f(i) + '</td>'; return h + '</tr>'; };
+    html += '<table class="compact mono" style="margin:0 0 .6rem;width:auto;font-size:14px"><tbody>' +
+      row('密文 C', function(i){ return r.c[i] + '<br><span style="opacity:.5;font-size:10.5px">' + L2N(r.c[i]) + '</span>'; }) +
+      row('明文 p', function(i){ return r.p[i].toLowerCase() + '<br><span style="opacity:.5;font-size:10.5px">' + L2N(r.p[i]) + '</span>'; }) +
+      row('密钥 C−p', function(i){ return '<strong style="color:var(--accent)">' + r.k[i] + '</strong><br><span style="opacity:.5;font-size:10.5px">' + L2N(r.k[i]) + '</span>'; }) +
+      '</tbody></table>';
+  }
+  el('otTable').innerHTML = html;
+  el('otOut').innerHTML = '反算出的密钥 <span class="mono"><strong>' + r.k + '</strong></span>' +
+    '<div style="margin-top:.3rem">核对：用它解密 <span class="m">p = (C − K) <span class="up">mod</span> 26</span>，得 <span class="mono">' + r.back + '</span> ' +
+    (r.back === r.p.toLowerCase() ? '<span class="good">✓ 与输入的明文一致</span>' : '<span class="bad">✗</span>') + '</div>' +
+    '<div style="margin-top:.3rem;opacity:.8">换成任何一段 ' + n + ' 个字母的明文都能得到一把合法的密钥——密文本身无法告诉你哪一把是真的。</div>';
+}
+
+/* ---------------------------------------------------------------- ⑥ 栅栏密码 */
+function rfSet(text, d){ el('rfIn').value = text; el('rfD').value = d; rfGo(); }
+function rfGo(){
+  var d = parseInt(el('rfD').value, 10); el('rfDv').textContent = d;
+  var r = railFence(el('rfIn').value, d), c = themeColors();
+  if(!r.t.length){ el('rfOut').innerHTML = '<span class="bad">没有字母。</span>'; el('rfFig').innerHTML = '<p class="sub">（无字母）</p>'; return; }
+  var cols = [AC, c.warn, c.ok, c.exam, c.muted, AC, c.warn, c.ok];
+  var n = Math.min(r.t.length, 60), CW = 26, RH = 34, L = 58, T = 14, W = L + n * CW + 10, H = T + d * RH + 8;
+  var s = newSvg(W, H, '栅栏密码排布：字母沿锯齿写在 ' + d + ' 行上，逐行读出');
+  var g = svgEl('g', { 'font-family': 'inherit', 'text-anchor': 'middle' }); s.appendChild(g);
+  /* 读出顺序编号 */
+  var order = [], cnt = 0;
+  for(var row = 0; row < d; row++) for(var i = 0; i < r.t.length; i++) if(r.rows[i] === row){ order[i] = ++cnt; }
+  for(var rr = 0; rr < d; rr++){
+    g.appendChild(svgEl('rect', { x: L - 4, y: T + rr * RH + 2, width: n * CW + 8, height: RH - 4, rx: 5, fill: cols[rr], 'fill-opacity': .06 }));
+    svgText(g, L / 2 - 2, T + rr * RH + RH / 2 + 4, '第 ' + (rr + 1) + ' 行', { fill: cols[rr], 'font-size': '11.5', 'font-weight': '600' });
+  }
+  var pts = [];
+  for(var j = 0; j < n; j++) pts.push((L + j * CW + CW / 2) + ',' + (T + r.rows[j] * RH + RH / 2));
+  g.appendChild(svgEl('polyline', { points: pts.join(' '), fill: 'none', stroke: 'currentColor', 'stroke-opacity': .22, 'stroke-width': 1.3 }));
+  for(var k = 0; k < n; k++){
+    var x = L + k * CW + CW / 2, y = T + r.rows[k] * RH + RH / 2;
+    g.appendChild(svgEl('circle', { cx: x, cy: y, r: 10.5, style: 'fill:var(--surface)', stroke: cols[r.rows[k]], 'stroke-opacity': .6 }));
+    svgText(g, x, y + 4.5, r.t[k].toLowerCase(), { fill: cols[r.rows[k]], 'font-size': '13', 'font-weight': '600' });
+    svgText(g, x + 9, y - 9, String(order[k]), { fill: 'currentColor', 'fill-opacity': .45, 'font-size': '8.5' });
+  }
+  mount('rfFig', s);
+  el('rfOut').innerHTML = r.lines.map(function(l, q){ return '<div>第 ' + (q + 1) + ' 行：<span class="mono" style="color:' + cols[q] + '">' + l.toLowerCase() + '</span></div>'; }).join('') +
+    '<div style="margin-top:.4rem">逐行读出，密文 <span class="mono"><strong>' + r.out + '</strong></span>（' + r.t.length + ' 个字母' + (r.t.length > 60 ? '，图里只画前 60 个' : '') + '）</div>' +
+    '<div style="margin-top:.2rem;font-size:13.5px;opacity:.75">字母一个没变、只换了顺序，所以密文的字母频率与明文完全相同。小号数字是每个字母在密文里的位置。</div>';
+}
+
+/* ---------------------------------------------------------------- ⑦ 列置换与双重置换 */
+function ctSet(key, text, dbl){ el('ctKey').value = key; el('ctIn').value = text; el('ctDbl').checked = dbl; ctGo(); }
+function ctGrid(key, r, title){
+  var h = '<div style="font-size:13.5px;color:var(--muted);margin:.4rem 0 .2rem">' + title + '</div><table class="compact mono" style="width:auto;margin:0 0 .4rem;font-size:14.5px"><thead><tr>';
+  key.forEach(function(k){ h += '<th style="text-align:center">' + k + '</th>'; });
+  h += '</tr></thead><tbody>';
+  r.grid.forEach(function(row, ri){
+    h += '<tr>' + row.map(function(ch, ci){
+      var pad = (ri === r.rows - 1) && (ci >= key.length - r.padN);
+      return '<td style="text-align:center;' + (key[ci] === 1 ? 'background:var(--accent-bg);' : '') + (pad ? 'opacity:.5;font-style:italic' : '') + '">' + ch + '</td>';
+    }).join('') + '</tr>';
+  });
+  return h + '</tbody></table>';
+}
+function ctGo(){
+  var key = parseColKey(el('ctKey').value), txt = el('ctIn').value;
+  if(!key){ el('ctOut').innerHTML = '<span class="bad">密钥必须是 1 到 n 的一个排列（如 4 3 1 2 5 6 7），用空格分隔。</span>'; return; }
+  if(!onlyLetters(txt).length){ el('ctOut').innerHTML = '<span class="bad">没有字母。</span>'; return; }
+  var r1 = columnar(txt, key), html = ctGrid(key, r1, '第一遍：按行写入' + (r1.padN ? '，末尾补 ' + 'xyz'.repeat(3).slice(0, r1.padN) + ' 填满' : '') + '；底色那一列标号为 1，最先读');
+  html += '<div>按标号 1、2、3… 的顺序逐列从上往下读：<span class="mono"><strong>' + r1.cols.join(' ') + '</strong></span></div>';
+  if(el('ctDbl').checked){
+    var r2 = columnar(r1.out, key);
+    html += ctGrid(key, r2, '第二遍：把上面的输出当作新明文，用同一个密钥再做一遍' + (r2.padN ? '（补 ' + r2.padN + ' 个字母）' : ''));
+    html += '<div>双重置换结果：<span class="mono"><strong>' + r2.cols.join(' ') + '</strong></span></div>';
+  }
+  el('ctOut').innerHTML = html;
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+csGo();
+drawEngFreq('efPlot');
+faSet('lab');
+pfBuild();
+vgGo();
+ksGo();
+otGo();
+rfGo();
+ctGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 信息安全基础 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（与控制课 build.py 相同） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+    color:var(--accent); min-width:4rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+
+/* ---------- IS L1 补充 ---------- */
+main a{color:var(--accent)}
+/* 带标注的长箭头（式 3） */
+.xarr{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .45em; line-height:1.05}
+.xarr .lb{font-size:.68em; color:var(--muted); margin-bottom:.1em}
+/* 四列以上的表在窄屏不再挤成一字一行，改为在 .tw 里横向滚动 */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* 宽窄两版图：窄屏换竖排版，打印用宽版 */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+/* 骨架里 details.box>*{display:block} 在 Chromium/Safari 里打不开已关闭的 details（内容藏在 ::details-content 里），这里补上 */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+/* ALE 计算器 */
+.tool input.num{width:6.6rem; font-size:14px; padding:.25rem .4rem}
+.alec{border:1px solid var(--line); border-radius:8px; padding:.55rem .8rem; margin:.55rem 0; background:var(--surface)}
+.alec.hot{border-color:var(--ok); background:var(--ok-bg)}
+.alec .an2{font-weight:600; font-size:15px; margin-bottom:.35rem}
+.alec .row{gap:.4rem .9rem}
+.alec .calc{display:flex; flex-wrap:wrap; gap:.1rem 1.6rem; font-size:14px}
+.three span.lab,.three span.val{display:block}
+.three .val sub,.three .lab sub{font-size:.65em}
+.xarr svg{display:block; width:3.4em; height:.6em}
+/* 攻击树 */
+ul.atree,ul.atree ul{list-style:none; margin:0; padding:0}
+ul.atree ul{margin-left:.85rem; padding-left:.9rem; border-left:1px dashed var(--line2)}
+ul.atree li{margin:.3rem 0}
+.an{display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; padding:.3rem .55rem; border-radius:7px;
+    border:1px solid var(--line); background:var(--surface); font-size:14.5px; line-height:1.5}
+.an .nm{flex:1 1 9rem; min-width:0}
+.an .av{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; min-width:2.2rem; text-align:right}
+.an .leafctl{display:inline-flex; align-items:center; gap:.45rem; flex:0 0 auto}
+.an .leafctl input[type=text]{width:3.6rem; font-size:14px; padding:.15rem .35rem; text-align:right}
+.an .leafctl label{font-size:12.5px; color:var(--muted); white-space:nowrap}
+.an.hot{border-color:var(--accent); background:var(--accent-bg)}
+.an.hot .nm{font-weight:600}
+.an.hot .av{color:var(--accent)}
+.an.dead{opacity:.5}
+.an.dead .nm{text-decoration:line-through}
+.gate{font-size:11px; font-weight:700; border-radius:4px; padding:0 .38rem; border:1px solid currentColor; flex:0 0 auto}
+.gate.or{color:var(--accent)} .gate.and{color:var(--warn)} .gate.leaf{color:var(--faint)}
+input.badin{outline:2px solid var(--warn)}
+/* 事件诊断 */
+.dx{border:1px solid var(--line); border-radius:8px; padding:.6rem .8rem; margin:.6rem 0; background:var(--surface)}
+.dx .dq{font-size:15px; margin-bottom:.4rem}
+.dx .da{font-size:14.5px}
+.dx.shown{border-color:var(--line2); background:var(--surface2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 1</div>
+  <div class="tt">信息安全基础</div>
+  <div class="toc">
+<a href="#s1">1 · 四起事故</a>
+<a href="#s2">2 · 什么是信息安全</a>
+<a href="#s2-1" class="sub">2.1 定义与范围</a>
+<a href="#s2-2" class="sub">2.2 安全是买来的</a>
+<a href="#s2-3" class="sub">2.3 换一个能回答的问题</a>
+<a href="#s3">3 · 风险与 ALE</a>
+<a href="#s3-1" class="sub">3.1 六个常被混用的词</a>
+<a href="#s3-2" class="sub">3.2 给控制措施算账</a>
+<a href="#s4">4 · 安全目标</a>
+<a href="#s4-1" class="sub">4.1 CIA 三要素</a>
+<a href="#s4-2" class="sub">4.2 三个扩展属性</a>
+<a href="#s4-3" class="sub">4.3 判断丢了什么</a>
+<a href="#s4-4" class="sub">4.4 回到四起事故</a>
+<a href="#s5">5 · 攻击</a>
+<a href="#s5-1" class="sub">5.1 X.800 的三个词</a>
+<a href="#s5-2" class="sub">5.2 被动与主动</a>
+<a href="#s5-3" class="sub">5.3 具名的攻击</a>
+<a href="#s5-4" class="sub">5.4 STRIDE</a>
+<a href="#s5-5" class="sub">5.5 服务与机制清单</a>
+<a href="#s6">6 · 攻击从哪里进来</a>
+<a href="#s6-1" class="sub">6.1 边界的消失</a>
+<a href="#s6-2" class="sub">6.2 攻击面</a>
+<a href="#s6-3" class="sub">6.3 攻击树</a>
+<a href="#s7">7 · 设计防御</a>
+<a href="#s7-1" class="sub">7.1 三个 D</a>
+<a href="#s7-2" class="sub">7.2 控制措施的网格</a>
+<a href="#s7-3" class="sub">7.3 十三条设计原则</a>
+<a href="#s8">8 · 网络安全模型</a>
+<a href="#s8-1" class="sub">8.1 一张图</a>
+<a href="#s8-2" class="sub">8.2 四项基本任务</a>
+<a href="#s8-3" class="sub">8.3 课后作业：HTTPS</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 1 — Fundamentals of Information Security</div>
+  <h1>信息安全基础</h1>
+  <p>这一讲还不碰密码学，先搭一套后面所有内容都要用的词汇和思路：要保护什么、它值多少钱 → 它可能以什么方式失去 → 攻击者怎么做到 → 用什么去挡、花多少钱挡，最后收进一张统一的「网络安全模型」图。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+  <p>这一讲还不碰密码学，先搭一套后面所有内容都要用的词汇和思路。主线是一串问题：<strong>要保护什么、它值多少钱 → 它可能以什么方式失去 → 攻击者怎么做到 → 用什么去挡、花多少钱挡</strong>，最后把这一切放进一张统一的「网络安全模型」图，后面每一讲（古典密码、DES、AES、密钥交换）都是这张图里的一块。</p>
+  <p>课件按「价值与风险 → 安全目标 → 像攻击者一样思考 → 设计防御 → 模型与标准」五部分讲；本笔记沿用这个顺序，只做两处调整：先定义风险、再算风险的钱；把 X.800 的「攻击—服务—机制」在一处讲完整（课件把它拆在相隔八页的两处）。</p>
+  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Lecture1_Foundations_InfoSec_TUL26</code>，41 页；教材 Stallings 第 8 版第 1 章。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>课件里三句带考评意味的话</div>
+  <p>课件没有出现「exam」字样，但有三句带考评意味的话：</p>
+  <ul>
+    <li>“<strong>Confusing service with mechanism is the most common error in coursework.</strong>”——见 <a href="#s5-1">5.1</a>；</li>
+    <li>“The loss statement is the more useful of the two.”——安全目标要会用「失去了什么」来定义，见 <a href="#s4-1">4.1</a>；</li>
+    <li>课后 HTTPS 作业「<strong>Task 4 is the one that matters</strong>」——能说出三条在完美密码学下依然成立的攻击路径，才算懂了这一讲，见 <a href="#s8-3">8.3</a>。</li>
+  </ul>
+  <p style="margin-bottom:0">期末是 4 道 25 分的大题，这一讲的内容最适合出「给一个场景，说出丢了哪个属性、是哪类攻击、用什么服务和机制挡」这类分析题。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>四起事故</h2>
+
+<p>课件用一个凌晨四点的场景开场，四件事同时发生：</p>
+
+<ul>
+<li><strong>A</strong> 学校的<span class="term">虚拟学习环境</span><span class="en">（virtual learning environment，VLE，即 Moodle 这类课程平台）</span>宕机了，9 点截止的作业谁也交不上去。</li>
+<li><strong>B</strong> 文件服务器返回的全是乱码，每个文件的扩展名都变了。（勒索软件的典型现象：把文件加密后索要赎金。）</li>
+<li><strong>C</strong> 昨夜从院长邮箱发出一封邮件，要财务付一张发票，财务付了。</li>
+<li><strong>D</strong> 能说明谁做了什么的日志，就存在出事的那台服务器上。</li>
+</ul>
+
+<p>课件说：这是四种不同的失败，各自破坏了一种不同的安全属性；学完这一讲要能说出每一种是什么、本该由什么挡住。答案在 <a href="#s4-4">4.4</a>。</p>
+
+<p>课件引用了 Verizon《数据泄露调查报告》<span class="en">（Data Breach Investigations Report，DBIR）</span>2026 年版的四个数：62% 的泄露事件有人为因素参与；31% 始于利用一个已知漏洞；48% 涉及第三方（供应商）；修补一个严重漏洞的中位时间是 43 天。</p>
+
+<p>课件从中读出三点：<strong>主要的失败在人，不在数学</strong>；其次是没修补本来就知道的漏洞；供应商的安全就是你的安全。这四个比例统计的维度不同、彼此重叠，不能相加，也不能直接排出第一第二。</p>
+
+<h2 id="s2"><span class="n">2</span>什么是信息安全</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>定义与范围</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>信息安全 <span class="en">information security</span></div>
+  <p><strong>保护信息和信息系统免受未经授权的访问、使用、披露、破坏、修改或销毁</strong>。</p>
+  <p style="margin-bottom:0">（课件注明出处是 ISO/IEC 27000 与 Rhodes-Ousley。这句话逐字其实来自美国联邦法规与 NIST 的定义，原文后面还有一句「以提供机密性、完整性和可用性」。两种出处的意思一致。）</p>
+</div>
+
+<p>课件特意强调它比「保护电脑不被黑客攻击」宽得多：</p>
+
+<div class="tw"><table>
+<thead><tr><th>不只是电脑</th><th>不只是攻击者</th><th>不只是技术</th></tr></thead>
+<tbody>
+<tr><td>有处理器和存储器的都算计算机：计算器、智能电表、汽车的电子控制单元（ECU）、胰岛素泵</td><td>自然灾害、火灾、洪水、断电</td><td>技术、组织、人员、法律多种手段</td></tr>
+<tr><td>纸张、谈话、白板上的信息也算</td><td>硬件故障、存储介质老化导致的数据损坏</td><td>信息在哪里就管到哪里，边界内外都管</td></tr>
+<tr><td></td><td>意外、配置错误、单纯的人为失误</td><td>覆盖信息的全生命周期：产生、处理、存储、传输、销毁</td></tr>
+</tbody></table></div>
+
+<p>「IT 安全」只是其中跑在芯片上的那一部分，是信息安全的子集，不是同义词。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>安全是买来的，不是达到的</h3>
+
+<p>课件引了 Gene Spafford 的一句话：真正安全的系统，是断了电、浇进混凝土、封在有武装警卫的铅室里的系统——即便如此他也存疑。也就是说，<strong>绝对安全的系统没法用</strong>。</p>
+
+<p>课件画了一个三角：安全（security）、易用性（usability）、成本（cost），中间写着 “Choose two”——三者不可兼得。由此三条：</p>
+
+<ol>
+<li><strong>安全是买来的，不是达到的</strong>：每多一分安全都要付钱、或付出使用上的麻烦（课件叫「摩擦」friction），或两者都付。没有免费的控制措施。</li>
+<li><strong>相称性是规则</strong><span class="en">（proportionality）</span>：防护的成本不应超过被保护对象的价值——这个价值包括重置成本，不只是买价。</li>
+<li><strong>用户会绕开糟糕的安全措施</strong>：让人没法干活的控制措施不会被遵守，只会被绕过；于是你以为自己有这项控制，实际上没有。</li>
+</ol>
+
+<h3 id="s2-3"><span class="n">2.3</span>换一个能回答的问题</h3>
+
+<p>「我们安全吗？」这个问题答不了：打了补丁就安全吗？不。用强口令就安全吗？不。彻底断网就安全吗？也不。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>把问题反过来问</div>
+  <p style="margin-bottom:0"><strong>把它反过来问：「我们在哪里不安全？」</strong>——这个问题有答案，而且答案能落实成行动。已知的不安全状态包括：没打补丁的系统（仍是头号初始入侵途径）、弱口令或重复使用的口令、从不可信来源下载的可执行文件、打开陌生人发来的附件、不加密的无线网络、没有归属的共享账号。</p>
+</div>
+
+<p>课件列了全球最常见的口令前 7 名（NordPass 第 7 版）：<code>123456</code>、<code>admin</code>、<code>12345678</code>、<code>123456789</code>、<code>12345</code>、<code>password</code>、<code>Aa123456</code>，「每一个都能在一秒内被破解」。原因不在于它们短（<code>Aa123456</code> 若当成 8 位大小写字母加数字去穷举，空间约 <span class="m">2 × 10<sup>14</sup></span>），而在于它们都排在破解字典的最前面，第一批就会被试到。</p>
+
+<h2 id="s3"><span class="n">3</span>风险：六个词、一个公式、一笔账</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>六个常被混用的词</h3>
+
+<div class="tw"><table>
+<thead><tr><th style="width:6.5rem">词</th><th>含义</th><th>例（实验室电脑上的数据）</th></tr></thead>
+<tbody>
+<tr><td><span class="term">资产</span><br><span class="en">asset</span></td><td>值得保护的有价值的东西</td><td>三年未发表的实验数据</td></tr>
+<tr><td><span class="term">威胁</span><br><span class="en">threat</span></td><td>可能出错并造成损害的事</td><td>勒索软件</td></tr>
+<tr><td><span class="term">漏洞</span><br><span class="en">vulnerability</span></td><td>让威胁得以实现的弱点</td><td>系统没打补丁、数据只有一份</td></tr>
+<tr><td><span class="term">利用手段</span><br><span class="en">exploit</span></td><td>实际利用这个弱点的具体办法</td><td>一封带恶意附件的钓鱼邮件</td></tr>
+<tr><td><span class="term">风险</span><br><span class="en">risk</span></td><td>综合以上一切的「概率 × 后果」</td><td>每两年约一次，每次损失 12 万英镑</td></tr>
+<tr><td><span class="term">控制措施</span><br><span class="en">control</span></td><td>为降低风险而部署的东西</td><td>每晚异地备份</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>漏洞 <span class="en">vulnerability</span></div>
+  <p style="margin-bottom:0">漏洞的标准定义（RFC 4949，Stallings 采用）更具体：<strong>系统在设计、实现或运行管理中的缺陷或弱点，可被利用来违反系统的安全策略</strong>。答题写定义时用这一句更稳。</p>
+</div>
+
+<p>把它们连成一个公式：</p>
+
+<div class="eq">风险 = <span class="m">P</span>(威胁利用了漏洞) × 资产受损的代价<span class="lbl">(1)</span></div>
+
+<p>课件说「去掉任何一项，这句话就失去意义」，具体是三条：</p>
+
+<ul>
+<li>没有对应漏洞的威胁不产生风险（概率为零）；</li>
+<li>没人威胁的漏洞只是缺陷，不是风险；</li>
+<li><span class="term">缓解</span><span class="en">（mitigate）</span>风险是把它降到<strong>可接受的水平</strong>，永远降不到零。</li>
+</ul>
+
+<p>实践中，漏洞有公开编号 CVE<span class="en">（Common Vulnerabilities and Exposures，通用漏洞披露）</span>和严重度评分 CVSS<span class="en">（Common Vulnerability Scoring System，通用漏洞评分系统）</span>；已被发现在野外实际利用的，会被列入「已知被利用漏洞」<span class="en">（Known Exploited Vulnerabilities，KEV）</span>目录。课件说其中只有约四分之一在去年被完全修复——「知道」和「修好」之间的空档，就是泄露事件发生的地方。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>给控制措施算一笔账：ALE</h3>
+
+<p>风险可以直接折成钱。三个量：</p>
+
+<ul>
+<li><strong>单次损失期望</strong><span class="en">（single loss expectancy，SLE）</span>：出一次事损失多少钱（£/次）；</li>
+<li><strong>年发生率</strong><span class="en">（annualised rate of occurrence，ARO）</span>：一年平均出几次事（次/年），可以是小数，「两年一次」就是 0.5；</li>
+<li><strong>年度损失期望</strong><span class="en">（annualised loss expectancy，ALE）</span>：一年平均损失多少钱。</li>
+</ul>
+
+<div class="eq">ALE = SLE × ARO,&emsp;控制措施的净收益 = (ALE<sub>前</sub> − ALE<sub>后</sub>) − 年成本<span class="lbl">(2)</span></div>
+
+<p>净收益为正才值得买；几个方案比较时选净收益最大的。</p>
+
+<details class="box">
+  <summary>课堂活动 1 解答：给一项控制措施定价</summary>
+  <p><strong>场景</strong>：一个课题组把三年未发表的实验数据存在一台实验室电脑上。丢了的话，重做实验加错过基金节点损失 £120,000。这类课题组约每两年遭一次勒索软件。<br>基线：SLE = 120,000，ARO = 0.5，ALE<sub>前</sub> = 60,000 英镑/年。</p>
+  <div class="tw"><table class="compact wide">
+  <thead><tr><th>方案</th><th>年成本</th><th>效果</th><th>ALE<sub>后</sub></th><th>净收益</th></tr></thead>
+  <tbody>
+  <tr><td>A 每晚异地备份</td><td>4,000</td><td>事故照样发生，但 SLE 降到 15,000</td><td>15,000 × 0.5 = 7,500</td><td>52,500 − 4,000 = <strong>+48,500</strong></td></tr>
+  <tr><td>B 终端检测 + 7×24 监控</td><td>25,000</td><td>SLE 不变，ARO 降到 0.1</td><td>120,000 × 0.1 = 12,000</td><td>48,000 − 25,000 = +23,000</td></tr>
+  <tr><td>C 物理隔离（断网）</td><td>2,000 + 协作损失 40,000</td><td>ARO 降到 0.05</td><td>120,000 × 0.05 = 6,000</td><td>54,000 − 42,000 = +12,000</td></tr>
+  </tbody></table></div>
+  <p><strong>选 A。</strong>C 把风险降得最多（ALE 最低），净收益却最低——决定性的是那笔 £40,000 的「协作损失」：不算它，C 的净收益是 +52,000，反超 A。这正是 <a href="#s2-2">2.2</a> 说的「用钱或用摩擦付账」。</p>
+  <p>在 A 的基础上再加 B：ALE 从 7,500 降到 15,000 × 0.1 = 1,500，只多省 6,000，却要多花 25,000，不划算。<strong>控制措施要按边际收益评估。</strong></p>
+  <p><strong>这笔账看不见的东西</strong>（任答一条）：</p>
+  <ul style="margin-bottom:0">
+    <li>ALE 是平均值，看不到「一次损失就拿不到经费」这种尾部风险；</li>
+    <li>ARO 本身是估计，「两年一次」未必可靠；</li>
+    <li><strong>机密性</strong>：勒索软件常先窃取再加密，备份只能恢复数据的可用性，挡不住未发表数据外泄；</li>
+    <li>备份本身可能失效或也被加密，「SLE 降到 15,000」假定了恢复一定成功；</li>
+    <li>声誉、合规之类难以折成钱的损失。</li>
+  </ul>
+</details>
+
+<div class="tool" id="aleTool">
+  <h4>ALE 计算器：这项控制措施值不值得买</h4>
+  <p class="sub">预置的是课堂活动 1 的数。每个格子都可以改：「作用后 SLE / ARO」留空表示这项控制不动它；「间接代价」放钱以外的代价（摩擦、协作损失），它和年成本一起从省下的钱里扣。净收益 = (ALE<sub>前</sub> − ALE<sub>后</sub>) − 年成本 − 间接代价。</p>
+  <div class="row">
+    <span class="ctl"><label for="aleSle">基线 SLE（£/次）</label><input class="num" type="text" inputmode="decimal" id="aleSle" oninput="aleGo()"></span>
+    <span class="ctl"><label for="aleAro">ARO（次/年）</label><input class="num" type="text" inputmode="decimal" id="aleAro" oninput="aleGo()"></span>
+    <span class="ctl"><label>ALE<sub>前</sub></label><span class="rv" id="aleBefore" style="min-width:8rem"></span></span>
+  </div>
+  <div class="alec" id="aleRowA">
+    <div class="an2">A 每晚异地备份</div>
+    <div class="row" style="margin-bottom:.3rem"><span class="ctl"><label for="aleCostA">年成本</label><input class="num" type="text" inputmode="decimal" id="aleCostA" oninput="aleGo()"></span><span class="ctl"><label for="aleIndA">间接代价</label><input class="num" type="text" inputmode="decimal" id="aleIndA" oninput="aleGo()"></span><span class="ctl"><label for="aleSleAA">作用后 SLE</label><input class="num" type="text" inputmode="decimal" id="aleSleAA" oninput="aleGo()"></span><span class="ctl"><label for="aleAroAA">作用后 ARO</label><input class="num" type="text" inputmode="decimal" id="aleAroAA" oninput="aleGo()"></span></div>
+    <div class="calc"><span id="aleAleA"></span><span id="aleNetA"></span></div>
+  </div>
+  <div class="alec" id="aleRowB">
+    <div class="an2">B 终端检测 + 7×24 监控</div>
+    <div class="row" style="margin-bottom:.3rem"><span class="ctl"><label for="aleCostB">年成本</label><input class="num" type="text" inputmode="decimal" id="aleCostB" oninput="aleGo()"></span><span class="ctl"><label for="aleIndB">间接代价</label><input class="num" type="text" inputmode="decimal" id="aleIndB" oninput="aleGo()"></span><span class="ctl"><label for="aleSleAB">作用后 SLE</label><input class="num" type="text" inputmode="decimal" id="aleSleAB" oninput="aleGo()"></span><span class="ctl"><label for="aleAroAB">作用后 ARO</label><input class="num" type="text" inputmode="decimal" id="aleAroAB" oninput="aleGo()"></span></div>
+    <div class="calc"><span id="aleAleB"></span><span id="aleNetB"></span></div>
+  </div>
+  <div class="alec" id="aleRowC">
+    <div class="an2">C 物理隔离（断网）</div>
+    <div class="row" style="margin-bottom:.3rem"><span class="ctl"><label for="aleCostC">年成本</label><input class="num" type="text" inputmode="decimal" id="aleCostC" oninput="aleGo()"></span><span class="ctl"><label for="aleIndC">间接代价</label><input class="num" type="text" inputmode="decimal" id="aleIndC" oninput="aleGo()"></span><span class="ctl"><label for="aleSleAC">作用后 SLE</label><input class="num" type="text" inputmode="decimal" id="aleSleAC" oninput="aleGo()"></span><span class="ctl"><label for="aleAroAC">作用后 ARO</label><input class="num" type="text" inputmode="decimal" id="aleAroAC" oninput="aleGo()"></span></div>
+    <div class="calc"><span id="aleAleC"></span><span id="aleNetC"></span></div>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="aleLoad(false)">载入课堂活动 1</button>
+    <button class="btn" onclick="aleLoad(true)">不算 C 的协作损失</button>
+  </div>
+  <div class="result" id="aleOut"></div>
+  <h4 style="margin-top:1.2rem">边际收益：在已有控制上再加一项</h4>
+  <p class="sub">两项控制作用在不同的量上（如 A 压 SLE、B 压 ARO）时，叠加后就是各取各的：<span class="m">SLE<sub>A</sub> × ARO<sub>B</sub></span>。若两项压的是同一个量，这里保守地取较强的那个、不假设效果相乘——笔记没有算过这种组合。</p>
+  <div class="row">
+    <span class="ctl"><label for="aleBase">已部署</label><select id="aleBase" onchange="aleGo()">
+      <option value="none">无</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></span>
+    <span class="ctl"><label for="aleAdd">再加</label><select id="aleAdd" onchange="aleGo()">
+      <option value="A">A</option><option value="B">B</option><option value="C">C</option></select></span>
+  </div>
+  <div class="result" id="aleMarg"></div>
+</div>
+
+<h2 id="s4"><span class="n">4</span>安全目标：丢了的到底是什么</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>CIA 三要素</h3>
+
+<p>每一起安全事件，都是丢了某一种<strong>有名字的属性</strong>；说出属性，就说出了该用什么来防。最核心的三个合称 <span class="term">CIA 三要素</span><span class="en">（CIA triad）</span>，它们共同保护的对象是数据和服务：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7rem">属性</th><th>目标式定义</th><th><strong>损失式定义</strong></th></tr></thead>
+<tbody>
+<tr><td><span class="term">机密性</span><br><span class="en">confidentiality</span></td><td>维护对访问和披露的授权限制</td><td>信息被<strong>未经授权地披露</strong></td></tr>
+<tr><td><span class="term">完整性</span><br><span class="en">integrity</span></td><td>防止信息被不当修改或销毁</td><td>信息被<strong>未经授权地修改或销毁</strong></td></tr>
+<tr><td><span class="term">可用性</span><br><span class="en">availability</span></td><td>保证及时、可靠地访问和使用信息</td><td>对信息或系统的<strong>访问被中断</strong></td></tr>
+</tbody></table></div>
+
+<p>定义沿用 FIPS 199（美国联邦信息处理标准第 199 号，规定联邦信息系统的安全分类）与 Stallings 的写法。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>损失式定义更好用</div>
+  <p style="margin-bottom:0">课件强调：<strong>每个属性都定义两遍，损失式的那一遍更好用</strong>——判断一起事件时，问「失去了什么」比问「违背了什么目标」直接得多。</p>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>三个扩展属性</h3>
+
+<p>CIA 之外还有三个属性：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="width:7rem">属性</th><th>一句话提问</th><th>定义</th><th>靠什么实现</th></tr></thead>
+<tbody>
+<tr><td><span class="term">真实性</span><br><span class="en">authenticity</span></td><td>这真的来自它声称的那个人吗？</td><td>真实且可验证；对一次传输、一条消息或其发送者的有效性有把握</td><td>数字签名、消息认证码（MAC）、证书、多因素认证（MFA）</td></tr>
+<tr><td><span class="term">可追责性</span><br><span class="en">accountability</span></td><td>是谁干的，能证明吗？</td><td>实体的行为能唯一地追溯到该实体。真正安全的系统做不到，所以出了事必须能追到责任人</td><td>一人一账号、防篡改日志、审计追踪</td></tr>
+<tr><td><span class="term">不可否认性</span><br><span class="en">non-repudiation</span></td><td>他们事后能否认吗？</td><td>发送方和接收方事后都不能否认发过或收过这条消息</td><td>带可信时间戳的数字签名</td></tr>
+</tbody></table></div>
+
+<p>这里出现的几个机制后面几讲会逐个讲：<strong>数字签名</strong>是用私钥对消息生成、任何人可用公钥验证的签名；<strong>消息认证码</strong><span class="en">（message authentication code）</span>是用共享密钥算出的一小段校验值，接收方据此确认消息没被改、确实来自持有密钥的一方；<strong>多因素认证</strong><span class="en">（multi-factor authentication）</span>要求同时提供两类以上的凭证，比如口令加手机验证码。</p>
+
+<div class="box def">
+  <div class="h">两种划分并存</div>
+  <p>FIPS 199 原文的完整性定义后半句是 “including ensuring information non-repudiation and authenticity”——它把真实性和不可否认性<strong>算在完整性里面</strong>；Stallings 和课件则把它们单列。两种划分都对，答题时说清用的是哪一种即可。</p>
+  <p style="margin-bottom:0">课件说「这些常写作 CIA-AA」，但 CIA-AA 只有五个字母（C、I、A、Authenticity、Accountability），不含不可否认性。</p>
+</div>
+
+<h3 id="s4-3"><span class="n">4.3</span>判断一起事件丢了什么</h3>
+
+<p>课堂活动 2 的题目要求说出<strong>主要</strong>被破坏的属性，再说一个<strong>连带</strong>被破坏的。先在下面自己判一遍，再看答案。</p>
+
+<div class="tool" id="dxTool">
+  <h4>课堂活动 2：哪个属性丢了？</h4>
+  <p class="sub">每个事件选一个<strong>主要</strong>被破坏的属性和一个<strong>连带</strong>被破坏的，再点「看答案」对照笔记。只是练习，不计分；连带的答案不唯一。</p>
+  <div class="row">
+    <button class="btn" onclick="dxAll()">全部看答案</button>
+    <button class="btn" onclick="dxReset()">清空重来</button>
+  </div>
+  <div class="toolfig" id="dxList"></div>
+  <div class="result" id="dxOut"></div>
+</div>
+
+<details class="box">
+  <summary>课堂活动 2 解答：哪个属性丢了？</summary>
+  <p>题目要求说出<strong>主要</strong>被破坏的属性，再说一个<strong>连带</strong>被破坏的。连带的答案不唯一，下面给最有说服力的一个。</p>
+  <div class="tw"><table class="compact">
+  <thead><tr><th>事件</th><th>主要</th><th>连带</th></tr></thead>
+  <tbody>
+  <tr><td>① 成绩表被悄悄改了，某同学的分数从 42 变成 72</td><td>完整性</td><td>可追责性（「悄悄」：谁改的？）</td></tr>
+  <tr><td>② 作业截止周，课程平台下线三天</td><td>可用性</td><td>（若下线源于篡改或勒索，则还有完整性）</td></tr>
+  <tr><td>③ 一封自称院长的邮件要财务付款，其实不是他发的</td><td>真实性（冒充来源）</td><td>完整性（财务记录被一条未经授权的指令改变）</td></tr>
+  <tr><td>④ 云存储桶配置错误，4 万条学生记录谁拿到链接都能看</td><td>机密性</td><td>可追责性（谁下载过？公开的桶通常没有访问记录）</td></tr>
+  <tr><td>⑤ 全组都用 admin 登录，没人能查出是谁删了生产数据库</td><td>可追责性</td><td>可用性（数据库没了）</td></tr>
+  <tr><td>⑥ 供应商否认提交过一份采购单——其实交过，但没有证据</td><td>不可否认性</td><td>可追责性</td></tr>
+  </tbody></table></div>
+  <p style="margin-bottom:0"><strong>附加题</strong>：一台全盘加密的笔记本被偷，上面有一篇博士论文的唯一副本。丢的是<strong>可用性</strong>；机密性没丢，全盘加密保住了它。要点：<strong>加密只保护机密性，不保护可用性；保护可用性要靠备份。</strong></p>
+</details>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>加密保不住可用性</div>
+  <p style="margin-bottom:0">活动 2 附加题的要点：全盘加密的笔记本被偷，丢的是<strong>可用性</strong>，机密性反而保住了。<strong>加密只保护机密性，不保护可用性；保护可用性要靠备份。</strong></p>
+</div>
+
+<h3 id="s4-4"><span class="n">4.4</span>回到开场的四起事故</h3>
+
+<p>四起事故各丢一种不同的属性：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:9rem">事故</th><th>丢失的属性</th><th>本该挡住它的</th></tr></thead>
+<tbody>
+<tr><td>A 课程平台宕机</td><td>可用性</td><td>冗余与高可用、拒绝服务防护、灾备</td></tr>
+<tr><td>B 文件全成了乱码</td><td>完整性（文件被未经授权地改写；可用性也丢了，但 A 已占了它）</td><td>离线或不可改的备份、最小权限（让勒索软件够不到全盘）</td></tr>
+<tr><td>C 冒充院长的付款邮件</td><td>真实性</td><td>邮件来源认证、数字签名；付款另走电话核实（一封邮件不足以授权付款）</td></tr>
+<tr><td>D 日志和被攻击的系统放在一起</td><td>可追责性（攻击者能连日志一起毁掉）</td><td>把日志实时送到独立的、篡改可察觉的日志服务器上</td></tr>
+</tbody></table></div>
+
+<h2 id="s5"><span class="n">5</span>攻击：攻击者怎么做到</h2>
+
+<h3 id="s5-1"><span class="n">5.1</span>X.800 的三个词</h3>
+
+<p>ITU-T（国际电信联盟电信标准化部门）的 X.800 建议书《OSI 安全体系结构》给出了组织安全问题的通用框架。因为是国际标准，厂商都按它来设计产品。核心是三个词：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7rem">词</th><th style="width:9rem">回答的问题</th><th>定义</th></tr></thead>
+<tbody>
+<tr><td><span class="term">安全攻击</span><br><span class="en">security attack</span></td><td>对手做了什么</td><td>任何危及组织所拥有信息之安全的行为</td></tr>
+<tr><td><span class="term">安全服务</span><br><span class="en">security service</span></td><td>防御<strong>交付了什么</strong></td><td>增强数据处理系统和信息传输安全性的处理或通信服务；服务用一种或多种机制来对抗攻击</td></tr>
+<tr><td><span class="term">安全机制</span><br><span class="en">security mechanism</span></td><td>防御<strong>是怎么造出来的</strong></td><td>用来检测、阻止攻击或从攻击中恢复的过程（或包含这种过程的设备）</td></tr>
+</tbody></table></div>
+
+<p>连成一句话读：<strong>攻击由服务来对抗，服务由一种或多种机制来实现。</strong></p>
+
+<div class="eq">攻击<span class="xarr"><span class="lb">被对抗</span><svg viewBox="0 0 60 10" aria-hidden="true"><path d="M58,5 H4 M10,1 L3,5 L10,9" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span>服务<span class="xarr"><span class="lb">被实现</span><svg viewBox="0 0 60 10" aria-hidden="true"><path d="M58,5 H4 M10,1 L3,5 L10,9" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span>机制<span class="lbl">(3)</span></div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>服务与机制最容易混</div>
+  <p>课件原话：“Confusing service with mechanism is the most common error in coursework.”</p>
+  <ul>
+    <li>服务是<strong>要求</strong>，说的是「提供了什么保障」：机密性、完整性、认证……</li>
+    <li>机制是<strong>工程选择</strong>，说的是「用什么技术做到」：加密、数字签名、MAC……</li>
+  </ul>
+  <p>同一个服务可以由几种机制实现：数据完整性可以用「哈希 + 签名」、用 MAC、或用认证加密模式。判断时问一句「这是一个保障，还是一种技术」。</p>
+  <p style="margin-bottom:0">课件这一页的图把三张卡排成了「攻击、机制、服务」，箭头也画在攻击与机制之间，照图读会读成「攻击被机制对抗」——以文字为准，按上式理解。</p>
+</div>
+
+<p>完整的服务与机制清单见 <a href="#s5-5">5.5</a>；先看攻击分哪几类。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>被动攻击与主动攻击</h3>
+
+<figure>
+<div id="paWide" class="only-wide"></div>
+<div id="paNarrow" class="only-narrow"></div>
+<figcaption>(a) 被动攻击：Darth 只从线路旁分出一支偷听，Alice 发出的消息原样到达 Bob——什么都没改、什么都没少，所以没有痕迹可察觉。(b) 主动攻击：Darth 串在通信路径中间，Bob 收到的是 Darth 发出的那一条，已经不是 Alice 发的。</figcaption>
+</figure>
+
+<ul>
+<li><strong>被动攻击</strong><span class="en">（passive attack）</span>：Darth 只在旁边听。什么都没改、什么都没少，所以没有痕迹可察觉。</li>
+<li><strong>主动攻击</strong><span class="en">（active attack）</span>：Darth 串在通信路径中间。到达的消息已经不是发出的那一条。</li>
+</ul>
+
+<div class="tw"><table>
+<thead><tr><th style="width:8rem"></th><th>被动</th><th>主动</th></tr></thead>
+<tbody>
+<tr><td>目的</td><td>获取信息</td><td>修改数据或伤害系统</td></tr>
+<tr><td>典型受威胁的属性</td><td>机密性</td><td>完整性、可用性；冒充则首先破坏真实性</td></tr>
+<tr><td>检测</td><td>很难，没有痕迹</td><td>相对容易，因为「有东西不对了」（前提是部署了能发现篡改的机制）</td></tr>
+<tr><td>预防</td><td>可行，通常靠对传输内容加密</td><td>绝对防住很难，可攻击的面太大</td></tr>
+<tr><td><strong>所以策略是</strong></td><td><strong>预防</strong></td><td><strong>检测、恢复，并让检测本身形成威慑</strong></td></tr>
+</tbody></table></div>
+
+<p>课件表格的「受威胁的属性」一行只写了主动攻击对应「完整性和可用性」，这是典型情况，不是全部：下一节的冒充攻击首先破坏的是真实性。</p>
+
+<h3 id="s5-3"><span class="n">5.3</span>具名的攻击</h3>
+
+<p><strong>被动攻击两种</strong>：</p>
+
+<ul>
+<li><strong>消息内容泄露</strong><span class="en">（release of message contents）</span>：读到了一段没在传输中加以保护的对话、文件传输或邮件。</li>
+<li><strong>流量分析</strong><span class="en">（traffic analysis）</span>：即使内容加密了，模式照样泄露——谁和谁通信、多频繁、多少数据、什么时候。课件的例子：一家公司法务部和一家投行之间加密流量突然激增，不用解密一个字节就知道要并购了。所以「加密一切」并不能挡住流量分析，它要靠下面 <a href="#s5-5">5.5</a> 里的流量填充和路由控制。</li>
+</ul>
+
+<p><strong>主动攻击四种</strong>：</p>
+
+<ul>
+<li><strong>冒充</strong><span class="en">（masquerade）</span>：一个实体假装成另一个，通常和其他几种攻击配合使用。</li>
+<li><strong>重放</strong><span class="en">（replay）</span>：被动截获一个合法的数据单元，过后重新发送，以产生未经授权的效果。</li>
+<li><strong>篡改</strong><span class="en">（modification）</span>：合法消息的一部分被改动、延迟或重新排序。</li>
+<li><strong>拒绝服务</strong><span class="en">（denial of service，DoS）</span>：阻止设施的正常使用或管理——针对某个特定目标，或把整个网络压垮到性能崩溃。</li>
+</ul>
+
+<p><span class="term">恶意代码</span><span class="en">（malicious code）</span>是上面多数攻击的投送工具：病毒（virus）需要寄生在宿主文件上复制；蠕虫（worm）自带复制代码；特洛伊木马（Trojan）伪装成你想要的东西。它不属于「被动 / 主动」这个二分法，是攻击的载体。（课件把这段放在被动攻击一栏底下，容易误读成被动攻击。）</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>STRIDE：设计者视角的同一张图</h3>
+
+<p>X.800 按「对手做了什么」给攻击分类。<strong>STRIDE</strong> 是微软提出的<span class="term">威胁建模</span><span class="en">（threat modelling，在设计阶段系统地找出系统可能受到哪些威胁）</span>方法，问的是互补的问题：<strong>对于我要造的每一个组件，对手可能攻击它的哪种属性？</strong>六个字母是六类威胁的首字母：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="width:2rem"></th><th>威胁</th><th>被破坏的属性</th><th>设计时要问</th><th>对应的机制</th></tr></thead>
+<tbody>
+<tr><td><strong>S</strong></td><td>Spoofing 仿冒</td><td>真实性</td><td>有人能假装成这个用户或服务吗？</td><td>认证、证书、MFA</td></tr>
+<tr><td><strong>T</strong></td><td>Tampering 篡改</td><td>完整性</td><td>这份数据在传输或存储时能被改吗？</td><td>哈希、MAC、签名</td></tr>
+<tr><td><strong>R</strong></td><td>Repudiation 抵赖</td><td>不可否认性</td><td>他们事后能否认吗？我们能反证吗？</td><td>签名并带时间戳的审计记录</td></tr>
+<tr><td><strong>I</strong></td><td>Information disclosure 信息泄露</td><td>机密性</td><td>不该看的人能读到吗？</td><td>加密、访问控制</td></tr>
+<tr><td><strong>D</strong></td><td>Denial of service 拒绝服务</td><td>可用性</td><td>能被耗尽、淹没或关掉吗？</td><td>配额、限速、冗余</td></tr>
+<tr><td><strong>E</strong></td><td>Elevation of privilege 权限提升</td><td>授权</td><td>低权限的人能变成高权限吗？</td><td>最小权限、沙箱、隔离</td></tr>
+</tbody></table></div>
+
+<p>表中的<strong>哈希</strong><span class="en">（hash）</span>是把任意长的数据压缩成固定长度「指纹」的函数，数据改一位指纹就大变，用于检测篡改；<strong>沙箱</strong><span class="en">（sandbox）</span>是把程序关在一个受限环境里运行，让它碰不到外面的资源。</p>
+
+<p>课件说「每个字母恰好是第 4 节某个安全目标的否定」——对前五个成立，对 E 不成立：E 对应的<strong>授权</strong><span class="en">（authorisation，决定一个已认证的身份被允许做什么）</span>不在那六个属性里；反过来，<strong>可追责性</strong>在 STRIDE 里没有对应字母。</p>
+
+<p>STRIDE 的价值：把「想想安全问题」变成一张检查表，对着架构图的每个方框、每条箭头逐个过一遍六个字母。这是最便宜的安全活动，在写下第一行代码之前就能做。</p>
+
+<h3 id="s5-5"><span class="n">5.5</span>服务与机制的完整清单</h3>
+
+<p>这一节把 <a href="#s5-1">5.1</a> 那句话补完：攻击由<strong>服务</strong>对抗——有哪些服务；服务由<strong>机制</strong>实现——有哪些机制。</p>
+
+<p><strong>六项安全服务</strong>（系统承诺什么）：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7.5rem">服务</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td><span class="term">认证</span><br><span class="en">authentication</span></td><td>对等实体认证与数据源认证：通信对方就是它声称的那个人，数据确实来自声称的来源</td></tr>
+<tr><td><span class="term">访问控制</span><br><span class="en">access control</span></td><td>阻止对资源的未经授权使用</td></tr>
+<tr><td><span class="term">数据机密性</span><br><span class="en">data confidentiality</span></td><td>防止数据被未经授权披露，包括流量机密性（traffic-flow confidentiality，连通信模式也不泄露）</td></tr>
+<tr><td><span class="term">数据完整性</span><br><span class="en">data integrity</span></td><td>保证收到的数据与发出的完全一样：没有重复、插入、修改、重排或重放</td></tr>
+<tr><td><span class="term">不可否认性</span><br><span class="en">non-repudiation</span></td><td>任何一方都不能否认参与过</td></tr>
+<tr><td><span class="term">可用性</span><br><span class="en">availability</span></td><td>授权实体需要时，系统可访问、可用</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h">「六项服务」是 Stallings 的口径</div>
+  <p style="margin-bottom:0">X.800 原文只定义了前五类服务。可用性在 X.800 里是与各项服务相关的一种<strong>属性</strong>，Stallings 认为值得单列为一项服务。考试按课件写六项；题目若明确问「X.800 定义的服务」，注明可用性是 Stallings 补充的。</p>
+</div>
+
+<p><strong>安全机制</strong>（实际怎么造）分两类：</p>
+
+<div class="tw"><table>
+<thead><tr><th>特定于某个协议层</th><th>不特定于某层（普遍存在）</th></tr></thead>
+<tbody>
+<tr><td>加密变换（encipherment）</td><td>可信功能（trusted functionality）</td></tr>
+<tr><td>数字签名（digital signature）</td><td>安全标签（security labels）</td></tr>
+<tr><td>访问控制（课件写作 access control lists，访问控制列表）</td><td>事件检测（event detection）</td></tr>
+<tr><td>数据完整性（课件写作 integrity check values，完整性校验值）</td><td>安全审计追踪（security audit trail）</td></tr>
+<tr><td>认证交换（authentication exchange）</td><td>安全恢复（security recovery）</td></tr>
+<tr><td>流量填充（traffic padding）</td><td></td></tr>
+<tr><td>路由控制（routing control）</td><td></td></tr>
+<tr><td>公证（notarisation）</td><td></td></tr>
+</tbody></table></div>
+
+<p>左列有两项课件用了具体实现的名字，标准名称是「访问控制」「数据完整性」，答题写标准名更稳。</p>
+
+<p>课件点明了这门课剩下的部分在这张表里的位置：古典密码、分组密码、DES、AES 都是<strong>加密变换机制</strong>，交付的是<strong>数据机密性服务</strong>；哈希函数和 MAC 是<strong>完整性机制</strong>；公钥签名交付<strong>认证和不可否认性</strong>。从下一讲起，每一讲都是为左边某一项服务提供的一种机制。</p>
+
+<h2 id="s6"><span class="n">6</span>攻击从哪里进来</h2>
+
+<h3 id="s6-1"><span class="n">6.1</span>边界是怎样消失的</h3>
+
+<div class="tw"><table>
+<thead><tr><th style="width:7rem">时期</th><th>状况</th></tr></thead>
+<tbody>
+<tr><td>1970 年代</td><td>两种相反的模式：政府系统封闭上锁、硬边界；学术系统完全开放，控制只用于计时收费</td></tr>
+<tr><td>1990 年代</td><td>商业上网：关门做不了几百万人要访问的生意，开门又保护不了每个人的隐私，两种模式都撑不住电子商务</td></tr>
+<tr><td>2000 年代</td><td>混合做法：以受控方式有限地开放数据，比两个极端复杂得多、难推理得多</td></tr>
+<tr><td>2010 年代</td><td>边界离开了大楼：云、软件即服务（SaaS）、移动、远程办公，不再有「里面」可言</td></tr>
+<tr><td>现在</td><td><strong>假定已被攻破</strong>（assume breach）：每个请求都显式验证、只给最小权限、积极分段隔离，按「攻击者已经在里面了」来设计</td></tr>
+</tbody></table></div>
+
+<p>方向是单向的：从「把坏人挡在外面」变成「假定他们已经进来了，限制进来能得到什么」。（「现在」这一行就是业界所说的零信任 zero trust，课件没用这个名字。）</p>
+
+<h3 id="s6-2"><span class="n">6.2</span>攻击面</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>攻击面 <span class="en">attack surface</span></div>
+  <p style="margin-bottom:0">系统中对手<strong>真正够得着、又真正用得上</strong>的漏洞的集合。两个条件缺一不可：够不着的缺陷不在攻击面上，够得着但没有缺陷的组件也不在。</p>
+</div>
+
+<div class="tw"><table>
+<thead><tr><th>网络攻击面</th><th>软件攻击面</th><th>人员攻击面</th></tr></thead>
+<tbody>
+<tr><td>对外服务器上开放的端口及在上面监听的代码</td><td>应用、工具与操作系统代码</td><td>任何能接触敏感信息、手里有部电话的人</td></tr>
+<tr><td>防火墙内部可达的服务</td><td>一切解析不可信输入的东西：邮件、XML、办公文档、自定义数据格式</td><td>社会工程（social engineering，靠骗人而不是靠技术拿到信息）、编造身份套话、单纯的失误</td></tr>
+<tr><td>能导致拒绝服务或链路中断的协议弱点</td><td>接口、数据库查询、网页表单</td><td>可信的内部人员，包括无意造成危害的人</td></tr>
+</tbody></table></div>
+
+<p>对攻击面能做两件事：<strong>测量</strong>它——系统地清点所有可达点，告诉开发和分析人员哪里需要机制、测试先测哪里；<strong>缩小</strong>它——每关一个端口、每删一个没用的功能、每收回一项权限，都让对手更难，而且不用买任何新产品。</p>
+
+<h3 id="s6-3"><span class="n">6.3</span>攻击树</h3>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>攻击树 <span class="en">attack tree</span></div>
+  <p style="margin-bottom:0">把对手达成一个目标的所有方式画成一棵分层的树。你害怕的事件是根节点；每个子节点是一个子目标；叶节点是可以动手的具体起点。</p>
+</div>
+
+<p>课件的例子，根目标「读到那份文件」：</p>
+
+<ul>
+<li>拿到账户（<strong>或</strong>节点）：钓鱼骗到它；用别处泄露的口令撞库。</li>
+<li>拿到磁盘并拿到密钥（<strong>与</strong>节点）：偷到笔记本；拿到解密口令。</li>
+</ul>
+
+<p>两类节点的规则：</p>
+
+<ul>
+<li><strong>或节点</strong><span class="en">（OR-node）</span>：至少达成一个子目标即可。大多数节点是或节点，所以攻击者的选择往往比防守者预想的多。</li>
+<li><strong>与节点</strong><span class="en">（AND-node）</span>：每个子目标都要达成。<strong>与节点是防守者赢的地方</strong>：断掉任何一支，整条路就死了。</li>
+</ul>
+
+<p>给每个叶节点标上代价（难度、所需技能、被发现的可能）后，就能比较整条路径：<strong>或节点取子节点中最小的，与节点把子节点全部相加</strong>。最便宜的那条路——而不是你最害怕的那条——就是要最先防的。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>经过与节点的「路径」其实是一棵子树</div>
+  <p>与节点的所有子节点都必须达成，所以经过它的代价是<strong>全部子节点之和</strong>，不能只沿其中一条线往下加。</p>
+  <p style="margin-bottom:0">例：设「钓鱼」代价 2、「撞库」3、「偷笔记本」3、「拿口令」4。「拿到账户」取最小 <span class="m">= 2</span>；「拿到磁盘和密钥」求和 <span class="m">= 3 + 4 = 7</span>；根节点是或节点，取 <span class="m">min(2, 7) = 2</span>，最便宜的路是钓鱼。</p>
+</div>
+
+<div class="tool" id="atTool">
+  <h4>攻击树求值器</h4>
+  <p class="sub">改叶节点的代价，或勾「堵住」把那一支设成 ∞，看根节点怎么变。<strong>或</strong>节点取子节点中最小的，<strong>与</strong>节点把子节点全部相加；高亮的是最便宜的方案（经过与节点时，它的所有子节点都要做到，所以整支都亮）。试着在某个与节点下面只堵住一片叶子——与节点断掉任何一支，整条路就死了。</p>
+  <div class="row">
+    <span class="ctl"><label for="atPick">预置</label><select id="atPick" onchange="atReset()">
+      <option value="file">课件：读到那份文件</option>
+      <option value="hw">课堂活动 3 示范：读到同学的作业</option></select></span>
+    <button class="btn" onclick="atReset()">恢复预置代价</button>
+  </div>
+  <div class="toolfig" id="atTree"></div>
+  <div class="result" id="atOut"></div>
+</div>
+
+<details class="box">
+  <summary>课堂活动 3 示范：为「在截止前读到另一个同学的作业」建攻击树</summary>
+  <p>要求：至少 3 个子目标、6 个叶节点，标出与/或，叶节点按 1（谁都能在午饭前做到）到 5（要技能、时间和运气）打分，找出最便宜的完整路径。</p>
+  <ul>
+    <li>G1 拿到同学自己手里的副本（或）：机房里看打印稿或越肩看屏幕 1；趁他离开用他未锁屏的电脑 2；打开他发在群里的云盘共享链接 2。</li>
+    <li>G2 以他的身份登录课程平台（与，因为平台启用了多因素认证，口令和第二因素缺一不可）：拿到口令（或：仿冒登录页钓鱼 3｜猜弱口令或撞库 2）；绕过第二因素（或：反复推送认证请求直到他误点同意 3｜劫持手机卡 5）。</li>
+    <li>G3 通过有合法访问权的人（或）：直接请他「给我对一下答案」1；冒充身份骗助教或管理员导出 4。</li>
+    <li>G4 利用提交系统的漏洞（或）：改网址里的提交编号看别人的提交 4。</li>
+  </ul>
+  <p>计算：G2 <span class="m">= min(3, 2) + min(3, 5) = 5</span>；根 <span class="m">= min(1, 5, 1, 4) = 1</span>。最便宜的路是越肩看或直接开口要——<strong>根本不用碰电脑</strong>，呼应了<a href="#s1">开场</a>的「62% 有人为因素」。也只有这两条不留痕迹，其余都会在登录日志、认证记录或网页日志里留下记录。</p>
+  <p style="margin-bottom:0">课件提醒：这只是建模练习，真去尝试任何一条都是违法行为和学术不端。</p>
+</details>
+
+<div class="box def">
+  <div class="h">威胁向量表这一讲没有讲</div>
+  <p style="margin-bottom:0">学习目标里写着要会构建「威胁向量表」（threat-vector table），结尾也说「要机械地枚举威胁来源」，但正文没有一页讲它。课件预告它在 tutorial 里做：用完整的公司场景建表，加上可能性和影响，产出一份排好序的风险登记册。tutorial 材料到手后补到这里。</p>
+</div>
+
+<h2 id="s7"><span class="n">7</span>设计防御</h2>
+
+<h3 id="s7-1"><span class="n">7.1</span>三个 D</h3>
+
+<p>三个前提——我们要保护资产；资产面临威胁；我们要缓解威胁——推出任何场合都适用的三种应对：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="width:4.5rem"></th><th>防御 defence</th><th>检测 detection</th><th>威慑 deterrence</th></tr></thead>
+<tbody>
+<tr><td>作用</td><td>降低攻击<strong>成功</strong>的可能</td><td><strong>知道</strong>出事了</td><td>降低有人<strong>尝试</strong>的频率</td></tr>
+<tr><td>说明</td><td>大家首先想到的；但只靠防御等于假定它永不失手</td><td>要应对事件先得发现它；没被发现的入侵最贵，每多持续一天代价就涨</td><td>便宜又一贯被低估；通过改变攻击者的预期收益来减少尝试</td></tr>
+<tr><td>例子</td><td>锁和屏障、防火墙、入侵防御系统、多因素认证、打补丁</td><td>摄像头、入侵检测、日志关联分析、完整性监控</td><td>显眼的摄像头和保安、登录警示、公开的政策、可信的执法</td></tr>
+</tbody></table></div>
+
+<p>接回 <a href="#s3-2">3.2 的 ALE</a>：防御和威慑都在压低 ARO（一个降成功率、一个降尝试次数）；检测缩短入侵持续的时间，压低的是 SLE。被动攻击「预防」、主动攻击「检测加恢复」（<a href="#s5-2">5.2</a>）也是同一套思路。</p>
+
+<h3 id="s7-2"><span class="n">7.2</span>控制措施的网格</h3>
+
+<p>控制措施有两个维度：<strong>功能</strong>（它在事件的哪个阶段起作用）和<strong>类型</strong>（它是什么形态）。</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="width:6.5rem">功能 \ 类型</th><th>物理</th><th>管理</th><th>技术（逻辑）</th><th>运营</th></tr></thead>
+<tbody>
+<tr><td>预防</td><td>锁、屏障</td><td>背景审查、培训</td><td>防火墙、入侵防御、多因素认证</td><td>站岗的保安</td></tr>
+<tr><td>检测</td><td>摄像头、封条</td><td>审计、复查</td><td>入侵检测、日志、安全信息与事件管理平台</td><td>巡逻的保安</td></tr>
+<tr><td>威慑</td><td>标牌、围栏</td><td>安全政策</td><td>警示横幅</td><td>显眼的保安</td></tr>
+<tr><td>纠正</td><td>修理、更换</td><td>纪律处分程序</td><td>打补丁、重装系统</td><td>事件响应</td></tr>
+<tr><td>恢复</td><td>备用场地</td><td>灾难恢复计划</td><td>备份、数据复制</td><td>人工备用流程</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>网格用来找空格子</div>
+  <p style="margin-bottom:0">课件强调这张表的用法：<strong>用它找空格子，不是用来争论某个控制该归哪一格</strong>。很多控制同时占几格（显眼的摄像头既是检测也是威慑）。它真正的价值是：给一个真实系统填一遍，发现整个「恢复」行是空的，或者手里所有控制都挤在「技术—预防」一格里——这就是发现。</p>
+</div>
+
+<h3 id="s7-3"><span class="n">7.3</span>十三条设计原则</h3>
+
+<p>至今没有一种方法能系统地排除所有安全缺陷，退而求其次就是一组公认的原则。其中 8 条由 Saltzer 与 Schroeder 在 1975 年提出，至今不需修改；另外 5 条来自后来的设计原则清单。课件把 13 条分成四组，对应设计评审时的四个问题：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="width:9rem">组</th><th>要问的问题</th><th>原则</th></tr></thead>
+<tbody>
+<tr><td>A 保持简单、失效时安全</td><td>它简单吗？默认安全吗？</td><td>机制经济性、故障安全默认、完全仲裁</td></tr>
+<tr><td>B 不靠保密、限制权力</td><td>它依赖保密或过多权限吗？</td><td>开放设计、权限分离、最小权限、最少公共机制</td></tr>
+<tr><td>C 控制爆炸半径</td><td>出事时损害被控制住了吗？</td><td>隔离、封装、模块化、分层</td></tr>
+<tr><td>D 尊重人</td><td>真实的人能忍受它吗？</td><td>心理可接受性、最小惊讶</td></tr>
+</tbody></table></div>
+
+<p>课上讲 A、B、D 三组，C 组是指定阅读。</p>
+
+<p><strong>A 组</strong></p>
+
+<ul>
+<li><strong>机制经济性</strong><span class="en">（economy of mechanism）</span>：安全措施的设计（软硬件）应尽可能简单、尽可能小。小的设计好测试、好验证；复杂度给对手更多可钻的地方，而且事先很难发现。<strong>违反的样子</strong>：一台用两百万行私有代码同时做防火墙、杀毒、VPN、邮件过滤和防数据泄漏的设备——任何一处出错，就拿到了全部的最高权限。</li>
+<li><strong>故障安全默认</strong><span class="en">（fail-safe defaults）</span>：访问决策基于「允许」而不是「排除」：默认无权访问，方案只规定在什么条件下准许。出错时（规则配错、服务重启、名单没加载）系统必须<strong>默认拒绝</strong>——这样一个错误造成的是你会注意到的停机，而不是你注意不到的数据暴露。<strong>违反的样子</strong>：默认全世界可读、直到有人想起来才收紧的云存储桶，这一个默认值造成了有记录以来大量最大规模的数据泄露。</li>
+<li><strong>完全仲裁</strong><span class="en">（complete mediation）</span>：每一次访问都必须经过访问控制机制检查，不能依赖缓存下来的旧决策。权限会变、账号会被注销，如果登录时检查一次就缓存 30 天，系统执行的就是昨天的策略，被解雇的员工照样能进。<strong>违反的样子</strong>：页面加载时检查了权限，但直接调用背后的接口时不检查——按钮从界面上消失了，接口还在。所以「把按钮藏起来」从来不是访问控制。</li>
+</ul>
+
+<p><strong>B 组</strong></p>
+
+<ul>
+<li><strong>开放设计</strong><span class="en">（open design）</span>：安全机制的设计应当公开而不是保密：密钥必须保密，加密算法应当接受公开审视。</li>
+<li><strong>权限分离</strong><span class="en">（separation of privilege）</span>：进入受限资源需要多个权限条件。多因素认证就是日常的例子：你知道的（口令）加你持有的（手机）。</li>
+<li><strong>最小权限</strong><span class="en">（least privilege）</span>：每个进程、每个用户只拥有完成任务所需的最小权限集合，且只在任务持续期间拥有。回头看攻击树：几乎每个叶节点都默认「一旦进来就能碰到想要的东西」，最小权限正是打破这个假设的原则——它把一次入侵变成一次<strong>被控制住的</strong>入侵。<strong>违反的样子</strong>：「为了发布不卡壳，组里人人都有生产环境的写权限」——这让任何一台开发者笔记本失陷都等于整个线上系统失陷。</li>
+<li><strong>最少公共机制</strong><span class="en">（least common mechanism）</span>：尽量减少用户之间共享的功能。共享的组件会变成共同的故障点，以及本应隔离的各方之间的隐蔽信道（covert channel，不是设计用来传信息、却能被用来偷偷传信息的通路）。</li>
+</ul>
+
+<div class="box def">
+  <div class="h"><span class="tag">定义</span>柯克霍夫原则 <span class="en">Kerckhoffs，1883（详见 L2 §1.2）</span></div>
+  <p>开放设计是学生最抵触的一条，也是后面六讲的基础。它的另一个名字是柯克霍夫原则：</p>
+  <p style="margin-bottom:0"><strong>即使系统除密钥外的一切都公开，密码系统也应当是安全的</strong>（Kerckhoffs，1883；香农的说法是「敌人了解系统」）。</p>
+</div>
+
+<div class="tw"><table>
+<thead><tr><th>靠隐晦求安全（security through obscurity）的问题</th><th>开放设计的好处</th></tr></thead>
+<tbody>
+<tr><td>很多人知道的秘密，保不了多久</td><td>公开审视：成千上万的专家免费攻击你的设计</td></tr>
+<tr><td>算法泄露后改不了，密钥几秒钟就能换</td><td>互操作：独立的实现能彼此对得上</td></tr>
+<tr><td>没人审查过的设计不叫「被证明是强的」，只叫「没被检验过」</td><td>把「必须保护的」（密钥）和「不必保护的」（其余一切）干净地分开</td></tr>
+<tr><td>每一个广泛部署的保密算法，最终都被逆向并攻破了</td><td>AES 就是经过一场公开、国际化、历时多年的竞赛选出的</td></tr>
+</tbody></table></div>
+
+<p>从下一讲起，研究的每一种密码——凯撒、Vigenère、一次一密、DES、AES——每个细节都是公开的，而且在知道它怎么工作的前提下去攻击它。这不是教学上的简化，这就是安全模型本身。</p>
+
+<p><strong>C 组</strong>（指定阅读，课上不讲；以下为 Stallings 的定义大意）</p>
+
+<ul>
+<li><strong>隔离</strong><span class="en">（isolation）</span>：公共访问系统与关键资源隔离；不同用户的进程和文件彼此隔离；安全机制本身与外界隔离，防止被访问或篡改。</li>
+<li><strong>封装</strong><span class="en">（encapsulation）</span>：基于面向对象思想的隔离，把一组过程和数据封装在独立的域里，外部只能经指定入口访问。</li>
+<li><strong>模块化</strong><span class="en">（modularity）</span>：安全功能做成独立、受保护的模块，便于复用和单独升级。</li>
+<li><strong>分层</strong><span class="en">（layering）</span>：多层相互重叠的防护（纵深防御），任何一层失效都不至于让系统失去保护。</li>
+</ul>
+
+<p><strong>D 组</strong></p>
+
+<ul>
+<li><strong>心理可接受性</strong><span class="en">（psychological acceptability）</span>：安全机制不应过度干扰用户的工作，同时仍满足授权者的要求。让人没法干活的控制会被绕过，于是你得到一个你相信它存在的控制、一个没人记录的例外、对两者都毫无可见性。<strong>易用性是安全的一部分，不是安全的对立面。</strong></li>
+<li><strong>最小惊讶</strong><span class="en">（least astonishment）</span>：程序或界面的反应应当最不让用户意外。如果安全的操作和人们预期的操作不一致，人们每一次都会选预期的那个。直觉上的选择恰好是不安全的选择——这是设计缺陷，不是培训问题。<strong>让安全的路成为容易的路。</strong></li>
+</ul>
+
+<p>课件举的三个「怪到用户头上的设计失败」：强制每 30 天改口令（产生 <code>Summer2024!</code>、<code>Summer2024!!</code>，现行指南因此反对定期强制更换）；用户习惯性点过的证书警告（什么都警告，警告就失去了意义）；点「取消」会删掉备份集的按钮（字面说一套、代码做另一套）。</p>
+
+<div class="box def">
+  <div class="h">这和 2.2 的「三选二」不矛盾</div>
+  <p style="margin-bottom:0"><a href="#s2-2">2.2</a> 的三角说的是资源有限时安全、易用、成本不可兼得；D 组说的是：难用的机制会被绕过，实际安全反而下降，所以易用性本身就是安全的组成部分。前者讲取舍，后者讲不能为了「纸面上的安全」牺牲易用。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 4 解答：违反了哪条原则？</summary>
+  <div class="tw"><table class="compact">
+  <thead><tr><th>设计决策</th><th>违反的原则</th><th>修法</th></tr></thead>
+  <tbody>
+  <tr><td>① 智能温控器出厂时所有端口开放，账号密码 admin/admin，加固留给用户</td><td>故障安全默认（也扩大了攻击面）</td><td>出厂关闭非必要端口；每台设备唯一随机凭据，首次使用强制修改</td></tr>
+  <tr><td>② 公司自创加密算法并拒绝公开：「没人知道怎么工作，就没人能破」</td><td>开放设计</td><td>改用公开标准算法（如 AES），只把密钥当秘密</td></tr>
+  <tr><td>③ 每个开发者永久持有生产数据库写权限，「发布才不会卡」</td><td>最小权限（也违反权限分离）</td><td>按需、限时提权；发布走带审批的流水线</td></tr>
+  <tr><td>④ 登录时检查一次授权，之后会话被信任 30 天</td><td>完全仲裁</td><td>每次访问都检查；短期令牌加吊销检查</td></tr>
+  <tr><td>⑤ VPN 要 11 步和每月更换的 14 位口令，一半员工改用手机热点</td><td>心理可接受性</td><td>简化流程（单点登录加多因素认证），取消按月强制改密</td></tr>
+  <tr><td>⑥ 一台两百万行的设备包办一切，邮件过滤器的一个漏洞拿下了全部 root 权限</td><td>机制经济性（也违反隔离）</td><td>拆成小而相互隔离的组件</td></tr>
+  <tr><td>附加：备份工具里点「取消」会删掉已有备份集</td><td>最小惊讶</td><td>按钮行为与字面一致；破坏性操作要求显式确认</td></tr>
+  </tbody></table></div>
+  <p style="margin-bottom:0">附加题「这一条值多少钱」：接回活动 1，备份没了，方案 A 的全部价值就没了——SLE 从 15,000 回到 120,000。</p>
+</details>
+
+<h2 id="s8"><span class="n">8</span>网络安全模型</h2>
+
+<h3 id="s8-1"><span class="n">8.1</span>一张图</h3>
+
+<figure>
+<div id="nmWide" class="only-wide"></div>
+<div id="nmNarrow" class="only-narrow"></div>
+<figcaption>网络安全模型。按 Stallings 第 1 章原图的连接关系重画：课件原图里可信第三方的两条虚线没有连到任何框上。消息经两端的安全相关变换穿过对手能接触到的信道；两端的变换各用一份秘密信息；可信第三方（虚线）负责把秘密分发给双方，并在争执时仲裁。</figcaption>
+</figure>
+
+<p>一条消息从发送方到接收方，途经一条对手能接触到的信息信道。任何安全方案都由两部分组成：</p>
+
+<ul>
+<li><strong>对信息做的安全相关变换</strong>：加密，让它读不懂；或者从内容算出一段校验码，用来验证发送者；</li>
+<li><strong>双方共享、并且但愿对手不知道的某个秘密</strong>：比如密钥。</li>
+</ul>
+
+<p>图上为什么有一个<span class="term">可信第三方</span><span class="en">（trusted third party）</span>：它负责把秘密信息分发给双方，并在双方争执时充当仲裁者。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>「两个陌生人凭空造不出共享秘密」说得太满</div>
+  <p style="margin-bottom:0">课件的说法是「两个陌生人凭空造不出共享秘密」——这句话说得太满：后面会讲的 Diffie–Hellman 密钥交换恰恰能让两个陌生人在公开信道上协商出共享秘密；它做不到的是<strong>确认协商的对方到底是谁</strong>，这才是<span class="term">证书颁发机构</span><span class="en">（certificate authority，CA）</span>存在的原因。</p>
+</div>
+
+<h3 id="s8-2"><span class="n">8.2</span>四项基本任务</h3>
+
+<p>在这个模型里设计安全，总是拆成同样四件事：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="width:2rem">#</th><th style="width:6rem">任务</th><th>内容</th><th>在本课哪里讲</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>设计算法</td><td>设计执行安全相关变换的算法，使对手无法破坏其目的</td><td>古典密码、分组密码、DES、AES</td></tr>
+<tr><td>2</td><td>生成秘密</td><td>生成算法要用的秘密信息</td><td>随机数生成——熵不足破坏的真实系统比弱密码还多</td></tr>
+<tr><td>3</td><td>分发秘密</td><td>设计分发和共享秘密信息的方法</td><td>密钥交换、公钥基础设施、证书颁发机构</td></tr>
+<tr><td>4</td><td>规定协议</td><td>规定双方使用的协议，用算法和秘密实现某项安全服务</td><td>握手、会话建立、防重放的新鲜性</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h"><span class="tag">核心</span>任务 3 才是真正出问题的</div>
+  <p style="margin-bottom:0">课件说：<strong>任务 1 是大家都学的，任务 3 是真正出问题的</strong>——一个完美的密码配上一把分发得很糟的密钥，什么也保护不了。</p>
+</div>
+
+<h3 id="s8-3"><span class="n">8.3</span>课后作业：把 HTTPS 放进模型</h3>
+
+<details class="box">
+  <summary>课堂活动 5 解答（课后作业）</summary>
+  <p>题目：你每天用几百次 HTTPS（加密的网页协议），把它对应到本讲第 8 节的模型上。</p>
+  <p><strong>① 四项任务</strong>（浏览器连接网上银行）：</p>
+  <ul>
+    <li>算法：由公开密码学界设计、经标准化后使用，如 AES、ChaCha20、椭圆曲线密钥交换和签名；HTTPS 底下的 TLS 协议由互联网工程任务组（IETF）制定。</li>
+    <li>生成秘密：双方各自用密码学安全的随机数生成器生成临时私钥和随机数，再派生出会话密钥。</li>
+    <li>分发秘密：会话密钥<strong>不在网上传</strong>，双方通过密钥交换各自算出同一个值；服务器公钥的真实性由证书担保。</li>
+    <li>协议：TLS 握手协议加记录协议，上面再跑 HTTP。</li>
+  </ul>
+  <p><strong>② 可信第三方</strong>是证书颁发机构，加上浏览器或操作系统里预置的根证书。你信任它核实过的只是「申请者控制这个域名」，不是「对方是一家正经银行」。CA 出错（误签或被入侵）时，攻击者就能拿到合法证书做中间人攻击。</p>
+  <p><strong>③ 提供哪些服务</strong>：提供服务器的认证（客户端通常靠应用层的口令认证）、数据机密性（但流量机密性基本没有，包长和时序照样泄露）、数据完整性。<strong>不提供</strong>访问控制（那是应用层的事）、可用性（挡不住拒绝服务）、<strong>不可否认性</strong>——记录层用双方共享的对称密钥做认证，任何一方都能伪造「对方发过的」记录，所以没法向第三方证明银行说过什么。</p>
+  <p><strong>④ HTTPS 堵不住的路</strong>（「最重要的一题」，任选三条，按 1–5 打分）：钓鱼到一个本身有合法证书的仿冒域名（2）；用户电脑上的恶意软件或恶意浏览器扩展在解密之后读页面（3）；银行网站的漏洞让会话凭据被盗（3）；越肩偷看（1）；有人在用户设备上装了中间人用的根证书（4）。</p>
+  <p style="margin-bottom:0">共同点：攻击都发生在加密通道的<strong>两端</strong>，而不是通道本身——这就是「几乎没有什么出问题的地方是数学坏了」。</p>
+</details>
+
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+<li>信息安全：保护信息和信息系统免受未经授权的访问、使用、披露、破坏、修改或销毁；不只是电脑、不只是攻击者、不只是技术。</li>
+<li>安全是<strong>买来的</strong>；相称性：防护成本不超过被保护对象的价值（含重置成本）；用户会绕开糟糕的安全。安全—易用—成本三选二。</li>
+<li>别问「我们安全吗」，问「<strong>我们在哪里不安全</strong>」。</li>
+<li>资产、威胁、漏洞、利用手段、风险、控制措施；风险 = <span class="m">P</span>(威胁利用漏洞) × 损失；风险只能降到可接受，降不到零。</li>
+<li>ALE = SLE × ARO；净收益 = (ALE<sub>前</sub> − ALE<sub>后</sub>) − 年成本；多项控制按边际收益评估。</li>
+<li><strong>CIA</strong>：机密性（未授权披露）、完整性（未授权修改或销毁）、可用性（访问被中断）——<strong>用损失式定义判断</strong>。扩展：真实性、可追责性、不可否认性。FIPS 199 把真实性和不可否认性归入完整性。</li>
+<li>加密只保护机密性，不保护可用性；可用性靠备份。</li>
+<li>X.800：<strong>攻击由服务对抗，服务由机制实现</strong>；服务是要求，机制是工程选择，最常混。</li>
+<li>被动攻击（消息内容泄露、流量分析）→ <strong>预防</strong>（通常靠加密；流量分析要靠流量填充、路由控制）；主动攻击（冒充、重放、篡改、拒绝服务）→ <strong>检测与恢复</strong>。</li>
+<li>STRIDE：仿冒/真实性、篡改/完整性、抵赖/不可否认性、信息泄露/机密性、拒绝服务/可用性、权限提升/授权。</li>
+<li>六项服务：认证、访问控制、数据机密性、数据完整性、不可否认性、可用性（最后一项是 Stallings 补充的）。八种特定机制：加密变换、数字签名、访问控制、数据完整性、认证交换、流量填充、路由控制、公证。</li>
+<li>边界消失 → 假定已被攻破。攻击面＝够得着且用得上的漏洞；测量它、缩小它。</li>
+<li>攻击树：或节点取<strong>最小</strong>，与节点<strong>求和</strong>；防最便宜的路，不是最可怕的路。</li>
+<li>三个 D：防御（降成功率）、检测（缩短持续时间）、威慑（降尝试次数）。控制网格（功能 × 类型）用来找空格。</li>
+<li>13 条原则四组：A 简单与默认安全（机制经济性、故障安全默认、完全仲裁）；B 不靠保密、限制权力（开放设计、权限分离、最小权限、最少公共机制）；C 控制损害（隔离、封装、模块化、分层）；D 尊重人（心理可接受性、最小惊讶）。</li>
+<li>柯克霍夫原则：除密钥外一切公开，系统仍应安全。</li>
+<li>网络安全模型：安全相关变换 + 共享秘密，可信第三方负责分发与仲裁。四项任务：设计算法、生成秘密、分发秘密、规定协议——<strong>任务 3 最常出问题</strong>。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <strong>L2 古典密码与密码分析</strong>：模型里的任务 1——第一批算法，以及怎样把它们一个个攻破。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L1 信息安全基础.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   plot.js — 给控制课学习页用的极简 SVG 绘图层
+   只依赖 ctrl-core.js 的数据，不依赖任何外部库。
+   配色规则照 RTCS 模板：中性元素用 currentColor + opacity（自动跟随明暗主题），
+   强调色硬编码 #2F6F8F（SVG 属性里 var() 不稳），其余语义色开页时从 CSS 变量读一次。
+   ==========================================================================*/
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+
+/** 数字转文本，负号用 U+2212（排版约定），不是 ASCII 连字符。 */
+function nf(v, d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  return s.replace(/-/g, '−');
+}
+/** 复数转文本，同样用 U+2212 */
+function nfc(v, d){
+  d = (d===undefined)?4:d;
+  return nf(v.re,d) + (v.im>=0 ? ' + j' : ' − j') + nf(Math.abs(v.im),d);
+}
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+/** 从 CSS 变量读语义色。暗色模式切换后重新调用即可拿到新值。 */
+function themeColors(){
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  return {
+    accent: g('--accent', '#2F6F8F'),
+    warn:   g('--warn',   '#B4534B'),
+    ok:     g('--ok',     '#3F8A63'),
+    exam:   g('--exam',   '#9A6B2F'),
+    muted:  g('--muted',  '#5C6673'),
+    faint:  g('--faint',  '#8A929C')
+  };
+}
+
+/**
+ * 一块直角坐标画布。
+ * opts: {w,h, xmin,xmax,ymin,ymax, padL,padR,padT,padB, xlabel,ylabel, title}
+ * 数据坐标 → 像素坐标：
+ *   px = padL + (x - xmin)/(xmax - xmin) * plotW
+ *   py = padT + (ymax - y)/(ymax - ymin) * plotH      ← 减法负责把数学 y 向上翻成 SVG y 向下
+ */
+function Plot(opts){
+  var o = opts || {};
+  this.w = o.w || 640; this.h = o.h || 300;
+  this.padL = (o.padL!==undefined)?o.padL:52;
+  this.padR = (o.padR!==undefined)?o.padR:16;
+  this.padT = (o.padT!==undefined)?o.padT:14;
+  this.padB = (o.padB!==undefined)?o.padB:38;
+  this.xmin=o.xmin; this.xmax=o.xmax; this.ymin=o.ymin; this.ymax=o.ymax;
+  this.xlabel=o.xlabel||''; this.ylabel=o.ylabel||'';
+  this.logX = !!o.logX;
+  this.c = themeColors();
+  this.svg = svgEl('svg', {
+    viewBox:'0 0 '+this.w+' '+this.h,
+    role:'img', 'aria-label': o.title || o.ariaLabel || '图'
+  });
+  this.svg.style.display='block'; this.svg.style.width='100%'; this.svg.style.height='auto';
+  this.g = svgEl('g', {'font-family':'inherit','font-size':'11.5'});
+  this.svg.appendChild(this.g);
+}
+Plot.prototype.plotW = function(){ return this.w - this.padL - this.padR; };
+Plot.prototype.plotH = function(){ return this.h - this.padT - this.padB; };
+Plot.prototype.X = function(x){
+  if(this.logX){
+    var a=Math.log10(this.xmin), b=Math.log10(this.xmax);
+    return this.padL + (Math.log10(x)-a)/(b-a)*this.plotW();
+  }
+  return this.padL + (x-this.xmin)/(this.xmax-this.xmin)*this.plotW();
+};
+Plot.prototype.Y = function(y){
+  return this.padT + (this.ymax-y)/(this.ymax-this.ymin)*this.plotH();
+};
+Plot.prototype.add = function(e){ this.g.appendChild(e); return e; };
+
+/** 反变换：像素 → 数据（给点击取点用） */
+Plot.prototype.invX = function(px){ return this.xmin + (px-this.padL)/this.plotW()*(this.xmax-this.xmin); };
+Plot.prototype.invY = function(py){ return this.ymax - (py-this.padT)/this.plotH()*(this.ymax-this.ymin); };
+
+/** 自动挑「好看」的刻度间隔：1/2/5 × 10^k */
+function niceStep(span, target){
+  var raw = span/(target||6);
+  var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  var n = raw/mag;
+  var m = (n<1.5)?1:(n<3)?2:(n<7)?5:10;
+  return m*mag;
+}
+function fmtTick(v, step){
+  if(Math.abs(v) < step*1e-9) return '0';
+  var dec = Math.max(0, -Math.floor(Math.log10(step)));
+  if(dec>4) return v.toExponential(1);
+  return v.toFixed(dec);
+}
+
+/** 画坐标框、刻度、轴标。opts:{grid:true, xTicks:n, yTicks:n, zeroLines:true} */
+Plot.prototype.axes = function(opts){
+  var o=opts||{}, self=this;
+  var L=this.padL, R=this.w-this.padR, T=this.padT, B=this.h-this.padB;
+  // 外框
+  this.add(svgEl('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',
+    stroke:'currentColor','stroke-opacity':0.25,'stroke-width':1}));
+  // x 刻度
+  if(this.logX){
+    var d0=Math.ceil(Math.log10(this.xmin)), d1=Math.floor(Math.log10(this.xmax));
+    for(var d=d0; d<=d1; d++){
+      var xv=Math.pow(10,d), px=this.X(xv);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+px+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+px+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var lab=(d===0)?'1':(d===1?'10':'10^'+d);
+      var tk=svgEl('text',{x:px,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      if(d===0||d===1){ tk.textContent=lab; }
+      else { tk.textContent='10'; var sup=svgEl('tspan',{dy:-4,'font-size':'8.5'}); sup.textContent=String(d); tk.appendChild(sup); }
+      this.add(tk);
+    }
+  } else {
+    var sx=niceStep(this.xmax-this.xmin, o.xTicks||6);
+    for(var x=Math.ceil(this.xmin/sx)*sx; x<=this.xmax+sx*1e-9; x+=sx){
+      var pxx=this.X(x);
+      if(o.grid!==false) this.add(svgEl('path',{d:'M'+pxx+','+T+' V'+B,
+        stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+      this.add(svgEl('path',{d:'M'+pxx+','+B+' v5',stroke:'currentColor','stroke-opacity':0.35}));
+      var t1=svgEl('text',{x:pxx,y:B+17,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.6});
+      t1.textContent=fmtTick(x,sx); this.add(t1);
+    }
+  }
+  // y 刻度
+  var sy=niceStep(this.ymax-this.ymin, o.yTicks||5);
+  for(var y=Math.ceil(this.ymin/sy)*sy; y<=this.ymax+sy*1e-9; y+=sy){
+    var py=this.Y(y);
+    if(o.grid!==false) this.add(svgEl('path',{d:'M'+L+','+py+' H'+R,
+      stroke:'currentColor','stroke-opacity':0.10,'stroke-width':1}));
+    this.add(svgEl('path',{d:'M'+L+','+py+' h-5',stroke:'currentColor','stroke-opacity':0.35}));
+    var t2=svgEl('text',{x:L-8,y:py+4,'text-anchor':'end',fill:'currentColor','fill-opacity':0.6});
+    t2.textContent=fmtTick(y,sy); this.add(t2);
+  }
+  // 零线加重
+  if(o.zeroLines!==false){
+    if(this.ymin<0 && this.ymax>0)
+      this.add(svgEl('path',{d:'M'+L+','+this.Y(0)+' H'+R,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+    if(!this.logX && this.xmin<0 && this.xmax>0)
+      this.add(svgEl('path',{d:'M'+this.X(0)+','+T+' V'+B,stroke:'currentColor','stroke-opacity':0.35,'stroke-width':1.2}));
+  }
+  if(this.xlabel){
+    var xl=svgEl('text',{x:(L+R)/2,y:this.h-6,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12'});
+    xl.textContent=this.xlabel; this.add(xl);
+  }
+  if(this.ylabel){
+    var yl=svgEl('text',{x:12,y:(T+B)/2,'text-anchor':'middle',fill:'currentColor','fill-opacity':0.65,'font-size':'12',
+      transform:'rotate(-90 12 '+((T+B)/2)+')'});
+    yl.textContent=this.ylabel; this.add(yl);
+  }
+  return this;
+};
+
+/** 把超出视窗的点截断成 null，避免发散曲线把画面拉飞 */
+Plot.prototype.curve = function(xs, ys, opt){
+  var o=opt||{}, pts=[], segs=[], self=this;
+  var yLo=this.ymin-(this.ymax-this.ymin)*0.5, yHi=this.ymax+(this.ymax-this.ymin)*0.5;
+  for(var i=0;i<xs.length;i++){
+    var y=ys[i];
+    if(!isFinite(y) || y<yLo || y>yHi){ if(pts.length){segs.push(pts); pts=[];} continue; }
+    if(this.logX && xs[i]<=0){ continue; }
+    pts.push(this.X(xs[i]).toFixed(2)+','+this.Y(y).toFixed(2));
+  }
+  if(pts.length) segs.push(pts);
+  for(var s=0;s<segs.length;s++){
+    this.add(svgEl('polyline',{points:segs[s].join(' '),fill:'none',
+      stroke:o.color||this.c.accent,'stroke-width':o.width||1.9,
+      'stroke-dasharray':o.dash||null,'stroke-linejoin':'round','stroke-linecap':'round',
+      'stroke-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  }
+  return this;
+};
+Plot.prototype.hline = function(y,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.padL+','+this.Y(y)+' H'+(this.w-this.padR),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.vline = function(x,opt){
+  var o=opt||{};
+  this.add(svgEl('path',{d:'M'+this.X(x)+','+this.padT+' V'+(this.h-this.padB),
+    stroke:o.color||this.c.muted,'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||'5 4',
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.8)}));
+  return this;
+};
+Plot.prototype.dot = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||4,
+    fill:o.fill||o.color||this.c.accent, stroke:o.stroke||'none','stroke-width':o.sw||0,
+    'fill-opacity':(o.opacity!==undefined?o.opacity:1)}));
+  return this;
+};
+/** 叉号，用来标极点 */
+Plot.prototype.cross = function(x,y,opt){
+  var o=opt||{}, r=o.r||5, px=this.X(x), py=this.Y(y);
+  this.add(svgEl('path',{d:'M'+(px-r)+','+(py-r)+' L'+(px+r)+','+(py+r)+
+    ' M'+(px-r)+','+(py+r)+' L'+(px+r)+','+(py-r),
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2,'stroke-linecap':'round'}));
+  return this;
+};
+/** 空心圆，用来标零点 */
+Plot.prototype.circleMark = function(x,y,opt){
+  var o=opt||{};
+  this.add(svgEl('circle',{cx:this.X(x),cy:this.Y(y),r:o.r||5,fill:'none',
+    stroke:o.color||this.c.accent,'stroke-width':o.width||2}));
+  return this;
+};
+Plot.prototype.text = function(x,y,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:this.X(x)+(o.dx||0), y:this.Y(y)+(o.dy||0),
+    'text-anchor':o.anchor||'middle', fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),
+    'font-size':o.size||'11.5','font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 像素坐标直接放文字（图例等） */
+Plot.prototype.pxText = function(px,py,str,opt){
+  var o=opt||{};
+  var t=svgEl('text',{x:px,y:py,'text-anchor':o.anchor||'start',fill:o.color||'currentColor',
+    'fill-opacity':(o.opacity!==undefined?o.opacity:0.75),'font-size':o.size||'11.5',
+    'font-weight':o.weight||'normal'});
+  t.textContent=str; this.add(t); return this;
+};
+/** 图例：items=[{label,color,dash}] */
+Plot.prototype.legend = function(items, px, py){
+  var y=py;
+  for(var i=0;i<items.length;i++){
+    this.add(svgEl('path',{d:'M'+px+','+(y-4)+' h18',stroke:items[i].color,
+      'stroke-width':items[i].width||2.2,'stroke-dasharray':items[i].dash||null}));
+    this.pxText(px+24, y, items[i].label, {size:'11'});
+    y += 15;
+  }
+  return this;
+};
+/** 一段折线的极坐标圆弧（画等阻尼线、圆形轨迹用） */
+Plot.prototype.arc = function(cx0, cy0, r, a0, a1, opt){
+  var o=opt||{}, pts=[], N=o.N||120;
+  for(var i=0;i<=N;i++){
+    var a=a0+(a1-a0)*i/N;
+    pts.push(this.X(cx0+r*Math.cos(a)).toFixed(2)+','+this.Y(cy0+r*Math.sin(a)).toFixed(2));
+  }
+  this.add(svgEl('polyline',{points:pts.join(' '),fill:'none',stroke:o.color||this.c.faint,
+    'stroke-width':o.width||1.2,'stroke-dasharray':o.dash||null,
+    'stroke-opacity':(o.opacity!==undefined?o.opacity:0.7)}));
+  return this;
+};
+/** 挂到容器里（先清空） */
+Plot.prototype.mountTo = function(elOrId){
+  var host = (typeof elOrId==='string') ? document.getElementById(elOrId) : elOrId;
+  if(!host) return this;
+  host.innerHTML='';
+  host.appendChild(this.svg);
+  return this;
+};
+
+/* ===================== IS L1 交互件 ===================== */
+/* 依赖 plot.js 里的 svgEl / nf / themeColors。数值一律现算。 */
+
+/* ---------- 通用：数字格式 ---------- */
+/* 千分位 + U+2212 负号；最多保留 d 位小数并去掉尾零 */
+function money(v, d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  d = (d===undefined)?2:d;
+  var neg = v<0; v=Math.abs(v);
+  var s = (Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+  if(s.indexOf('.')>=0) s=s.replace(/0+$/,'').replace(/\.$/,'');
+  var parts=s.split('.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (neg?'−':'')+parts.join('.');
+}
+function signed(v){ return (v>0?'+':'')+money(v); }
+/* 解析用户输入：容忍千分位逗号、全角逗号、£ 与空格、U+2212 负号 */
+function parseNum(s){
+  if(s===null||s===undefined) return NaN;
+  s=String(s).replace(/[,，\s£]/g,'').replace(/−/g,'-');
+  if(s==='') return NaN;
+  return Number(s);
+}
+
+/* ======================================================================
+   图 1：被动攻击与主动攻击
+   ====================================================================== */
+function drawPassiveActive(hostId, narrow){
+  var host=document.getElementById(hostId); if(!host) return;
+  var c=themeColors(), AC=c.accent, FILL='#2F6F8F', RED=c.warn;
+  var W = narrow ? 380 : 780, H = narrow ? 420 : 205;
+  var svg=svgEl('svg',{viewBox:'0 0 '+W+' '+H, role:'img',
+    'aria-label':'被动攻击：Alice 发给 Bob 的消息原样到达，Darth 只从线路旁分出一支偷听；主动攻击：Darth 串在 Alice 与 Bob 之间，Bob 收到的是 Darth 发出的消息'});
+  svg.style.display='block'; svg.style.width='100%'; svg.style.height='auto';
+  var defs=svgEl('defs');
+  function marker(id,col){
+    var m=svgEl('marker',{id:id,markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto'});
+    m.appendChild(svgEl('path',{d:'M0,0 L8,3 L0,6 z',fill:col}));
+    defs.appendChild(m);
+  }
+  var sfx = narrow?'n':'w';
+  marker('paA'+sfx,AC); marker('paR'+sfx,RED);
+  svg.appendChild(defs);
+  var g=svgEl('g',{'font-family':'inherit','font-size':'13','text-anchor':'middle'});
+  svg.appendChild(g);
+
+  function node(x,y,letter,name,col){
+    g.appendChild(svgEl('circle',{cx:x,cy:y,r:22,fill:col}));
+    var t=svgEl('text',{x:x,y:y+5,fill:'#fff','font-weight':'700','font-size':'15'}); t.textContent=letter; g.appendChild(t);
+    var n=svgEl('text',{x:x,y:y+40,fill:'currentColor','fill-opacity':.6,'font-size':'11.5'}); n.textContent=name; g.appendChild(n);
+  }
+  function arrow(d,col,dash,id){
+    g.appendChild(svgEl('path',{d:d,fill:'none',stroke:col,'stroke-width':1.8,
+      'stroke-dasharray':dash||null,'marker-end':'url(#'+id+sfx+')'}));
+  }
+  function panelBox(x,y,w,h){
+    g.appendChild(svgEl('rect',{x:x,y:y,width:w,height:h,rx:9,fill:'none',stroke:'currentColor','stroke-opacity':.18}));
+  }
+  function label(x,y,s,col,w,anchor,sz){
+    var t=svgEl('text',{x:x,y:y,fill:col||'currentColor','font-weight':w||'normal',
+      'text-anchor':anchor||'middle','font-size':sz||'13'});
+    if(!col) t.setAttribute('fill-opacity',.75);
+    t.textContent=s; g.appendChild(t);
+  }
+
+  /* 面板 (a) 被动，(b) 主动。ox, oy 为面板左上角，pw 宽 */
+  function passive(ox,oy,pw){
+    panelBox(ox,oy,pw,190);
+    label(ox+16,oy+26,'(a) 被动攻击：Darth 只在旁边听',AC,'600','start','13.5');
+    var y=oy+70, xA=ox+50, xB=ox+pw-50, xm=(xA+xB)/2;
+    node(xA,y,'A','Alice',FILL); node(xB,y,'B','Bob',FILL);
+    arrow('M'+(xA+26)+','+y+' H'+(xB-28),AC,null,'paA');
+    arrow('M'+xm+','+y+' V'+(y+36),RED,'5 4','paR');
+    node(xm,y+60,'D','',RED);
+    label(xm+34,y+65,'Darth',RED,'600','start','11.5');
+    label(ox+16,oy+178,'消息原样到达：没改、没少，无迹可察',null,'normal','start','11.5');
+  }
+  function active(ox,oy,pw){
+    panelBox(ox,oy,pw,190);
+    label(ox+16,oy+26,'(b) 主动攻击：Darth 串在路径中间',RED,'600','start','13.5');
+    var y=oy+88, xA=ox+50, xB=ox+pw-50, xD=(xA+xB)/2;
+    node(xA,y,'A','Alice',FILL); node(xD,y,'D','Darth',RED); node(xB,y,'B','Bob',FILL);
+    arrow('M'+(xA+26)+','+y+' H'+(xD-28),AC,null,'paA');
+    arrow('M'+(xD+26)+','+y+' H'+(xB-28),RED,null,'paR');
+    label(ox+16,oy+178,'到达的已经不是发出的那一条消息',null,'normal','start','11.5');
+  }
+  if(narrow){ passive(6,6,W-12); active(6,214,W-12); }
+  else { passive(6,6,378); active(396,6,378); }
+  host.innerHTML=''; host.appendChild(svg);
+}
+
+/* ======================================================================
+   图 2：网络安全模型（按 Stallings 第 1 章原图的连接关系）
+   ====================================================================== */
+function drawNetModel(hostId, narrow){
+  var host=document.getElementById(hostId); if(!host) return;
+  var c=themeColors(), AC=c.accent, RED=c.warn, GOLD=c.exam;
+  var W = narrow ? 380 : 780, H = narrow ? 470 : 330;
+  var svg=svgEl('svg',{viewBox:'0 0 '+W+' '+H, role:'img',
+    'aria-label':'网络安全模型：发送方的消息经安全相关变换进入信息信道，再经另一端的安全相关变换到达接收方；两端的变换各自用到一份秘密信息；对手作用在信道上；可信第三方用虚线连到两份秘密信息，负责分发秘密与仲裁'});
+  svg.style.display='block'; svg.style.width='100%'; svg.style.height='auto';
+  var sfx=narrow?'n':'w';
+  var defs=svgEl('defs');
+  function marker(id,col){
+    var m=svgEl('marker',{id:id+sfx,markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto'});
+    m.appendChild(svgEl('path',{d:'M0,0 L8,3 L0,6 z',fill:col}));
+    defs.appendChild(m);
+  }
+  marker('nmN','currentColor'); marker('nmR',RED); marker('nmG',GOLD);
+  svg.appendChild(defs);
+  var g=svgEl('g',{'font-family':'inherit','font-size':'13','text-anchor':'middle'});
+  svg.appendChild(g);
+
+  function box(x,y,w,h,lines,col,strong,dash){
+    g.appendChild(svgEl('rect',{x:x,y:y,width:w,height:h,rx:8,
+      fill:col, 'fill-opacity':strong?.14:.06, stroke:col,'stroke-opacity':strong?.75:.45,
+      'stroke-width':strong?1.6:1.3,'stroke-dasharray':dash||null}));
+    var n=lines.length, lh=17, y0=y+h/2-(n-1)*lh/2+4.5;
+    for(var i=0;i<n;i++){
+      var t=svgEl('text',{x:x+w/2,y:y0+i*lh,fill:i===0?col:'currentColor',
+        'font-weight':i===0?'600':'normal','font-size':i===0?'13':'11.5'});
+      if(i>0) t.setAttribute('fill-opacity',.65);
+      t.textContent=lines[i]; g.appendChild(t);
+    }
+  }
+  function line(d,col,id,dash,noHead){
+    var a={d:d,fill:'none',stroke:col,'stroke-width':1.6,'stroke-dasharray':dash||null};
+    if(col==='currentColor') a['stroke-opacity']=.55;
+    if(!noHead) a['marker-end']='url(#'+id+sfx+')';
+    g.appendChild(svgEl('path',a));
+  }
+  function small(x,y,s,anchor){
+    var t=svgEl('text',{x:x,y:y,fill:'currentColor','fill-opacity':.55,'font-size':'11','font-style':'italic',
+      'text-anchor':anchor||'middle'}); t.textContent=s; g.appendChild(t);
+  }
+  var N='currentColor';
+
+  if(!narrow){
+    var yM=150, hM=56;                    // 主行
+    box(8,yM,92,hM,['发送方'],AC,true);           small(54,yM+hM+16,'消息');
+    box(136,yM,128,hM,['安全相关变换','加密 / 算校验码'],AC,false);
+    box(300,yM-6,180,hM+12,['信息信道','（安全消息）'],N,false);
+    box(516,yM,128,hM,['安全相关变换','解密 / 验校验码'],AC,false);
+    box(680,yM,92,hM,['接收方'],AC,true);        small(726,yM+hM+16,'消息');
+    line('M100,'+(yM+hM/2)+' H133',N,'nmN');
+    line('M264,'+(yM+hM/2)+' H297',N,'nmN');
+    line('M480,'+(yM+hM/2)+' H513',N,'nmN');
+    line('M644,'+(yM+hM/2)+' H677',N,'nmN');
+    /* 秘密信息 */
+    var yS=262, hS=44;
+    box(146,yS,108,hS,['秘密信息'],GOLD,true);
+    box(526,yS,108,hS,['秘密信息'],GOLD,true);
+    line('M200,'+yS+' V'+(yM+hM+3),GOLD,'nmG');
+    line('M580,'+yS+' V'+(yM+hM+3),GOLD,'nmG');
+    /* 对手 */
+    box(340,yS+6,100,hS,['对手'],RED,true);
+    line('M390,'+(yS+6)+' V'+(yM+hM+9),RED,'nmR');
+    small(400,yS-14,'窃听、篡改、冒充……','start');
+    /* 可信第三方：虚线连到两份秘密信息 */
+    box(250,18,280,56,['可信第三方','（如仲裁者、秘密信息的分发者）'],GOLD,false);
+    line('M250,46 H118 V'+(yS+hS/2)+' H143',GOLD,'nmG','5 4');
+    line('M530,46 H662 V'+(yS+hS/2)+' H637',GOLD,'nmG','5 4');
+  } else {
+    /* 竖排：主列居中偏左，秘密信息在右列，对手在左列，可信第三方在右列中间 */
+    var xM=118, wM=144, cx=xM+wM/2;      // 主列
+    var xR=278, wR=94;                   // 右列
+    box(xM,14,wM,46,['发送方'],AC,true);              small(cx+wM/2+6,42,'消息','start');
+    box(xM,100,wM,54,['安全相关变换','加密 / 算校验码'],AC,false);
+    box(xM,196,wM,74,['信息信道','（安全消息）'],N,false);
+    box(xM,312,wM,54,['安全相关变换','解密 / 验校验码'],AC,false);
+    box(xM,408,wM,46,['接收方'],AC,true);             small(cx+wM/2+6,436,'消息','start');
+    line('M'+cx+',60 V97',N,'nmN');
+    line('M'+cx+',154 V193',N,'nmN');
+    line('M'+cx+',270 V309',N,'nmN');
+    line('M'+cx+',366 V405',N,'nmN');
+    box(xR,106,wR,42,['秘密信息'],GOLD,true);
+    box(xR,318,wR,42,['秘密信息'],GOLD,true);
+    line('M'+xR+',127 H'+(xM+wM+3),GOLD,'nmG');
+    line('M'+xR+',339 H'+(xM+wM+3),GOLD,'nmG');
+    box(8,210,76,46,['对手'],RED,true);
+    line('M84,233 H'+(xM-3),RED,'nmR');
+    box(xR,196,wR,74,['可信第三方','仲裁、','分发秘密'],GOLD,false);
+    line('M'+(xR+wR/2)+',196 V151',GOLD,'nmG','5 4');
+    line('M'+(xR+wR/2)+',270 V315',GOLD,'nmG','5 4');
+  }
+  host.innerHTML=''; host.appendChild(svg);
+}
+
+/* ======================================================================
+   交互件 1：ALE 计算器
+   ====================================================================== */
+/* 预置：课堂活动 1。空字符串 = 该量不变（沿用基线）。 */
+var ALE_PRESET = {
+  sle:'120000', aro:'0.5',
+  ctl:[
+    {key:'A', name:'A 每晚异地备份',        cost:'4000',  ind:'0',     sle:'15000', aro:''},
+    {key:'B', name:'B 终端检测 + 7×24 监控', cost:'25000', ind:'0',     sle:'',      aro:'0.1'},
+    {key:'C', name:'C 物理隔离（断网）',     cost:'2000',  ind:'40000', sle:'',      aro:'0.05'}
+  ]
+};
+function aleRead(){
+  var base={sle:parseNum(document.getElementById('aleSle').value),
+            aro:parseNum(document.getElementById('aleAro').value)};
+  var ctl=[], bad=[];
+  ['A','B','C'].forEach(function(k){
+    function v(f){ return document.getElementById('ale'+f+k).value; }
+    var o={key:k, cost:parseNum(v('Cost')), ind:parseNum(v('Ind')),
+           sleS:v('SleA').trim(), aroS:v('AroA').trim()};
+    o.ind = (v('Ind').trim()==='') ? 0 : o.ind;
+    o.sle = o.sleS==='' ? null : parseNum(o.sleS);
+    o.aro = o.aroS==='' ? null : parseNum(o.aroS);
+    if(!isFinite(o.cost)||o.cost<0) bad.push(k+' 的年成本');
+    if(!isFinite(o.ind)||o.ind<0) bad.push(k+' 的间接代价');
+    if(o.sle!==null && (!isFinite(o.sle)||o.sle<0)) bad.push(k+' 的作用后 SLE');
+    if(o.aro!==null && (!isFinite(o.aro)||o.aro<0)) bad.push(k+' 的作用后 ARO');
+    ctl.push(o);
+  });
+  if(!isFinite(base.sle)||base.sle<0) bad.unshift('基线 SLE');
+  if(!isFinite(base.aro)||base.aro<0) bad.unshift('基线 ARO');
+  return {base:base, ctl:ctl, bad:bad};
+}
+/* 若干控制叠加后的 SLE、ARO：每个量取所选控制中最强（最小）的那个；没有控制动它就沿用基线。
+   不假设两项作用于同一个量时效果相乘——笔记没有算过这种组合。 */
+function aleCombine(base, list){
+  var sle=base.sle, aro=base.aro, cost=0;
+  list.forEach(function(o){
+    if(o.sle!==null) sle=Math.min(sle,o.sle);
+    if(o.aro!==null) aro=Math.min(aro,o.aro);
+    cost+=o.cost+o.ind;
+  });
+  return {sle:sle, aro:aro, ale:sle*aro, cost:cost};
+}
+function aleLoad(noFriction){
+  var P=ALE_PRESET;
+  document.getElementById('aleSle').value=P.sle;
+  document.getElementById('aleAro').value=P.aro;
+  P.ctl.forEach(function(o){
+    document.getElementById('aleCost'+o.key).value=o.cost;
+    document.getElementById('aleInd'+o.key).value=(noFriction&&o.key==='C')?'0':o.ind;
+    document.getElementById('aleSleA'+o.key).value=o.sle;
+    document.getElementById('aleAroA'+o.key).value=o.aro;
+  });
+  document.getElementById('aleBase').value='A';
+  document.getElementById('aleAdd').value='B';
+  aleGo();
+}
+function aleGo(){
+  var R=aleRead(), out=document.getElementById('aleOut');
+  if(R.bad.length){
+    out.innerHTML='<span class="bad">请检查：'+R.bad.join('、')+'（应为非负数；作用后 SLE / ARO 留空表示不变）</span>';
+    ['A','B','C'].forEach(function(k){
+      document.getElementById('aleAle'+k).textContent='ALE后 = —';
+      document.getElementById('aleNet'+k).textContent='净收益 = —';
+    });
+    document.getElementById('aleBefore').textContent='—';
+    document.getElementById('aleMarg').innerHTML='';
+    return;
+  }
+  var b=R.base, before=b.sle*b.aro;
+  document.getElementById('aleBefore').textContent='£'+money(before)+' / 年';
+  var rows=R.ctl.map(function(o){
+    var cmb=aleCombine(b,[o]);
+    var net=(before-cmb.ale)-(o.cost+o.ind);
+    return {key:o.key, o:o, ale:cmb.ale, sle:cmb.sle, aro:cmb.aro, net:net, saved:before-cmb.ale, pay:o.cost+o.ind};
+  });
+  var bestNet=rows.reduce(function(a,r){return r.net>a.net?r:a;});
+  var lowAle=rows.reduce(function(a,r){return r.ale<a.ale?r:a;});
+  rows.forEach(function(r){
+    document.getElementById('aleAle'+r.key).innerHTML='ALE<sub>后</sub> = '+money(r.sle)+' × '+money(r.aro,4)+' = <strong>'+money(r.ale)+'</strong>';
+    document.getElementById('aleNet'+r.key).innerHTML='净收益 = '+money(r.saved)+' − '+money(r.pay)+' = <strong class="'+(r.net>0?'good':'bad')+'">'+signed(r.net)+'</strong>';
+    document.getElementById('aleRow'+r.key).className = 'alec'+((Math.abs(r.net-bestNet.net)<1e-9 && r.net>0) ? ' hot' : '');
+  });
+  var ties=rows.filter(function(r){return Math.abs(r.net-bestNet.net)<1e-9;});
+  var html='<div class="three">'+
+    '<div><span class="lab">ALE<sub>前</sub> = SLE × ARO</span><span class="val">'+money(before)+'</span></div>'+
+    '<div><span class="lab">净收益最大</span><span class="val">'+(bestNet.net>0?ties.map(function(r){return r.key;}).join(' = '):'都不值')+
+      '</span><span class="lab">'+signed(bestNet.net)+' / 年</span></div>'+
+    '<div><span class="lab">ALE 降得最低</span><span class="val">'+lowAle.key+'</span><span class="lab">ALE<sub>后</sub> = '+money(lowAle.ale)+'</span></div>'+
+    '</div>';
+  var msg=[];
+  if(bestNet.net<=0) msg.push('三个方案净收益都不为正：按笔记的判据，<strong>一项也不值得买</strong>。');
+  else msg.push('按净收益选 <strong>'+ties.map(function(r){return r.key;}).join('、')+'</strong>。');
+  if(lowAle.key!==bestNet.key && bestNet.net>0){
+    msg.push('<span class="bad">风险降得最多的是 '+lowAle.key+'（ALE<sub>后</sub> '+money(lowAle.ale)+
+      '），净收益却是 '+signed(lowAle.net)+'</span>——风险降得最多 ≠ 最值得买。');
+    if(lowAle.o.ind>0){
+      var noInd=lowAle.saved-lowAle.o.cost;
+      msg.push(lowAle.key+' 的间接代价 '+money(lowAle.o.ind)+' 是这里的决定项：不算它，'+lowAle.key+' 的净收益是 '+signed(noInd)+
+        (noInd>bestNet.net?'，<strong>反超 '+bestNet.key+'</strong>':'，仍不及 '+bestNet.key)+'。');
+    }
+  }
+  out.innerHTML=html+'<div style="margin-top:.7rem">'+msg.join('<br>')+'</div>';
+  aleMarginal(R, before);
+}
+function aleMarginal(R, before){
+  var bk=document.getElementById('aleBase').value, ak=document.getElementById('aleAdd').value;
+  var host=document.getElementById('aleMarg');
+  function pick(k){ return R.ctl.filter(function(o){return o.key===k;})[0]; }
+  if(bk===ak){ host.innerHTML='<span class="bad">「已部署」与「再加」选了同一项，请换一个。</span>'; return; }
+  var baseList = bk==='none' ? [] : [pick(bk)];
+  var add=pick(ak);
+  var s0=aleCombine(R.base, baseList), s1=aleCombine(R.base, baseList.concat([add]));
+  var moreSaved=s0.ale-s1.ale, morePay=add.cost+add.ind, marg=moreSaved-morePay;
+  var totalNet=(before-s1.ale)-s1.cost;
+  var baseName = bk==='none' ? '什么都没部署' : '已有 '+bk;
+  host.innerHTML=
+    '<div class="steps">'+
+    '<div><span class="k">1</span>'+baseName+'：ALE = '+money(s0.sle)+' × '+money(s0.aro,4)+' = <strong>'+money(s0.ale)+'</strong></div>'+
+    '<div><span class="k">2</span>再加 '+ak+'：ALE = '+money(s1.sle)+' × '+money(s1.aro,4)+' = <strong>'+money(s1.ale)+'</strong></div>'+
+    '<div><span class="k">3</span>多省 '+money(s0.ale)+' − '+money(s1.ale)+' = <strong>'+money(moreSaved)+'</strong>，多花 <strong>'+money(morePay)+'</strong></div>'+
+    '</div>'+
+    '<div>边际净收益 = '+money(moreSaved)+' − '+money(morePay)+' = <strong class="'+(marg>0?'good':'bad')+'">'+signed(marg)+'</strong> / 年 —— '+
+    (marg>0 ? '<span class="good">值得加</span>' : '<span class="bad">不划算</span>')+
+    '<span style="opacity:.7">（组合后的总净收益 '+signed(totalNet)+'）</span></div>';
+}
+
+/* ======================================================================
+   交互件 2：攻击树求值器
+   ====================================================================== */
+/* 叶：{n:名称, c:代价}；内部节点：{n, t:'or'|'and', k:[子节点]} */
+var AT_TREES = {
+  file: {n:'读到那份文件', t:'or', k:[
+    {n:'拿到账户', t:'or', k:[ {n:'钓鱼骗到它', c:2}, {n:'用别处泄露的口令撞库', c:3} ]},
+    {n:'拿到磁盘并拿到密钥', t:'and', k:[ {n:'偷到笔记本', c:3}, {n:'拿到解密口令', c:4} ]}
+  ]},
+  hw: {n:'在截止前读到另一个同学的作业', t:'or', k:[
+    {n:'G1 拿到同学自己手里的副本', t:'or', k:[
+      {n:'机房里看打印稿或越肩看屏幕', c:1}, {n:'趁他离开用他未锁屏的电脑', c:2}, {n:'打开他发在群里的云盘共享链接', c:2} ]},
+    {n:'G2 以他的身份登录课程平台', t:'and', k:[
+      {n:'拿到口令', t:'or', k:[ {n:'仿冒登录页钓鱼', c:3}, {n:'猜弱口令或撞库', c:2} ]},
+      {n:'绕过第二因素', t:'or', k:[ {n:'反复推送认证请求直到他误点同意', c:3}, {n:'劫持手机卡', c:5} ]} ]},
+    {n:'G3 通过有合法访问权的人', t:'or', k:[
+      {n:'直接请他「给我对一下答案」', c:1}, {n:'冒充身份骗助教或管理员导出', c:4} ]},
+    {n:'G4 利用提交系统的漏洞', t:'or', k:[ {n:'改网址里的提交编号看别人的提交', c:4} ]}
+  ]}
+};
+var AT = {tree:null, nodes:[]};
+function atClone(n){ var o={n:n.n}; if(n.k){o.t=n.t; o.k=n.k.map(atClone);} else o.c=n.c; return o; }
+function atLoad(name){
+  AT.tree=atClone(AT_TREES[name]); AT.nodes=[];
+  var host=document.getElementById('atTree');
+  function build(node, depth){
+    var id=AT.nodes.length; node.id=id; AT.nodes.push(node);
+    var li=document.createElement('li');
+    var row=document.createElement('div'); row.className='an'; row.id='atN'+id;
+    var badge = node.k ? (node.t==='or'?'<span class="gate or">或</span>':'<span class="gate and">与</span>') : '<span class="gate leaf">叶</span>';
+    var right;
+    if(node.k){
+      right='<span class="av" id="atV'+id+'"></span>';
+    } else {
+      right='<span class="leafctl"><input type="text" inputmode="decimal" id="atC'+id+'" value="'+node.c+'" oninput="atGo()" aria-label="'+node.n+' 的代价">'+
+            '<label><input type="checkbox" id="atB'+id+'" onchange="atGo()"> 堵住</label>'+
+            '<span class="av" id="atV'+id+'"></span></span>';
+    }
+    row.innerHTML=badge+'<span class="nm">'+node.n+'</span>'+right;
+    li.appendChild(row);
+    if(node.k){
+      var ul=document.createElement('ul');
+      node.k.forEach(function(ch){ ul.appendChild(build(ch, depth+1)); });
+      li.appendChild(ul);
+    }
+    return li;
+  }
+  var root=document.createElement('ul'); root.className='atree';
+  root.appendChild(build(AT.tree,0));
+  host.innerHTML=''; host.appendChild(root);
+  atGo();
+}
+function atReset(){ var nm=document.getElementById('atPick').value; atLoad(nm); }
+function atFmt(v){ return isFinite(v) ? money(v) : '∞'; }
+function atGo(){
+  if(!AT.tree) return;
+  var bad=[];
+  /* 1. 读叶节点 */
+  AT.nodes.forEach(function(n){
+    if(n.k) return;
+    var inp=document.getElementById('atC'+n.id), blk=document.getElementById('atB'+n.id).checked;
+    var v=parseNum(inp.value);
+    inp.className = (!isFinite(v)||v<0) ? 'badin' : '';
+    if(!isFinite(v)||v<0) bad.push(n.n);
+    n.blocked=blk; n.v = blk ? Infinity : v;
+  });
+  var out=document.getElementById('atOut');
+  if(bad.length){
+    out.innerHTML='<span class="bad">代价应为非负数：'+bad.join('、')+'</span>';
+    AT.nodes.forEach(function(n){ document.getElementById('atN'+n.id).classList.remove('hot');
+      if(n.k) document.getElementById('atV'+n.id).textContent='—'; });
+    return;
+  }
+  /* 2. 自底向上求值：或取最小，与求和 */
+  var steps=[];
+  function ev(n){
+    if(!n.k) return n.v;
+    var vs=n.k.map(ev);
+    if(n.t==='or') n.v=Math.min.apply(null,vs);
+    else n.v=vs.reduce(function(a,b){return a+b;},0);
+    steps.push('<div><strong>'+n.n+'</strong>（'+(n.t==='or'?'或':'与')+'）= '+
+      (n.t==='or' ? 'min('+vs.map(atFmt).join(', ')+')' : vs.map(atFmt).join(' + '))+' = <strong>'+atFmt(n.v)+'</strong></div>');
+    return n.v;
+  }
+  ev(AT.tree);
+  /* 3. 标出最便宜的方案：或节点走所有取到最小值的分支（并列都标），与节点的所有子节点都要标 */
+  AT.nodes.forEach(function(n){ n.hot=false; });
+  function mark(n){
+    n.hot=true;
+    if(!n.k) return;
+    if(n.t==='and') n.k.forEach(mark);
+    else n.k.forEach(function(ch){ if(Math.abs(ch.v-n.v)<1e-9) mark(ch); });
+  }
+  if(isFinite(AT.tree.v)) mark(AT.tree);
+  /* 4. 枚举最便宜的完整方案（每个是一组必须同时做到的叶节点） */
+  function plans(n){
+    if(!n.k) return [[n.n]];
+    if(n.t==='or'){
+      var r=[]; n.k.forEach(function(ch){ if(Math.abs(ch.v-n.v)<1e-9) r=r.concat(plans(ch)); }); return r;
+    }
+    var acc=[[]];
+    n.k.forEach(function(ch){
+      var p=plans(ch), nx=[];
+      acc.forEach(function(a){ p.forEach(function(b){ if(nx.length<12) nx.push(a.concat(b)); }); });
+      acc=nx;
+    });
+    return acc;
+  }
+  /* 5. 写回 */
+  AT.nodes.forEach(function(n){
+    var row=document.getElementById('atN'+n.id);
+    row.classList.toggle('hot', !!n.hot);
+    row.classList.toggle('dead', !isFinite(n.v));
+    document.getElementById('atV'+n.id).textContent = n.k ? atFmt(n.v) : (n.blocked?'已堵住':'');
+  });
+  var html;
+  if(!isFinite(AT.tree.v)){
+    html='<div class="good"><strong>所有路径都被堵死</strong>：根节点代价为 ∞。</div>';
+  } else {
+    var ps=plans(AT.tree);
+    html='<div>根节点代价 <strong style="font-size:1.15rem">'+atFmt(AT.tree.v)+'</strong>。'+
+      (ps.length>1?'有 '+ps.length+' 个并列最便宜的方案：':'最便宜的方案：')+'</div><ul style="margin:.3rem 0 .6rem">'+
+      ps.map(function(p){ return '<li>'+p.join(' <strong>且</strong> ')+'</li>'; }).join('')+'</ul>';
+  }
+  html+='<div style="opacity:.85">'+steps.join('')+'</div>';
+  out.innerHTML=html;
+}
+
+/* ======================================================================
+   交互件 3：事件诊断练习（课堂活动 2，不计分）
+   ====================================================================== */
+var DX_ATTR=['机密性','完整性','可用性','真实性','可追责性','不可否认性'];
+var DX_ITEMS=[
+  {q:'① 成绩表被悄悄改了，某同学的分数从 42 变成 72', p:'完整性', pn:'', s:'可追责性', sn:'（「悄悄」：谁改的？）'},
+  {q:'② 作业截止周，课程平台下线三天', p:'可用性', pn:'', s:'', sn:'（若下线源于篡改或勒索，则还有完整性）'},
+  {q:'③ 一封自称院长的邮件要财务付款，其实不是他发的', p:'真实性', pn:'（冒充来源）', s:'完整性', sn:'（财务记录被一条未经授权的指令改变）'},
+  {q:'④ 云存储桶配置错误，4 万条学生记录谁拿到链接都能看', p:'机密性', pn:'', s:'可追责性', sn:'（谁下载过？公开的桶通常没有访问记录）'},
+  {q:'⑤ 全组都用 admin 登录，没人能查出是谁删了生产数据库', p:'可追责性', pn:'', s:'可用性', sn:'（数据库没了）'},
+  {q:'⑥ 供应商否认提交过一份采购单——其实交过，但没有证据', p:'不可否认性', pn:'', s:'可追责性', sn:''}
+];
+function dxInit(){
+  var host=document.getElementById('dxList'); if(!host) return;
+  function opts(withNone){
+    return '<option value="">— 请选择 —</option>'+(withNone?'<option value="无">（说不出）</option>':'')+
+      DX_ATTR.map(function(a){return '<option value="'+a+'">'+a+'</option>';}).join('');
+  }
+  host.innerHTML=DX_ITEMS.map(function(it,i){
+    return '<div class="dx" id="dx'+i+'">'+
+      '<div class="dq">'+it.q+'</div>'+
+      '<div class="row" style="margin-bottom:.2rem">'+
+        '<span class="ctl"><label for="dxP'+i+'">主要</label><select id="dxP'+i+'">'+opts(false)+'</select></span>'+
+        '<span class="ctl"><label for="dxS'+i+'">连带</label><select id="dxS'+i+'">'+opts(true)+'</select></span>'+
+        '<button class="btn" onclick="dxShow('+i+')">看答案</button>'+
+      '</div>'+
+      '<div class="da" id="dxA'+i+'"></div>'+
+    '</div>';
+  }).join('');
+  dxStatus();
+}
+function dxShow(i){
+  var it=DX_ITEMS[i];
+  var up=document.getElementById('dxP'+i).value, us=document.getElementById('dxS'+i).value;
+  var pv;
+  if(!up) pv='<span style="opacity:.7">你没选主要属性。</span>';
+  else if(up===it.p) pv='<span class="good">主要属性与笔记一致。</span>';
+  else pv='<span class="bad">你选的是「'+up+'」，笔记判为「'+it.p+'」。</span>';
+  var sv = us ? '你选的连带属性：'+us+'。' : '';
+  document.getElementById('dxA'+i).innerHTML=
+    '<div>'+pv+'</div>'+
+    '<div>笔记：主要 <strong>'+it.p+'</strong>'+it.pn+'；连带 '+(it.s?'<strong>'+it.s+'</strong>':'')+it.sn+'</div>'+
+    (sv?'<div style="opacity:.75">'+sv+'连带的答案不唯一，笔记给的是最有说服力的一个；能说出理由的其他答案也成立。</div>':'');
+  document.getElementById('dx'+i).classList.add('shown');
+  dxStatus();
+}
+function dxAll(){ for(var i=0;i<DX_ITEMS.length;i++) dxShow(i); }
+function dxReset(){
+  for(var i=0;i<DX_ITEMS.length;i++){
+    document.getElementById('dxP'+i).value=''; document.getElementById('dxS'+i).value='';
+    document.getElementById('dxA'+i).innerHTML=''; document.getElementById('dx'+i).classList.remove('shown');
+  }
+  dxStatus();
+}
+function dxStatus(){
+  var n=document.querySelectorAll('#dxList .dx.shown').length;
+  document.getElementById('dxOut').innerHTML=
+    '已看答案 '+n+' / '+DX_ITEMS.length+' 题。判断时用<strong>损失式定义</strong>问「失去了什么」：'+
+    '被看到 → 机密性；被改了 → 完整性；用不了 → 可用性；来源是假的 → 真实性；查不出是谁 → 可追责性；能抵赖 → 不可否认性。';
+}
+
+/* ---------- 宽窄两版图一次画好，CSS 决定显示哪一版 ---------- */
+function drawFigures(){
+  drawPassiveActive('paWide',false); drawPassiveActive('paNarrow',true);
+  drawNetModel('nmWide',false);      drawNetModel('nmNarrow',true);
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+aleLoad(false);
+dxInit();
+drawPassiveActive('paWide',false); drawPassiveActive('paNarrow',true);
+atLoad('file');
+drawNetModel('nmWide',false); drawNetModel('nmNarrow',true);
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+</script>
+</body>
+</html>
