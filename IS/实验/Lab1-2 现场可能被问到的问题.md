@@ -146,7 +146,7 @@ playfair('关键词', '明文', 'encrypt', 'qfill')
 
 ### Q15 Did the frequency method work?
 
-**答**："Yes, but not on the first guess. In this text the most common letter is t, not e: the word substitution appears four times with three t's each, and the word 'the' appears only seven times. So assuming the top ciphertext letter is e gives k equals 5, which is wrong. Assuming it is t, or taking the second most common letter as e, gives 16, which is correct."
+**答**："Yes. The handout says to compare the most common ciphertext letter with e or t. Taking it as t gives k equals 16 straight away. Taking it as e gives 5, which is wrong, because in this text t is more common than e: the word substitution appears four times with three t's each, and 'the' appears only seven times. Only if you insisted on e would you need the second most common letter, which then also gives 16."
 
 详见 [[Lab1-2 古典密码的 MATLAB 实现#5.2 最高频字母不是 e|实验笔记 5.2]]。
 
