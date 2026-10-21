@@ -1,0 +1,199 @@
+UESTCHN4009 Information Security - Lab sessions 1 & 2
+MATLAB 26.1.0.3346908 (R2026a) Update 5, 2026-10-21 15:17
+
+===== Self-test =====
+PASS  handout k example (35 -> 9)
+PASS  group key: 5918919 -> 42 -> 16
+PASS  GUID given as text with letter
+PASS  Caesar k=3: "Hello, World" -> "Khoor, Zruog"
+PASS  Caesar wraps: xyz -> abc (k=3)
+PASS  Caesar inverse
+PASS  letter_frequency counts
+PASS  English table sums to ~100
+PASS  monarchy matrix = Figure 2
+PASS  exceeding matrix
+PASS  KeChen matrix
+PASS  MingxiangBian matrix
+PASS  keyword with J is read as I
+PASS  balloon -> IB SU PM NA
+PASS  decrypt IBSUPMNA -> BA LX LO ON
+PASS  prepare  "hello world"
+PASS  encrypt  "hello world"
+PASS  decrypt  "hello world"
+PASS  prepare  "Jazz"
+PASS  encrypt  "Jazz"
+PASS  decrypt  "Jazz"
+PASS  prepare  "instruments"
+PASS  encrypt  "instruments"
+PASS  decrypt  "instruments"
+PASS  prepare  "Meet me at the school house"
+PASS  encrypt  "Meet me at the school house"
+PASS  decrypt  "Meet me at the school house"
+PASS  prepare  "ax"
+PASS  encrypt  "ax"
+PASS  decrypt  "ax"
+PASS  prepare  "box"
+PASS  encrypt  "box"
+PASS  decrypt  "box"
+PASS  prepare  "taxxi"
+PASS  encrypt  "taxxi"
+PASS  decrypt  "taxxi"
+PASS  prepare  "xx"
+PASS  encrypt  "xx"
+PASS  decrypt  "xx"
+PASS  prepare  "JJ"
+PASS  encrypt  "JJ"
+PASS  decrypt  "JJ"
+PASS  qfill mode uses Q for XX
+PASS  500 random keyword/text pairs round-trip in both modes
+
+44 checks, 0 failed
+
+===== Task 1: Caesar cipher =====
+Step 1: GUID sum   2959453 + 2959466 = 5918919
+Step 2: digit sum  5+9+1+8+9+1+9 = 42
+        k_mod = mod(42, 26) = 16
+Check against handout example: k = 35, k_mod = 9 (expected 35, 9)
+
+Plaintext (762 characters, loaded from plaintext.txt):
+In this section and the next, we examine a sampling of what might be called classical encryption techniques. A study of these techniques enables us to illustrate the basic approaches to symmetric encryption used today and the types of cryptanalytic attacks that must be anticipated. The two basic building blocks of all encryption techniques are substitution and transposition. We examine these in the next two sections. Finally, we discuss a system that combines both substitution and transposition. A substitution technique is one in which the letters of plaintext are replaced by other letters or by numbers or symbols. If the plaintext is viewed as a sequence of bits, then substitution involves replacing plaintext bit patterns with ciphertext bit patterns.
+
+Ciphertext, k = 16 (case and punctuation kept):
+Yd jxyi iusjyed qdt jxu dunj, mu unqcydu q iqcfbydw ev mxqj cywxj ru sqbbut sbqiiysqb udshofjyed jusxdygkui. Q ijkto ev jxuiu jusxdygkui udqrbui ki je ybbkijhqju jxu rqiys qffheqsxui je ioccujhys udshofjyed kiut jetqo qdt jxu jofui ev shofjqdqbojys qjjqsai jxqj ckij ru qdjysyfqjut. Jxu jme rqiys rkybtydw rbesai ev qbb udshofjyed jusxdygkui qhu ikrijyjkjyed qdt jhqdifeiyjyed. Mu unqcydu jxuiu yd jxu dunj jme iusjyedi. Vydqbbo, mu tyiskii q ioijuc jxqj secrydui rejx ikrijyjkjyed qdt jhqdifeiyjyed. Q ikrijyjkjyed jusxdygku yi edu yd mxysx jxu bujjuhi ev fbqydjunj qhu hufbqsut ro ejxuh bujjuhi eh ro dkcruhi eh iocrebi. Yv jxu fbqydjunj yi lyumut qi q iugkudsu ev ryji, jxud ikrijyjkjyed ydleblui hufbqsydw fbqydjunj ryj fqjjuhdi myjx syfxuhjunj ryj fqjjuhdi.
+
+Ciphertext in conventional form (letters only, groups of 5):
+YDJXY IIUSJ YEDQD TJXUD UNJMU UNQCY DUQIQ CFBYD WEVMX QJCYW XJRUS QBBUT SBQII YSQBU DSHOF JYEDJ USXDY GKUIQ IJKTO EVJXU IUJUS XDYGK UIUDQ RBUIK IJEYB BKIJH QJUJX URQIY SQFFH EQSXU IJEIO CCUJH YSUDS HOFJY EDKIU TJETQ OQDTJ XUJOF UIEVS HOFJQ DQBOJ YSQJJ QSAIJ XQJCK IJRUQ DJYSY FQJUT JXUJM ERQIY SRKYB TYDWR BESAI EVQBB UDSHO FJYED JUSXD YGKUI QHUIK RIJYJ KJYED QDTJH QDIFE IYJYE DMUUN QCYDU JXUIU YDJXU DUNJJ MEIUS JYEDI VYDQB BOMUT YISKI IQIOI JUCJX QJSEC RYDUI REJXI KRIJY JKJYE DQDTJ HQDIF EIYJY EDQIK RIJYJ KJYED JUSXD YGKUY IEDUY DMXYS XJXUB UJJUH IEVFB QYDJU NJQHU HUFBQ SUTRO EJXUH BUJJU HIEHR ODKCR UHIEH IOCRE BIYVJ XUFBQ YDJUN JYILY UMUTQ IQIUG KUDSU EVRYJ IJXUD IKRIJ YJKJY EDYDL EBLUI HUFBQ SYDWF BQYDJ UNJRY JFQJJ UHDIM YJXSY FXUHJ UNJRY JFQJJ UHDI
+
+Decryption check: D(k, E(k, p)) == p  ->  true
+
+===== Task 2: brute force (all 26 keys) =====
+ k   chi^2      first 60 characters of the candidate
+ 0   11697.2   Yd jxyi iusjyed qdt jxu dunj, mu unqcydu q iqcfbydw ev mxqj 
+ 1    4743.6   Xc iwxh htrixdc pcs iwt ctmi, lt tmpbxct p hpbeaxcv du lwpi 
+ 2    3281.8   Wb hvwg gsqhwcb obr hvs bslh, ks sloawbs o goadzwbu ct kvoh 
+ 3    1861.8   Va guvf frpgvba naq gur arkg, jr rknzvar n fnzcyvat bs jung 
+ 4   14839.3   Uz ftue eqofuaz mzp ftq zqjf, iq qjmyuzq m emybxuzs ar itmf 
+ 5    3398.2   Ty estd dpnetzy lyo esp ypie, hp pilxtyp l dlxawtyr zq hsle 
+ 6    4087.7   Sx drsc comdsyx kxn dro xohd, go ohkwsxo k ckwzvsxq yp grkd 
+ 7    5192.8   Rw cqrb bnlcrxw jwm cqn wngc, fn ngjvrwn j bjvyurwp xo fqjc 
+ 8    8529.8   Qv bpqa amkbqwv ivl bpm vmfb, em mfiuqvm i aiuxtqvo wn epib 
+ 9    8072.6   Pu aopz zljapvu huk aol ulea, dl lehtpul h zhtwspun vm doha 
+10   16884.3   Ot znoy ykizout gtj znk tkdz, ck kdgsotk g ygsvrotm ul cngz 
+11   10960.8   Ns ymnx xjhynts fsi ymj sjcy, bj jcfrnsj f xfruqnsl tk bmfy 
+12    8040.3   Mr xlmw wigxmsr erh xli ribx, ai ibeqmri e weqtpmrk sj alex 
+13    5644.8   Lq wklv vhfwlrq dqg wkh qhaw, zh hadplqh d vdpsolqj ri zkdw 
+14    4939.2   Kp vjku ugevkqp cpf vjg pgzv, yg gzcokpg c ucornkpi qh yjcv 
+15    5206.8   Jo uijt tfdujpo boe uif ofyu, xf fybnjof b tbnqmjoh pg xibu 
+16     170.9   In this section and the next, we examine a sampling of what 
+17    5727.9   Hm sghr rdbshnm zmc sgd mdws, vd dwzlhmd z rzlokhmf ne vgzs 
+18    7280.9   Gl rfgq qcargml ylb rfc lcvr, uc cvykglc y qyknjgle md ufyr 
+19   16720.5   Fk qefp pbzqflk xka qeb kbuq, tb buxjfkb x pxjmifkd lc texq 
+20    4664.1   Ej pdeo oaypekj wjz pda jatp, sa atwieja w owilhejc kb sdwp 
+21   13449.2   Di ocdn nzxodji viy ocz izso, rz zsvhdiz v nvhkgdib ja rcvo 
+22    1639.4   Ch nbcm mywncih uhx nby hyrn, qy yrugchy u mugjfcha iz qbun 
+23    6489.3   Bg mabl lxvmbhg tgw max gxqm, px xqtfbgx t ltfiebgz hy patm 
+24    3485.3   Af lzak kwulagf sfv lzw fwpl, ow wpseafw s ksehdafy gx ozsl 
+25   12189.7   Ze kyzj jvtkzfe reu kyv evok, nv vordzev r jrdgczex fw nyrk 
+
+Visual inspection: only one row reads as English.
+Automatic cross-check (smallest chi^2): k = 16 (chi^2 = 170.9; next best 1639.4)
+Key used for encryption in Task 1: k = 16  ->  match: true
+
+Recovered plaintext (k = 16):
+In this section and the next, we examine a sampling of what might be called classical encryption techniques. A study of these techniques enables us to illustrate the basic approaches to symmetric encryption used today and the types of cryptanalytic attacks that must be anticipated. The two basic building blocks of all encryption techniques are substitution and transposition. We examine these in the next two sections. Finally, we discuss a system that combines both substitution and transposition. A substitution technique is one in which the letters of plaintext are replaced by other letters or by numbers or symbols. If the plaintext is viewed as a sequence of bits, then substitution involves replacing plaintext bit patterns with ciphertext bit patterns.
+
+===== Task 3: frequency analysis =====
+Letters counted: plaintext 634, ciphertext 634
+letter  plain(n)  plain(%)  cipher(n)  cipher(%)  English(%)
+  a       45       7.10        2        0.32       8.167
+  b       20       3.15       24        3.79       1.492
+  c       28       4.42       11        1.74       2.782
+  d       13       2.05       49        7.73       4.253
+  e       72      11.36       34        5.36      12.702
+  f        8       1.26       19        3.00       2.228
+  g        4       0.63        5        0.79       2.015
+  h       26       4.10       22        3.47       6.094
+  i       57       8.99       56        8.83       6.966
+  j        0       0.00       84       13.25       0.153
+  k        2       0.32       21        3.31       0.772
+  l       24       3.79        3        0.47       4.025
+  m       11       1.74        9        1.42       2.406
+  n       49       7.73        8        1.26       6.749
+  o       34       5.36       14        2.21       7.507
+  p       19       3.00        0        0.00       1.929
+  q        5       0.79       45        7.10       0.095
+  r       22       3.47       20        3.15       5.987
+  s       56       8.83       28        4.42       6.327
+  t       84      13.25       13        2.05       9.056
+  u       21       3.31       72       11.36       2.758
+  v        3       0.47        8        1.26       0.978
+  w        9       1.42        4        0.63       2.360
+  x        8       1.26       26        4.10       0.150
+  y       14       2.21       57        8.99       1.974
+  z        0       0.00        0        0.00       0.074
+
+Most frequent ciphertext letters: j(84) u(72) y(57) i(56) d(49) q(45) 
+Most frequent plaintext letters : t(84) e(72) i(57) s(56) n(49) a(45) 
+Assume cipher letter #1 ('j') = 'e'  ->  k =  5 : Ty estd dpnetzy lyo esp ypie, hp pilxtyp l dlxawty
+Assume cipher letter #1 ('j') = 't'  ->  k = 16 : In this section and the next, we examine a samplin
+Assume cipher letter #2 ('u') = 'e'  ->  k = 16 : In this section and the next, we examine a samplin
+
+Figures saved in the figures folder.
+
+===== Task 4: Playfair cipher =====
+Matrix for keyword 'monarchy':
+    M   O   N   A   R   
+    C   H   Y   B   D   
+    E   F   G   I/J K   
+    L   P   Q   S   T   
+    U   V   W   X   Z   
+Matches Figure 2 of the handout: true
+
+Playfair matrix for keyword 'monarchy':
+    M   O   N   A   R   
+    C   H   Y   B   D   
+    E   F   G   I/J K   
+    L   P   Q   S   T   
+    U   V   W   X   Z   
+Plaintext        : balloon
+Prepared digrams : BA LX LO ON
+Ciphertext       : IB SU PM NA
+Decrypted back   : BA LX LO ON
+Round trip OK    : true
+Expected IB SU PM NA: true
+
+Matrix for keyword 'exceeding':
+    E   X   C   D   I/J 
+    N   G   A   B   F   
+    H   K   L   M   O   
+    P   Q   R   S   T   
+    U   V   W   Y   Z   
+
+Matrix for keyword 'KeChen':
+    K   E   C   H   N   
+    A   B   D   F   G   
+    I/J L   M   O   P   
+    Q   R   S   T   U   
+    V   W   X   Y   Z   
+
+Matrix for keyword 'MingxiangBian':
+    M   I/J N   G   X   
+    A   B   C   D   E   
+    F   H   K   L   O   
+    P   Q   R   S   T   
+    U   V   W   Y   Z   
+
+Rule checks with keyword 'monarchy':
+  hello world                   HE LX LO WO RL DX                   -> CF SU PM VN MT BZ                    round trip true   [LL split by X; now odd, so final X added]
+  Jazz                          IA ZX ZX                            -> SB UZ UZ                             round trip true   [J becomes I; ZZ split; now odd, so final X added]
+  instruments                   IN ST RU ME NT SX                   -> GA TL MZ CL RQ XA                    round trip true   [odd length: final X added]
+  Meet me at the school house   ME ET ME AT TH ES CH OX OL HO US EX -> CL KL CL RS PD IL HY AV MP FH XL IU  round trip true   [OO split (EE, TT fall across pairs); spaces removed]
+  box                           BO XX                               -> HA ZZ                                round trip true   [final single letter is X: handout rule gives XX]
+  taxxi                         TA XX XI                            -> SR ZZ AS                             round trip true   [XX inside one pair: handout rule gives XX again]
+
+===== Extension: Playfair vs Caesar on the same plaintext =====
+Playfair keyword 'KeChen': 322 digrams (10 fillers inserted)
+Index of coincidence: plaintext 0.0699 | Caesar 0.0699 | Playfair 0.0493 | English ~0.066 | random 0.0385
+Largest single-letter share: plaintext 13.25% | Caesar 13.25% | Playfair 8.85%
+
+Log saved to output/run_all_log.txt
