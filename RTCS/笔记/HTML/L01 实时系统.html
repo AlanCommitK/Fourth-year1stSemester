@@ -143,6 +143,9 @@ footer a{color:var(--accent)}
   details.box{border:1px solid #ccc} details.box>*{display:block !important}
   .tool{display:none}
 }
+
+/* print-details-fix：Chromium 打印时未展开的 <details> 内容被关在 ::details-content 里，骨架的 details.box>*{display:block} 打不开它；这里补一条，并由脚本在 beforeprint 时展开 */
+@media print{details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important}}
 </style>
 </head>
 <body>
@@ -628,5 +631,6 @@ render();
   map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
 })();
 </script>
+<script>/* print-details-fix */(function(){var opened=[];window.addEventListener('beforeprint',function(){opened=[].slice.call(document.querySelectorAll('details:not([open])'));opened.forEach(function(d){d.open=true;});});window.addEventListener('afterprint',function(){opened.forEach(function(d){d.open=false;});opened=[];});})();</script>
 </body>
 </html>
