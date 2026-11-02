@@ -230,6 +230,9 @@ table.ktab td span.fut{opacity:.35}
 .lg.hot{background:var(--accent-bg); border-color:var(--accent); color:var(--accent)}
 .lg.src4{background:var(--exam-bg); border-color:var(--exam)}
 .lg.src1{background:var(--warn-bg); border-color:var(--warn)}
+/* print-details-fix：Chromium 打印时未展开的 <details> 内容被关在 ::details-content 里，骨架的 details.box>*{display:block} 打不开它；
+   widgets-l4.js 的 beforeprint 只在真打印时触发，这条 CSS 保证打印预览/导出 PDF 也展开 */
+@media print{details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important}}
 </style>
 </head>
 <body>
