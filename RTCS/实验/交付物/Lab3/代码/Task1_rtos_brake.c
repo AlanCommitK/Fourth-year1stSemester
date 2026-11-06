@@ -38,7 +38,18 @@
  *        System Core > NVIC: tick "EXTI line[15:10] interrupts"
  *              Lines 10..15 share one vector, which is why the entry is named
  *              for a range rather than for EXTI13 alone.
- *     5. FREERTOS > Tasks and Queues > Tasks:
+ *     5. FREERTOS > Config parameters > TOTAL_HEAP_SIZE  ->  8192
+ *          The default is 3072 bytes, and that is the budget the WHOLE of
+ *          FreeRTOS allocates from: every task's stack, every task's TCB,
+ *          the queues, plus the idle task and the timer service task that
+ *          CubeMX creates for you.  The two tasks here (128 + 256 words)
+ *          already eat 1536 bytes of the 3072, so the default is not enough.
+ *          When it runs out, osThreadNew() simply returns NULL and that
+ *          task never exists -- the symptom is a task that is silent from
+ *          the first second while the others look fine, which reads like a
+ *          logic bug rather than a memory one.  See the return-value check
+ *          in MX_FREERTOS_Init() below.
+ *     6. FREERTOS > Tasks and Queues > Tasks:
  *              rename defaultTask  -> task_brake    / start_task_brake
  *                                     Priority  osPriorityAboveNormal
  *                                     Stack     128  (words)
@@ -131,6 +142,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
      * is the right behaviour. */
 }
 /* USER CODE END 0 */
+
+/* -------------------------------------------------------------------------
+ *  USER CODE BEGIN RTOS_EVENTS
+ *
+ *  Goes in MX_FREERTOS_Init() (freertos.c), at the very end -- after CubeMX's
+ *  own queue and thread creation calls.
+ *
+ *  Why bother: when TOTAL_HEAP_SIZE runs out, osThreadNew() and
+ *  osMessageQueueNew() do not crash and do not warn.  They return NULL, and
+ *  the object simply does not exist.  What you see on the board is one task
+ *  that never says anything while the rest behave perfectly -- which looks
+ *  exactly like a logic bug, and is not one.  Three lines here turn that into
+ *  an explicit message.
+ * -----------------------------------------------------------------------*/
+  if (task_brakeHandle == NULL || task_messageHandle == NULL ||
+      brakeQHandle     == NULL || msgQHandle        == NULL)
+  {
+    static const char fail[] =
+        "FATAL: an RTOS object was not created.\r\n"
+        "Raise FREERTOS > Config parameters > TOTAL_HEAP_SIZE (default 3072).\r\n";
+    /* The scheduler has not started yet, so a blocking HAL transmit is fine
+     * here and TIM4 is already providing the HAL timebase. */
+    HAL_UART_Transmit(&huart2, (uint8_t *)fail, sizeof(fail) - 1u, HAL_MAX_DELAY);
+    HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_SET);   /* LED solid = setup failed */
+    for (;;) { }
+  }
+/* USER CODE END RTOS_EVENTS */
+
 
 
 /* -------------------------------------------------------------------------

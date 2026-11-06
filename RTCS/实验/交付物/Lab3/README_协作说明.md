@@ -23,9 +23,10 @@
 | ⚠ 1 | **HAL 时基** | System Core → SYS → Timebase Source 改成 **TIM4** | FreeRTOS 要独占 SysTick，HAL 默认也用 SysTick。不换走，**整个系统一动不动**。手册 §2 也提到了这一步 |
 | ⚠ 2 | **FREERTOS 接口** | Middleware → FREERTOS → Interface 选 **CMSIS_V2** | 选 CMSIS_V1 的话下面所有 `osXxx` 函数签名都对不上 |
 | ⚠ 3 | **USART2** | 模式 Asynchronous，**NVIC 里勾上 USART2 global interrupt** | Task 2 要求"UART 通过中断接收"，不勾中断 `HAL_UART_Receive_IT` 不会回调 |
-| ○ 4 | 波特率 | 115200-8-N-1 | 和前两次实验一致，串口助手不用改设置 |
-| ○ 5 | 抢占 | 保持 CubeMX 默认的 **enabled** | 手册特意点名说默认开着抢占，Task 1 演示优先级要靠它 |
-| ○ 6 | 时钟 | 用默认的就行，**不要为了好看去开 PLL** | 本次对主频不敏感（见 §0.5） |
+| ⚠ 4 | **FreeRTOS 堆大小** | Middleware → FREERTOS → Config parameters → `TOTAL_HEAP_SIZE` 从 **3072 改成 8192** | 任务栈、TCB、队列、空闲任务全从这 3072 字节里出。本次两个任务的栈就占 2048，**不够会让任务根本创建不出来**，见 §4 坑 4 |
+| ○ 5 | 波特率 | 115200-8-N-1 | 和前两次实验一致，串口助手不用改设置 |
+| ○ 6 | 抢占 | 保持 CubeMX 默认的 **enabled** | 手册特意点名说默认开着抢占，Task 1 演示优先级要靠它 |
+| ○ 7 | 时钟 | 用默认的就行，**不要为了好看去开 PLL** | 本次对主频不敏感（见 §0.5） |
 
 ### 0.3 引脚
 
@@ -69,7 +70,7 @@
 
 ---
 
-## 1. CubeMX 五步配置
+## 1. CubeMX 六步配置
 
 两个工程都一样，做完再分别加各自的任务和队列。
 
@@ -77,7 +78,8 @@
 2. **System Core → SYS → Timebase Source 改成 TIM4**。⚠ 这一步最容易漏，漏了后面什么都不动。
 3. **Middleware and Software Packs → FREERTOS → Interface 选 CMSIS_V2**。
 4. **Connectivity → USART2 → NVIC Settings → 勾上 USART2 global interrupt**。
-5. FREERTOS 的 **Tasks and Queues** 页，按 §0.4 的表加任务（和 Task 2 工程的队列，见 §3.2）。
+5. **FREERTOS → Config parameters → `TOTAL_HEAP_SIZE` 从 3072 改成 8192**。⚠ 不改的话任务可能根本创建不出来，见 §4 坑 4。
+6. FREERTOS 的 **Tasks and Queues** 页，按 §0.4 的表加任务（和 Task 2 工程的队列，见 §3.2）。
 
 > **改任务属性的地方**：双击任务那一行，弹窗里改 Task Name、Entry Function、Priority、**Stack Size**。手册 Figure 2b/2c 就是这个弹窗。
 
@@ -156,6 +158,13 @@ $$150 \text{ 个 int} \times 4 \text{ 字节} = 600 \text{ 字节}$$
 
 > 为什么不填刚好够的 150：栈上除了这个数组还有循环变量、函数调用的返回地址、以及中断发生时压进去的现场。卡着 600 字节填必崩。**取 2 的幂且留足余量**是通行做法。
 
+> [!warning] ⚠ 还有一笔更容易漏的账：这些栈是从同一个堆里出的
+> 手册 Figure 6 那张 Config parameters 截图里有一行 **`TOTAL_HEAP_SIZE`，默认只有 3072 字节**（方案 `heap_4`）。
+> **任务的栈、任务的 TCB、三个队列，还有你没写但一定存在的空闲任务和软件定时器服务任务，全都从这 3072 字节里出。**
+> 本次两个任务都按 256 words 开，光栈就是 1024 × 2 = **2048 字节，三分之二没了**，再加上其余几样必然超。
+> **症状和栈不够完全不同**：栈不够是任务能起来、跑一下才挂；堆不够是 **`osThreadNew()` 返回 `NULL`，那个任务从头到尾一声不吭**，别的任务却一切正常——极容易误判成逻辑写错了。
+> **⚠ 两件事**：① 按 §0.2 第 4 行把 `TOTAL_HEAP_SIZE` 调到 **8192**（F103RB 有 20 KB SRAM，放得下）；② 在 `main.c` 里**检查 `osThreadNew()` 和 `osMessageQueueNew()` 的返回值**，为 `NULL` 时点个灯或打一行，别让它静默失败。
+
 手册还提了另一条路：用 `malloc()` / `free()` 从堆上要内存（CMSIS-RTOS v2 下它们是线程安全的）。**○ 两种都可以，报告里建议两种都写，说明为什么选了扩栈**——扩栈是静态确定的，不会有内存泄漏和堆碎片，对实时系统更可预测；手册 §3 自己也说"严格禁止动态分配的场合用 heap 1"，方向是一致的。
 
 ### 3.4 UART 中断收 11 个字符
@@ -197,12 +206,13 @@ HAL_UART_RxCpltCallback()   ← 只做两件事：把数据搬到第二个缓冲
 | **1** | **HAL 时基没从 SysTick 换到 TIM4** | 板子完全没反应，或者进 `HardFault` | §1 第 2 步，⚠ 必须 |
 | **2** | **任务里用了 `HAL_Delay()`** | 整个系统卡住，只有一个任务在跑 | 一律换成 `osDelay()`。手册 §2 专门讲了这条 |
 | **3** | **`task_led` 的栈还是默认 128** | 打印一行就挂 / 反复重启 | 改成 **256 words**，见 §3.3 |
-| 4 | 队列 3 的 item size 填了 2 字节 | 打印出来的最大值是个被截断的怪数 | 填 **4 字节**，见 §3.2 |
-| 5 | UART 回调里忘了重新 arm | 只收得到第一条命令，之后就死了 | 见 §3.4 |
-| 6 | 收到 `-DELAY 0000` | LED 任务空转，CPU 被吃光 | 把下限钳到 1 ms，或者直接忽略 0 |
-| 7 | PC13 开了片内上拉/下拉 | 按键时灵时不灵 | 选 `NOPULL`，板上已有外部上拉 |
-| 8 | 在中断里调 `osMessageQueuePut` 时 timeout 填了非 0 | 返回错误码，数据丢了 | **中断里 timeout 必须填 0** |
-| 9 | 用 `printf` 打印 | 栈瞬间吃掉几百字节，连带触发坑 3 | 用 `sprintf` 到小缓冲区再 `HAL_UART_Transmit`，或者用参考代码里那个手写的整数转字符串 |
+| **4** | **`TOTAL_HEAP_SIZE` 还是默认的 3072** | **某个任务从头到尾一声不吭**，别的任务正常（`osThreadNew()` 返回了 `NULL`） | 改成 **8192**，并检查创建函数的返回值，见 §3.3 |
+| 5 | 队列 3 的 item size 填了 2 字节 | 打印出来的最大值是个被截断的怪数 | 填 **4 字节**，见 §3.2 |
+| 6 | UART 回调里忘了重新 arm | 只收得到第一条命令，之后就死了 | 见 §3.4 |
+| 7 | 收到 `-DELAY 0000` | LED 任务空转，CPU 被吃光 | 把下限钳到 1 ms，或者直接忽略 0 |
+| 8 | PC13 开了片内上拉/下拉 | 按键时灵时不灵 | 选 `NOPULL`，板上已有外部上拉 |
+| 9 | 在中断里调 `osMessageQueuePut` 时 timeout 填了非 0 | 返回错误码，数据丢了 | **中断里 timeout 必须填 0** |
+| 10 | 用 `printf` 打印 | 栈瞬间吃掉几百字节，连带触发坑 3 | 用 `sprintf` 到小缓冲区再 `HAL_UART_Transmit`，或者用参考代码里那个手写的整数转字符串 |
 
 ---
 
@@ -211,7 +221,7 @@ HAL_UART_RxCpltCallback()   ← 只做两件事：把数据搬到第二个缓冲
 **前三样是硬性的**——Lab 2 就是因为这三样没及时发回来，我写进指引的参数（PC7、1 kHz）和你实际跑的（PB5、10 Hz）一直分叉到写报告时才发现：
 
 1. ⚠ **Clock Configuration 页面的截图**（整页就行）。
-2. ⚠ **两个工程 FreeRTOS 配置页的截图**：任务列表（名字、优先级、Stack Size）和队列列表（Queue Size、Item Size）。手册 Figure 2b/2c/9 那几个弹窗的样子。
+2. ⚠ **两个工程 FreeRTOS 配置页的截图**：任务列表（名字、优先级、Stack Size）、队列列表（Queue Size、Item Size），**以及 Config parameters 页**（要看 `TOTAL_HEAP_SIZE` 最后是多少）。手册 Figure 2b/2c/6/9 那几个弹窗的样子。
 3. ⚠ **每个功能实际用了哪个引脚**——如果你一个都没改，回一句"全是默认"即可。
 
 还有这些是报告要插图的：
@@ -228,10 +238,11 @@ HAL_UART_RxCpltCallback()   ← 只做两件事：把数据搬到第二个缓冲
 | --- | --- |
 | 编译报 `osDelay` / `osMessageQueuePut` 未定义 | FREERTOS 的 Interface 选成了 CMSIS_V1，改回 **CMSIS_V2** |
 | 下载进去完全没反应，调试器停在 `HardFault_Handler` | 坑 1（时基）或坑 3（栈） |
+| 某个任务像不存在一样，别的任务都正常 | 坑 4，堆不够、`osThreadNew()` 返回了 `NULL` |
 | 只有一个任务在跑，另一个永远不动 | 高优先级那个任务里有死循环但没 `osDelay`，它一直不让出 CPU |
 | 串口全是乱码 | 波特率不一致；核对串口助手和 CubeMX 里都是 115200 |
-| 串口只收到第一条命令 | 坑 5，回调里忘了重新 arm |
-| 队列 3 打印出来的数总是很小或很怪 | 坑 4，item size 填成 2 字节被截断了 |
+| 串口只收到第一条命令 | 坑 6，回调里忘了重新 arm |
+| 队列 3 打印出来的数总是很小或很怪 | 坑 5，item size 填成 2 字节被截断了 |
 | LED 根本不翻转 | 队列 1 一直是空的——先确认回显正常（说明 UART 收到了），再确认 `memcmp` 那一行的下标是 `buf[1]` 不是 `buf[2]` |
 
 ---
