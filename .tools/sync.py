@@ -116,7 +116,9 @@ REPORT_DIR_NAMES = {"报告", "report", "reports"}
 # 校方发的实验手册的命名：Lab1H-RTCSA_2026-2027.pdf / Lab0H-... 。
 # 我们自己的文件是 Lab1_Report / Lab1_xxx（下划线），不会命中。
 SCHOOL_HANDOUT = re.compile(r"^Lab\d+[A-Za-z]?-", re.I)
-# 校方随手册附带的配套材料目录
+# 校方随手册附带的配套材料：既可能是目录，也可能是原始压缩包
+# （2026-11-06：Lab2_Supplemental-Material.zip 直接躺在 Lab2/ 下，
+#  原先只查目录名的判据漏掉了它，一度被当成交付物推进了公开仓库。）
 SCHOOL_DIR_HINT = ("supplemental", "supplementary", "provided")
 # 成品文档：要么是校方手册，要么是我们的报告，两类都不发布
 BINARY_DOC_EXTS = {".pdf", ".doc", ".docx", ".ppt", ".pptx"}
@@ -135,7 +137,8 @@ def _is_school_material(rel) -> bool:
     """
     if SCHOOL_HANDOUT.match(rel.name):
         return True
-    if any(h in part.lower() for part in rel.parts[:-1] for h in SCHOOL_DIR_HINT):
+    # 对整条相对路径（含文件名）匹配，目录与压缩包都能挡住
+    if any(h in part.lower() for part in rel.parts for h in SCHOOL_DIR_HINT):
         return True
     if rel.suffix.lower() in BINARY_DOC_EXTS:
         return True
