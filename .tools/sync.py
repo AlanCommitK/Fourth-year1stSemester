@@ -251,27 +251,54 @@ def apply_plan(plan, dry_run):
 
 
 def prune(managed_roots, keep, dry_run):
-    """删掉受管目录下、本次没有产出的文件——源里删了的东西也要从仓库消失。"""
-    removed = []
+    """删掉受管目录下、本次没有产出的文件——源里删了的东西也要从仓库消失。
+
+    两条防护（2026-11-12）：
+    1. 跳过点文件与点目录。macOS 会不断生成 .DS_Store，它已在 .gitignore 里、
+       也从未被 git 跟踪，删它是纯粹的无用功；交付物不会以点开头。
+    2. 删不掉就记下来继续，不要让整次同步崩掉。连接文件夹默认禁止删除
+       （rm 会得到 Operation not permitted），此前 prune 从未真正删过东西，
+       所以这个坑一直没暴露，直到仓库里出现第一个该删的文件。
+    """
+    removed, failed = [], []
     for root in managed_roots:
         if not root.is_dir():
             continue
         for p in sorted(root.rglob("*")):
-            if p.is_file() and p.resolve() not in keep:
+            if not p.is_file() or p.resolve() in keep:
+                continue
+            if any(part.startswith(".") for part in p.relative_to(root).parts):
+                continue
+            if dry_run:
                 removed.append(p)
-                if not dry_run:
-                    p.unlink()
+                continue
+            try:
+                p.unlink()
+                removed.append(p)
+            except OSError as e:
+                failed.append((p, e))
+    if failed:
+        print(f"\n⚠️  有 {len(failed)} 个文件删不掉，已跳过（同步照常继续）：")
+        for p, e in failed:
+            print(f"   {p.relative_to(REPO) if 'REPO' in globals() else p}  —— {e.strerror}")
+        print("   若确实该删，请在 Claude 里为仓库文件夹开启删除权限，或手动删除。")
     if not dry_run:
         for root in managed_roots:
             if root.is_dir():
-                remove_empty_dirs(root)
+                try:
+                    remove_empty_dirs(root)
+                except OSError:
+                    pass
     return removed
 
 
 def remove_empty_dirs(root: Path):
     for p in sorted(root.rglob("*"), key=lambda x: len(x.parts), reverse=True):
         if p.is_dir() and not any(p.iterdir()):
-            p.rmdir()
+            try:
+                p.rmdir()
+            except OSError:
+                pass
 
 
 # ══════════════════════════ 四、校验 ══════════════════════════
