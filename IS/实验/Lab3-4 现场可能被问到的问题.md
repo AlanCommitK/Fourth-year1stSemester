@@ -33,7 +33,7 @@ python --version
 
 **自检**
 
-5. 运行 `python -m unittest test_blockchain -v`。最后应是 `Ran 11 tests ... OK`。中途会打印一两行 `{'index': 3, 'data': [400]}` 之类，是测试在调用打印函数，正常。
+5. 运行 `python -m unittest test_blockchain -v`。最后应是 `Ran 12 tests ... OK`。中途会打印一两行 `{'index': 3, 'data': [400]}` 之类，是测试在调用打印函数，正常。
 
 **按顺序演示**
 
@@ -170,6 +170,6 @@ python --version
 
 ### Q22 How do you know your code is correct?
 
-> "Eleven unit tests: the ten Task 1 records, the genesis block fields, the hash links, key-order independence of the hash, every mined hash meeting the target, the proof being the smallest one that works, and detection of tampering in the middle and at the end of the chain."
+> "Twelve unit tests: the ten Task 1 records, the genesis block fields, the hash links, key-order independence of the hash, every mined hash meeting the target, the proof being the smallest one that works, detection of tampering in the middle and at the end of the chain, and a chain whose links were repaired after an edit, which only the Proof-of-Work check catches."
 
 现场直接跑 `python -m unittest test_blockchain -v`。

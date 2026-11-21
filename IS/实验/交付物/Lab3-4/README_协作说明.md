@@ -33,7 +33,7 @@ python --version
 | `lab3_demo.py` | Lab 3 Task 3.1–3.3 | `python lab3_demo.py`：创世块、记两块、取上一块、整条链及每块哈希 |
 | `lab4_demo.py` | Lab 4 Task 3、Mine New Block、Validate | `python lab4_demo.py`：挖两块（难度 4，各约 0.1 s）、校验通过；再篡改第 1 块，校验失败并指出哪一块 |
 | `difficulty_experiment.py` | 扩展（报告用） | `python difficulty_experiment.py 4 50`：难度 1–4 各挖 50 块，平均哈希次数对照 $16^d$ |
-| `test_blockchain.py` | 自测 | `python -m unittest test_blockchain -v`，11 项全过 |
+| `test_blockchain.py` | 自测 | `python -m unittest test_blockchain -v`，12 项全过 |
 
 ## 4 题面里的几处笔误，代码怎么处理的
 

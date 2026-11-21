@@ -88,6 +88,14 @@ class TestLab4ProofOfWork(unittest.TestCase):
         self.assertFalse(is_valid)
         self.assertIn("PoW target", reason)
 
+    def test_relinked_chain_passes_without_work(self):
+        # Edit block 1 and repair block 2's link: the hash links alone look valid again,
+        # only the Proof-of-Work check exposes the edit.
+        self.chain.chain[1]["data"] = "forged"
+        self.chain.chain[2]["previous_hash"] = Blockchain.hash_block(self.chain.chain[1])
+        self.assertTrue(self.chain.is_chain_valid(check_work=False)[0])
+        self.assertFalse(self.chain.is_chain_valid()[0])
+
     def test_unmined_block_fails_work_check(self):
         self.chain.add_block("not mined")
         self.assertFalse(self.chain.is_chain_valid()[0])
