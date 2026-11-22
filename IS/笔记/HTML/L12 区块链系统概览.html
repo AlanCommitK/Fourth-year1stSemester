@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L12 区块链系统概览 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.tool input.num{width:6.8rem; font-size:14px; padding:.25rem .4rem}
+.tool input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.three span.lab,.three span.val{display:block}
+.three .val{font-size:1.2rem}
+/* ---------- 链接 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* ---------- 表：四列以上的宽表放开宽度上限，窄屏改为在 .tw 里横向滚动 ---------- */
+.tw>table.wide{max-width:100%}
+@media (max-width:640px){ .tw>table.wide{min-width:38rem} .tw>table.wide td,.tw>table.wide th{padding:.45rem .55rem} }
+.box .tw>table{margin:.6rem 0}
+.box table{font-size:14.5px}
+/* ---------- 宽窄两版图：窄屏换竖排版，打印用宽版 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+figure>div>svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.toolfig svg{display:block; width:100%; height:auto}
+/* ---------- 打印：Chromium/Safari 里关着的 details 内容藏在 ::details-content，补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+.eq{overflow-x:auto}
+@media (max-width:600px){ .eq{font-size:1.05rem} }
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.small{font-size:13.5px; color:var(--muted)}
+.tw th.nw,.tw td.nw{white-space:nowrap}
+/* 正文字体的 -> 会被连字成箭头，交易文本、代码、SQL 里必须显示原字符 */
+body,input,button,svg text{font-variant-ligatures:none; font-feature-settings:"calt" 0, "liga" 0}
+
+/* ---------- L12 ---------- */
+.m .r{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif; font-size:.92em}
+#clsView table{width:auto; margin:.3rem 0 0}
+select:disabled{opacity:.45}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 12</div>
+  <div class="tt">区块链系统概览</div>
+  <div class="toc">
+<a href="#s1">1 · 本讲的位置</a>
+<a href="#s1-1" class="sub">1.1 复习页与 L11 的对照</a>
+<a href="#s1-2" class="sub">1.2 本讲讲了什么、没讲什么</a>
+<a href="#s2">2 · 三类区块链：谁能加入、谁能记账</a>
+<a href="#s2-1" class="sub">2.1 按准入分成三类</a>
+<a href="#s2-2" class="sub">2.2 公有链：谁都能进，谁都能挖</a>
+<a href="#s2-3" class="sub">2.3 私有链：一家说了算</a>
+<a href="#s2-4" class="sub">2.4 联盟链：一群机构共同说了算</a>
+<a href="#s2-5" class="sub">2.5 三类对照与规范答法</a>
+<a href="#s3">3 · 两种分类法为什么打架</a>
+<a href="#s3-1" class="sub">3.1 同一个词，两种意思</a>
+<a href="#s3-2" class="sub">3.2 NIST 的判据：谁能发布区块</a>
+<a href="#s3-3" class="sub">3.3 考试按哪种答</a>
+<a href="#s4">4 · 公有链的五个问题</a>
+<a href="#s4-1" class="sub">4.1 根源：身份免费，只能拿资源投票</a>
+<a href="#s4-2" class="sub">4.2 交易量有限</a>
+<a href="#s4-3" class="sub">4.3 区块大小有限</a>
+<a href="#s4-4" class="sub">4.4 可扩展性</a>
+<a href="#s4-5" class="sub">4.5 能耗</a>
+<a href="#s4-6" class="sub">4.6 假名性</a>
+<a href="#s5">5 · 区块链与数据库：谁来维护账本</a>
+<a href="#s5-1" class="sub">5.1 数据库的两种维护方式</a>
+<a href="#s5-2" class="sub">5.2 区块链的三种维护方式</a>
+<a href="#s5-3" class="sub">5.3 中心化账本要你信任的七件事</a>
+<a href="#s5-4" class="sub">5.4 公开可验证</a>
+<a href="#s5-5" class="sub">5.5 六项对比</a>
+<a href="#s5-6" class="sub">5.6 信任从哪来</a>
+<a href="#s5-7" class="sub">5.7 什么时候真的需要区块链</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 12 — Overview of Blockchain System</div>
+  <h1>区块链系统概览</h1>
+  <p>谁可以加入、谁可以记账？回答分出公有链、私有链、联盟链三类；这个选择又决定了区块链和传统数据库在「由谁维护账本」上差在哪，以及公有链为什么慢、为什么耗电。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>上一讲 <a href="L11 分布式账本与区块链导论.html">L11 分布式账本与区块链导论</a> 讲了区块链是一本没有中心记账人的账本。这一讲追问：<strong>谁可以加入、谁可以记账？</strong> 回答分出公有链、私有链、联盟链三类；这个选择又决定了区块链和传统数据库在「由谁维护账本」上差在哪，以及公有链为什么慢、为什么耗电。</p>
+<p>和课件顺序的主要不同：</p>
+<ul>
+<li>课件 p2–p15 是 L11 的复习，几乎逐页重放，本笔记不再重讲，<a href="#s1-1">1.1</a> 列出每页对应 L11 笔记的哪一节；</li>
+<li>课件把公有链的五个问题平铺成五页，本笔记先讲它们共同的根源（身份免费，只能拿资源投票），再按「吞吐 → 区块大小 → 可扩展性 → 能耗 → 假名性」的因果顺序讲；</li>
+<li>课件在同一讲里先后放了两套互相冲突的分类法（p6 与 p21），本笔记单列 <a href="#s3">第 3 节</a>讲清它们怎么调和、考试按哪套答；</li>
+<li>Moodle 上本讲的阅读材料 NIST IR 8202 的要点补在相应位置，逐条注明出处。</li>
+</ul>
+<p style="margin-bottom:0">对应课件 <code>Lecture 2-Overview of Blockchain system - new.pdf</code>，41 页（文件名写 Lecture 2，幻灯片内部写 Lecture 12），课件图截自 Rehmani 教材第 2 章。阅读材料 <code>Reading Materials for Lecture 2.pdf</code> 即 NIST IR 8202 「Blockchain Technology Overview」（美国国家标准与技术研究院 2018 年的中立综述，专门有一章讲常见误解），与 L11 内容相关的要点已写进 L11 笔记。本讲没有课堂活动；下文数值都用程序算过。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+<p>本讲课件没有出现 「exam」、「examinable」 一类字样。考试信号来自模拟卷（去年版）：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">模拟卷</th><th class="nw">分值</th><th>题面</th><th>出处</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td class="nw">Q3(a)(iii)</td><td class="nw">3</td><td>「Explain the access permission respectively for public chain, private chain and consortium chain.」</td><td>p21（参考答案就是 p21 左侧三行原文），展开在 p22–p24</td><td><a href="#s2-5">2.5</a>；与 L11 分类法的冲突见 <a href="#s3">第 3 节</a></td></tr>
+<tr><td class="nw">Q3(a)(ii)</td><td class="nw">3</td><td>列出区块链的任意三个特征</td><td>L11 p26（本讲 p14 复习页）</td><td><a href="L11 分布式账本与区块链导论.html#s4-1">L11 九大特征</a></td></tr>
+<tr><td class="nw">Q3(a)(i)</td><td class="nw">4</td><td>三类节点、谁能产生新交易</td><td>本讲 p18 的 Outline 列了 「Users/Nodes in a Blockchain Network」，内容实际在 L13 课件 p11–p18（节点职责表在 p12）</td><td><a href="L13 区块链工作原理（上）.html">L13 区块链工作原理（上）</a></td></tr>
+<tr><td class="nw">Q3(b)(iii)</td><td class="nw">3</td><td>吞吐量与确认时间计算</td><td>公式与例题在 L15；本讲 p26 只有吞吐量的数量级</td><td><a href="#s4-2">4.2</a> 预览；正式讲解见 <a href="L15 区块链共识 I.html">L15 区块链共识 I</a></td></tr>
+<tr><td class="nw">Q3(b)(i)</td><td class="nw">4</td><td>两类故障（crash / Byzantine）</td><td>本讲只在 p37 的勘误里提到；正式讲解在 L15</td><td><a href="#s5-5">5.5</a> 警告框；<a href="L15 区块链共识 I.html">L15 区块链共识 I</a></td></tr>
+<tr><td class="nw">Q3(b)(v)</td><td class="nw">2</td><td>「Explain the advantages of sharing.」（卷面笔误，应为 sharding，分片）</td><td>本讲 p27 可扩展性只引出问题；正式讲解在 L14</td><td><a href="#s4-4">4.4</a>；<a href="L14 区块链工作原理（下）.html">L14 区块链工作原理（下）</a></td></tr>
+<tr><td class="nw">Q4(a)(ii)</td><td class="nw">2</td><td>「Discuss the advantages of PoS over PoW.」</td><td>本讲 p29 能耗；正式讲解在 L15</td><td><a href="#s4-5">4.5</a>；<a href="L15 区块链共识 I.html">L15 区块链共识 I</a></td></tr>
+</tbody></table></div>
+<p>间接信号：Summary 讲原样重放了本讲 p20、p22–p24（三类链），没有重放 p25–p39（公有链问题、与数据库的对比）。</p>
+<p>最可能的考法：Q3(a)(iii) 原题；「列出公有链的若干问题」；「区块链与传统数据库在维护上有何区别」。都是概念题，每点 1 分。</p>
+<p style="margin-bottom:0">课件说法有误时的总规则（与 L11 相同）：<strong>列举、定义类题照课件原话写</strong>（参考答案就是课件原话）；<strong>评述、判断类题按本笔记警告框里的修正答</strong>。标了「阅读材料补充」的内容（5.3、5.7）帮助理解，不必默写。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>本讲的位置</h2>
+
+<h3 id="s1-1"><span class="n">1.1</span>复习页与 L11 的对照</h3>
+
+<p>课件 p2 「Review of Lecture 11」 之后，p3–p15 把 L11 的页几乎原样重放了一遍：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">本讲页</th><th>内容</th><th>L11 笔记</th></tr></thead>
+<tbody>
+<tr><td class="nw">p3</td><td>账本是什么</td><td><a href="L11 分布式账本与区块链导论.html#s2-1">账本的定义</a></td></tr>
+<tr><td class="nw">p4–p5</td><td>账本四级演化；去中心化分布式数字账本 ⟺ DLT</td><td><a href="L11 分布式账本与区块链导论.html#s2-2">四级演化</a></td></tr>
+<tr><td class="nw">p6</td><td>DLT 两维分类（Fig. 1.1）</td><td><a href="L11 分布式账本与区块链导论.html#s2-4">两维分类</a>，与本讲 p21 的冲突见<a href="#s3">第 3 节</a></td></tr>
+<tr><td class="nw">p7</td><td>DBMS vs DLT 表</td><td><a href="L11 分布式账本与区块链导论.html#s2-3">DLT 与数据库</a></td></tr>
+<tr><td class="nw">p8</td><td>三种数据结构</td><td><a href="L11 分布式账本与区块链导论.html#s3-1">三种组织方式</a></td></tr>
+<tr><td class="nw">p9</td><td>区块链的定义</td><td><a href="L11 分布式账本与区块链导论.html#s3-7">定义及其边界</a></td></tr>
+<tr><td class="nw">p10</td><td>块—链—交易三要素</td><td><a href="L11 分布式账本与区块链导论.html#s3-1">三要素</a></td></tr>
+<tr><td class="nw">p11</td><td>区块结构（Fig. 1.3）</td><td><a href="L11 分布式账本与区块链导论.html#s3-3">区块字段</a></td></tr>
+<tr><td class="nw">p12</td><td>块怎样连成链；线性链的问题</td><td><a href="L11 分布式账本与区块链导论.html#s3-4">哈希链</a>、<a href="L11 分布式账本与区块链导论.html#s3-6">线性链的代价</a></td></tr>
+<tr><td class="nw">p13</td><td>交易能存什么</td><td><a href="L11 分布式账本与区块链导论.html#s3-2">交易</a></td></tr>
+<tr><td class="nw">p14</td><td>九大特征总览（没有重放详解页）</td><td><a href="L11 分布式账本与区块链导论.html#s4-1">九大特征</a></td></tr>
+<tr><td class="nw">p15</td><td>食品供应链</td><td><a href="L11 分布式账本与区块链导论.html#s5">食品供应链</a></td></tr>
+</tbody></table></div>
+
+<p>措辞上只有两处小差别，不影响内容：p3 的例子换成 「a ledger for payroll, a ledger for bills, a ledger for amount received as income, and a ledger for amount payable」；p9 的定义句改成 「a data structure that is read only and data cannot be modified …」，并把 「eliminates」 也标成红字。</p>
+
+<p>复习的要点用一句话串起来：DLT 是「多台计算机各存一份、没有中心实体管理」的账本；区块链是其中一种，用每块保存前一块哈希的方式把块串成链，于是改任何一块都会被发现（篡改可检测，tamper-evident）。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>本讲讲了什么、没讲什么</h3>
+
+<p>p16 是一张路线图：一条 S 形曲线上，绿点（已完成）依次是 「Information Security (Lecture 1-10)」 和 「DLT and Blockchain (Lecture 11)」，红点（当前）是 「Overview of Blockchain System (Lecture 12)」，下分 「Classifications」 与 「Entities」 两支；后面四个橙点是还没讲的讲次，终点写着 「Destination (understand how to apply wireless blockchain)」。</p>
+
+<p>p17 的学习目标：「Understand the main idea.basics of blockchain」（原文如此，应是 main idea / basics 两个词）和 「Differences from traditional ones」。p18 的 Outline 列了四节：</p>
+
+<ol>
+<li>「Blockchain Classifications」——本讲 p19–p29，即本笔记第 2–4 节；</li>
+<li>「Blockchain and Database Maintenance」——本讲 p30–p39，即第 5 节；</li>
+<li>「Users/Nodes in a Blockchain Network」——<strong>本讲课件里没有</strong>；</li>
+<li>「Layers in Blockchain」——<strong>本讲课件里也没有</strong>。</li>
+</ol>
+
+<p>第 3 节（即路线图上的 「Entities」）和第 4 节实际在下一讲的课件开头讲，见 <a href="L13 区块链工作原理（上）.html">L13 区块链工作原理（上）</a>。模拟卷 Q3(a)(i) 的三类节点就在那里，按「L12 讲节点」去找会扑空。另外 p19 的标题误写成 「Outline of Lecture 11」，应为 12。p41 预告下一讲 「Working Principles」：区块链的一般流程、治理、平台、系统性质。</p>
+
+<h2 id="s2"><span class="n">2</span>三类区块链：谁能加入、谁能记账</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>按准入分成三类</h3>
+
+<p>课件 p20：「Blockchain networks can be classified as public, private, consortium.」 又说：「From an access permission perspective, it can also be classified as permissioned blockchain, permissionless blockchain.」 这里的<strong>准入</strong>（access permission）指一个节点要加入网络、参与记账，需不需要别人批准。p21 把两种说法合成一棵树：</p>
+
+<figure>
+<div id="figTreeW" class="only-wide"></div><div id="figTreeN" class="only-narrow"></div>
+<figcaption>课件 p21：左侧三行是模拟卷 Q3(a)(iii) 的参考答案原文；右侧是三层的分类树。</figcaption>
+</figure>
+
+<p>读树的顺序：</p>
+
+<ol>
+<li>第一层按「要不要许可」分两支：<strong>无许可链</strong>（permissionless blockchain，谁都能加入、谁都能参与记账）和<strong>许可链</strong>（permissioned blockchain，加入和记账要经过批准）。</li>
+<li>无许可这一支下只有一种：<strong>公有链</strong>（public blockchain）。</li>
+<li>许可这一支再按「<strong>许可由谁发</strong>」分两种：<strong>联盟链</strong>（consortium blockchain，consortium 即「联盟」，由若干机构组成的团体）和<strong>私有链</strong>（private blockchain）。</li>
+</ol>
+
+<p>下面三小节逐个讲三类链。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>公有链：谁都能进，谁都能挖</h3>
+
+<p>课件 p22 「Public Blockchain Network—Permissionless」：</p>
+
+<ul>
+<li>「Any blockchain node can join or leave at any time.」——任何节点随时加入或离开。不用注册、不用审批，下载软件、连上网络就是一个节点；关机就离开了。</li>
+<li>「Any blockchain node can participate in mining process.」——任何节点都能参与挖矿，即竞争记账权（<a href="L11 分布式账本与区块链导论.html#s2-3">挖矿</a>）。</li>
+<li>「Completely decentralized.」——完全去中心化。</li>
+<li>「e.g., Bitcoin」</li>
+</ul>
+
+<p>「Completely」 说得太绝对。NIST IR 8202 §7.2 专门指出「没有人控制区块链」是一种误解：无许可链由用户、出块节点和软件开发者共同治理；2013 年比特币的一个新版客户端引入缺陷导致链分成两条，是开发者决定回退版本、放弃其中一条。现实中比特币的算力也高度集中在少数矿池（许多矿工合伙挖矿的组织）手里。</p>
+
+<h3 id="s2-3"><span class="n">2.3</span>私有链：一家说了算</h3>
+
+<p>课件 p23 「Private Blockchain Network—Permissioned」：</p>
+
+<ul>
+<li>「Nodes can join or leave the network with the permission from the central entity.」——加入、离开都要<strong>中心实体</strong>批准；</li>
+<li>「Completely centralized.」——完全中心化；</li>
+<li>「Miners are selected a priori.」——「矿工」是事先指定好的。</li>
+</ul>
+
+<p>私有链典型的场景是一家公司内部用：公司决定哪些服务器能记账。这里的 「miners」 不是真的在挖矿——私有链的记账节点身份已知、由公司指定，不需要靠算力竞争，课件只是沿用了这个词，意思是「事先指定的记账节点」。</p>
+
+<p>既然一家说了算，为什么不直接用数据库？私有链仍保留了哈希链带来的「篡改可检测」：多个部门各存一份，谁私下改了记录，其他副本一比就露馅。但 NIST IR 8202 §2.2 的提醒也要记住：「if a single entity controls who can publish blocks, the users of the blockchain will need to have trust in that entity」——用户还是得信任这个中心实体，区块链没有替你消除这份信任。</p>
+
+<h3 id="s2-4"><span class="n">2.4</span>联盟链：一群机构共同说了算</h3>
+
+<p>课件 p24 「Consortium Blockchain Network—Permissioned」：</p>
+
+<ul>
+<li>「Neither completely centralized nor completely decentralized」——介于两者之间；</li>
+<li>「Nodes can join or leave the blockchain network with the permission from the consortium of nodes.」——加入、离开要经<strong>联盟成员</strong>共同批准，而不是某一家；</li>
+<li>「Not all the nodes can validate the transactions.」——不是每个节点都能验证交易、参与记账，只有联盟指定的成员节点可以；</li>
+<li>「Partially centralized.」——部分中心化。</li>
+</ul>
+
+<p>典型场景是几家互相不完全信任、又需要共享一本账的机构，例如几家银行做跨行结算，或一条供应链上的几家公司。NIST IR 8202 §2.2 的描述正是如此：「Permissioned blockchain networks may also be used by organizations that wish to work together but may not fully trust one another.」；§2 还说许可链「often deployed for a group of organizations and individuals, typically referred to as a consortium」。课件没给例子；后面讲次会提到的 Hyperledger Fabric（Linux 基金会主导的开源许可链平台）常用于联盟场景。</p>
+
+<h3 id="s2-5"><span class="n">2.5</span>三类对照与规范答法</h3>
+
+<p>把三页合成一张表：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw"></th><th>公有链（Public）</th><th>联盟链（Consortium）</th><th>私有链（Private）</th></tr></thead>
+<tbody>
+<tr><td class="nw">许可类型</td><td>Permissionless</td><td>Permissioned</td><td>Permissioned</td></tr>
+<tr><td class="nw">加入、离开</td><td>任何节点随时</td><td>经联盟成员（consortium of nodes）许可</td><td>经中心实体（central entity）许可</td></tr>
+<tr><td class="nw">谁能记账</td><td>任何节点都可参与挖矿</td><td>只有部分节点能验证交易</td><td>事先指定的「矿工」</td></tr>
+<tr><td class="nw">中心化程度</td><td>完全去中心化</td><td>部分中心化</td><td>完全中心化</td></tr>
+<tr><td class="nw">例子</td><td>Bitcoin</td><td>课件未给</td><td>课件未给</td></tr>
+</tbody></table></div>
+
+<p>记法：联盟链和私有链都要许可，区别只在<strong>许可由谁发</strong>——一群机构，还是一个中心实体。</p>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>模拟卷 Q3(a)(iii) 的规范答法（3 分）</div>
+<p>题面：「Explain the access permission respectively for public chain, private chain and consortium chain.」</p>
+<p>参考答案只写了三行（即 p21 左侧原文）：</p>
+<p>「Public Blockchain Network — Permissionless / Private Blockchain Network — Permissioned / Consortium Blockchain Network — Permissioned」</p>
+<p>题目动词是 「Explain」，只写三个词有被判「没解释」的风险。建议每类一行，先写许可类型、再写谁批准加入与记账：</p>
+<ul style="margin-bottom:0">
+<li><strong>Public chain — permissionless</strong>: any node can join or leave at any time and any node can participate in mining; completely decentralized (e.g., Bitcoin).</li>
+<li><strong>Private chain — permissioned</strong>: nodes join or leave only with the permission of a central entity; miners are selected a priori; completely centralized.</li>
+<li><strong>Consortium chain — permissioned</strong>: nodes join or leave with the permission of the consortium of nodes; not all nodes can validate transactions; partially centralized.</li>
+</ul>
+</div>
+
+<h2 id="s3"><span class="n">3</span>两种分类法为什么打架</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>同一个词，两种意思</h3>
+
+<p>本讲 p6（重放 L11 p15）和 p21 前后只隔十几页，给的却是两套分法：</p>
+
+<ul>
+<li><strong>p6 是两个独立维度</strong>：按节点身份分 permissioned（身份须已知）/ permissionless（不须已知）；按读权限分 public（任何人可读）/ private（仅批准节点可读）。见 <a href="L11 分布式账本与区块链导论.html#s2-4">L11 的两维分类</a>。</li>
+<li><strong>p21 是一棵树</strong>：permissionless 下挂 public，permissioned 下挂 consortium 和 private。</li>
+</ul>
+
+<p>冲突出在同一个词在两处指不同的东西：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:5.0em">词</th><th>p6（L11 p15）的意思</th><th>p21–p24 的意思</th></tr></thead>
+<tbody>
+<tr><td>public</td><td>任何人都能<strong>读</strong>账本</td><td>任何人都能<strong>加入、记账</strong>（＝permissionless）</td></tr>
+<tr><td>private</td><td>只有批准的节点能<strong>读</strong></td><td>许可由<strong>一个中心实体</strong>发放（与 consortium 相对）</td></tr>
+<tr><td>permissioned</td><td>节点身份必须已知</td><td>加入、记账须经批准</td></tr>
+</tbody></table></div>
+
+<p>按 p6 的定义，「permissioned + public」（只有授权节点能记账，但任何人都能读）是一个合法组合；在 p21 的树里，它没有位置——public 只能挂在 permissionless 下面。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>NIST 的判据：谁能发布区块</h3>
+
+<p>NIST IR 8202 §2 给了一个清楚的判据，能把两套分法放进同一个框架：</p>
+
+<p>「Blockchain networks can be categorized based on their permission model, which determines who can maintain them (e.g., publish blocks). If anyone can publish a new block, it is permissionless. If only particular users can publish blocks, it is permissioned.」</p>
+
+<p><strong>发布区块</strong>（publish a block）就是把新块接到链上，也就是记账。所以 permissioned / permissionless 看的是<strong>出块（记账）权限</strong>。读的权限是另一回事，§2.1 与 §2.2 分别说：</p>
+
+<ul>
+<li>无许可链：「Since anyone has the right to publish blocks, this results in the property that anyone can read the blockchain」——谁都能出块，自然谁都能读；</li>
+<li>许可链：「Permissioned blockchain networks may thus allow anyone to read the blockchain or they may restrict read access to authorized individuals.」——读权限可以开放，也可以限制。</li>
+</ul>
+
+<p>把出块权限和读权限交叉起来：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em"></th><th>任何人可读</th><th>只有批准者可读</th></tr></thead>
+<tbody>
+<tr><td>任何人可发布区块（permissionless）</td><td>公有链，如比特币</td><td>不存在：任何人都能出块，就任何人都能读</td></tr>
+<tr><td>只有授权者可发布区块（permissioned）</td><td>许可但公开可读</td><td>许可且读受限</td></tr>
+</tbody></table></div>
+
+<p>NIST §2.2 还单列了第三种权限——谁能<strong>提交交易</strong>（submit transactions，把交易交给网络等待收录）：「They also may allow anyone to submit transactions to be included in the blockchain or, again, they may restrict this access」。所以许可链可以对所有人开放提交交易，只限制出块；不要把「许可链」理解成「外人不能往里写任何东西」。</p>
+
+<p>回到交叉表：四格里有一格是空的，这正是 p21 能把两个维度压成一棵树的原因：<strong>无许可必然公开可读</strong>，所以无许可那一支不用再分；许可那一支本来可以再按读权限分，p21 改按「许可由谁发」分成联盟链和私有链，读权限这一维被略掉了。</p>
+
+<p>于是两套分法各说对了一部分：p6 的「记账与读是两个维度」是对的（NIST 支持）；p21 在出块权限之下多加了一个「授权者是谁」的维度。p6 的「身份须已知」可以看成出块权限的前提：要被授权发布区块，先得让人知道你是谁。p6 的判据也因此比 NIST 含糊——它没说只读的参与者算不算要验身份的 「nodes」。</p>
+
+<div class="tool" id="clsTool">
+  <h4>同一个系统，两套分法各叫它什么</h4>
+  <p class="sub">描述一个系统：谁能发布区块（记账）、许可由谁发、谁能读账本。下面并排给出 L11 p15 的两维叫法、本讲 p21 的树里的叫法，以及 NIST 交叉表的那一格；红字标出同一个词含义打架的地方。</p>
+  <div class="row">
+    <span class="ctl"><label for="clsPub">谁能发布区块</label><select id="clsPub" onchange="clsGo()"><option value="any">任何人</option><option value="auth" selected>只有授权者</option></select></span>
+    <span class="ctl"><label for="clsGrant">许可由谁发</label><select id="clsGrant" onchange="clsGo()"><option value="consortium" selected>联盟成员（一群机构）</option><option value="central">一个中心实体</option></select></span>
+    <span class="ctl"><label for="clsRead">谁能读</label><select id="clsRead" onchange="clsGo()"><option value="any" selected>任何人</option><option value="approved">只有批准者</option></select></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="clsSet('any','consortium','any')">比特币</button>
+    <button class="btn" onclick="clsSet('auth','consortium','any')">几家银行记账、公众可查</button>
+    <button class="btn" onclick="clsSet('auth','central','approved')">一家公司内部</button>
+    <button class="btn" onclick="clsSet('any','consortium','approved')">任何人出块、读受限</button>
+  </div>
+  <div id="clsView"></div>
+  <div class="result" id="clsOut"></div>
+</div>
+
+<h3 id="s3-3"><span class="n">3.3</span>考试按哪种答</h3>
+
+<ul>
+<li><strong>问到 public / private / consortium chain 的准入</strong>（模拟卷 Q3(a)(iii)）：按 p21–p24 答，即 <a href="#s2-5">2.5 的规范答法</a>。consortium 这个词只在 p21 的体系里出现，题目本身就是按这一套出的，参考答案也是。</li>
+<li><strong>问到 DLT 怎样分类，或 permissioned / permissionless 与 public / private 的定义</strong>：按 p6（L11 p15）的两维答，写清「in terms of identity of nodes」和「in terms of reading data」。</li>
+<li><strong>不要混用</strong>：在 Q3(a)(iii) 里把 private chain 写成「only approved nodes can read the data」，用的是 p6 的意思，漏掉了 p21 体系里私有链的要点——许可来自中心实体。可以作为补充一句，但主体按 p21–p24 写。</li>
+</ul>
+
+<h2 id="s4"><span class="n">4</span>公有链的五个问题</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>根源：身份免费，只能拿资源投票</h3>
+
+<p>课件 p25 列了公有链的五个问题：「Limited Transactions」、「Scalability」、「Pseudonymity」、「Limited Block Size」、「Energy Consumption」。课件逐页给结论，没讲它们为什么偏偏出在公有链上。下面的因果链是课件外的补充：第 1–3 步出自 NIST IR 8202 §2.1、§4.1、§4.3，第 4–6 步是本笔记的推理（能耗一项对应 NIST §7.8）。</p>
+
+<ol>
+<li>公有链谁都能加入、不验身份 → 创建一个新身份不花代价。NIST §4.1 的原话是网络身份 「generally costless to create」。</li>
+<li>如果按「一个节点一票」决定谁记账，攻击者开一万个假节点就有一万票。这叫<strong>女巫攻击</strong>（Sybil attack：一个攻击者伪造大量身份，冒充许多独立参与者来操纵投票；NIST §4.1：「an attacker can create many nodes (i.e., creating multiple identities) to gain influence and exert control」），在 <a href="L15 区块链共识 I.html">L15 区块链共识 I</a> 正式讲。NIST §4.3 也据此说明轮流出块的方案不适用于无许可链：「malicious nodes could continuously add additional nodes to increase their odds of publishing new blocks」。</li>
+<li>所以公有链不能按人头投票，只能把出块权绑在<strong>伪造不了的资源</strong>上，再按资源多少抽签：PoW（<a href="L11 分布式账本与区块链导论.html#s3-3">工作量证明</a>，矿工反复试 nonce 算哈希来竞争记账权）按算力抽签，PoS（proof of stake，权益证明）按抵押的代币抽签。NIST §2.1：「permissionless blockchain networks often utilize a multiparty agreement or 'consensus' system … that requires users to expend or maintain resources when attempting to publish blocks.」</li>
+<li>资源证明的直接代价：PoW 要全网不停地算哈希 → <strong>能耗</strong>。PoS 没有这项代价。</li>
+<li>抽签出块的代价，与用 PoW 还是 PoS 无关：下一块由谁出事先没人知道，几个获胜者可能几乎同时出块，链就<strong>分叉</strong>（<a href="L11 分布式账本与区块链导论.html#s3-6">两个节点几乎同时各出一块，链分成两支</a>）。新块传遍全网需要时间，出块间隔必须远大于这段传播时间，区块也不能太大（越大传得越慢），否则分叉频繁 → <strong>交易量有限、区块大小有限</strong>。另外每个<a href="L11 分布式账本与区块链导论.html#s2-3">全节点</a>都要验证、存储、转发每一笔交易 → <strong>可扩展性</strong>差。</li>
+<li>身份不验证，用户只以地址出现 → <strong>假名性</strong>。</li>
+</ol>
+
+<p>许可链没有第 1 步：成员身份已知、授权可撤销，节点又少，可以用按节点投票的共识，如 PBFT（Practical Byzantine Fault Tolerance，实用拜占庭容错）或 Raft（一种让多台机器对同一串操作达成一致的共识算法），见 <a href="L16 区块链共识 II.html">L16 区块链共识 II</a>、<a href="L17 区块链共识 III.html">L17 区块链共识 III</a>。投票当场确定下一块，不靠抽签和概率性的<strong>最长链规则</strong>（出现分叉时，采用累计工作量最大的那条链）来收敛，也就没有第 5 步的分叉约束。NIST §2.2：「Consensus models in permissioned blockchain networks are then usually faster and less computationally expensive.」 这也解释了 <a href="#s2-3">2.3</a> 里私有链的「矿工」为什么不用挖矿。</p>
+
+<p>下面按这条因果链的顺序讲五个问题。</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>交易量有限</h3>
+
+<p>课件 p26 比较了比特币与以太坊（Ethereum，可运行智能合约的公有链，2015 年上线，见 <a href="L11 分布式账本与区块链导论.html#s6">L11 区块链的来历</a>）：「Bitcoin blockchain can handle less than 10 transactions per second (Tps), while Ethereum blockchain can handle less than 50 Tps.」 <strong>Tps</strong>（transactions per second，每秒交易数）是衡量区块链<strong>吞吐量</strong>（throughput，单位时间能处理多少笔交易）的单位。同页的表：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em">Blockchain</th><th>Transaction handling capacity</th></tr></thead>
+<tbody>
+<tr><td>Bitcoin</td><td>Can handle less than 10 Tx/s</td></tr>
+<tr><td>Ethereum (in public setting)</td><td>Can handle less than 100 Tx/s</td></tr>
+<tr><td>Ethereum (in private setting)</td><td>Can handle less than 1000 Tx/s</td></tr>
+<tr><td>Hyperledger</td><td>Can handle hundreds of Tx/s</td></tr>
+</tbody></table></div>
+
+<p>公有和私有设置下的以太坊差了一个数量级，正是 <a href="#s4-1">4.1</a> 那条因果链的体现。</p>
+
+<p>比特币为什么不到 10 Tps，可以直接算出来。吞吐量由三个量决定：</p>
+
+<div class="eq"><span class="m"><span class="r">吞吐量（Tx/s）</span> = <span class="frac"><span><span class="r">区块大小</span> / <span class="r">平均交易大小</span></span><span><span class="r">出块间隔</span></span></span></span></div>
+
+<ul>
+<li>分子「区块大小 ÷ 平均交易大小」是<strong>一块能装多少笔交易</strong>；</li>
+<li>再除以「出块间隔」（多少秒出一块），就是每秒平均处理多少笔。</li>
+<li>成立条件：每块装满，交易大小取平均；分母是<strong>出块间隔</strong>（block time），不是确认时间。L15 课件的图把横轴标成 「Block Confirmation Time」，实际代入的却是出块间隔，容易误导。确认时间只决定一笔交易多久算最终确定，与吞吐量无关。</li>
+</ul>
+
+<p>比特币：区块 1 MB（按 <span class="m">10<sup>6</sup></span> 字节算）、平均每笔交易约 250 字节、平均 600 秒出一块：</p>
+
+<div class="eq"><span class="m"><span class="frac"><span>10<sup>6</sup>/250</span><span>600</span></span> = <span class="frac"><span>4000</span><span>600</span></span> ≈ 6.67 <span class="r">Tx/s</span></span></div>
+
+<p>交易平均大小若是 400 字节，则只有约 4.17 Tx/s。两个数都在课件的「less than 10」以内。公式也说明了提高吞吐只有三条路：区块做大、交易做小、出块加快——而 4.1 第 5 步说明公有链在区块大小和出块速度上都受限。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p26 同页数字不一致，而且已过时</div>
+<p style="margin-bottom:0">正文说以太坊 「less than 50 Tps」，表里说公有以太坊 「less than 100 Tx/s」，同一页给了两个上限（PoW 时期以太坊常见的实测约 15 Tps，两个上限都不算错，但不一致）。「Hyperledger: hundreds of Tx/s」 偏保守：Hyperledger 是一组项目的总称，不是一条链；其中 Fabric v1.1 在 EuroSys 2018 论文的测试配置下超过 3500 Tx/s。</p>
+</div>
+
+<p>这个公式在模拟卷里直接考过，题目属于 L15，这里先看一遍：</p>
+
+<details class="box">
+  <summary>模拟卷 Q3(b)(iii) 预览：同一个公式的计算题（正式内容在 L15）</summary>
+<p>题面：「Suppose a blockchain network has a block size of 6 MBytes, transaction size of 80 Bytes, Block time is 200 seconds and it requires to wait for 20 blocks to confirm any new block. Calculate the average block confirmation time and transaction per second (throughput) of this blockchain network.」 [3 marks]</p>
+<p><strong>吞吐量</strong>：按十进制取 <span class="m">1 <span class="r">MB</span> = 10<sup>6</sup></span> 字节（模拟卷参考答案的列式 「6 (M Bytes) / (80 (Bytes) × 200 (seconds))」 就是这么取的；比特币旧协议的区块上限也正是 1,000,000 字节），</p>
+<div class="eq"><span class="m"><span class="r">Throughput</span> = <span class="frac"><span>6 × 10<sup>6</sup></span><span>80 × 200</span></span> = <span class="frac"><span>6 × 10<sup>6</sup></span><span>16000</span></span> = 375 <span class="r">Tx/s</span></span></div>
+<p><strong>确认时间</strong>：要等 20 块，每块 200 秒，<span class="m">20 × 200 = 4000</span> 秒。</p>
+<p><strong>卷面参考答案的吞吐量写成 37.5 Tx/s，是错的</strong>，少了一个数量级（得到 37.5 需要区块只有 0.6 MB）。按 <span class="m">1 <span class="r">MB</span> = 2<sup>20</sup></span> 字节算是 393.2 Tx/s，也不是 37.5。考场写 375 Tx/s，并注明 「taking 1 MB = <span class="m">10<sup>6</sup></span> bytes」。确认时间 4000 s 正确。</p>
+<p style="margin-bottom:0">「为什么要等若干块才算确认」见 <a href="L11 分布式账本与区块链导论.html#s3-7">L11 定义的边界</a>：链尾的块可能被更长的分叉替换。</p>
+</details>
+
+<div class="tool" id="tpTool">
+  <h4>吞吐量与确认时间计算器</h4>
+  <p class="sub">吞吐量 = (区块大小 / 交易大小) / 出块间隔；确认时间 = 等待块数 × 出块间隔。默认是模拟卷 Q3(b)(iii) 的数。「反推」一栏看卷面 37.5 Tx/s 对应多大的区块。</p>
+  <div class="row">
+    <span class="ctl"><label for="tpB">区块大小</label><input class="num" type="text" inputmode="decimal" id="tpB" value="6" oninput="tpGo()" style="width:5rem">
+      <select id="tpU" onchange="tpGo()"><option value="dec" selected>MB（10⁶ 字节）</option><option value="bin">MB（2²⁰ 字节）</option><option value="byte">字节</option></select></span>
+    <span class="ctl"><label for="tpTx">交易大小（字节）</label><input class="num" type="text" inputmode="decimal" id="tpTx" value="80" oninput="tpGo()" style="width:5rem"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="tpT">出块间隔（s）</label><input class="num" type="text" inputmode="decimal" id="tpT" value="200" oninput="tpGo()" style="width:5rem"></span>
+    <span class="ctl"><label for="tpK">等待块数</label><input class="num" type="text" inputmode="decimal" id="tpK" value="20" oninput="tpGo()" style="width:5rem"></span>
+    <span class="ctl"><label for="tpTgt">反推：目标 Tx/s</label><input class="num" type="text" inputmode="decimal" id="tpTgt" value="37.5" oninput="tpGo()" style="width:5rem"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="tpSet(6,'dec',80,200,20)">模拟卷 Q3(b)(iii)</button>
+    <button class="btn" onclick="tpSet(6,'bin',80,200,20)">同题按 2²⁰ 字节</button>
+    <button class="btn" onclick="tpSet(1,'dec',250,600,'')">比特币：交易 250 B</button>
+    <button class="btn" onclick="tpSet(1,'dec',400,600,'')">比特币：交易 400 B</button>
+  </div>
+  <div class="steps" id="tpSteps"></div>
+  <div class="result" id="tpOut"></div>
+</div>
+
+<h3 id="s4-3"><span class="n">4.3</span>区块大小有限</h3>
+
+<p>课件 p29：「Public blockchain to date has limited block size. For instance, Bitcoin has 1 MB Block size.」</p>
+
+<p>为什么不干脆把块做大？新块要在 P2P 网络里一跳一跳地传给所有节点。块越大，传遍全网越慢；传播期间别的矿工还不知道它，可能在旧链尾上挖出另一个块，于是分叉（<a href="L11 分布式账本与区块链导论.html#s3-6">L11 3.6</a>）变多、被作废的块变多，浪费的算力也让攻击更容易。块越大，每个全节点需要的带宽和硬盘也越多，能跑得起全节点的人越少，网络就越集中。</p>
+
+<div class="box def">
+  <div class="h">1 MB 已经过时</div>
+<p style="margin-bottom:0">2017 年 8 月比特币激活了 <strong>SegWit</strong>（Segregated Witness，隔离见证：把交易里的签名数据从原有的区块大小计算里移出去的一次升级，编号 BIP141，BIP 即 Bitcoin Improvement Proposal，比特币改进提案），之后的上限改按「区块权重」计，实际区块常在 1–2 MB 以上，理论上限接近 4 MB。</p>
+</div>
+
+<h3 id="s4-4"><span class="n">4.4</span>可扩展性</h3>
+
+<p>课件 p27：「Public blockchain systems are designed for different communication technologies, the amount of participating blockchain nodes will increase exponentially. This will have an adverse effect on mining time as well as size of the blockchain.」</p>
+
+<p><strong>可扩展性</strong>（scalability）指用户、节点、交易量增加时系统还能不能保持性能。课件这一页的因果链要修正：</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p27 的因果链不成立</div>
+<ul>
+<li>「节点数会指数增长」没有依据。</li>
+<li>「节点多了挖矿时间会变长」不对：比特币每 2016 块自动调整一次挖矿<strong>难度</strong>（PoW 要求区块哈希满足的门槛，门槛越高越难找到），使平均出块时间保持在约 10 分钟。矿工越多，难度越高，出块间隔不变。</li>
+<li>真正的瓶颈是：<strong>每个全节点都要验证、存储、转发每一笔交易</strong>，网络整体的吞吐被单个节点的处理能力和 <a href="#s4-2">4.2</a> 的「区块大小 ÷ 出块间隔」卡死——加节点不会加速度，只会增加传播延迟。</li>
+<li>课件说对的一点是 「size of the blockchain」：链只增不减，新全节点加入时要下载全部历史。NIST IR 8202 §7.8 记载，2018 年比特币的链数据已超过 175 GB。</li>
+</ul>
+<p style="margin-bottom:0">后面讲次用<strong>分片</strong>（sharding：把节点分成几组，每组并行处理一部分交易）等办法提高可扩展性，见 <a href="L14 区块链工作原理（下）.html">L14 区块链工作原理（下）</a>，模拟卷 Q3(b)(v) 考它的优点（卷面写成 「Explain the advantages of sharing」，是 sharding 的笔误）。</p>
+</div>
+
+<h3 id="s4-5"><span class="n">4.5</span>能耗</h3>
+
+<p>课件 p29：「Due to the reliance of public blockchain system (such as Bitcoin) on PoW cryptographic puzzle, a huge amount of energy is consumed.」</p>
+
+<p>PoW 的谜题（<a href="L11 分布式账本与区块链导论.html#s3-3">Nonce 字段</a>那一节提过）只能靠反复试 nonce、反复算哈希来解，没有捷径；全网矿工同时在算，只有一个人赢，其余人的计算全部作废。NIST IR 8202 §7.8：PoW 是「hard to solve, easy to verify」的有效办法，但「generally requires significant resource usage」，许多许可链因此不用资源密集型的证明。PoW 的耗电正是 <a href="#s4-1">4.1</a> 第 4 步说的直接代价：用真实的电费让伪造身份失去意义。</p>
+
+<p>以太坊在 2022 年 9 月从 PoW 转成了 PoS，所以「公有链必然高能耗」已不普遍成立；本课讲到 PoS 时会比较两者（<a href="L15 区块链共识 I.html">L15 区块链共识 I</a>）。模拟卷 Q4(a)(ii) 「Discuss the advantages of PoS over PoW.」 的参考答案正是 「less energy consumption, less computing resource required」。</p>
+
+<h3 id="s4-6"><span class="n">4.6</span>假名性</h3>
+
+<p>课件 p28：「This partial visibility of identity may also trigger other privacy attacks and malicious nodes may exploit this vulnerability.」 下面列了一条 「Double spending」。</p>
+
+<p>「Partial visibility of identity」 就是 L11 讲的<a href="L11 分布式账本与区块链导论.html#s4-4">假名性</a>：真名不上链，但地址及其全部交易公开。这一页把它当成问题，L11 p31 把它当成优点（「privacy aware」）；两者怎样统一见 L11 那一节的警告框。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>双花不是假名性引起的隐私攻击</div>
+<p><strong>双花</strong>（double spending）是同一笔钱花两次，属于「哪笔交易在先」的排序与共识问题，和隐私无关；比特币用时间戳加 PoW 加<a href="#s4-1">最长链规则</a>解决它。与假名性真正相关的风险有两个：</p>
+<ul>
+<li><strong>去匿名化</strong>：交易全公开（NIST IR 8202 §1.1），地址可以通过链外途径和真人对上，如执法机构调取交易所记录、个人公开收款地址（§7.10）；再分析地址之间的转账关系（交易图分析，课件外补充），能串起更多地址。这才是课件说的 「privacy attacks」。</li>
+<li><strong>女巫攻击</strong>：身份不验证、可以无限造（<a href="#s4-1">4.1</a>）。</li>
+</ul>
+<p style="margin-bottom:0">课件把 「Double spending」 列在这里，可能想说的是「假名让作恶者难以追责，因而敢尝试双花」，原意不能确定。答题时把 Pseudonymity 解释为 「partial visibility of identity may trigger privacy attacks」。</p>
+</div>
+
+<h2 id="s5"><span class="n">5</span>区块链与数据库：谁来维护账本</h2>
+
+<h3 id="s5-1"><span class="n">5.1</span>数据库的两种维护方式</h3>
+
+<p>课件 p31 「Database System」：</p>
+
+<ol>
+<li>「Centralized」：「In centralized database systems, maintenance is the responsibility of central entity and this central entity needs to be highly reliable and trusted.」——一个中心实体负责，它必须高度可靠、值得信任。</li>
+<li>「Distributed」：「In distributed database systems, multiple designated nodes are responsible for database maintenance.」——多个<strong>指定的</strong>节点负责维护。</li>
+</ol>
+
+<p>这对应 <a href="L11 分布式账本与区块链导论.html#s2-2">L11 账本演化</a>的第二、三级：分布式数据库把数据放在多台机器上，但哪几台能改账仍由一个机构指定，控制权还是集中的。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>区块链的三种维护方式</h3>
+
+<p>课件 p32 「Blockchain System」 的引言是 「Lack of trusted entity and ledger need to be maintained in the presence of designated nodes.」（句子不通，大意是「没有可信实体，账本要由节点维护」；「designated」〔指定的〕一词对公有链并不适用），然后按去中心化程度从高到低列出公有链、联盟链、私有链。p33 说明各由谁维护：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">链</th><th>谁维护账本（p33 原话）</th><th>最像哪种数据库</th></tr></thead>
+<tbody>
+<tr><td class="nw">公有链</td><td>「Ledger is maintained by all the nodes collectively.」 / 「An entity is needed to resolve any conflict or makes protocols.」</td><td>没有对应物，这是区块链独有的</td></tr>
+<tr><td class="nw">联盟链</td><td>「A consortium of nodes is responsible for updating and maintaining the blockchain.」</td><td>形似分布式数据库（多个指定节点维护）；区别是分布式库的节点由一家指定，联盟链的成员由多家共同认可</td></tr>
+<tr><td class="nw">私有链</td><td>「Only a single node (few nodes) is responsible for blockchain maintenance. It resembles the centralized system.」</td><td>中心化数据库</td></tr>
+</tbody></table></div>
+
+<p>看右栏：越往私有链走，越像传统数据库；公有链「全体节点共同维护」才是数据库里没有的新东西。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>p33 公有链的第二句与「完全去中心化」矛盾</div>
+<p>「An entity is needed to resolve any conflict or makes protocols」 与本讲 p22 「Completely decentralized」、L11 p20 「completely eliminates the role of trusted third party」 都冲突。</p>
+<ul>
+<li><strong>解决冲突</strong>不需要实体：两条分支竞争时，比特币按「累计工作量最大的链」规则自动选择（NIST IR 8202 §4.7、§7.1）。</li>
+<li><strong>制定协议</strong>确实需要人：NIST IR 8202 §7.2 说无许可链由用户、出块节点、软件开发者共同治理，协议升级由开发者提出、靠节点是否升级来「投票」。课件这句话的合理读法是后者。</li>
+</ul>
+<p style="margin-bottom:0">另外，p23 说私有链 「Completely centralized」，p33 说 「single node (few nodes) … resembles the centralized system」，程度不一；后者更准确。</p>
+</div>
+
+<h3 id="s5-3"><span class="n">5.3</span>中心化账本要你信任的七件事</h3>
+
+<p>（阅读材料补充，帮助理解；考试按课件 p31–p39 答。）为什么要费这么大劲换掉数据库？课件只给了结论，NIST IR 8202 §3.5 给了因果版本：一本由中心机构拥有的账本（centrally owned ledger），用户必须信任这个机构在七件事上不出问题，而区块链的分布式所有权分别给出对策：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em">中心化账本的风险</th><th>用户必须信任</th><th>区块链的对策</th></tr></thead>
+<tbody>
+<tr><td>账本可能丢失或损毁</td><td>所有者做好了备份</td><td>每个全节点各存一份，新节点加入时从别的节点下载全链</td></tr>
+<tr><td>网络是同构的（软硬件都一样）</td><td>一处被攻破不会处处被攻破</td><td>节点的软硬件、网络各不相同，攻破一个不代表能攻破别的</td></tr>
+<tr><td>地理上集中在一处</td><td>那个地方不断网</td><td>节点分布全球，丢掉一个节点甚至一个地区也能继续运行</td></tr>
+<tr><td>交易不透明，可能无效</td><td>所有者认真验证了每笔交易</td><td>每个节点自己验证所有交易，无效交易会被拒绝转发</td></tr>
+<tr><td>交易列表可能不完整</td><td>所有者收录了所有有效交易</td><td>新块必须引用最新的块，漏引用的块会被其他节点拒绝（这只保证链不断；出块者仍可故意不收录某些交易，NIST §7.6，被漏掉的交易留在交易池里等别人收录）</td></tr>
+<tr><td>历史可能被篡改</td><td>所有者没改过去的记录</td><td>数字签名与哈希链使账本篡改可检测、篡改代价高</td></tr>
+<tr><td>系统可能不安全</td><td>所有者及时打补丁、遵守安全规范</td><td>没有集中的攻击点；链上数据本就公开，没有可偷的东西；一个节点没打补丁只影响它自己</td></tr>
+</tbody></table></div>
+
+<p>每一行都是把「信任一个机构」换成「信任多数节点加密码学」。</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>公开可验证</h3>
+
+<p>课件 p34：「Public verifiability means allowing the system (ledger) to be verifiable by the public, i.e., public can verify the state of the system at any time to trace and track any transaction or ledger entry.」 <strong>公开可验证性</strong>（public verifiability）指任何人随时都能自己检查账本的状态、追查任何一笔记录，而不必相信某个机构告诉他的结果。</p>
+
+<ul>
+<li>「In traditional database systems, central server is responsible for managing the database.」——数据库里只有中心服务器能看全貌，外人只能信它；</li>
+<li>「In blockchain system, P2P underlying network architecture is running at the back to manage the system.」——区块链背后是 P2P 网络，每个节点都有完整账本，自己就能验证。</li>
+</ul>
+
+<p>这是 L11 九大特征里 <a href="L11 分布式账本与区块链导论.html#s4-4">透明性与可审计性</a>的另一种说法。</p>
+
+<h3 id="s5-5"><span class="n">5.5</span>六项对比</h3>
+
+<p>课件 p35 列了六个方面，p36–p38 逐项说明：「Hashing」、「Public/Private Key」、「Sequence of Records」、「Consensus」、「Immutability」、「Ledger Dissemination」。合成一张表，最后一列补上「区块链为什么非要这样」：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="min-width:7.5em">方面</th><th>传统数据库（课件）</th><th>区块链（课件）</th><th>为什么区块链需要它</th></tr></thead>
+<tbody>
+<tr><td>Hashing（哈希）</td><td>「hashing is not applied to each data entry」</td><td>「plays a critical role and applies to different stages」</td><td>链接区块、计算 <a href="L11 分布式账本与区块链导论.html#s3-3">Merkle 根</a>、做 PoW 都靠哈希</td></tr>
+<tr><td>Public/Private Key（公私钥）</td><td>「generally not applied」</td><td>「an essential requirement」</td><td>没有中心的账号体系，只能用私钥签名证明「这笔交易是我发的」</td></tr>
+<tr><td>Sequence of Records（记录顺序）</td><td>「transactions not maintained sequentially」</td><td>「should be placed sequentially and linked together」</td><td>顺序决定「谁先花了这笔钱」，链接让顺序无法事后改写</td></tr>
+<tr><td>Consensus（共识）</td><td>「Not required … to maintain and update the state of the ledger」</td><td>「an essential requirement」</td><td>没有中心裁决者，多份副本只能靠共识统一</td></tr>
+<tr><td>Immutability（不可篡改）</td><td>「not present as such in database systems」</td><td>「no previous entry or transaction recorded in the ledger can be modified」</td><td>改一块会破坏其后所有哈希链接</td></tr>
+<tr><td>Ledger Dissemination（账本传播）</td><td>更新后 「not required to disseminate among the participating nodes」</td><td>「this dissemination is essential」</td><td>每个节点都存一份，不广播副本就不一致</td></tr>
+</tbody></table></div>
+
+<p><strong>传播</strong>（dissemination）指把新的交易和区块转发给网络里的其他节点。</p>
+
+<p>六项可以并成一句话：<strong>没有中心，所以要靠签名证明身份、靠共识统一状态、靠广播同步副本、靠哈希链固定顺序和历史。</strong></p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>六项对比把「数据库」一律当成了中心化数据库</div>
+<p>课件左栏的说法只对<strong>中心化</strong>数据库成立，对分布式数据库大多不成立：</p>
+<ul style="margin-bottom:0">
+<li><strong>Public/Private Key</strong>：课件写 「Public/private encryption」，区块链用公私钥做的是<strong>签名</strong>而不是加密（同 <a href="L11 分布式账本与区块链导论.html#s4-3">L11 的勘误</a>）。数据库连接也普遍走 TLS（Transport Layer Security，传输层安全协议，一种用公钥证书建立的加密连接）；准确的区别是数据库不以每条记录上的签名作为授权依据。</li>
+<li><strong>Consensus</strong>：分布式数据库同样需要共识：Google 的分布式数据库 Spanner 用 Paxos，开源的分布式存储 etcd 和分布式数据库 CockroachDB 用 Raft。Paxos 与 Raft 都是让多台机器对同一串操作达成一致的共识算法，只防崩溃故障——这两个算法正是 <a href="L16 区块链共识 II.html">L16 区块链共识 II</a> 要讲、模拟卷 Q4 要考的。准确的说法是：中心化数据库不需要共识；分布式数据库需要共识，但只要防<strong>崩溃故障</strong>（crash failure：节点停机，不再收发消息）；区块链的共识还要防<strong>拜占庭故障</strong>（Byzantine failure：节点可以任意乱发消息，甚至恶意说谎）。两类故障是模拟卷 Q3(b)(i) 的考点，见 <a href="L15 区块链共识 I.html">L15 区块链共识 I</a>。</li>
+<li><strong>Sequence of Records</strong>：数据库有严格按时间排序的事务日志（记录每一次修改先后顺序的日志）。区别不在「有没有顺序」，而在区块链的顺序被哈希链固定、无法事后改写。</li>
+<li><strong>Ledger Dissemination</strong>：主从复制（一台主库接受写入，再把更新复制给几台从库）、多副本数据库同样要把更新传到副本（p31 自己也列了分布式数据库）。区别是区块链的传播面向全体对等节点，且每个接收者都会独立验证。</li>
+<li><strong>Immutability</strong>：同 <a href="L11 分布式账本与区块链导论.html#s3-7">L11 定义的边界</a>，只是 tamper evident 与 tamper resistant，并非绝对不可改。NIST IR 8202 §8.1 用了一个工程化的说法：数据库支持 <strong>CRUD</strong>（create、read、update、delete，增、查、改、删），区块链只有 <strong>CR</strong>（增、查）；要「修改」只能追加一笔新交易去更正旧的，旧记录永远留在链上。</li>
+</ul>
+</div>
+
+<h3 id="s5-6"><span class="n">5.6</span>信任从哪来</h3>
+
+<p>课件 p39 「Trust and public availability of blockchain」：「Trust and public availability of blockchain systems is one such unique feature that distinguishes it heavily from traditional database systems.」</p>
+
+<ul>
+<li>「Blockchain, in essence, remove the trusted third party from the middle among the transacting parties and build trust publicly in un-trusted and unknown environment.」——去掉交易双方中间的可信第三方，在互不信任、互不认识的环境里公开地建立信任；</li>
+<li>「Moreover, the public availability and transparency makes blockchain system more popular among their traditional counterparts, i.e., database systems.」——公开可用与透明也让它比数据库更受欢迎。</li>
+</ul>
+
+<p>这正是 L11 定义里 「eliminates the role of trusted third party」 那句话，它的边界在 L11 已经讲过：NIST IR 8202 §7.7 列出用区块链仍要信任的五样东西——密码学、智能合约、开发者、多数参与者不合谋、全节点（详见 <a href="L11 分布式账本与区块链导论.html#s3-7">L11 定义的边界</a>）。准确地说，区块链把「信任某一个机构」换成了「信任多数参与者和密码学」；在许可链里，还要信任发放许可的那个实体或联盟。</p>
+
+<h3 id="s5-7"><span class="n">5.7</span>什么时候真的需要区块链</h3>
+
+<p>（阅读材料补充，帮助理解，不必默写。）前面六项对比容易给人「区块链处处比数据库强」的印象。NIST IR 8202 §8 的态度正相反：许多机构是「想在哪儿用上区块链」倒着找场景，结果碰壁。它转载了美国国土安全部科技局（DHS S&amp;T，Department of Homeland Security Science &amp; Technology Directorate）的一张判断流程图，依次问六个问题，任何一个答「否」就换别的方案：</p>
+
+<ol>
+<li>需要一个多方共享、保持一致的数据存储吗？——否：用邮件或电子表格。</li>
+<li>需要不止一个实体往里写数据吗？——否：用数据库（例外：只为审计的场景可以继续往下问）。</li>
+<li>记录一旦写入，就永远不更新、不删除吗？——否：用数据库。</li>
+<li>不会写入敏感的身份信息吗？——否：用加密数据库。图上的原话是需要中长期保密的敏感信息（如个人身份信息）「even if it is encrypted」也不应上链：链上数据永久保留、到处复制，今天的加密将来未必安全。</li>
+<li>有写权限的各方很难决定由谁来掌控这个数据存储吗？——否：用托管数据库，没有信任或控制权问题，传统数据库就够了。</li>
+<li>需要一份所有写入操作的防篡改日志吗？——否：用数据库。</li>
+</ol>
+
+<p>六个都答「是」，才 「You may have a useful Blockchain use case」。</p>
+
+<p>用它检验 <a href="L11 分布式账本与区块链导论.html#s5">L11 的食品供应链</a>：多家公司共享一套记录（问题 1 是），每一环都要写（问题 2 是），每个环节的事件记下来就不再改、只追加新事件（问题 3 是），记录的是批次和温度而非个人敏感信息（问题 4 是），农场、加工厂、运输商、超市谁也不服谁来管数据（问题 5 是），出了问题要能查清哪一环动过记录（问题 6 是）——这是一个合格的用例。反过来，一家公司内部的库存系统在问题 2 或问题 5 就会被筛掉，这也呼应了 <a href="#s2-3">2.3</a> 对私有链的疑问。</p>
+
+<p>NIST §8.1 列了八项应用时要考虑的因素（数据可见性、完整交易史、假数据输入、只能追加、吞吐量、合规、权限、节点多样性），其中三项与前文直接相关：<strong>数据可见性</strong>（链上数据一般公开，呼应流程图第 4 问）；<strong>假数据输入</strong>（区块链不保证上链的数据本来是真的，见 <a href="L11 分布式账本与区块链导论.html#s5">L11 的警告框</a>）；<strong>吞吐量</strong>——许多无许可链的出块时间以秒甚至分钟计，依赖它的应用会变慢（即 <a href="#s4-2">4.2</a>）。</p>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li>课件 p2–p15 是 L11 复习。Outline 的第 3、4 节（Users/Nodes、Layers）本讲没讲，在 L13 课件里；模拟卷 Q3(a)(i) 三类节点去 L13 找。</li>
+<li>三类链（p20–p21）：<strong>Public — permissionless；Private — permissioned；Consortium — permissioned</strong>（Q3(a)(iii) 参考答案原文）。</li>
+<li>公有链（p22）：任何节点随时加入离开、任何节点都能挖矿、完全去中心化，如 Bitcoin。私有链（p23）：经<strong>中心实体</strong>许可加入、完全中心化、矿工事先指定。联盟链（p24）：经<strong>联盟成员</strong>许可加入、不是所有节点都能验证交易、部分中心化。联盟与私有的区别只在许可由谁发。</li>
+<li>两套分类法冲突：L11 p15（＝本讲 p6）是「身份 × 读权限」两维，private 指读受限；本讲 p21 是一棵树，private 指许可来自一个中心实体。NIST IR 8202 §2 的判据是<strong>谁能发布区块</strong>（出块权限），读权限、提交交易的权限另算；无许可必然公开可读，所以能压成树。<strong>Q3(a)(iii) 按 p21–p24 答</strong>，问 DLT 分类定义按 p15 答。</li>
+<li>公有链五问题（p25）：Limited Transactions、Scalability、Pseudonymity、Limited Block Size、Energy Consumption。根源：身份免费 → 防女巫攻击只能按资源（算力、抵押）抽签出块 → PoW 耗电；抽签出块会同时出块而分叉 → 出块间隔要远大于传播时间、块不能大 → 吞吐低（PoS 也一样）；每个全节点处理一切 → 可扩展性差；不验身份 → 假名。许可链身份已知，用投票共识当场定块，更快更省（NIST §2.2）。</li>
+<li>吞吐量 <span class="m">= <span class="frac"><span><span class="r">区块大小</span>/<span class="r">交易大小</span></span><span><span class="r">出块间隔</span></span></span></span>（分母是出块间隔，不是确认时间）；比特币 <span class="m">10<sup>6</sup>/250/600 ≈ 6.67</span> Tx/s（&lt; 10）。模拟卷 Q3(b)(iii)：<span class="m">6 × 10<sup>6</sup>/(80 × 200) = 375</span> Tx/s（卷面 37.5 是错的），确认时间 <span class="m">20 × 200 = 4000</span> s。</li>
+<li>课件数字：Bitcoin &lt; 10 Tps，Ethereum &lt; 50（正文）/ &lt; 100（表）Tps，Bitcoin 区块 1 MB（SegWit 后已不准）。</li>
+<li>修正：p27 节点增多不会延长出块时间（难度调整）；p28 双花是排序问题不是隐私攻击，假名的真风险是去匿名化与女巫攻击。</li>
+<li>维护方式：数据库——中心化（中心实体须可靠可信）、分布式（多个指定节点）。区块链——公有链全体节点共同维护；联盟链一组联盟节点（形似分布式库，但成员由多家共同认可）；私有链单个或少数节点（像中心化库）。</li>
+<li>NIST §3.5：中心化账本要你信任七件事（备份、同构网络、地理集中、交易有效、交易完整、历史未改、系统安全），区块链逐条换成多数节点加密码学。</li>
+<li>六项对比（p35–p38）：Hashing、Public/Private Key、Sequence of Records、Consensus、Immutability、Ledger Dissemination；一句话：没有中心，所以要签名、共识、广播、哈希链。修正：只对中心化数据库成立；分布式库也用 Paxos/Raft（防崩溃故障），区块链要防拜占庭故障；公私钥用于签名；区块链只有 CR 没有 UD。</li>
+<li>信任（p39）：去掉可信第三方、公开建立信任；但仍要信任密码学、合约、开发者、多数不合谋、全节点（NIST §7.7）。</li>
+<li>何时用区块链（NIST §8 DHS 流程图）：共享一致存储、多方写入、只增不改、不写敏感身份、各方难定谁掌控、需要防篡改日志——六个全「是」才考虑区块链。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <a href="L13 区块链工作原理（上）.html">L13 区块链工作原理（上）</a>：先补本讲没讲的区块链节点类型（全节点、轻节点、矿工节点）与分层结构，再讲区块链的一般工作流程。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L12 区块链系统概览.md</code> 的阅读优化版，内容一致；页内交互件的数值由页面脚本现算（已与 Python 逐个对照）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   svgkit.js — 学习页配图与交互件共用的极简 SVG 层（不依赖任何外部库）
+   配色规则：中性线条与文字用 currentColor + 透明度（随明暗主题自动变）；
+   强调色的填充硬编码 #2F6F8F；强调色的线条与文字、其余语义色（红/绿/金）开页时从 CSS 变量读一次
+   （深色主题下 #2F6F8F 的字和细线太暗，所以线与字改用 --accent 的取值，与 L1 的做法相同）。
+   ==========================================================================*/
+var SVGNS = 'http://www.w3.org/2000/svg';
+var ACC = '#2F6F8F';
+
+/** 数字转文本：负号用 U+2212；d 为小数位；sep 为真时加千分位逗号 */
+function nf(v, d, sep){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  if(sep){ var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); s=p.join('.'); }
+  return s.replace(/-/g, '−');
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+var THEME = null;
+function themeColors(){
+  if(THEME) return THEME;
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  THEME = { accent: ACC, acc: g('--accent', ACC), warn: g('--warn','#B4534B'), ok: g('--ok','#3F8A63'), exam: g('--exam','#9A6B2F'),
+            muted: g('--muted','#5C6673'), faint: g('--faint','#8A929C') };
+  return THEME;
+}
+
+var FIG_SEQ = 0;
+/** 一张图：W×H 的 viewBox，label 是给读屏的文字说明 */
+function Fig(W, H, label){
+  this.W=W; this.H=H; this.c=themeColors(); this.id='f'+(++FIG_SEQ);
+  this.svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, role:'img', 'aria-label':label});
+  this.defs = svgEl('defs'); this.svg.appendChild(this.defs);
+  this.g = svgEl('g', {'font-family':'inherit', 'font-size':'13', 'text-anchor':'middle'});
+  this.svg.appendChild(this.g);
+  this.mk = {};
+}
+Fig.prototype.marker = function(col){
+  if(this.mk[col]) return this.mk[col];
+  var id = this.id+'m'+Object.keys(this.mk).length;
+  var m = svgEl('marker', {id:id, markerWidth:10, markerHeight:10, refX:8, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path', {d:'M0,0 L9,4 L0,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[col]=id; return id;
+};
+/** 矩形框。o: {col 描边色, fill 填充色, fo 填充透明度, so 描边透明度, rx, dash, sw} */
+Fig.prototype.box = function(x,y,w,h,o){
+  o=o||{};
+  var col=o.col||'currentColor', scol=(col===ACC)?this.c.acc:col;
+  var r=svgEl('rect', {x:x, y:y, width:w, height:h, rx:(o.rx===undefined?7:o.rx),
+    fill:o.fill||(o.col||'currentColor'), 'fill-opacity':(o.fo===undefined?(o.col?0.1:0.04):o.fo),
+    stroke:scol, 'stroke-opacity':(o.so===undefined?(o.col?0.9:0.4):o.so), 'stroke-width':o.sw||1.4,
+    'stroke-dasharray':o.dash||null});
+  this.g.appendChild(r); return r;
+};
+/** 文字：lines 为字符串或数组；(x,y) 为首行基线。o: {col, size, weight, anchor, lh, op} */
+Fig.prototype.text = function(x,y,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var t=svgEl('text', {x:x, y:y, fill:(o.col===ACC?this.c.acc:o.col)||'currentColor', 'font-size':size, 'font-weight':o.weight||null,
+    'text-anchor':o.anchor||'middle', 'fill-opacity':(o.op===undefined?(o.col?null:0.88):o.op)});
+  for(var i=0;i<lines.length;i++){
+    var s=svgEl('tspan', {x:x, dy:(i?lh:0)}); s.textContent=lines[i]; t.appendChild(s);
+  }
+  this.g.appendChild(t); return t;
+};
+/** 以 (cx,cy) 为中心放一段多行文字 */
+Fig.prototype.textC = function(cx,cy,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var y0 = cy - (lines.length-1)*lh/2 + size*0.36;
+  return this.text(cx, y0, lines, o);
+};
+/** 框 + 居中文字 */
+Fig.prototype.node = function(x,y,w,h,lines,o){
+  o=o||{};
+  this.box(x,y,w,h,o);
+  return this.textC(x+w/2, y+h/2, lines, {col:o.tcol, size:o.size, weight:o.weight, lh:o.lh});
+};
+/** 折线或路径。pts: [[x,y],...] 或 'M..' 字符串。o: {col, sw, dash, arrow:true|false|'both', op} */
+Fig.prototype.path = function(pts,o){
+  o=o||{};
+  var col=o.col||'currentColor'; if(col===ACC) col=this.c.acc;
+  var d = (typeof pts==='string') ? pts : pts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ');
+  var a={d:d, fill:'none', stroke:col, 'stroke-width':o.sw||1.6, 'stroke-dasharray':o.dash||null,
+         'stroke-opacity':(o.op===undefined?(o.col?1:0.55):o.op)};
+  if(o.arrow!==false){
+    var mcol = o.col ? col : 'currentColor';
+    var id=this.marker(mcol);
+    a['marker-end']='url(#'+id+')';
+    if(o.arrow==='both') a['marker-start']='url(#'+this.marker2(mcol)+')';
+  }
+  var p=svgEl('path',a); this.g.appendChild(p); return p;
+};
+Fig.prototype.marker2 = function(col){
+  var key='rev'+col;
+  if(this.mk[key]) return this.mk[key];
+  var id=this.id+'r'+Object.keys(this.mk).length;
+  var m=svgEl('marker',{id:id, markerWidth:10, markerHeight:10, refX:1, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path',{d:'M9,0 L0,4 L9,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[key]=id; return id;
+};
+Fig.prototype.mount = function(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  host.innerHTML=''; host.appendChild(this.svg);
+};
+
+/* ============================================================================
+   L12 区块链系统概览：配图（按笔记附图重画成 SVG）与交互件
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 图 1 区块链分类树（课件 p21） */
+function drawTree(hostId, narrow){
+  var c = themeColors(), red = c.warn;
+  var LBL = ['Public blockchain network—permissionless', 'Private Blockchain Network—Permissioned', 'Consortium Blockchain Network—Permissioned'];
+  var f;
+  function nd(x, y, w, lines, sz){ f.node(x, y, w, 48, lines, {col:red, fo:0.12, size:sz||13, lh:17}); }
+  function line(pts){ f.path(pts, {arrow:false, col:red, sw:1.4}); }
+  if(!narrow){
+    f = new Fig(800, 300, '区块链分类树：permissionless 下只有 public；permissioned 下分 consortium 与 private');
+    [['Public blockchain','network—permissionless'], ['Private Blockchain','Network—Permissioned'], ['Consortium Blockchain','Network—Permissioned']].forEach(function(L, k){
+      f.text(20, 66 + k*84, L, {anchor:'start', size:16, lh:22, op:0.9});
+    });
+    nd(445, 16, 150, ['Blockchain','Classification']);
+    nd(320, 116, 140, ['Permissionless','Blockchain']);
+    nd(580, 116, 140, ['Permissioned','Blockchain']);
+    nd(320, 226, 140, ['Public','Blockchain']);
+    nd(510, 226, 130, ['Consortium','Blockchain']);
+    nd(655, 226, 130, ['Private','Blockchain']);
+    line([[520,64],[520,90],[390,90],[390,116]]); line([[520,90],[650,90],[650,116]]);
+    line([[390,164],[390,226]]);
+    line([[650,164],[650,196],[575,196],[575,226]]); line([[650,196],[720,196],[720,226]]);
+  } else {
+    f = new Fig(380, 370, '区块链分类树：permissionless 下只有 public；permissioned 下分 consortium 与 private');
+    LBL.forEach(function(s, k){ f.text(14, 24 + k*22, s, {anchor:'start', size:13, op:0.9}); });
+    nd(115, 98, 150, ['Blockchain','Classification'], 12.5);
+    nd(18, 190, 150, ['Permissionless','Blockchain'], 12.5);
+    nd(212, 190, 150, ['Permissioned','Blockchain'], 12.5);
+    nd(18, 296, 150, ['Public','Blockchain'], 12.5);
+    nd(192, 296, 88, ['Consortium','Blockchain'], 11.5);
+    nd(286, 296, 88, ['Private','Blockchain'], 11.5);
+    line([[190,146],[190,168],[93,168],[93,190]]); line([[190,168],[287,168],[287,190]]);
+    line([[93,238],[93,296]]);
+    line([[287,238],[287,270],[236,270],[236,296]]); line([[287,270],[330,270],[330,296]]);
+  }
+  f.mount(hostId);
+}
+
+/* ================================================================ 交互件 1：吞吐量与确认时间 */
+function tpNum(id, lo){
+  var el=document.getElementById(id), raw=String(el.value).trim(), v=Number(raw);
+  var bad = raw==='' || !isFinite(v) || v<=lo;
+  el.classList.toggle('badin', bad); return bad ? null : v;
+}
+function tpCalc(blockBytes, tx, T, k){
+  var per = blockBytes/tx, tps = per/T;
+  return {per:per, tps:tps, confirm: (k===null ? null : k*T)};
+}
+function tpSet(b, unit, tx, T, k){
+  document.getElementById('tpB').value=b; document.getElementById('tpU').value=unit;
+  document.getElementById('tpTx').value=tx; document.getElementById('tpT').value=T;
+  if(k!==undefined) document.getElementById('tpK').value=k; tpGo();
+}
+function tpFmt(x){
+  if(Math.abs(x-Math.round(x))<1e-9) return nf(Math.round(x),0,true);
+  var d = x<10 ? 2 : 1, s = nf(x, d, true);
+  return s.indexOf('.')>=0 ? s.replace(/0+$/,'').replace(/\.$/,'') : s;
+}
+function tpGo(){
+  var b=tpNum('tpB',0), tx=tpNum('tpTx',0), T=tpNum('tpT',0), unit=document.getElementById('tpU').value;
+  var kRaw=document.getElementById('tpK').value.trim(), k=kRaw===''?null:tpNum('tpK',-1);
+  var tgt=tpNum('tpTgt',0);
+  var st=document.getElementById('tpSteps'), out=document.getElementById('tpOut');
+  if(b===null||tx===null||T===null||(kRaw!==''&&k===null)){ st.innerHTML='<span class="bad">请填正数</span>'; out.innerHTML='请先修正输入。'; return; }
+  var mult = unit==='dec' ? 1e6 : (unit==='bin' ? 1048576 : 1);
+  var bytes=b*mult, r=tpCalc(bytes, tx, T, k);
+  var bStr = unit==='dec' ? nf(b)+' × 10<sup>6</sup>' : (unit==='bin' ? nf(b)+' × 2<sup>20</sup>' : nf(b,0,true));
+  st.innerHTML =
+    '<div><span class="k">1</span>区块大小：'+nf(b)+(unit==='byte'?' 字节':' MB')+' = '+bStr+(unit==='byte'?'':' = '+nf(bytes,0,true))+' 字节</div>'+
+    '<div><span class="k">2</span>一块能装：'+nf(bytes,0,true)+' / '+nf(tx)+' = <span class="mono">'+tpFmt(r.per)+'</span> 笔</div>'+
+    '<div><span class="k">3</span>吞吐量：'+tpFmt(r.per)+' / '+nf(T)+' s = <span class="mono">'+tpFmt(r.tps)+'</span> Tx/s（分母是出块间隔，不是确认时间）</div>'+
+    (r.confirm===null ? '' : '<div><span class="k">4</span>确认时间：'+nf(k)+' 块 × '+nf(T)+' s = <span class="mono">'+tpFmt(r.confirm)+'</span> s</div>');
+  var html = '<div class="three" style="margin-top:0"><div><span class="lab">一块的交易数</span><span class="val">'+tpFmt(r.per)+'</span></div>'+
+    '<div><span class="lab">吞吐量</span><span class="val">'+tpFmt(r.tps)+' Tx/s</span></div>'+
+    '<div><span class="lab">确认时间</span><span class="val">'+(r.confirm===null?'—':tpFmt(r.confirm)+' s')+'</span></div></div>';
+  if(tgt!==null){
+    var need = tgt*tx*T;
+    html += '<div style="margin-top:.7rem">反推：交易大小、出块间隔不变，要得到 '+tpFmt(tgt)+' Tx/s，区块只需 '+tpFmt(tgt)+' × '+nf(tx)+' × '+nf(T)+' = <strong>'+nf(need,0,true)+'</strong> 字节 ≈ <strong>'+tpFmt(need/1e6)+' MB</strong>（按 10<sup>6</sup> 字节）。</div>';
+  }
+  out.innerHTML = html;
+}
+
+/* ================================================================ 交互件 2：同一个系统，两套分法各叫它什么 */
+function clsSet(pub, grant, read){
+  document.getElementById('clsPub').value=pub; document.getElementById('clsGrant').value=grant;
+  document.getElementById('clsRead').value=read; clsGo();
+}
+/** 输入：谁能发布区块、许可由谁发、谁能读。返回三套叫法 */
+function clsName(pub, grant, read){
+  if(pub==='any' && read==='approved') return {ok:false};
+  var l11 = (pub==='any' ? 'permissionless' : 'permissioned') + ' + ' + (read==='any' ? 'public' : 'private');
+  var tree = pub==='any' ? 'Public' : (grant==='consortium' ? 'Consortium' : 'Private');
+  var nist = pub==='any' ? '公有链（如比特币）' : (read==='any' ? '许可但公开可读' : '许可且读受限');
+  return {ok:true, l11:l11, tree:tree, nist:nist};
+}
+function clsGo(){
+  var pub=document.getElementById('clsPub').value, grant=document.getElementById('clsGrant').value, read=document.getElementById('clsRead').value;
+  var gsel=document.getElementById('clsGrant'); gsel.disabled = (pub==='any');
+  var r=clsName(pub, grant, read), out=document.getElementById('clsOut'), view=document.getElementById('clsView');
+  if(!r.ok){
+    view.innerHTML='<table class="compact"><tbody><tr><td>三套分法</td><td class="bad">都没有这一格</td></tr></tbody></table>';
+    out.innerHTML='<span class="bad">不存在：任何人都能出块，就任何人都能读。</span>这就是 NIST 交叉表里空着的那一格，也是 p21 能把两个维度压成一棵树的原因：无许可必然公开可读。';
+    return;
+  }
+  view.innerHTML='<div class="tw"><table class="compact"><thead><tr><th>分法</th><th>这个系统叫</th></tr></thead><tbody>'+
+    '<tr><td>L11 p15（＝本讲 p6）：身份 × 读权限</td><td><strong>'+r.l11+'</strong></td></tr>'+
+    '<tr><td>本讲 p21 的树（Q3(a)(iii) 按这个答）</td><td><strong>'+r.tree+' chain</strong></td></tr>'+
+    '<tr><td>NIST IR 8202 §2：出块权限 × 读权限</td><td><strong>'+r.nist+'</strong></td></tr></tbody></table></div>';
+  var note='';
+  var l11Read = r.l11.split(' + ')[1];
+  if(l11Read==='public' && r.tree!=='Public') note='<span class="bad">同一个词两种意思：</span>按 p15 它是 public（任何人可读），按 p21 它却是 '+r.tree.toLowerCase()+' chain——p21 的 public 指「任何人都能加入、记账」。';
+  else if(l11Read==='private' && r.tree==='Consortium') note='<span class="bad">同一个词两种意思：</span>按 p15 它是 private（读受限），按 p21 它却是 consortium chain——p21 的 private 指「许可来自一个中心实体」。';
+  else note='两套分法在这里用词一致。';
+  if(pub!=='any') note += ' 联盟链和私有链的区别只在许可由谁发：'+(grant==='consortium'?'这里是一群机构（联盟成员）。':'这里是一个中心实体。');
+  out.innerHTML=note;
+}
+
+
+/* ---------- 交互件与配图初始化 ---------- */
+drawTree('figTreeW',false); drawTree('figTreeN',true);
+clsGo();
+tpGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+
+</script>
+</body>
+</html>

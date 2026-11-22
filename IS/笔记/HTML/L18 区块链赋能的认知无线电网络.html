@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L18 区块链赋能的认知无线电网络 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* 四列以上的表在窄屏改为在 .tw 里横向滚动 */
+@media (max-width:640px){ .tw>table.wide{min-width:34rem} }
+th.nw,td.nw{white-space:nowrap}
+/* 骨架里 details.box>*{display:block} 打不开已关闭的 details（内容在 ::details-content 里），这里补上 */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+/* ---------- 公式（tex.py 的输出） ---------- */
+.m .up{font-style:normal; font-family:inherit; font-size:.94em}
+.m b.bs{font-weight:700}
+.m .ss{display:inline-flex; flex-direction:column; vertical-align:-.55em; line-height:1.05; font-size:.68em; font-style:normal; margin-left:.04em}
+.m .ss>span{display:block}
+.m .bigop{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1.05; margin:0 .2em}
+.m .bigop .opc{font-size:1.6em; font-style:normal; line-height:1}
+.m .bigop .lim{font-size:.62em; font-style:normal}
+.m .bigd{font-size:1.45em; font-style:normal; line-height:1; vertical-align:-.12em}
+@media (max-width:600px){ .eq{font-size:1rem; overflow-x:auto; overflow-y:hidden} }
+/* ---------- 图：JS 现画的 SVG；窄屏保持最小宽度，在图框里横向滑动，不撑破页面 ---------- */
+.fs{overflow-x:auto; overflow-y:hidden}
+.fs>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.tool .fs>svg{border-radius:8px}
+.legend{display:flex; flex-wrap:wrap; gap:.3rem 1rem; font-size:13px; color:var(--muted); margin:.4rem 0 0}
+.legend i{display:inline-block; width:.85rem; height:.85rem; border-radius:3px; vertical-align:-.1rem; margin-right:.35rem}
+.kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:.6rem; margin:.6rem 0}
+.kv div{background:var(--surface2); border-radius:8px; padding:.55rem .8rem}
+.kv .lab{display:block; font-size:12.5px; color:var(--muted)}
+.kv .val{display:block; font-size:1.2rem; font-weight:600; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.kv .val small{font-size:.7em; color:var(--muted); font-weight:400}
+.tool input.num{width:5.6rem; font-size:14px; padding:.25rem .4rem}
+.pill{display:inline-block; padding:0 .45rem; border-radius:20px; font-size:12.5px; border:1px solid currentColor}
+.pill.good{color:var(--ok)} .pill.bad{color:var(--warn)}
+.tool .steps .mono{font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 18</div>
+  <div class="tt">区块链赋能的认知无线电网络</div>
+  <div class="toc">
+<a href="#s1">1 · 回顾：RAFT 与 PBFT</a>
+<a href="#s1-1" class="sub">1.1 RAFT：容崩溃，不容拜占庭</a>
+<a href="#s1-2" class="sub">1.2 PBFT：n ≥ 3f + 1</a>
+<a href="#s2">2 · 频谱：一种稀缺、要管理的自然资源</a>
+<a href="#s2-1" class="sub">2.1 有线与无线系统的速率</a>
+<a href="#s2-2" class="sub">2.2 频率越高，带宽越大、覆盖越小</a>
+<a href="#s2-3" class="sub">2.3 授权频谱与非授权频谱</a>
+<a href="#s3">3 · 为什么需要认知无线电</a>
+<a href="#s3-1" class="sub">3.1 频谱不是不够，是分了不用</a>
+<a href="#s3-2" class="sub">3.2 动态频谱接入</a>
+<a href="#s3-3" class="sub">3.3 认知无线电：会自己找空频段的电台</a>
+<a href="#s4">4 · 动态频谱共享与自管理要求</a>
+<a href="#s4-1" class="sub">4.1 DSS：LTE 与 5G NR 共用一个载波</a>
+<a href="#s4-2" class="sub">4.2 五项"自"要求</a>
+<a href="#s5">5 · CR 网络：两类用户，两种组网</a>
+<a href="#s5-1" class="sub">5.1 主用户与次用户</a>
+<a href="#s5-2" class="sub">5.2 有基础设施与无基础设施</a>
+<a href="#s5-3" class="sub">5.3 自组织 CR 网络跨越多个主网络</a>
+<a href="#s6">6 · 无碰撞通信</a>
+<a href="#s6-1" class="sub">6.1 碰撞与介质访问控制</a>
+<a href="#s6-2" class="sub">6.2 MAC 协议的三种分法</a>
+<a href="#s6-3" class="sub">6.3 为什么必须避免碰撞</a>
+<a href="#s6-4" class="sub">6.4 CR 里的碰撞更难避免</a>
+<a href="#s7">7 · 区块链能给 CR 带来什么</a>
+<a href="#s7-1" class="sub">7.1 用共识代替中心协调者</a>
+<a href="#s7-2" class="sub">7.2 用区块链实现无碰撞接入的四步</a>
+<a href="#s7-3" class="sub">7.3 六项好处</a>
+<a href="#s7-4" class="sub">7.4 区块链管不到的攻击</a>
+<a href="#s8">8 · 挑战：把区块链放进无线网的代价</a>
+<a href="#s8-1" class="sub">8.1 治理：谁管账本、怎么进出、用哪种共识</a>
+<a href="#s8-2" class="sub">8.2 通信开销</a>
+<a href="#s8-3" class="sub">8.3 存储开销</a>
+<a href="#s8-4" class="sub">8.4 计算开销</a>
+<a href="#s9">9 · 区块链的其他应用</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 18 — Blockchain-enabled Cognitive Radio Networks</div>
+  <h1>区块链赋能的认知无线电网络</h1>
+  <p>无线频谱又贵又稀缺，却有大量授权频段闲着；怎样让没有执照的设备安全地借用这些空闲频段，又不依赖一个中心机构来调度？</p>
+</header>
+
+
+<div class="box def">
+<div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>这是区块链"应用篇"的第一讲（课件路线图 p18 把 L18–L20 标为 "Applications"）。它把前几讲的区块链与共识（consensus：互不完全信任的多个节点就同一份记录达成一致），搬到一个通信专业很熟悉的问题上：<strong>无线频谱又贵又稀缺，却有大量授权频段闲着；怎样让没有执照的设备安全地借用这些空闲频段，又不依赖一个中心机构来调度？</strong></p>
+<p>主线是一条因果链：</p>
+<ol>
+<li>频谱是稀缺、要由国家管理的资源，分成授权与非授权两类（<a href="#s2">第 2 节</a>）；</li>
+<li>静态分配让授权频谱"分了不用"，于是有了动态频谱接入（让没有执照的用户临时使用空闲的授权频谱），认知无线电（cognitive radio，CR：能自己感知并挑选空闲频段的无线电设备）是实现它的技术（<a href="#s3">第 3 节</a>）；同样属于"动态共享频谱"的还有运营商内部的动态频谱共享，以及这类系统要满足的五项自管理要求（<a href="#s4">第 4 节</a>）；</li>
+<li>认知无线电网络里有主用户（primary user，PU：持有执照的用户）和次用户（secondary user，SU：没有执照、借用频谱的用户），次用户只能钻主用户的空子，还常常没有基站来统一指挥（<a href="#s5">第 5 节</a>）；</li>
+<li>没有指挥，许多次用户抢同一段空闲频谱就会碰撞，碰撞浪费能量、频谱和时间（<a href="#s6">第 6 节</a>）；</li>
+<li>区块链用"共识 + 公开账本"代替中心调度者，带来六项好处（<a href="#s7">第 7 节</a>），也带来通信、存储和治理上的代价（<a href="#s8">第 8 节</a>）。</li>
+</ol>
+<p>和课件顺序的差别：课件是 CR 节点与组网（p31–34）→ 碰撞（p35–37）→ 动态频谱共享与自管理要求（p38–44）→ 区块链。本笔记把动态频谱共享与自管理要求提到 CR 节点之前讲，因为它们是 CR 概念的旁支；这样"CR 组网没有中心 → 抢同一空洞就碰撞 → 区块链来协调（p48 解决的正是碰撞）"连成一条不被打断的因果链。课件 p2–p17 是对 L17 的回顾，这里只在第 1 节简短带过。</p>
+<p>课程总览与考情见 00 课程信息与考情。对应课件 <code>Lecture 18 - Blockchain-enabled CR</code>，60 页。课件的学习目标是两条："Understand the principles of CR"、"Know how blockchain can help CR"；默认已有的知识是 "Wireless communication network"。课件没有课堂活动和计算题，本笔记里的数字例子都是课件外补充。</p>
+</div>
+
+<div class="box exam">
+<div class="h"><span class="tag">考点</span>本讲考情与模拟卷</div>
+<p>课件全讲没有一句"exam""you will be asked"一类的话；隐性信号是红字，最重的几处是 p28（整句红字加下划线：静态分配导致频谱闲置）、p37（碰撞的代价）、p56–58（挑战）。</p>
+<p>去年模拟卷 Q4(c) 四小问共 8 分，<strong>全部出自本讲的新内容</strong>：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">题号</th><th class="nw">分值</th><th class="nw">题目要点</th><th class="nw">课件原页</th><th class="nw">本笔记</th></tr></thead>
+<tbody>
+<tr><td class="nw">Q4(c)(i)</td><td class="nw">2</td><td class="nw">避免接入碰撞的好处</td><td class="nw">p37、p35</td><td class="nw"><a href="#s6-3">6.3</a></td></tr>
+<tr><td class="nw">Q4(c)(ii)</td><td class="nw">2</td><td>解释授权频谱与非授权频谱</td><td class="nw">p25–27、p32</td><td class="nw"><a href="#s2-3">2.3</a>、<a href="#s5-1">5.1</a></td></tr>
+<tr><td class="nw">Q4(c)(iii)</td><td class="nw">2</td><td>区块链用于 CR 的挑战</td><td class="nw">p56–58</td><td class="nw"><a href="#s8">第 8 节</a></td></tr>
+<tr><td class="nw">Q4(c)(iv)</td><td class="nw">2</td><td class="nw">其他区块链应用</td><td class="nw">p60、p18</td><td class="nw"><a href="#s9">第 9 节</a></td></tr>
+</tbody></table></div>
+<p>另外，回顾页 p5–7、p15 覆盖了 L17 讲的两种共识算法 RAFT 与 PBFT，对应同一卷 Q4(a)(iv)（<span class="m">N ≥ 3f + 1</span>，3 分）和 Q4(a)(v)（RAFT 三角色、不抗拜占庭，4 分），主讲在 L16、L17，见 <a href="#s1">第 1 节</a>。</p>
+<p>卷面本身有两处不一致，答题时要知道：(i) 题面要"two"，参考答案却写"Accept any three of the below, and 1 mark each"，而整题只有 2 分；(iii) 参考答案里的"High computing resource consumed"在课件里没有原页。</p>
+<p><strong>复习不能只看 L20 的 Summary 课件</strong>：它重放了本讲 12 页，却恰好没收 p26–27（授权与非授权的定义）和 p56–58（挑战），而这正是模拟卷 (ii)(iii) 两问的出处。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>回顾：RAFT 与 PBFT</h2>
+
+<p>课件 p2–p17 是从 L17 抽出的 15 页，几乎逐字照搬，完整内容见 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>，<span class="m">3f + 1</span> 的推导见 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a> 与 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>。这里只列要点。</p>
+
+<h3 id="s1-1"><span class="n">1.1</span>RAFT：容崩溃，不容拜占庭</h3>
+
+<ul>
+<li>RAFT 是一种易懂易实现的共识算法，课件把名字展开为 "Replicated And Fault Tolerant"（原论文并没有把它定义为缩写，见 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>）。核心思想是用一份<strong>持久化日志</strong>（persistent log：写到磁盘上、宕机也不丢的命令记录）实现<strong>状态机复制</strong>（state machine replication：所有节点按同样顺序执行同一串命令，于是状态保持一致）。</li>
+<li>它支持<strong>集群</strong>（cluster：共同运行同一服务的一组服务器）成员变更（不中断服务地增删节点）和日志压缩（丢掉旧日志，省存储、加快崩溃后的恢复）。</li>
+<li>适用场景（p5）："No Byzantine failures"、"Unreliable network communication"、"Asynchronous communication and processors"。<strong>RAFT 不能抵抗拜占庭故障</strong>（Byzantine failure：节点不只是宕机，而是可能任意作恶、说谎）。</li>
+<li>三种角色（p6–7）：<strong>领导者</strong>（Leader）接收客户端请求、管理日志复制、和跟随者通信；<strong>跟随者</strong>（Follower）是被动的，只响应 RPC（Remote Procedure Call，远程过程调用：一台机器请求另一台机器执行某个操作），从不主动发起通信；<strong>候选者</strong>（Candidate）是想当领导者、正在拉票的节点。</li>
+<li>状态转换（p8）：RAFT 把时间分成编号递增的<strong>任期</strong>（term），每个任期至多一个领导者。节点启动时是跟随者；超时没听到领导者就变成候选者，开启新任期并发起选举；拿到多数票成为领导者；发现任期更高的领导者就退回跟随者。</li>
+<li>两个阶段（p9）：leader election（选主）和 log replication（日志复制）。p9 还给了一个动画演示网址 <a href="http://thesecretlivesofdata.com/raft/">http://thesecretlivesofdata.com/raft/</a> ，能看到选举和复制的全过程。p10 的五节点日志表里，索引 1–6 的条目已复制到多数节点上，所以<strong>已提交</strong>（committed：多数节点都已保存，从此不会丢失、可以执行）。</li>
+</ul>
+
+<p>模拟卷 Q4(a)(v) 的答法：Leader、Follower、Candidate 各 1 分，"RAFT cannot resist Byzantine attacks/failures" 1 分。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>PBFT：n ≥ 3f + 1</h3>
+
+<ul>
+<li>PBFT（Practical Byzantine Fault Tolerance，实用拜占庭容错）是专为"有拜占庭节点"设计的共识协议，由三个子协议组成：normal operation（正常运行）、view change（换主：PBFT 用一个编号叫<strong>视图</strong> view 标定"当前由哪个节点当主"，主节点出错就换下一个视图）、checkpointing（检查点，用来丢弃旧数据）。</li>
+<li>节点：所有参与者统称 replica（副本节点）；在一个视图内由一个 primary（主节点，课件也叫 leader）负责和客户端通信，其余是 backup（备份节点）。课件写的是 "In each round, a leader node, called the primary node…"，但 primary 并不每轮轮换，只有 view change 时才换（L16、L17 笔记同样这样纠正）。</li>
+<li>容错条件（p15；回顾部分除了 p9 的超链接，只有这一页用了红字）：在<strong>部分同步</strong>（partially synchronous：消息延迟有上界，但上界未知或只在某个时刻之后才成立）环境下，要容忍 <span class="m">f</span> 个拜占庭节点，总节点数至少 <span class="m">n = 3f + 1</span>；只要 <span class="m">n ≥ 3f + 1</span>，PBFT 就能保证拜占庭容错。</li>
+<li>三个阶段（p16–17）：
+<ol>
+<li><strong>预准备</strong>（pre-prepare）：主节点给客户端请求分配一个序号，发给所有备份节点；</li>
+<li><strong>准备</strong>（prepare）：每个备份节点向其他所有节点广播"我收到了这个序号的这条请求"，一个节点收到 <span class="m">2f</span> 条一致的 prepare，就确认大家看到的是同一条请求；</li>
+<li><strong>提交</strong>（commit）：每个节点再广播"我已准备好"，收到 <span class="m">2f + 1</span> 条一致的 commit 后执行请求并回复客户端。</li>
+</ol>
+<p>p17 的完整时序图在 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 里讲过，这里不再重放。</p>
+</li>
+</ul>
+
+<p>模拟卷 Q4(a)(iv)：3 个拜占庭攻击者，<span class="m">N ≥ 3 × 3 + 1 = 10</span>，所以至少要 <span class="m">10 − 3 = 7</span> 个合法节点（推导见 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>）。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>p13 把 PBFT 写成了 RAFT</div>
+<p>p13 原文 "three roles that nodes … can assume in a <strong>RAFT</strong> cluster"，L17 的原页写的是 "PBFT cluster"，这是抄写时改错了。另外 "three roles" 本身也不准：PBFT 只有 primary 和 backup 两种角色，replica 是二者的统称。考试问 PBFT 节点角色，写"primary（leader）与 backup，统称 replica"。</p>
+</div>
+
+<h2 id="s2"><span class="n">2</span>频谱：一种稀缺、要管理的自然资源</h2>
+
+<p><strong>频谱</strong>（radio spectrum）指可以用来发射无线电信号的那一段电磁波频率范围。同一时间、同一地点、同一频段上只能容纳有限的发射，多了就互相干扰，所以频谱是稀缺的，要由国家的监管机构来分配。课件 p23 的定位是："Like other natural resources, such as petrol, gas, and minerals, wireless radio spectrum is also a natural resource"，而且"A small chunk of wireless radio spectrum band cost millions of dollars"（实际往往远不止百万：美国 2021 年 C 波段（约 3.7–3.98 GHz）的 5G 频谱拍卖总额约 810 亿美元）。</p>
+
+<h3 id="s2-1"><span class="n">2.1</span>有线与无线系统的速率</h3>
+
+<p>课件 p22 用一张表列出常见通信系统支持的数据速率，作为背景。补上每个缩写是什么：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">系统</th><th class="nw">是什么</th><th class="nw">课件给的速率</th></tr></thead>
+<tbody>
+<tr><td>IEEE 802.3x</td><td>原表写法，实指 IEEE 802.3 以太网标准族（IEEE 即 Institute of Electrical and Electronics Engineers，电气与电子工程师协会，制定局域网标准）；有线局域网</td><td class="nw">1 Gbps</td></tr>
+<tr><td class="nw">SONET/SDH</td><td>Synchronous Optical Networking / Synchronous Digital Hierarchy，同步光网络 / 同步数字体系：运营商骨干网的光纤传输标准</td><td class="nw">10 Gbps</td></tr>
+<tr><td class="nw">WDM</td><td>Wavelength Division Multiplexing，波分复用：一根光纤里用多个波长同时传多路信号</td><td class="nw">40 Gbps</td></tr>
+<tr><td class="nw">ADSL</td><td>Asymmetric Digital Subscriber Line，非对称数字用户线：在电话铜线上上网，下行快、上行慢</td><td class="nw">1–8 Mbps</td></tr>
+<tr><td class="nw">HDSL</td><td>High-bit-rate DSL，高速数字用户线：上下行对称，多用于企业专线</td><td class="nw">2 Mbps</td></tr>
+<tr><td class="nw">VDSL</td><td>Very-high-bit-rate DSL，甚高速数字用户线：短距离铜线上的更高速版本</td><td>15–100 Mbps</td></tr>
+<tr><td class="nw">PLC</td><td>Power Line Communication，电力线通信：借电力线传数据</td><td>14–200 Mbps</td></tr>
+<tr><td>Wi-Fi IEEE 802.11x</td><td>无线局域网（IEEE 802.11 标准族）</td><td class="nw">2–600 Mbps</td></tr>
+<tr><td class="nw">ZigBee</td><td>基于 IEEE 802.15.4 的低功耗、短距离无线协议，用于传感器</td><td class="nw">250 kbps</td></tr>
+<tr><td class="nw">Z-wave</td><td>智能家居用的低功耗无线协议</td><td class="nw">40 kbps</td></tr>
+<tr><td>蜂窝 2G / 2.5G / 3G / 3.5G / 4G</td><td>蜂窝移动通信（cellular：把服务区切成许多小区、每个小区一个基站）的历代标准</td><td>14.4 kbps / 144 kbps / 2 Mbps / 14 Mbps / 100 Mbps</td></tr>
+</tbody></table></div>
+
+<p>这张表要看的只是一个趋势：有线系统（尤其光纤）速率最高，无线系统的速率受限于它能用到多少频谱。具体数字不会考，而且已经过时（Wi-Fi 6 即 IEEE 802.11ax 早已到数 Gbps，4G 的 100 Mbps 是高速移动场景的指标）。原表还有几处笔误："2 Mpbs" 应为 Mbps，"Celular 4G" 应为 Cellular；"IEEE 802.3x" 在以太网体系里其实特指全双工与流量控制那一项修订，原表想写的应是"802.3 系列"。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>频率越高，带宽越大、覆盖越小</h3>
+
+<p>一段频谱好不好用、值多少钱，取决于它在"传多远"和"传多快"之间怎么取舍。p24 是一张定性示意图：</p>
+
+<figure>
+<div id="figBand" class="fs"></div>
+<figcaption>课件 p24：从 kHz 到 THz，覆盖范围、发射功率、功耗逐级下降，带宽逐级上升；柱高只是示意，纵轴没有数值。</figcaption>
+</figure>
+
+<p>两条规律各有物理原因：</p>
+
+<ul>
+<li><strong>频率越高，可用带宽越大。</strong> 带宽（bandwidth）是一个信号占用的频率宽度；<strong>载频</strong>（carrier frequency）是信号所在频段的中心频率。天线和射频电路只能在中心频率附近一个有限的比例范围内高效工作（相对带宽受限），所以一个系统能用的频段宽度大致与载频成比例。比例相同时，载频越高绝对带宽越大：同样取载频的 5%，900 MHz 只有 45 MHz，28 GHz 就有 1400 MHz。带宽直接决定速率，香农公式（Shannon capacity，一个信道无差错传输速率的理论上限）是
+<div class="eq"><span class="m">C = B <span class="up">log</span><sub>2</sub> (1 + <span class="up">SNR</span>)</span></div>
+<p>其中 <span class="m">C</span> 是容量（bit/s），<span class="m">B</span> 是带宽（Hz），SNR（signal-to-noise ratio，信噪比）是信号功率与噪声功率之比。<strong>SNR 固定时，容量与 <span class="m">B</span> 成正比</strong>：SNR 为 20 dB（即 100 倍）时 <span class="m"><span class="up">log</span><sub>2</sub> 101 ≈ 6.66</span> bit/s/Hz，20 MHz 带宽对应约 133 Mbps，400 MHz 带宽对应约 2.66 Gbps。这就是 5G 要去毫米波（millimeter wave：波长在毫米量级的高频段，5G 用的是 24 GHz 以上）的原因。但如果发射功率 <span class="m">P</span> 固定，噪声功率 <span class="m">N<sub>0</sub>B</span>（<span class="m">N<sub>0</sub></span> 是噪声功率谱密度）随带宽一起增大，SNR 随之下降，容量变成 <span class="m">C = B <span class="up">log</span><sub>2</sub> (1 + <span class="frac"><span>P</span><span>N<sub>0</sub>B</span></span>)</span>，随 <span class="m">B</span> 增长越来越慢，上限是 <span class="m">P/(N<sub>0</sub> <span class="up">ln</span> 2)</span>。所以大带宽还要配上足够的功率或天线增益。</p>
+</li>
+<li><strong>频率越高，覆盖越小。</strong> 自由空间路径损耗（free-space path loss，FSPL：信号在无遮挡空间里传播 <span class="m">d</span> 米后功率衰减的倍数，假设收发都用全向天线）是
+<div class="eq"><span class="m">L<sub><span class="up">fs</span></sub> = <span class="bigd">(</span><span class="frac"><span>4πdf</span><span>c</span></span><span class="bigd">)</span><sup>2</sup>,   L<sub><span class="up">fs</span></sub>[<span class="up">dB</span>] = 20 <span class="up">log</span><sub>10</sub> <span class="frac"><span>4πdf</span><span>c</span></span></span></div>
+<p><span class="m">c</span> 是光速。损耗随 <span class="m">f<sup>2</sup></span> 增长，原因是全向接收天线的有效面积 <span class="m">λ<sup>2</sup>/4π</span> 随波长 <span class="m">λ = c/f</span> 缩小，接住的能量变少。数值：距离 100 m 时，0.9 GHz 损耗 71.5 dB，3.5 GHz 83.3 dB，28 GHz 101.4 dB；28 GHz 比 0.9 GHz 多 29.9 dB，即功率差约 968 倍。高频还更容易被墙、雨、人体挡住，所以覆盖从几十千米缩到几米。</p>
+</li>
+</ul>
+
+<div class="tool" id="bdTool">
+  <h4>频率的两面：带宽、容量与路径损耗</h4>
+  <p class="sub">第一组按香农公式算带宽 B 与信噪比给出的容量；第二组按自由空间损耗公式算 d 米处的损耗，并与 0.9 GHz 比，另给出「载频 × 5%」的带宽。曲线对比两种情况：SNR 固定时容量与带宽成正比；发射功率固定时，带宽越大 SNR 越低，容量越来越接近上限。</p>
+  <div class="row">
+    <span class="ctl"><label for="bdB">带宽 B（MHz）</label><input class="num" type="text" inputmode="decimal" id="bdB" value="20" oninput="bdGo()"></span>
+    <span class="ctl"><label for="bdS">SNR（dB）</label><input class="num" type="text" inputmode="decimal" id="bdS" value="20" oninput="bdGo()"></span>
+    <button class="btn" onclick="bdSet('bdB',20)">20 MHz</button>
+    <button class="btn" onclick="bdSet('bdB',400)">400 MHz</button>
+  </div>
+  <div class="kv" id="bdKv"></div>
+  <div class="row">
+    <span class="ctl"><label for="bdF">载频 f（GHz）</label><input class="num" type="text" inputmode="decimal" id="bdF" value="0.9" oninput="bdGo()"></span>
+    <span class="ctl"><label for="bdD">距离 d（m）</label><input class="num" type="text" inputmode="decimal" id="bdD" value="100" oninput="bdGo()"></span>
+    <button class="btn" onclick="bdSet('bdF',0.9)">0.9 GHz</button>
+    <button class="btn" onclick="bdSet('bdF',3.5)">3.5 GHz</button>
+    <button class="btn" onclick="bdSet('bdF',28)">28 GHz</button>
+  </div>
+  <div class="kv" id="bdKv2"></div>
+  <div class="fs" id="bdPlot"></div>
+  <div class="result" id="bdOut"></div>
+</div>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>p24 的"功耗随频率降低"是典型部署，不是物理规律</div>
+<p>误：频率越高，传同样距离需要的发射功率越小。</p>
+<p>正：同样距离下高频的路径损耗更大，要覆盖同样距离反而需要更大功率或更高增益的天线。图里高频的发射功率和功耗低，是因为高频系统通常只做几十米到几米的小覆盖，不是因为高频本身省电。另外图中 "KHz" 应写 kHz（小写 k）。</p>
+</div>
+
+<h3 id="s2-3"><span class="n">2.3</span>授权频谱与非授权频谱</h3>
+
+<p>p25 把频谱按"用不用执照"分成两类：</p>
+
+<ul>
+<li><strong>授权频谱</strong>（licensed spectrum，p26）："managed by the respective governments and can only be used by buying it. Telecom operators buy these licensed bands and then provide communication services to their customers." 各国政府管理，要买到使用许可才能用；运营商买下频段，再向用户提供服务。持证者对这段频谱有独占的使用权并受法律保护，原则上别人不能在上面发射，所以服务质量有保障。</li>
+<li><strong>非授权频谱</strong>（unlicensed spectrum，p27）："can be used free of charge by anyone at any time"，任何人随时免费可用，课件说它"can also be called as Industrial, Scientific, and Medical (ISM) band"。ISM 频段（工业、科学、医疗频段）原本划给微波炉、医疗设备这类非通信用途，通信设备可以免执照地在其中工作，Wi-Fi 的 2.4 GHz、蓝牙、ZigBee 都在这里。代价是谁都能用，互相干扰没人担保。</li>
+</ul>
+
+<p>一句话的区别：<strong>原则上授权频谱只有持证用户有权使用，非授权频谱人人可用。</strong> 这正是模拟卷参考答案的两个得分点。</p>
+
+<p>"原则上"三个字要留意：p26 说授权频谱只能靠购买获得使用权，p32 却允许次用户在持证者空闲时借用——两页看似矛盾，而打破"只有持证者能用"恰恰就是认知无线电存在的意义（<a href="#s5-1">5.1</a>）。完整的考场答法放在 5.1 末尾，等讲完持证者在 CR 里的专门名字再写全。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>ISM 不等于非授权频谱；"只能买"也不准确</div>
+<ul>
+<li>误：非授权频谱就是 ISM 频段。正：ISM 是非授权频谱最典型的例子，二者不等同；5 GHz 频段的大部分（5.15–5.725 GHz）和 6 GHz 的 Wi-Fi 频段也是非授权的，却不属于 ISM。</li>
+<li>误：非授权频谱"at any time"想怎么用就怎么用。正：免执照不等于没有规则，仍有发射功率上限等技术要求（如 5 GHz 要避让雷达），并且无权要求别人不干扰自己。</li>
+<li>误：授权频谱只能靠购买获得。正：拍卖之外还有行政指配（我国移动通信频段长期是行政许可）；买到的是使用权，不是频谱本身。</li>
+</ul>
+<p>考场按课件写"免费、任何人可用，例如 ISM 频段"即可，上面几条是理解层面的修正。</p>
+</div>
+
+<h2 id="s3"><span class="n">3</span>为什么需要认知无线电</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>频谱不是不够，是分了不用</h3>
+
+<p>p28 是全讲唯一整句红字加下划线的一页："The wireless radio spectrum is underutilized, and lot of licensed radio spectrum is not being utilized. The primary reason for this is the static allocation of the spectrum by the regulatory bodies."</p>
+
+<p><strong>静态分配</strong>（static allocation）指监管机构把一段频谱长期整块地分给一个持证者，不管他此刻用不用。而频谱的实际使用情况"varies according to the time and geographic location"：一个广播频段在深夜、一个城市专用频段在乡村，可能几乎没人用。于是在某个时间、某个地点，一段授权频谱明明空着，别人却不能用。这些空着的时频块叫<strong>频谱空洞</strong>（spectrum hole，常被称作白空间 white space）。</p>
+
+<p>课件外的数据支撑：美国 FCC（Federal Communications Commission，联邦通信委员会，美国的频谱监管机构）2002 年的频谱政策报告结论是"频谱接入比物理上的稀缺更成问题"；Akyildiz 等 2006 年的综述引述 FCC 数据：已分配频谱的利用率随时间、地点在约 15% 到 85% 之间变化。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>动态频谱接入</h3>
+
+<p>既然问题出在"静态"，解法就是"动态"（p29）：研究者提出"use this wireless radio spectrum dynamically"，形成新的范式——<strong>动态频谱接入</strong>（Dynamic Spectrum Access，DSA：允许没有执照的用户在持证者不用的时间、地点临时使用授权频谱）。</p>
+
+<h3 id="s3-3"><span class="n">3.3</span>认知无线电：会自己找空频段的电台</h3>
+
+<p>p30："Cognitive Radio (CR) is the technology that enables this DSA paradigm to efficiently utilize this unused wireless radio spectrum." <strong>认知无线电</strong>（cognitive radio，CR）是能感知周围频谱环境、自己决定在哪个频段以什么参数发射的无线电设备；DSA 是"可以这样用频谱"的规则与思路，CR 是让设备真正做到这一点的技术。</p>
+
+<p>一台 CR 设备要做四件事（课件没列，出自 Akyildiz 等 2006 年的综述，下文会反复用到）：</p>
+
+<ol>
+<li><strong>频谱感知</strong>（spectrum sensing）：检测某段频谱此刻有没有持证者在用，最简单的是能量检测——测到的能量高于门限就认为有人；</li>
+<li><strong>频谱管理 / 决策</strong>（spectrum management，后续文献多称 spectrum decision）：在找到的空洞里挑一个最合适的；</li>
+<li><strong>频谱共享</strong>（spectrum sharing）：和其他同样在找空洞的设备协调，别撞在一起——<a href="#s6">第 6 节</a>的碰撞问题就在这一环；</li>
+<li><strong>频谱移动性</strong>（spectrum mobility，也叫频谱切换）：持证者回来时立刻让出，换到别的空洞继续通信。</li>
+</ol>
+
+<p>借用者趁空洞临时发射、持证者一来就走，这种用法叫<strong>机会式接入</strong>（opportunistic access）。下图把四件事放在一张时频图上：</p>
+
+<figure>
+<div id="figHoles" class="fs"></div>
+<figcaption>示意图（自绘）：同一地点 5 个授权信道随时间的占用情况。① t=7 时持证者回到信道 3，借用者 1 切到信道 5 的空洞；② t=10 时持证者又回到信道 5，它再切到信道 4 的空洞。信道 2 上是另一个借用者。</figcaption>
+</figure>
+
+<h2 id="s4"><span class="n">4</span>动态频谱共享与自管理要求</h2>
+
+<p>认知无线电不是唯一的"动态共享频谱"思路。课件 p38–44 还介绍了运营商内部的动态频谱共享，以及这类系统要满足的一组自管理要求。</p>
+
+<h3 id="s4-1"><span class="n">4.1</span>DSS：LTE 与 5G NR 共用一个载波</h3>
+
+<p>p38 介绍<strong>动态频谱共享</strong>（Dynamic Spectrum Sharing，DSS）："a new technology which is going to enable use of LTE and 5G simultaneously in the same frequency band"。</p>
+
+<ul>
+<li>LTE（Long Term Evolution，长期演进）是 4G 的主流标准；NR（New Radio，新空口）是 5G 的无线接口标准。两者都由 3GPP（3rd Generation Partnership Project，第三代合作伙伴计划，制定移动通信标准的国际组织）制定。</li>
+<li><strong>载波</strong>（carrier）指运营商在某个中心频率上占用的一块连续频段。</li>
+</ul>
+
+<p>p39–40 的意思是：系统实时判断两种制式各有多少业务需求，把同一载波的资源按需动态切分给 LTE 和 NR。</p>
+
+<figure>
+<div id="figDss" class="fs"></div>
+<figcaption>课件 p40：上排是实际业务量里 NR（红）与 LTE（绿）的比例，下排是 DSS 跟着调整的频率份额，从全 LTE 逐步过渡到全 NR。</figcaption>
+</figure>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>LTE-NR DSS 不是借用他人频谱的认知无线电</div>
+<p>误：DSS 就是认知无线电那种"没有执照的人借用持证者的频谱"。</p>
+<p>正：LTE-NR DSS 是<strong>同一个运营商</strong>在<strong>自己的授权载波</strong>上，让 4G、5G 两种制式按业务量分资源，没有持证者与借用者之分，也不需要感知和避让。它和 CR 只在"频谱按需动态共享"这个大概念上相通，课件把它放在 "Dynamic spectrum sharing in CR" 标题下容易造成混淆。"is going to enable" 也已过时，DSS 自 2019–2020 年起已商用。</p>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>五项"自"要求</h3>
+
+<p>p41–44 列出 CR 中动态频谱共享系统应具备的五种能力。核心是：网络环境变化快、节点多，不能指望人工逐台配置，系统要能自己管自己。</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">要求</th><th class="nw">课件关键词（红字）</th><th class="nw">含义</th></tr></thead>
+<tbody>
+<tr><td>自我感知（self-aware）</td><td>"should be able to know what is happening"</td><td>知道自己内部和周围在发生什么，据此决定行动、并能学习</td></tr>
+<tr><td>自配置（self-configuration）</td><td>"needs to adapt immediately"</td><td>环境一变，以最少的人工干预立刻重新配置自己</td></tr>
+<tr><td>自愈（self-healing）</td><td>"evaluated correctly"</td><td>正确评估网络状态，在不中断运行的情况下纠错，减轻故障部件的影响</td></tr>
+<tr><td>自优化（self-optimizing）</td><td>"efficiently maximize resource allocation"</td><td>自动把资源分配和利用率做到最好，实现端到端目标</td></tr>
+<tr><td>自保护（self-protecting）</td><td>"hostile or intrusive behavior"</td><td>实时发现敌意或入侵行为，自动应对未授权访问、病毒、拒绝服务攻击（Denial of Service，DoS：用大量请求或干扰让系统无法为正常用户服务，见 <a href="L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html">L10 网络安全：威胁、攻击与防御</a>）和一般故障</td></tr>
+</tbody></table></div>
+
+<p>这五项不是 DSS 专有的：后四项来自 IBM 提出的<strong>自主计算</strong>（autonomic computing：让大型计算系统像人体自主神经那样自己调节）愿景，常合称 self-CHOP（configuring、healing、optimizing、protecting），自我感知是它们的前提。记忆抓手：先<strong>知道</strong>（aware），再<strong>设定</strong>（configure），出错<strong>修复</strong>（heal），平时<strong>调优</strong>（optimize），有敌<strong>防御</strong>（protect）。</p>
+
+<h2 id="s5"><span class="n">5</span>CR 网络：两类用户，两种组网</h2>
+
+<h3 id="s5-1"><span class="n">5.1</span>主用户与次用户</h3>
+
+<p><strong>认知无线电网络</strong>（Cognitive Radio Network，CRN）是由 CR 设备组成的网络。p31："In a CRN, two types of devices co-exist"：</p>
+
+<ul>
+<li><strong>主用户</strong>（课件写作 Primary Radio (PR) nodes，文献通称 primary user，PU）：持有执照的用户，即前文的"持证者"。p32："Primary Radio (PR) nodes are the licensed users and can only use the licensed spectrum"。</li>
+<li><strong>次用户</strong>（Secondary Users，SU，也就是 CR 节点）：没有执照、借用频谱的一方，即前文的"借用者"。p32 给了它三条规矩：
+<ol>
+<li>"can only use the licensed spectrum when it is not being utilized by the primary users"——只在主用户不用时才用；</li>
+<li>"do not cause harmful interference to the PR nodes"——不能对主用户造成有害干扰；</li>
+<li>"required to leave the frequency band when a primary radio node arrives over it"——主用户一出现就必须让出。</li>
+</ol>
+</li>
+</ul>
+
+<p>三条规矩要靠 <a href="#s3-3">3.3</a> 的几项功能来落实：要先感知才知道主用户在不在（规则 1、2），要会切换才能及时让出（规则 3）。本笔记下文统一用 PU、SU。</p>
+
+<div class="box def">
+<div class="h"><span class="tag">辨析</span>本讲的 CRN 和 L19 的 CRN 不是一回事</div>
+<p>本讲 CRN = Cognitive Radio Network（认知无线电网络）。<a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a>里也会出现 CRN，那里指 consensus RSU node（参与共识的路侧单元节点；RSU 即 road side unit，路边的通信单元），与 ORN（ordinary RSU node）相对。同一缩写，两讲含义完全不同。</p>
+</div>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>SU 的规则只描述了一种借用方式</div>
+<p>误：次用户只能在主用户完全不用时才能发射。</p>
+<p>正：课件描述的是<strong>交织式</strong>（interweave：只钻频谱空洞，即 3.3 的机会式接入）接入，这是最常见、也是考试口径的写法。文献里还有两种：<strong>底层式</strong>（underlay：SU 与 PU 同时发射，但把对 PU 的干扰压在门限以下，如超宽带 UWB，即 ultra-wideband，把极低的功率摊在很宽的频带上）和<strong>叠加式</strong>（overlay：SU 用一部分功率帮 PU 中继，换取同时传输的机会）。另外课件"PR … can only use the licensed spectrum"里的"only"应理解为"拥有的是那段授权频谱"，不是说主用户不能用别的频段。</p>
+</div>
+
+<details class="box">
+<summary>模拟卷 Q4(c)(ii) 规范答法（2 分）</summary>
+<p>题目："Explain licensed spectrum and unlicensed spectrum in a wireless radio system." [2 marks]</p>
+<p>参考答案："licensed spectrum can only be used by licensed users [1 mark], unlicensed spectrum can be used by everyone in the system [1 mark]."</p>
+<p>建议答法（每类一句定义加一句说明，两个得分点都覆盖）：</p>
+<ul>
+<li><strong>Licensed spectrum</strong> is managed by the government, and only licensed users have the right to use it (e.g., telecom operators who buy the band, i.e., the primary users); it is protected from other transmitters. In a cognitive radio network, secondary users may use it opportunistically only when the primary user is idle, without causing harmful interference, and must leave when the primary user returns.</li>
+<li><strong>Unlicensed spectrum</strong> can be used free of charge by everyone without a licence, e.g., the ISM band used by Wi-Fi, Bluetooth and ZigBee; no user has exclusive rights or protection from interference.</li>
+</ul>
+<p>出处：定义 p26–27，CR 里的补充 p32。</p>
+</details>
+
+<h3 id="s5-2"><span class="n">5.2</span>有基础设施与无基础设施</h3>
+
+<p>p33 对比主网络和 CR 网络：</p>
+
+<figure>
+<div id="figCrn" class="fs"></div>
+<figcaption>课件 p33：左边主网络，右边 CR 网络的两种组网方式。</figcaption>
+</figure>
+
+<p>从左往右读：</p>
+
+<ul>
+<li><strong>主网络</strong>（Primary Network）：主用户终端（笔记本、手机）连到主基站（Primary Base Station），就是普通的蜂窝网。</li>
+<li><strong>有基础设施的 CR 网络</strong>（With Infrastructure）：CR 节点都连到一个 CR 基站（Cognitive Base Station），由基站集中感知、集中分配信道——有一个中心调度者。</li>
+<li><strong>无基础设施的 CR 网络</strong>（Without Infrastructure）：CR 节点之间直接通信，没有基站。这种网络叫<strong>自组织网络</strong>（ad hoc network：节点临时自行组网、互相转发，不依赖固定设施）。</li>
+</ul>
+
+<h3 id="s5-3"><span class="n">5.3</span>自组织 CR 网络跨越多个主网络</h3>
+
+<p>p34 把自组织的情形画得更具体：</p>
+
+<figure>
+<div id="figAdhoc" class="fs"></div>
+<figcaption>课件 p34：6 个 CR 节点多跳相连，网络横跨两个主网络的覆盖区（红、绿虚线弧）。</figcaption>
+</figure>
+
+<p>看图要注意三点：</p>
+
+<ul>
+<li>CR 节点之间用蓝色链路逐跳转发，没有任何基站参与；</li>
+<li>左下的节点压在红色主网络的覆盖边界上，中右的节点在绿色主网络的覆盖区内，右上的节点在绿色覆盖边界上——<strong>不同位置的 SU 面对的是不同的 PU</strong>，能用的空洞各不相同；</li>
+<li>没有中心，谁用哪个信道只能靠节点之间互相协商。</li>
+</ul>
+
+<p>最后一点是整讲的转折：一旦没有中心调度者，多个 SU 同时看中同一个空洞就会撞车。下一节先看碰撞本身是什么、代价多大，再看"谁来协调、协调结果谁来保证"这个问题怎样由区块链来回答。</p>
+
+<h2 id="s6"><span class="n">6</span>无碰撞通信</h2>
+
+<h3 id="s6-1"><span class="n">6.1</span>碰撞与介质访问控制</h3>
+
+<p>无线信道是<strong>广播介质</strong>：一台设备发射，覆盖范围内所有设备都收得到。两台设备同时在同一频段发射，接收端收到的是两个信号的叠加，哪个都解不出来，这叫<strong>碰撞</strong>（collision）。</p>
+
+<p>p35："Collision-free communication (CFC) is desirable in wireless and wired networks"。<strong>无碰撞通信</strong>（collision-free communication，CFC）就是让各设备的传输在时间、频率上错开、互不冲突。负责这件事的是<strong>介质访问控制协议</strong>（Medium Access Control protocol，MAC 协议，位于数据链路层，规定"谁、在什么时候、用哪个信道发"）："The role of those medium access protocols is to allow devices to access the medium (resource) without making a collision with other devices."</p>
+
+<h3 id="s6-2"><span class="n">6.2</span>MAC 协议的三种分法</h3>
+
+<p>p36 用一棵树按三个维度给 MAC 协议分类：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">维度</th><th class="nw">两类</th><th class="nw">含义与例子</th></tr></thead>
+<tbody>
+<tr><td>按信道（Channels）</td><td class="nw">单信道 / 多信道</td><td>所有设备共用一个信道，还是有多个信道可选；CR 天然是多信道的</td></tr>
+<tr><td>按竞争（Contention）</td><td class="nw">基于竞争 / 无竞争</td><td>设备自己抢着发、撞了再说，还是事先排好谁发</td></tr>
+<tr><td>按接入（Access）</td><td>随机接入 / 受控接入</td><td>随机接入：ALOHA（想发就发，撞了随机等一会儿重发）、CSMA/CA（Carrier Sense Multiple Access with Collision Avoidance，载波侦听多路访问 / 冲突避免：先侦听信道空闲再发，信道忙就<strong>退避</strong>，即 backoff，等一段随机时长再试，免得几台设备同时重试又撞上；Wi-Fi 用的就是它）。受控接入：轮询（polling：协调者逐个询问"有数据要发吗"，被问到的才能发）、令牌传递（token passing：一个"令牌"在设备间依次传递，拿到令牌的才能发）</td></tr>
+</tbody></table></div>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>"竞争"与"接入"两个维度基本重合</div>
+<p>随机接入就是基于竞争的，受控接入就是无竞争的，课件的第二、三两支说的几乎是同一件事。常见教材（如 Forouzan《数据通信与网络》）的分法是三类：随机接入、受控接入、<strong>信道化</strong>（channelization：把信道按频率、时间或码字切开，各用各的，即 FDMA（Frequency Division Multiple Access，频分多址）、TDMA（Time Division Multiple Access，时分多址）、CDMA（Code Division Multiple Access，码分多址））。课件的树里缺了信道化这一类。</p>
+</div>
+
+<p>随机接入只能降低碰撞概率、不能消除；要真正无碰撞，就得像 TDMA 那样事先分好资源，而分资源需要一个所有人都认的协调者。</p>
+
+<h3 id="s6-3"><span class="n">6.3</span>为什么必须避免碰撞</h3>
+
+<p>p37 是模拟卷 Q4(c)(i) 的原页："Avoiding collision is necessary; otherwise, packets will be lost, re-transmission will be required and thus result in energy, spectrum and time consumption."</p>
+
+<p>这句话是一条因果链：</p>
+
+<p><strong>碰撞</strong> → 两个包都没被正确接收（packets lost，丢包）→ 必须<strong>重传</strong>（re-transmission）→ 重传要再发一遍，于是多耗三样东西：</p>
+
+<ul>
+<li><strong>能量</strong>（energy）：每次发射都耗电，对靠电池的移动设备尤其要命；</li>
+<li><strong>频谱</strong>（spectrum）：碰撞那一段时频资源被白白占用，谁也没用上；</li>
+<li><strong>时间</strong>（time）：重传前还要退避等待，时延变长。</li>
+</ul>
+
+<p>反过来，避免碰撞的好处就是这三样省下来，再往前推一步就是吞吐量和连通性的改善。</p>
+
+<p>一个带数字的例子（课件外）：设每次发送独立地以概率 <span class="m">p</span> 发生碰撞，一个包要发几次才成功？第 <span class="m">k</span> 次才成功的概率是 <span class="m">p<sup>k−1</sup>(1 − p)</span>（前 <span class="m">k − 1</span> 次都撞、第 <span class="m">k</span> 次不撞），发送次数的期望是</p>
+
+<div class="eq"><span class="m">E[N] = <span class="bigop"><span class="lim">∞</span><span class="opc">∑</span><span class="lim">k=1</span></span>k p<sup>k−1</sup>(1 − p) = <span class="frac"><span>1</span><span>1 − p</span></span></span></div>
+
+<p><span class="m">p = 0.3</span> 时 <span class="m">E[N] ≈ 1.43</span>：平均每个包多发 43%，能量和占用的频谱时间都多 43%；有效传输只占全部发射的 <span class="m">1 − p = 70%</span>。<span class="m">p = 0.5</span> 时要发 2 次，浪费一半。</p>
+
+<details class="box">
+<summary>随机接入的上限：时隙 ALOHA（课件外，选读）</summary>
+<p>时隙 ALOHA（slotted ALOHA）把时间切成等长时隙，设备只在时隙开头发送。设每个时隙里尝试发送的设备数 <span class="m">k</span> 服从均值为 <span class="m">G</span> 的泊松分布：</p>
+<div class="eq"><span class="m">P(k) = <span class="frac"><span>G<sup>k</sup>e<sup>−G</sup></span><span>k!</span></span></span></div>
+<p>① 一个时隙成功，当且仅当恰好一个设备发送，所以吞吐量 <span class="m">S = P(1) = G e<sup>−G</sup></span>。</p>
+<p>② 求最大值：<span class="m"><span class="frac"><span>dS</span><span>dG</span></span> = e<sup>−G</sup>(1 − G) = 0</span>，得 <span class="m">G = 1</span>，此时 <span class="m">S = 1/e ≈ 36.8%</span>。</p>
+<p>③ 在 <span class="m">G = 1</span> 时，空闲时隙占 <span class="m">P(0) = e<sup>−1</sup> ≈ 36.8%</span>，碰撞时隙占 <span class="m">1 − P(0) − P(1) = 1 − 2/e ≈ 26.4%</span>。</p>
+<p>也就是说，即使负载调到最优，仍有约四分之一的时隙在碰撞、三分之一以上空着。这就是随机接入的效率天花板；事先分配资源才能做到无碰撞——<a href="#s7-2">7.2</a> 的区块链方案走的就是"事先分配"这条路。</p>
+</details>
+
+<div class="tool" id="clTool">
+  <h4>碰撞的代价：重传次数与时隙 ALOHA</h4>
+  <p class="sub">第一排：每次发送独立地以概率 p 碰撞，一个包平均要发几次。第二排：时隙 ALOHA 里每个时隙尝试发送的设备数服从均值为 G 的泊松分布，成功、空闲、碰撞三类时隙各占多少；曲线上的点是当前的 G。</p>
+  <div class="row">
+    <span class="ctl"><label for="clP">碰撞概率 p</label><input type="range" id="clP" min="0" max="0.9" step="0.01" value="0.3" oninput="clGo()"><span class="rv" id="clPv"></span></span>
+    <button class="btn" onclick="clSet('clP',0.3)">p = 0.3</button>
+    <button class="btn" onclick="clSet('clP',0.5)">p = 0.5</button>
+  </div>
+  <div class="kv" id="clKv1"></div>
+  <div class="row">
+    <span class="ctl"><label for="clG">负载 G</label><input type="range" id="clG" min="0.05" max="4" step="0.05" value="1" oninput="clGo()"><span class="rv" id="clGv"></span></span>
+    <button class="btn" onclick="clSet('clG',0.5)">G = 0.5</button>
+    <button class="btn" onclick="clSet('clG',1)">G = 1</button>
+    <button class="btn" onclick="clSet('clG',2)">G = 2</button>
+  </div>
+  <div class="kv" id="clKv2"></div>
+  <div class="fs" id="clPlot"></div>
+  <div class="result" id="clOut"></div>
+</div>
+
+<details class="box">
+<summary>模拟卷 Q4(c)(i) 规范答法（2 分）</summary>
+<p>题目："List the any two benefits of avoiding user access collisions happening in a wireless communication network." [2 marks]</p>
+<p>参考答案："Accept any three of the below, and 1 mark each: Improve system throughout; Improve spectrum utilization; Reduce latency; Reduce energy consumption; Improve the connectivity of the system"（"throughout" 是 throughput 的笔误）。</p>
+<p>卷面题目要两条，答案却写"任选三条、每条 1 分"，而整题 2 分——按 2 分题写<strong>三条</strong>最稳，多写一条成本很低：</p>
+<ol>
+<li><strong>Reduce energy consumption</strong>: collisions cause packet loss and retransmission; avoiding them saves the energy of retransmitting.</li>
+<li><strong>Improve spectrum utilization</strong>: a collided transmission occupies the channel without delivering anything; without collisions every use of the spectrum carries useful data.</li>
+<li><strong>Reduce latency</strong>: no waiting for backoff and retransmission.</li>
+</ol>
+<p>备选：improve throughput（单位时间成功送达的数据更多）、improve connectivity（课件没写，卷面给分）。前三条都直接来自 p37 的 "energy, spectrum and time consumption"，优先写这三条。</p>
+</details>
+
+<h3 id="s6-4"><span class="n">6.4</span>CR 里的碰撞更难避免</h3>
+
+<p><a href="#s5-3">5.3</a> 已经指出，自组织 CRN 没有协调者。CR 还多一层麻烦：<strong>可用信道在变</strong>。每个 SU 能用的信道取决于附近 PU 此刻在不在，不同位置的 SU 看到的空洞也不同，没法像 TDMA 那样一次分好就不再管。</p>
+
+<p>于是 SU 之间既要反复分资源，又找不到一个大家都信任的分配者。区块链的核心能力恰好是"没有中心、互不信任的节点也能对一份记录达成一致"，这就是把它引进来的理由。</p>
+
+<h2 id="s7"><span class="n">7</span>区块链能给 CR 带来什么</h2>
+
+<h3 id="s7-1"><span class="n">7.1</span>用共识代替中心协调者</h3>
+
+<p>p46–47 给出区块链帮 CR 的三条总论：</p>
+
+<ul>
+<li>"The blockchain provides verification and validation schemes to ensure the security of the CR network."——区块链提供验证机制，保证频谱交易与分配记录可信；</li>
+<li>"A decentralized validation algorithm of blockchain enables a medium access protocol of CR to be more accessible, and the implementation will be easier since there is no need for a central-authority node."——验证由全体节点按共识完成，不需要中心权威节点，MAC 协议更容易部署；</li>
+<li>"lacking a centralized node for validating a transaction and monitoring the spectrum access makes the overall system robust against single-point failures"——没有中心节点，也就没有<strong>单点故障</strong>（single point of failure：一个部件坏了整个系统就停摆）。</li>
+</ul>
+
+<p>这里用到的是前几讲的三样东西：<strong>分布式账本</strong>（每个节点存一份相同的记录，见 <a href="L11%20%E5%88%86%E5%B8%83%E5%BC%8F%E8%B4%A6%E6%9C%AC%E4%B8%8E%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AF%BC%E8%AE%BA.html">L11 分布式账本与区块链导论</a>）、<strong>共识</strong>（节点就"下一条记录是什么"达成一致，见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>、<a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>）、<strong>哈希链接的区块</strong>（记录一旦写入就难以篡改，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a>）。对照一下现实中的做法更能看清区块链替换的是什么：美国的 CBRS（Citizens Broadband Radio Service，公民宽带无线电业务，3.5 GHz 的共享频段）由一个中心化的频谱接入系统（Spectrum Access System，SAS）统一分配，电视白频谱（TV white space：电视广播频段里在当地没被电视台占用的频道）设备则要查询中心化的地理位置数据库。这类中心数据库正是区块链方案想去掉的"中心实体"。</p>
+
+<h3 id="s7-2"><span class="n">7.2</span>用区块链实现无碰撞接入的四步</h3>
+
+<p>p48 给出一个具体方案（原文第一句是 "The following steps will be carried out to avoid collision-free communication in CRNs by using blockchain."）：</p>
+
+<ol>
+<li>"Local consensus is reached to allocate resources in each group."——SU 先分成若干组，每组内部用共识决定组内谁占哪些信道、哪些时隙；</li>
+<li>"Broadcast the information to all SU nodes in the network."——把分配结果广播给全网所有 SU（课件只说广播；按区块链方案的理解，广播的是写进账本的分配记录）；</li>
+<li>"SU nodes will not use these resources."——其他 SU 看到这些资源已被占用，就不去用；</li>
+<li>"Results in collision avoidance in channel hopping sequence-based CRN."——在按跳频序列工作的 CRN 里，这样就避免了碰撞。</li>
+</ol>
+
+<p>第 4 步要先解释<strong>跳频序列</strong>（channel hopping sequence）：没有基站的 CRN 里，节点按一个预定的信道序列逐时隙轮换信道（例如时隙 1 用信道 1、时隙 2 用信道 3……），收发双方按同一序列跳就能在同一时刻落到同一信道上通信。问题在于不同组的序列互不知情，难免在某个时隙跳到同一个信道上：</p>
+
+<figure>
+<div id="figHop" class="fs"></div>
+<figcaption>示意图（自绘）：(a) A、B 两组各按自己的跳频序列走，在时隙 2 的信道 3、时隙 4 的信道 4 撞车；(b) A 组的分配经共识写进账本并广播后，B 组查到这两个时频块已被占用，改用空闲的信道 1、信道 2，碰撞消失。</figcaption>
+</figure>
+
+<p>这就是 <a href="#s6-2">6.2</a> 末尾说的"事先分配资源"，只是分配结果不由中心机构下发，而由共识写进一份人人可查、无法私自改动的账本。课件没有交代怎么分组、组内用哪种共识、组与组之间如何协调、广播走哪个信道，这些都是方案落地时要补的细节（其中一部分就是 <a href="#s8">第 8 节</a>的挑战）。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>p48 第一句把意思写反了</div>
+<p>"to avoid collision-free communication" 字面是"避免无碰撞通信"，与本意相反，应为 "to achieve collision-free communication" 或 "to avoid collisions"。L20 的 Summary 课件照抄了这个错误。</p>
+</div>
+
+<h3 id="s7-3"><span class="n">7.3</span>六项好处</h3>
+
+<p>p49 把区块链给 CR 带来的好处归成 2 × 3 六个方块，p50–55 逐项展开。每一项其实都是区块链的某个通用特征套到频谱管理上：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">好处</th><th class="nw">课件说法（红字为主）</th><th class="nw">来自区块链的哪个特征</th></tr></thead>
+<tbody>
+<tr><td>去中心实体（Lack of Central Entity）</td><td>频谱买卖"without going to the central entity or spectrum regulator"，比向中心监管机构申请"faster"</td><td class="nw">去中心化</td></tr>
+<tr><td>不可篡改（Immutability）</td><td>频谱管理记录"safe and secure"</td><td>哈希链接 + 共识，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a></td></tr>
+<tr><td>可用性（Availability）</td><td>"several copies of the ledger co-exist"，攻击者极难改账本；评估白空间时"no need to contact regional or national spectrum regulator"</td><td class="nw">多副本分布式账本</td></tr>
+<tr><td>抗拒绝服务攻击（DoS Resilient）</td><td>账本在多个节点上都有副本，个别节点被攻破不影响整个系统运行</td><td class="nw">多副本 + 无单点</td></tr>
+<tr><td>不可否认（Non-repudiation）</td><td>频谱交易一旦记入账本，节点"cannot disown it"，管理"more transparent"、可审计</td><td>交易上的数字签名 + 不可篡改的账本</td></tr>
+<tr><td>智能合约集成（Smart Contract Integration）</td><td>"will bring new business models"，以及基于规则的频谱分配政策</td><td>智能合约，见 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a></td></tr>
+</tbody></table></div>
+
+<p>几个术语：<strong>可用性</strong>（availability）指系统在需要时能正常提供服务，是信息安全三要素（机密性、完整性、可用性）之一；DoS 即 <a href="#s4-2">4.2</a> 表里的拒绝服务攻击；<strong>不可否认性</strong>（non-repudiation：做过的事事后赖不掉，靠数字签名实现，见 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>）；<strong>智能合约</strong>（smart contract：写在链上、条件满足就自动执行的程序），用在频谱上就是"PU 空闲且 SU 付了费，就自动把这段频谱的使用权在这段时间里分给 SU"。</p>
+
+<p>六项可以按"它解决了中心化方案的哪个毛病"来记：中心实体要排队审批（→ 去中心实体），中心数据库能被管理员改（→ 不可篡改），中心一挂全网瘫（→ 可用性、抗 DoS），交易双方事后扯皮（→ 不可否认），规则要人工执行（→ 智能合约）。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>六项好处里的三处夸大</div>
+<ul>
+<li><strong>抗 DoS 只在节点层面成立。</strong> 账本有多份副本，攻破个别节点确实不影响全局；但在无线场景里，攻击者干扰（jamming，用大功率噪声压住信道）大家用来传区块链消息的那个信道，所有节点就都收不到共识消息，这同样是拒绝服务。</li>
+<li><strong>"不必找监管机构"不等于监管消失。</strong> 监管机构仍要规定哪些频段可共享、功率上限多少；区块链替换的是中心化的分配数据库（如 CBRS 的 SAS），不是监管本身。</li>
+<li><strong>不可否认来自签名，不是来自"记进账本"。</strong> 每笔交易由发起者用私钥签名，才赖不掉；账本只保证这条签过名的记录不能被改、人人可查。而且区块链上的身份通常是假名，"completely transparent"指交易可见，不是身份可见。</li>
+</ul>
+</div>
+
+<h3 id="s7-4"><span class="n">7.4</span>区块链管不到的攻击</h3>
+
+<p>p46 说区块链"ensure the security of the CR network"，这也说过了头：区块链保护的是<strong>已经写进账本的记录</strong>，管不到账本之外、发生在物理层和感知环节的攻击。CR 特有的两种（课件外）：</p>
+
+<ul>
+<li><strong>主用户仿冒攻击</strong>（Primary User Emulation，PUE）：攻击者发出模仿 PU 的信号，SU 感知到"主用户在用"就按规则让出，攻击者独占频谱；</li>
+<li><strong>频谱感知数据伪造</strong>（Spectrum Sensing Data Falsification，SSDF）：多个 SU 协作感知时，恶意 SU 谎报信道状态，把融合结果带偏。</li>
+</ul>
+
+<p>SSDF 本质上就是 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 里的拜占庭故障：一部分节点在说谎。道理和拜占庭容错相同——诚实者要占足够的多数，具体门限取决于融合规则：简单多数表决下，要压过 <span class="m">f</span> 个说谎者只需 <span class="m">n ≥ 2f + 1</span>；若要让所有节点就融合结果达成拜占庭共识，才是 <a href="#s1-2">1.2</a> 的 <span class="m">n ≥ 3f + 1</span>。两个门限说的是不同问题，不要把"SSDF 需要 <span class="m">3f + 1</span>"当结论记。</p>
+
+<h2 id="s8"><span class="n">8</span>挑战：把区块链放进无线网的代价</h2>
+
+<p>p56–58 是模拟卷 Q4(c)(iii) 的原页，课件用一串问句列出未解决的问题，可以归成四类。</p>
+
+<h3 id="s8-1"><span class="n">8.1</span>治理：谁管账本、怎么进出、用哪种共识</h3>
+
+<p>p56："Is it important to think about who will manage this blockchain? Will the spectrum broker own this ledger? How do the nodes join and leave the blockchain network?" 以及 "How the consensus will be reached among the blockchain nodes? Which consensus protocol will be more feasible? Which blockchain system?"</p>
+
+<p>拆成三个问题：</p>
+
+<ul>
+<li><strong>账本归谁、谁来管理</strong>（ownership of the ledger）：如果由<strong>频谱经纪人</strong>（spectrum broker：在频谱持有者和想租用的人之间撮合交易的中介）拥有账本，它就又成了一个中心，去中心化的好处打了折扣；</li>
+<li><strong>节点怎么加入和退出</strong>：SU 是移动的，随时进出网络。允许谁加入，决定了这条链是公有链（谁都能加入）还是许可链（只有获准的节点才能参与）；进出频繁还会不断改变共识的参与者集合；</li>
+<li><strong>用哪种共识、哪种链</strong>：PoW（Proof of Work，工作量证明：节点反复算哈希抢出块权，见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>）太耗算力（见 <a href="#s8-4">8.4</a>），PBFT 消息太多（见 <a href="#s8-2">8.2</a>），RAFT 不防作恶（见 <a href="#s1-1">1.1</a>）——各有代价。</li>
+</ul>
+
+<h3 id="s8-2"><span class="n">8.2</span>通信开销</h3>
+
+<p>p57："wireless channel has already capacity issues, thus it is not clear how blockchain-related communication will be carried out in such a scenario? Will new spectrum access methods be required, or the existing spectrum access methods will suffice?"</p>
+
+<p>这里有一个自我矛盾：引入区块链是为了更好地分配稀缺的频谱，可共识本身要在节点之间来回发消息，这些消息也要占用同样稀缺的无线信道。用 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 的 PBFT 算一下（课件外）。按点对点消息计（正常运行、没有换主，不含客户端的 request 和 reply）：pre-prepare 阶段主节点发 <span class="m">n − 1</span> 条，prepare 阶段每个备份节点发给其余 <span class="m">n − 1</span> 个节点共 <span class="m">(n − 1)<sup>2</sup></span> 条，commit 阶段每个节点发给其余节点共 <span class="m">n(n − 1)</span> 条，合计</p>
+
+<div class="eq"><span class="m">(n − 1) + (n − 1)<sup>2</sup> + n(n − 1) = 2n(n − 1)</span></div>
+
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">节点数 <span class="m">n</span></th><th class="nw">4</th><th class="nw">7</th><th class="nw">10</th><th class="nw">100</th></tr></thead>
+<tbody>
+<tr><td>一轮共识的点对点消息数</td><td class="nw">24</td><td class="nw">84</td><td class="nw">180</td><td class="nw">19800</td></tr>
+</tbody></table></div>
+
+<p>可以拿 p17 的时序图核对：<span class="m">n = 4</span> 时 pre-prepare、prepare、commit 三段的箭头数是 3、9、12，合计 24。</p>
+
+<p>计数口径要注意：上式不计 reply，为 <span class="m">2n(n − 1)</span>；若把 <span class="m">n</span> 个节点各回给客户端的 reply 也算进去，就是 <span class="m">2n(n − 1) + n = n(2n − 1)</span>，<span class="m">n = 4</span> 时为 28——这是 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 用的口径。两个数都对，只是数的范围不同。</p>
+
+<p>点对点消息数随 <span class="m">n<sup>2</sup></span> 增长。无线信道是广播的，单跳范围内一次发射所有邻居都能收到，空口发射次数可以压到约 <span class="m">2n</span> 次；但可靠送达要确认和重传，自组织网络要多跳转发，PBFT 每条消息附带的认证信息也随 <span class="m">n</span> 变长，总开销仍随节点数快速增长，而这些 SU 要争的正是那几个空闲信道。这也是 p48 先分组、只做"local consensus"的一个好处：组越小，共识越便宜。</p>
+
+<div class="tool" id="pbTool">
+  <h4>PBFT 一轮共识的消息数</h4>
+  <p class="sub">点对点计、正常运行（没有换主）、不计客户端的 request。改节点数 n，看三个阶段各有多少条；n ≤ 7 时下面画出时序图，图上的箭头是逐条画出来再数的。</p>
+  <div class="row">
+    <span class="ctl"><label for="pbN">节点数 n</label><input class="num" type="text" inputmode="numeric" id="pbN" value="4" oninput="pbGo()"></span>
+    <button class="btn" onclick="pbSet(4)">4</button>
+    <button class="btn" onclick="pbSet(7)">7</button>
+    <button class="btn" onclick="pbSet(10)">10</button>
+    <button class="btn" onclick="pbSet(100)">100</button>
+  </div>
+  <div class="steps" id="pbSteps"></div>
+  <div class="result" id="pbOut"></div>
+  <div class="tw" id="pbTab"></div>
+  <div class="fs" id="pbSeq"></div>
+</div>
+
+<h3 id="s8-3"><span class="n">8.3</span>存储开销</h3>
+
+<p>p58："the nodes keep their local copy of the ledger and this requires memory. However, the lack of these resources is important in the context of mobile devices."</p>
+
+<p>区块链的安全性来自"每个节点都存一份完整账本"，可 SU 多是手机这类内存、电量都有限的设备，账本只增不减，迟早存不下。可行的缓解方向（课件外）：</p>
+
+<ul>
+<li>让手机做<strong>轻节点</strong>（lightweight node：只存区块头、不存完整交易，需要时向全节点查询，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a>）。以比特币为例，一个区块头 80 字节，每 10 分钟一个块，一年只有 <span class="m">80 × 6 × 24 × 365 = 4, 204, 800</span> 字节，约 4.2 MB；</li>
+<li>把完整账本放在基站或边缘服务器上，移动设备只做查询。</li>
+</ul>
+
+<h3 id="s8-4"><span class="n">8.4</span>计算开销</h3>
+
+<p>模拟卷参考答案还列了"High computing resource consumed"，<strong>课件没有对应原页</strong>。它可以从 p56 的"选哪种共识"引申出来：如果用 PoW，出块要反复算哈希，移动设备的处理器和电池都承担不起；签名验证、哈希计算本身也要消耗算力。</p>
+
+<details class="box">
+<summary>模拟卷 Q4(c)(iii) 规范答法（2 分）</summary>
+<p>题目："List any two challenges of using blockchain technology into cognitive radio networks." [2 marks]</p>
+<p>参考答案："Accept any two of the below, and 1 mark of each: High communication overhead; High memory overhead; High computing resource consumed; How nodes join and leave the blockchain network?; The ownership of the ledger."</p>
+<p>建议答法（写两到三条，每条带一句原因；优先写课件有原页的）：</p>
+<ol>
+<li><strong>High communication overhead</strong> (p57): consensus messages must be exchanged over wireless channels that already have limited capacity.</li>
+<li><strong>High memory overhead</strong> (p58): every node keeps a local copy of the ledger, but mobile devices lack memory.</li>
+<li><strong>Ownership and management of the ledger / how nodes join and leave</strong> (p56): it is unclear who manages the blockchain (e.g., a spectrum broker?), and mobile SUs join and leave frequently.</li>
+</ol>
+<p>备选：which consensus protocol is feasible（p56）；high computing resource consumption（卷面给分，课件无原页，可说"e.g., PoW mining is too costly for mobile devices"）。</p>
+</details>
+
+<h2 id="s9"><span class="n">9</span>区块链的其他应用</h2>
+
+<p>p59 的 Summary 只有两行："Basics of cognitive radio network"、"Blockchain-enabled CR"。p60 预告下两讲的应用："Blockchain-Empowered D2D Caching Network"（D2D 即 device-to-device，设备之间直接通信，见 <a href="L20%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9AD2D%20%E7%BC%93%E5%AD%98.html">L20 区块链应用：D2D 缓存</a>）、"Blockchain-Enabled Safe Driving"（网联自动驾驶的安全驾驶评估，见 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a>）。</p>
+
+<p>这些应用的共同点，也就是模拟卷参考答案的判据："any distributed systems requiring trusted data exchange"——多方之间要交换数据、彼此不完全信任、又不想依赖一个中心机构。</p>
+
+<details class="box">
+<summary>模拟卷 Q4(c)(iv) 规范答法（2 分）</summary>
+<p>题目："List any other two potential blockchain-enabled applications." [2 marks]</p>
+<p>参考答案："any distributed systems requiring trusted data exchange should be accepted, such as smart grid, autonomous driving, cryptocurrency, food supply chain system, etc."</p>
+<p>建议答法（列两个，每个加一句"为什么需要可信数据交换"）：</p>
+<ol>
+<li><strong>Autonomous driving / safe driving (L19)</strong>: vehicles and roadside units share driving records that must not be tampered with.</li>
+<li><strong>D2D caching networks (L20)</strong>: devices cache popular content for nearby users and jointly train the caching model by federated learning; the blockchain verifies and stores the model updates and rewards without a trusted central server.</li>
+</ol>
+<p>第 2 条里的联邦学习（federated learning：各设备用本地数据训练、只交换模型参数，不上传原始数据）是 L20 的内容。其他可写：cryptocurrency（比特币，L11–L15 的主例）；food supply chain（L11 的例子：从农场到餐桌每一环的记录可追溯、防篡改）；smart grid（分布式发电户之间点对点电力交易需要防篡改的记录）。题目说 "other"，不要写认知无线电本身。</p>
+</details>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li>课件 p2–p17 回顾 L17：RAFT 三角色 Leader/Follower/Candidate，不抗拜占庭；PBFT 需 <span class="m">n ≥ 3f + 1</span>，三阶段 pre-prepare → prepare → commit。p13 "RAFT cluster" 应为 PBFT。</li>
+<li>频谱是稀缺、要管理的自然资源。<strong>频率越高：带宽越大，覆盖越小</strong>。SNR 固定时容量 <span class="m">C = B <span class="up">log</span><sub>2</sub> (1 + <span class="up">SNR</span>)</span> 与带宽成正比（功率固定时增益递减）；自由空间损耗 <span class="m">∝ f<sup>2</sup></span>。</li>
+<li><strong>授权频谱</strong>：政府管理、须购买许可，原则上只有持证用户（PU）有权使用、受保护。<strong>非授权频谱</strong>：任何人免费可用，如 ISM 频段（Wi-Fi、蓝牙、ZigBee）。ISM 是例子，不等于全部非授权频谱。CR 打破的正是"只有持证者能用"。</li>
+<li>为什么要 CR：频谱利用率随时间、地点变化 + <strong>静态分配</strong> ⇒ 大量授权频谱闲置（频谱空洞）⇒ <strong>DSA</strong>（动态频谱接入）⇒ <strong>CR</strong> 是实现 DSA 的技术。CR 四功能：感知、管理 / 决策、共享、切换。</li>
+<li>DSS：LTE 与 5G NR 在同一载波按业务量动态分资源——同一运营商内部，不是借用他人频谱的 CR。五项自要求：self-aware、self-configuration、self-healing、self-optimizing、self-protecting。</li>
+<li>CRN 两类节点：<strong>PU</strong>（课件 PR，持证）；<strong>SU</strong>（CR 节点）只在 PU 不用时用、不得造成有害干扰、PU 回来必须让出。两种组网：有基础设施（CR 基站集中调度）/ 无基础设施（ad hoc 多跳，无中心）。本讲 CRN ≠ L19 的 CRN（consensus RSU node）。</li>
+<li>MAC 三维分类：单/多信道、竞争/无竞争、随机/受控接入（后两维基本重合，缺信道化）。</li>
+<li><strong>碰撞 → 丢包 → 重传 → 耗能量、频谱、时间</strong>（p37）。避免碰撞的好处：省能耗、提高频谱利用率、降低时延（＋吞吐量、连通性）。碰撞概率 <span class="m">p</span> 时平均发送 <span class="m">1/(1 − p)</span> 次。</li>
+<li>区块链帮 CR：验证机制、去中心、无单点故障。<strong>p48 四步</strong>：组内 local consensus 分资源 → 广播给全网 SU → 其他 SU 不用这些资源 → 跳频序列 CRN 中避免碰撞。</li>
+<li><strong>六项好处</strong>：Lack of Central Entity、Immutability、Availability、DoS Resilient、Non-repudiation、Smart Contract Integration。抗 DoS 只在节点层面；不可否认靠签名；区块链管不到 PUE、SSDF（SSDF 的多数表决门限是 <span class="m">n ≥ 2f + 1</span>，不是 <span class="m">3f + 1</span>）。</li>
+<li><strong>挑战</strong>（p56–58）：谁管理/账本归属、节点加入退出、选哪种共识；通信开销（PBFT 一轮点对点 <span class="m">2n(n − 1)</span> 条消息）；存储开销（移动设备内存不足，可用轻节点）；计算开销（卷面有、课件无）。</li>
+<li>其他应用：D2D 缓存（L20）、安全驾驶 / 自动驾驶（L19）、加密货币、食品供应链、智能电网——"需要可信数据交换的分布式系统"。</li>
+<li>模拟卷 Q4(c) 8 分全在本讲；L20 Summary 没收 p26–27、p56–58，复习要看本讲原页。</li>
+</ul></div>
+
+
+<footer>
+<p>下一讲 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a>：用 AI 加区块链给网联自动驾驶车辆做安全驾驶评估；路侧单元按质押投票选出共识委员会，轮流出块。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L18 区块链赋能的认知无线电网络.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ===================== kit.js：三讲共用的 SVG 画图与数字格式 =====================
+   配色规则同 L1/L4：中性线条与文字用 currentColor + 透明度（自动跟随明暗主题）；
+   强调色 #2F6F8F 硬编码（只给线框与底色，文字仍用 currentColor，暗色下才看得清）；
+   其余语义色在开页时从 CSS 变量读一次。 */
+var AC='#2F6F8F';
+var CSSV=getComputedStyle(document.documentElement);
+function cssv(n,fb){ var v=(CSSV.getPropertyValue(n)||'').trim(); return v||fb; }
+var WRC=cssv('--warn','#B4534B'), OKC=cssv('--ok','#3F8A63'), EXC=cssv('--exam','#9A6B2F'),
+    MUC=cssv('--muted','#5C6673'), FAC=cssv('--faint','#8A929C'), ACT=cssv('--accent','#2F6F8F');
+var MONO='ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+var SVGNS='http://www.w3.org/2000/svg';
+function $(id){ return document.getElementById(id); }
+
+/* 数字：负号用 U+2212；d 位小数；big=true 时加千分位 */
+function nf(v,d,big){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s=(d===undefined)?String(v):Number(v).toFixed(d);
+  if(big){ var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,','); s=p.join('.'); }
+  return s.replace(/-/g,'−');
+}
+function pct(v,d){ return nf(v*100,d===undefined?1:d)+'%'; }
+
+function El(tag,attrs,parent){
+  var e=document.createElementNS(SVGNS,tag);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null&&attrs[k]!==undefined) e.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+var _svgN=0;
+/* 新建一张图：W×H 的 viewBox；minW 为窄屏下的最小显示宽度（外层 .fs 负责横向滑动） */
+function Fig(W,H,label,minW,maxW){
+  var s=El('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':label});
+  s.style.display='block'; s.style.width='100%'; s.style.height='auto';
+  if(minW) s.style.minWidth=minW+'px';
+  if(maxW) s.style.maxWidth=maxW+'px';
+  var id='g'+(++_svgN);
+  var defs=El('defs',null,s);
+  var mk={};
+  [['n','currentColor',.6],['a',AC,.95],['w',WRC,.95],['o',OKC,.95],['e',EXC,.95]].forEach(function(c){
+    var m=El('marker',{id:id+c[0],markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto',markerUnits:'strokeWidth'},defs);
+    El('path',{d:'M0,0 L8,3 L0,6 z',fill:c[1],'fill-opacity':c[2]},m);
+    mk[c[0]]='url(#'+id+c[0]+')';
+  });
+  var g=El('g',{'font-family':'inherit','font-size':13},s);
+  return {svg:s,g:g,mk:mk,id:id};
+}
+function mount(host,F){ var h=typeof host==='string'?$(host):host; h.innerHTML=''; h.appendChild(F.svg); return F; }
+
+/* 文字。t 里可用 _{..} / ^{..} 写下标、上标，用 \n 换行。
+   o: size, anchor, fill, op(透明度), weight, italic, mono, lh(行高倍数) */
+function Tx(g,x,y,t,o){
+  o=o||{};
+  var size=o.size||13, lh=o.lh||1.3;
+  var e=El('text',{x:x,y:y,fill:o.fill||'currentColor','font-size':size,'text-anchor':o.anchor||'middle'},g);
+  if(o.op!==undefined) e.setAttribute('fill-opacity',o.op);
+  if(o.weight) e.setAttribute('font-weight',o.weight);
+  if(o.italic) e.setAttribute('font-style','italic');
+  if(o.mono) e.setAttribute('font-family',MONO);
+  String(t).split('\n').forEach(function(line,li){
+    var parts=line.split(/(_\{[^}]*\}|\^\{[^}]*\})/), first=true;
+    parts.forEach(function(p){
+      if(p==='') return;
+      var ts=El('tspan',null,e);
+      if(first){ ts.setAttribute('x',x); if(li>0) ts.setAttribute('dy',size*lh); }
+      if(/^[_^]\{/.test(p)){
+        var dn=p[0]==='_';
+        ts.textContent=p.slice(2,-1); ts.setAttribute('font-size',size*.72);
+        ts.setAttribute('dy',(first&&li>0?size*lh:0)+(dn?size*.3:-size*.38));
+        var back=El('tspan',{dy:(dn?-size*.3:size*.38),'font-size':size},e); back.textContent='​';
+      } else ts.textContent=p;
+      first=false;
+    });
+  });
+  return e;
+}
+/* 矩形。o: fill, fop, stroke, sop, sw, rx, dash */
+function Rc(g,x,y,w,h,o){
+  o=o||{};
+  var e=El('rect',{x:x,y:y,width:w,height:h,rx:o.rx===undefined?6:o.rx,
+    fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.04:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.3:o.sop,'stroke-width':o.sw||1.2},g);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  if(o.none) e.setAttribute('stroke','none');
+  return e;
+}
+/* 路径。o: stroke, sop, sw, dash, mk（F.mk.n 等）, fill */
+function Pa(g,d,o){
+  o=o||{};
+  var e=El('path',{d:d,fill:o.fill||'none',stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.55:o.sop,
+    'stroke-width':o.sw||1.4,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  if(o.fop!==undefined) e.setAttribute('fill-opacity',o.fop);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  if(o.mk) e.setAttribute('marker-end',o.mk);
+  if(o.mks) e.setAttribute('marker-start',o.mks);
+  return e;
+}
+function Ln(g,x1,y1,x2,y2,o){ return Pa(g,'M'+x1+','+y1+' L'+x2+','+y2,o); }
+function Ci(g,cx,cy,r,o){
+  o=o||{};
+  var e=El('circle',{cx:cx,cy:cy,r:r,fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.08:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.4:o.sop,'stroke-width':o.sw||1.2},g);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  return e;
+}
+/* 无线链路：两点之间画一段带折线的「闪电」 */
+function Zig(g,x1,y1,x2,y2,o){
+  o=o||{};
+  var dx=x2-x1, dy=y2-y1, L=Math.sqrt(dx*dx+dy*dy), ux=dx/L, uy=dy/L, nx=-uy, ny=ux, a=o.amp||6;
+  var p1=[x1+dx*.42+nx*a, y1+dy*.42+ny*a], p2=[x1+dx*.58-nx*a, y1+dy*.58-ny*a];
+  return Pa(g,'M'+x1+','+y1+' L'+p1[0]+','+p1[1]+' L'+p2[0]+','+p2[1]+' L'+x2+','+y2,o);
+}
+/* ---------- 小图标（全部用线条画，跟随主题色） ---------- */
+function icPhone(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Rc(g,x-7*s,y-12*s,14*s,24*s,{rx:3*s,fill:col,fop:.12,stroke:col,sop:.75,sw:1.3});
+  Rc(g,x-5*s,y-9*s,10*s,12*s,{rx:1,fill:col,fop:.18,stroke:'none',sop:0});
+  Ci(g,x,y+7.5*s,1.4*s,{fill:col,fop:.6,stroke:'none',sop:0});
+}
+function icLaptop(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Rc(g,x-13*s,y-11*s,26*s,16*s,{rx:2,fill:col,fop:.12,stroke:col,sop:.75,sw:1.3});
+  Pa(g,'M'+(x-17*s)+','+(y+9*s)+' L'+(x-13*s)+','+(y+5*s)+' L'+(x+13*s)+','+(y+5*s)+' L'+(x+17*s)+','+(y+9*s)+' Z',{stroke:col,sop:.75,sw:1.3,fill:col,fop:.08});
+}
+function icTower(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Pa(g,'M'+(x-9*s)+','+(y+16*s)+' L'+x+','+(y-10*s)+' L'+(x+9*s)+','+(y+16*s)+' M'+(x-5.5*s)+','+(y+6*s)+' L'+(x+5.5*s)+','+(y+6*s)+' M'+(x-3*s)+','+(y-1*s)+' L'+(x+3*s)+','+(y-1*s),{stroke:col,sop:.8,sw:1.4});
+  Ci(g,x,y-11*s,2.2*s,{fill:col,fop:.8,stroke:'none',sop:0});
+  [7,11].forEach(function(r){
+    Pa(g,'M'+(x-r*s*.7)+','+(y-11*s-r*s*.7)+' A'+r*s+','+r*s+' 0 0 0 '+(x-r*s*.7)+','+(y-11*s+r*s*.7),{stroke:col,sop:.55,sw:1.2});
+    Pa(g,'M'+(x+r*s*.7)+','+(y-11*s-r*s*.7)+' A'+r*s+','+r*s+' 0 0 1 '+(x+r*s*.7)+','+(y-11*s+r*s*.7),{stroke:col,sop:.55,sw:1.2});
+  });
+}
+function icServer(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  for(var i=0;i<3;i++){ Rc(g,x-10*s,y-12*s+i*8*s,20*s,7*s,{rx:1.5,fill:col,fop:.12,stroke:col,sop:.7,sw:1.1}); Ci(g,x+6*s,y-8.5*s+i*8*s,1.1*s,{fill:col,fop:.7,stroke:'none',sop:0}); }
+}
+function icCloud(g,x,y,w,h,col){ col=col||'currentColor';
+  var d='M'+(x-w*.38)+','+(y+h*.3)+' C'+(x-w*.6)+','+(y+h*.3)+' '+(x-w*.6)+','+(y-h*.15)+' '+(x-w*.34)+','+(y-h*.12)+
+    ' C'+(x-w*.3)+','+(y-h*.55)+' '+(x+w*.05)+','+(y-h*.6)+' '+(x+w*.1)+','+(y-h*.28)+
+    ' C'+(x+w*.3)+','+(y-h*.48)+' '+(x+w*.55)+','+(y-h*.25)+' '+(x+w*.42)+','+(y+h*.02)+
+    ' C'+(x+w*.62)+','+(y+h*.1)+' '+(x+w*.55)+','+(y+h*.32)+' '+(x+w*.38)+','+(y+h*.3)+' Z';
+  return Pa(g,d,{stroke:col,sop:.6,sw:1.3,fill:col,fop:.08});
+}
+function icCar(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Pa(g,'M'+(x-16*s)+','+(y+4*s)+' L'+(x-16*s)+','+(y-2*s)+' L'+(x-9*s)+','+(y-3*s)+' L'+(x-5*s)+','+(y-9*s)+' L'+(x+7*s)+','+(y-9*s)+' L'+(x+11*s)+','+(y-3*s)+' L'+(x+16*s)+','+(y-2*s)+' L'+(x+16*s)+','+(y+4*s)+' Z',{stroke:col,sop:.8,sw:1.3,fill:col,fop:.15});
+  Ci(g,x-9*s,y+5*s,3*s,{fill:'currentColor',fop:.5,stroke:'none',sop:0}); Ci(g,x+9*s,y+5*s,3*s,{fill:'currentColor',fop:.5,stroke:'none',sop:0});
+}
+function icDoc(g,x,y,s){ s=s||1;
+  Pa(g,'M'+(x-6*s)+','+(y-8*s)+' L'+(x+3*s)+','+(y-8*s)+' L'+(x+6*s)+','+(y-5*s)+' L'+(x+6*s)+','+(y+8*s)+' L'+(x-6*s)+','+(y+8*s)+' Z',{sop:.7,sw:1.1,fill:'currentColor',fop:.06});
+  for(var i=0;i<3;i++) Ln(g,x-3.5*s,y-3*s+i*3.6*s,x+3.5*s,y-3*s+i*3.6*s,{sop:.5,sw:1});
+}
+function icCoin(g,x,y,s){ s=s||1;
+  Ci(g,x,y,7*s,{fill:EXC,fop:.35,stroke:EXC,sop:.9,sw:1.2}); Tx(g,x,y+3.6*s,'B',{size:9*s,weight:700,fill:EXC});
+}
+/* 一个小区块（立方体） */
+function icBlock(g,x,y,s,col){ s=s||1; col=col||AC;
+  var a=8*s;
+  Pa(g,'M'+(x-a)+','+(y-a*.5)+' L'+x+','+(y-a)+' L'+(x+a)+','+(y-a*.5)+' L'+(x+a)+','+(y+a*.6)+' L'+x+','+(y+a*1.1)+' L'+(x-a)+','+(y+a*.6)+' Z',{stroke:col,sop:.85,sw:1.1,fill:col,fop:.25});
+  Pa(g,'M'+(x-a)+','+(y-a*.5)+' L'+x+','+y+' L'+(x+a)+','+(y-a*.5)+' M'+x+','+y+' L'+x+','+(y+a*1.1),{stroke:col,sop:.8,sw:1});
+}
+/* 圆圈编号 ①②… */
+var CIRC='⓪①②③④⑤⑥⑦⑧⑨⑩';
+function Badge(g,x,y,n,col){
+  Ci(g,x,y,9,{fill:col||AC,fop:.9,stroke:'none',sop:0});
+  Tx(g,x,y+4.2,String(n),{size:11.5,weight:700,fill:'#fff'});
+}
+/* 在 host 里放一行 HTML 图例：items=[[颜色, 文字, 透明度]] */
+function legendHTML(items){
+  return '<div class="legend">'+items.map(function(it){
+    var sw=it[0]==='transparent'?'border:1.2px dashed currentColor;opacity:.6':'background:'+it[0]+';opacity:'+(it[2]===undefined?1:it[2]);
+    return '<span><i style="'+sw+'"></i>'+it[1]+'</span>'; }).join('')+'</div>';
+}
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function numIn(id,fb){ var v=parseFloat(String($(id).value).replace(/−/g,'-')); return isFinite(v)?v:fb; }
+/* 简单坐标系：box={x,y,w,h}（像素），xr/yr=[min,max]，ticks 为刻度值数组，fmt 为刻度文字函数。返回 {X,Y} 映射。 */
+function Axes(g,box,xr,yr,xt,yt,o){
+  o=o||{};
+  var X=function(v){ return box.x+(v-xr[0])/(xr[1]-xr[0])*box.w; };
+  var Y=function(v){ return box.y+box.h-(v-yr[0])/(yr[1]-yr[0])*box.h; };
+  Rc(g,box.x,box.y,box.w,box.h,{fop:0,sop:.25,rx:0,sw:1});
+  xt.forEach(function(v){ var px=X(v); Ln(g,px,box.y,px,box.y+box.h,{sop:.08,sw:1}); Ln(g,px,box.y+box.h,px,box.y+box.h+4,{sop:.35,sw:1});
+    Tx(g,px,box.y+box.h+16,(o.fx||String)(v),{size:11,op:.65}); });
+  yt.forEach(function(v){ var py=Y(v); Ln(g,box.x,py,box.x+box.w,py,{sop:.08,sw:1}); Ln(g,box.x-4,py,box.x,py,{sop:.35,sw:1});
+    Tx(g,box.x-7,py+4,(o.fy||String)(v),{size:11,op:.65,anchor:'end'}); });
+  if(o.xl) Tx(g,box.x+box.w/2,box.y+box.h+33,o.xl,{size:12,op:.75});
+  if(o.yl) { var t=Tx(g,0,0,o.yl,{size:12,op:.75}); t.setAttribute('transform','translate('+(box.x-(o.ylOff||42))+','+(box.y+box.h/2)+') rotate(-90)'); }
+  return {X:X,Y:Y};
+}
+function Curve(g,A,xs,f,o){
+  o=o||{}; var pts=xs.map(function(x){ return A.X(x).toFixed(1)+','+A.Y(f(x)).toFixed(1); });
+  return Pa(g,'M'+pts.join(' L'),{stroke:o.stroke||AC,sop:o.sop===undefined?1:o.sop,sw:o.sw||2,dash:o.dash});
+}
+function range(a,b,n){ var r=[]; for(var i=0;i<=n;i++) r.push(a+(b-a)*i/n); return r; }
+
+/* ===================== L18 区块链赋能的认知无线电网络：图与交互件 =====================
+   图全部由下面的函数现画（数据写在函数里，碰撞等结论由代码算出，不手写）；
+   交互件的数值一律由纯函数现算。 */
+
+/* ---------------- 纯函数 ---------------- */
+var C0=299792458;
+function shannon(Bhz,snrLin){ return Bhz*Math.log2(1+snrLin); }
+function db2lin(db){ return Math.pow(10,db/10); }
+function fsplDb(fHz,dM){ return 20*Math.log10(4*Math.PI*dM*fHz/C0); }
+function retx(p){ return {EN:1/(1-p), extra:1/(1-p)-1, eff:1-p}; }
+function aloha(G){ var s=G*Math.exp(-G), idle=Math.exp(-G); return {S:s, idle:idle, coll:1-idle-s}; }
+function pbftCount(n){ var pp=n-1, pr=(n-1)*(n-1), cm=n*(n-1); return {pp:pp,pr:pr,cm:cm,tot:pp+pr+cm,withReply:pp+pr+cm+n,air:1+(n-1)+n,f:Math.floor((n-1)/3)}; }
+/* 跳频：两组的信道序列（下标 = 时隙 1..6），找同一时隙同一信道 */
+var HOP_A=[1,3,2,4,1,3], HOP_B=[2,3,4,4,3,1];
+function hopCollisions(a,b){ var r=[]; for(var t=0;t<a.length;t++) if(a[t]===b[t]) r.push({slot:t+1,ch:a[t]}); return r; }
+
+/* ---------------- 图：p24 频段特性 ---------------- */
+function drawBand(id){
+  var F=Fig(680,310,'从 kHz 到 THz 四类指标的定性柱状图',560), g=F.g;
+  var box={x:96,y:36,w:560,h:214};
+  var ser=[['覆盖范围 Coverage',WRC],['发射功率 Transmit Power',AC],['功耗 Power Consumption',OKC],['带宽 Bandwidth',EXC]];
+  var data=[['kHz',[1,1,1,.1],'≈50 km'],['MHz',[.5,.5,.5,.2],'≈20 km'],['GHz',[.2,.2,.2,.5],'≈100 m'],['THz',[.1,.1,.1,1],'几米']];
+  Ln(g,box.x,box.y+box.h,box.x+box.w,box.y+box.h,{sop:.5,sw:1.2}); Ln(g,box.x,box.y,box.x,box.y+box.h,{sop:.5,sw:1.2});
+  [['高 Higher',1],['中 Medium',.5],['低 Lower',.15]].forEach(function(l){ var y=box.y+box.h-l[1]*box.h*.92; Tx(g,box.x-8,y+4,l[0],{size:11.5,anchor:'end',op:.7}); Ln(g,box.x-4,y,box.x,y,{sop:.4}); });
+  var gw=box.w/4, bw=24;
+  data.forEach(function(d,i){
+    var cx=box.x+gw*(i+.5), x0=cx-bw*2;
+    d[1].forEach(function(v,k){ var h=v*box.h*.92; Rc(g,x0+k*bw,box.y+box.h-h,bw-2,h,{rx:1.5,fill:ser[k][1],fop:.55,stroke:ser[k][1],sop:.9,sw:1}); });
+    var hc=d[1][0]*box.h*.92; Tx(g,x0+bw/2-1,box.y+box.h-hc-6,d[2],{size:11,fill:WRC,weight:600});
+    Tx(g,cx,box.y+box.h+17,d[0],{size:12.5});
+  });
+  Ln(g,box.x+40,box.y+box.h+34,box.x+box.w-40,box.y+box.h+34,{sop:.6,mk:F.mk.n});
+  Tx(g,box.x+box.w/2,box.y+box.h+51,'低频 → 高频（Lower Frequencies to Higher Frequencies）',{size:12,op:.75});
+  mount(id,F);
+  $(id).insertAdjacentHTML('beforeend',legendHTML(ser.map(function(s){ return [s[1],s[0],.6]; })));
+}
+
+/* ---------------- 图：频谱空洞与机会式接入 ---------------- */
+function drawHoles(id){
+  var F=Fig(720,320,'5 个授权信道随时间的占用：持证者、空洞与借用者',580), g=F.g;
+  var x0=78, x1=700, ux=(x1-x0)/12, rh=40, gap=6, y0=40;
+  /* 每个信道：[起, 止, 类型]；类型 P=持证者, H=空洞, 1/2=借用者 */
+  var ch={5:[[0,1,'P'],[1,7,'H'],[7,10,'1'],[10,12,'P']],4:[[0,3,'H'],[3,9,'P'],[9,10,'H'],[10,12,'1']],
+          3:[[0,2,'P'],[2,7,'1'],[7,12,'P']],2:[[0,4,'P'],[4,8,'2'],[8,12,'P']],1:[[0,12,'P']]};
+  var Yc=function(c){ return y0+(5-c)*(rh+gap); };
+  Tx(g,(x0+x1)/2,22,'同一地点的授权频段：灰色是持证者在用，白色是空洞，蓝色是借用者',{size:12.5,op:.8});
+  for(var c=5;c>=1;c--){
+    Tx(g,x0-10,Yc(c)+rh/2+4,'信道 '+c,{size:12,anchor:'end'});
+    ch[c].forEach(function(s){
+      var x=x0+s[0]*ux, w=(s[1]-s[0])*ux, y=Yc(c);
+      if(s[2]==='P') Rc(g,x,y,w,rh,{rx:0,fill:'currentColor',fop:.32,stroke:'none',sop:0});
+      else if(s[2]==='H'){ Rc(g,x+.5,y+.5,w-1,rh-1,{rx:0,fop:0,sop:.25,dash:'3 3'}); if(w>ux*1.5) Tx(g,x+w/2,y+rh/2+4,'空洞',{size:12,op:.6}); }
+      else { Rc(g,x,y,w,rh,{rx:0,fill:AC,fop:s[2]==='1'?.85:.35,stroke:'none',sop:0}); Tx(g,x+w/2,y+rh/2+4,'借用者 '+s[2],{size:12,fill:s[2]==='1'?'#fff':'currentColor',weight:600}); }
+    });
+  }
+  var yb=Yc(1)+rh+6;
+  Ln(g,x0,yb,x1,yb,{sop:.5,sw:1});
+  for(var t=0;t<=12;t++){ Ln(g,x0+t*ux,yb,x0+t*ux,yb+4,{sop:.5,sw:1}); Tx(g,x0+t*ux,yb+17,String(t),{size:11,op:.7}); }
+  Tx(g,(x0+x1)/2,yb+33,'时间 t',{size:12,op:.75});
+  /* ① t=7 信道 3 → 信道 5；② t=10 信道 5 → 信道 4 */
+  var X=function(t){ return x0+t*ux; };
+  Pa(g,'M'+(X(7)-10)+','+(Yc(3)+rh/2)+' C'+(X(7)-22)+','+(Yc(4))+' '+(X(7)-14)+','+(Yc(5)+rh)+' '+(X(7)+6)+','+(Yc(5)+rh-6),{stroke:WRC,sop:.95,sw:2,mk:F.mk.w});
+  Ci(g,X(7)-24,Yc(4)+rh/2,9,{fill:'currentColor',fop:0,stroke:WRC,sop:.95,sw:1.3}); Tx(g,X(7)-24,Yc(4)+rh/2+4.5,'1',{size:11,fill:WRC,weight:700});
+  Pa(g,'M'+(X(10)-6)+','+(Yc(5)+rh-6)+' C'+(X(10)+6)+','+(Yc(5)+rh+2)+' '+(X(10)+8)+','+(Yc(4)+4)+' '+(X(10)+6)+','+(Yc(4)+12),{stroke:WRC,sop:.95,sw:2,mk:F.mk.w});
+  Ci(g,X(9.5),Yc(5)+rh+3,9,{fill:'currentColor',fop:0,stroke:WRC,sop:.95,sw:1.3}); Tx(g,X(9.5),Yc(5)+rh+7.5,'2',{size:11,fill:WRC,weight:700});
+  mount(id,F);
+  $(id).insertAdjacentHTML('beforeend',legendHTML([['currentColor','持证者占用',.32],['transparent','频谱空洞（虚框）'],[AC,'借用者 1',.85],[AC,'借用者 2',.35]]));
+}
+
+/* ---------------- 图：p40 LTE-NR 动态频谱共享 ---------------- */
+function drawDss(id){
+  var F=Fig(720,330,'LTE 与 NR 在同一载波上按业务量动态切分',560), g=F.g;
+  var nr=[0,.18,.5,.72,1], x0=150, cw=88, rows=[[24,'实际业务量\nReal network traffic'],[200,'DSS 的频率份额']], h=96;
+  rows.forEach(function(r){
+    Tx(g,x0-12,r[0]+h/2-4,r[1],{size:12,anchor:'end',weight:600});
+    nr.forEach(function(f,i){
+      var x=x0+i*cw;
+      if(f<1) Rc(g,x,r[0]+f*h,cw,h*(1-f),{rx:0,fill:OKC,fop:.6,stroke:'none',sop:0});
+      if(f>0) Rc(g,x,r[0],cw,h*f,{rx:0,fill:WRC,fop:.6,stroke:'none',sop:0});
+      Rc(g,x,r[0],cw,h,{rx:0,fop:0,sop:.8,sw:1.4});
+    });
+  });
+  nr.forEach(function(f,i){ var x=x0+i*cw+cw/2; Ln(g,x,124,x,142,{sop:.6,mk:F.mk.n}); Ln(g,x,170,x,194,{sop:.6,mk:F.mk.n}); });
+  Tx(g,x0+2.5*cw,161,'LTE-NR 的份额随业务需求动态变化（LTE-NR split changes dynamically）',{size:12,weight:600});
+  Tx(g,x0+2.5*cw,316,'动态频谱共享（LTE-NR）',{size:12.5,weight:600});
+  Ln(g,x0-40,296,x0-40,252,{sop:.7,mk:F.mk.n}); Tx(g,x0-46,262,'频率',{size:11,anchor:'end',op:.75});
+  Ln(g,x0-40,302,x0-2,302,{sop:.7,mk:F.mk.n}); Tx(g,x0-40,318,'时间',{size:11,op:.75,anchor:'start'});
+  Rc(g,x0+5*cw+24,210,22,16,{rx:2,fill:WRC,fop:.6,stroke:'none',sop:0}); Tx(g,x0+5*cw+52,223,'NR（5G）',{size:12,anchor:'start'});
+  Rc(g,x0+5*cw+24,236,22,16,{rx:2,fill:OKC,fop:.6,stroke:'none',sop:0}); Tx(g,x0+5*cw+52,249,'LTE（4G）',{size:12,anchor:'start'});
+  mount(id,F);
+}
+
+/* ---------------- 图：p33 主网络与 CR 网络 ---------------- */
+function drawCrn(id){
+  var F=Fig(780,330,'主网络与两种组网方式的 CR 网络',600), g=F.g;
+  /* 主网络 */
+  [[70,'laptop'],[195,'phone']].forEach(function(r){
+    var y=r[0];
+    if(r[1]==='laptop') icLaptop(g,55,y,1.1); else icPhone(g,55,y,1.1,EXC);
+    Zig(g,85,y,170,y-8,{stroke:WRC,sop:.85,sw:1.4});
+    icTower(g,192,y-6,1.05);
+    Tx(g,55,y+34,'主用户节点',{size:11.5}); Tx(g,55,y+48,'Primary Radio Node',{size:10,op:.6});
+    Tx(g,192,y+34,'主基站',{size:11.5}); Tx(g,192,y+48,'Primary Base Station',{size:10,op:.6});
+  });
+  Ln(g,262,300,262,20,{sop:.55,mk:F.mk.n});
+  Tx(g,130,312,'主网络 Primary Network',{size:13,fill:WRC,weight:700});
+  /* 有基础设施 */
+  El('ellipse',{cx:395,cy:155,rx:118,ry:132,fill:'none',stroke:WRC,'stroke-opacity':.8,'stroke-width':1.4,'stroke-dasharray':'2 4'},g);
+  icTower(g,445,150,1.25,AC);
+  [[352,60],[340,215]].forEach(function(p){ icPhone(g,p[0],p[1],1.05,AC); Zig(g,p[0]+12,p[1]+(p[1]<150?8:-8),430,150+(p[1]<150?-14:10),{stroke:WRC,sop:.85,sw:1.4});
+    Tx(g,p[0],p[1]+28,'CR 节点',{size:11.5}); });
+  Tx(g,445,192,'认知基站',{size:11.5}); Tx(g,445,206,'Cognitive Base Station',{size:10,op:.6});
+  Tx(g,395,276,'有基础设施',{size:12,fill:WRC,weight:600}); Tx(g,395,290,'With Infrastructure',{size:10,op:.6});
+  /* 无基础设施 */
+  El('ellipse',{cx:640,cy:155,rx:122,ry:132,fill:'none',stroke:WRC,'stroke-opacity':.8,'stroke-width':1.4,'stroke-dasharray':'2 4'},g);
+  var a=[680,55], b=[600,148], c=[680,232];
+  Zig(g,a[0]-14,a[1]+10,b[0]+18,b[1]-14,{stroke:WRC,sop:.85,sw:1.4}); Zig(g,b[0]+18,b[1]+12,c[0]-14,c[1]-10,{stroke:WRC,sop:.85,sw:1.4});
+  icPhone(g,a[0],a[1],1.05,AC); icLaptop(g,b[0],b[1],1.05,AC); icPhone(g,c[0],c[1],1.05,AC);
+  Tx(g,a[0]+16,a[1]-14,'CR 节点',{size:11.5,anchor:'start'}); Tx(g,b[0]+24,b[1]+4,'CR 节点',{size:11.5,anchor:'start'}); Tx(g,c[0]+16,c[1]+4,'CR 节点',{size:11.5,anchor:'start'});
+  Tx(g,640,276,'无基础设施',{size:12,fill:WRC,weight:600}); Tx(g,640,290,'Without Infrastructure',{size:10,op:.6});
+  Tx(g,518,316,'认知无线电网络 Cognitive Radio Network',{size:13,fill:WRC,weight:700});
+  mount(id,F);
+}
+
+/* ---------------- 图：p34 自组织 CR 网络 ---------------- */
+function drawAdhoc(id){
+  var F=Fig(760,340,'自组织 CR 网络横跨两个主网络的覆盖区',600), g=F.g;
+  Ci(g,90,10,290,{fill:WRC,fop:.04,stroke:WRC,sop:.85,sw:1.6,dash:'6 5'});
+  Ci(g,720,392,318,{fill:OKC,fop:.04,stroke:OKC,sop:.85,sw:1.6,dash:'6 5'});
+  /* 主网络 1（红）与主网络 2（绿） */
+  icLaptop(g,92,62,1.05); Tx(g,92,92,'主用户节点',{size:11.5});
+  icTower(g,232,52,1.1); Tx(g,232,88,'主基站',{size:11.5});
+  icLaptop(g,520,280,1.05); icTower(g,672,266,1.1); Zig(g,545,278,652,268,{stroke:OKC,sop:.95,sw:1.6});
+  Tx(g,520,310,'主用户节点',{size:11.5}); Tx(g,672,302,'主基站',{size:11.5});
+  /* CR 节点与蓝色多跳链路 */
+  var N={BL:[55,288],LM:[185,212],C:[365,166],TC:[440,56],RM:[522,172],TR:[680,76]};
+  [['BL','LM'],['LM','C'],['C','RM'],['TC','RM'],['RM','TR']].forEach(function(e){
+    var p=N[e[0]], q=N[e[1]], dx=q[0]-p[0], dy=q[1]-p[1], L=Math.sqrt(dx*dx+dy*dy), k=18/L;
+    Zig(g,p[0]+dx*k,p[1]+dy*k,q[0]-dx*k,q[1]-dy*k,{stroke:AC,sop:.95,sw:1.6,amp:7});
+  });
+  for(var k in N){ icPhone(g,N[k][0],N[k][1],1.05,AC); }
+  [['BL',0,30,'middle'],['LM',0,30,'middle'],['C',0,30,'middle'],['TC',-16,4,'end'],['RM',0,30,'middle'],['TR',0,-20,'middle']].forEach(function(l){
+    var p=N[l[0]]; Tx(g,p[0]+l[1],p[1]+l[2],'CR 节点',{size:11.5,anchor:l[3]}); });
+  Tx(g,250,140,'主网络 1 覆盖边界',{size:11,fill:WRC,op:.9}); Tx(g,612,140,'主网络 2 覆盖边界',{size:11,fill:OKC,op:.95});
+  mount(id,F);
+}
+
+/* ---------------- 图：区块链协调跳频（数据驱动，碰撞由代码找出） ---------------- */
+function drawHop(id){
+  var F=Fig(760,300,'两组跳频序列的碰撞，以及查账本改道后的结果',620), g=F.g;
+  var col=collisionsFix(HOP_A,HOP_B);
+  var cw=50, rh=46, y0=40;
+  function panel(x0,title,B,fixed,coll){
+    Tx(g,x0+3*cw,24,title,{size:12.5,weight:600});
+    for(var c=4;c>=1;c--){ var y=y0+(4-c)*rh; Tx(g,x0-8,y+rh/2+4,'信道 '+c,{size:11.5,anchor:'end'}); for(var t=0;t<6;t++) Rc(g,x0+t*cw,y,cw,rh,{rx:0,fop:0,sop:.12,sw:1}); }
+    for(var t=0;t<6;t++){
+      var ya=y0+(4-HOP_A[t])*rh, yb=y0+(4-B[t])*rh, hit=coll.some(function(h){ return h.slot===t+1; });
+      if(hit){ Rc(g,x0+t*cw+1,ya+1,cw-2,rh-2,{rx:0,fill:WRC,fop:.85,stroke:'none',sop:0}); Tx(g,x0+t*cw+cw/2,ya+rh/2+4,'碰撞',{size:12,fill:'#fff',weight:700}); continue; }
+      Rc(g,x0+t*cw+1,ya+1,cw-2,rh-2,{rx:0,fill:AC,fop:.8,stroke:'none',sop:0}); Tx(g,x0+t*cw+cw/2,ya+rh/2+4,'A',{size:13,fill:'#fff',weight:600});
+      var fx=fixed&&fixed.indexOf(t)>=0;
+      Rc(g,x0+t*cw+1,yb+1,cw-2,rh-2,{rx:0,fill:EXC,fop:.75,stroke:fx?'currentColor':'none',sop:fx?.9:0,sw:fx?2.2:1});
+      if(fx){ for(var k=-3;k<=3;k++){ var xa=x0+t*cw+cw/2+k*9; Pa(g,'M'+Math.max(x0+t*cw+3,xa-12)+','+(yb+rh-3-Math.max(0,x0+t*cw+3-(xa-12)))+' L'+Math.min(x0+t*cw+cw-3,xa+12)+','+(yb+3+Math.max(0,xa+12-(x0+t*cw+cw-3))),{sop:.45,sw:1}); } }
+      Tx(g,x0+t*cw+cw/2,yb+rh/2+4,'B',{size:13,fill:'#fff',weight:600});
+    }
+    var yb2=y0+4*rh; Ln(g,x0,yb2,x0+6*cw,yb2,{sop:.5,sw:1});
+    for(var t2=0;t2<6;t2++) Tx(g,x0+t2*cw+cw/2,yb2+16,String(t2+1),{size:11,op:.7});
+    Tx(g,x0+3*cw,yb2+32,'时隙',{size:12,op:.75});
+  }
+  panel(72,'(a) 两组各按自己的跳频序列走，互不知情',HOP_B,null,col.before);
+  panel(448,'(b) A 组的分配写进账本、广播给全网后',col.B2,col.moved,col.after);
+  mount(id,F);
+  $(id).insertAdjacentHTML('beforeend',legendHTML([[AC,'A 组占用',.8],[EXC,'B 组占用',.75],[WRC,'两组撞在同一信道同一时隙',.85],['transparent','粗框加斜线 = B 组查账本后改用的空闲信道']]));
+}
+/* B 组查账本：撞上 A 的时隙改用一个空闲信道（笔记示意图里时隙 2 改信道 1、时隙 4 改信道 2） */
+var HOP_FIX={2:1,4:2};
+function collisionsFix(A,B){
+  var before=hopCollisions(A,B), B2=B.slice(), moved=[];
+  before.forEach(function(h){ var nc=HOP_FIX[h.slot]; if(nc===undefined||nc===A[h.slot-1]) nc=[1,2,3,4].filter(function(c){ return c!==A[h.slot-1]; })[0]; B2[h.slot-1]=nc; moved.push(h.slot-1); });
+  return {before:before, after:hopCollisions(A,B2), B2:B2, moved:moved};
+}
+
+/* ---------------- 交互件 1：频率的两面 ---------------- */
+function bdSet(k,v){ $(k).value=v; bdGo(); }
+function bdGo(){
+  var f=numIn('bdF',0.9), d=numIn('bdD',100), snrDb=numIn('bdS',20), B=numIn('bdB',20);
+  var out=$('bdOut'), kv=$('bdKv');
+  if(f<=0||d<=0||B<=0){ kv.innerHTML=''; $('bdKv2').innerHTML=''; out.innerHTML='<span class="bad">载频、距离、带宽都要大于 0</span>'; $('bdPlot').innerHTML=''; return; }
+  var snr=db2lin(snrDb), se=Math.log2(1+snr), C=shannon(B*1e6,snr);
+  var L=fsplDb(f*1e9,d), L09=fsplDb(0.9e9,d), dL=L-L09;
+  var PN0=snr*20e6, Cp=shannon(B*1e6,PN0/(B*1e6)), Cmax=PN0/Math.LN2;
+  function rate(bps){ return bps>=1e9?nf(bps/1e9,2)+' Gbps':nf(bps/1e6,1)+' Mbps'; }
+  kv.innerHTML=
+    '<div><span class="lab">SNR（线性）</span><span class="val" id="bdSnr">'+nf(snr,snr<10?2:0)+'</span></div>'+
+    '<div><span class="lab">频谱效率 log₂(1+SNR)</span><span class="val" id="bdSe">'+nf(se,2)+' <small>bit/s/Hz</small></span></div>'+
+    '<div><span class="lab">容量 C = B·log₂(1+SNR)</span><span class="val" id="bdC">'+rate(C)+'</span></div>'+
+    '';
+  $('bdKv2').innerHTML=
+    '<div><span class="lab">载频 × 5% 的带宽</span><span class="val" id="bdB5">'+nf(f*1e3*0.05,0)+' <small>MHz</small></span></div>'+
+    '<div><span class="lab">'+nf(d,0)+' m 处自由空间损耗</span><span class="val" id="bdL">'+nf(L,1)+' <small>dB</small></span></div>'+
+    '<div><span class="lab">比 0.9 GHz 多</span><span class="val" id="bdDL">'+nf(dL,1)+' <small>dB ≈ '+nf(Math.pow(10,dL/10),0)+' 倍</small></span></div>';
+  out.innerHTML='<div>带宽 '+nf(B,0)+' MHz、SNR '+nf(snrDb,0)+' dB：容量 <strong id="bdCr">'+rate(C)+'</strong>。'+
+    '若改为<strong>发射功率固定</strong>（取 P/N₀ 使 20 MHz 时 SNR 恰为 '+nf(snrDb,0)+' dB），同样 '+nf(B,0)+' MHz 下 SNR 降到 '+nf(PN0/(B*1e6),snr<10?2:1)+'，容量为 <strong id="bdCp">'+rate(Cp)+'</strong>；'+
+    '带宽再大也超不过上限 P/(N₀ ln 2) = <strong id="bdCmax">'+rate(Cmax)+'</strong>。</div>';
+  /* 曲线 */
+  var F=Fig(620,250,'容量随带宽：SNR 固定与功率固定两种情况',480), g=F.g;
+  var Bmax=Math.max(500,Math.ceil(B/100)*100+100), ymax=Math.max(Cmax,shannon(Bmax*1e6,snr))/1e9*1.05;
+  var A=Axes(g,{x:62,y:14,w:530,h:182},[0,Bmax],[0,ymax],range(0,Bmax,5).map(Math.round),niceTicks(ymax),{xl:'带宽 B（MHz）',yl:'容量（Gbps）',fy:function(v){ return nf(v,1); },ylOff:46});
+  var xs=range(0.5,Bmax,120);
+  Curve(g,A,xs,function(x){ return shannon(x*1e6,snr)/1e9; },{stroke:AC});
+  Curve(g,A,xs,function(x){ return shannon(x*1e6,PN0/(x*1e6))/1e9; },{stroke:EXC});
+  Pa(g,'M'+A.X(0)+','+A.Y(Cmax/1e9)+' H'+A.X(Bmax),{stroke:EXC,sop:.7,sw:1.2,dash:'5 4'});
+  Tx(g,A.X(Bmax)-6,A.Y(Cmax/1e9)-6,'上限 P/(N₀ ln 2)',{size:11,anchor:'end',fill:EXC});
+  Ci(g,A.X(B),A.Y(C/1e9),4.5,{fill:AC,fop:1,stroke:'none',sop:0}); Ci(g,A.X(B),A.Y(Cp/1e9),4.5,{fill:EXC,fop:1,stroke:'none',sop:0});
+  mount('bdPlot',F);
+  $('bdPlot').insertAdjacentHTML('beforeend',legendHTML([[AC,'SNR 固定：C ∝ B'],[EXC,'发射功率固定：增益递减']]));
+}
+function niceTicks(max){
+  var raw=max/5, mag=Math.pow(10,Math.floor(Math.log10(raw))), n=raw/mag, st=(n<1.5?1:n<3?2:n<7?5:10)*mag, r=[];
+  for(var v=0;v<=max+1e-9;v+=st) r.push(Math.round(v/st)*st);
+  return r;
+}
+
+/* ---------------- 交互件 2：碰撞的代价 ---------------- */
+function clSet(k,v){ $(k).value=v; clGo(); }
+function clGo(){
+  var p=numIn('clP',.3), G=numIn('clG',1);
+  $('clPv').textContent=nf(p,2); $('clGv').textContent=nf(G,2);
+  var r=retx(p), a=aloha(G);
+  $('clKv1').innerHTML='<div><span class="lab">平均发送次数 E[N] = 1/(1−p)</span><span class="val" id="clEN">'+nf(r.EN,2)+'</span></div>'+
+    '<div><span class="lab">平均每个包多发</span><span class="val" id="clEx">'+pct(r.extra,0)+'</span></div>'+
+    '<div><span class="lab">有效发射占比 1−p</span><span class="val" id="clEff">'+pct(r.eff,0)+'</span></div>';
+  $('clKv2').innerHTML='<div><span class="lab">成功 S = G·e<sup>−G</sup></span><span class="val" id="clS">'+pct(a.S,1)+'</span></div>'+
+    '<div><span class="lab">空闲 P(0) = e<sup>−G</sup></span><span class="val" id="clI">'+pct(a.idle,1)+'</span></div>'+
+    '<div><span class="lab">碰撞 1 − P(0) − P(1)</span><span class="val" id="clC">'+pct(a.coll,1)+'</span></div>';
+  var F=Fig(620,230,'时隙 ALOHA 三类时隙随负载 G 的比例',480), g=F.g;
+  var A=Axes(g,{x:56,y:12,w:540,h:168},[0,4],[0,1],[0,1,2,3,4],[0,.2,.4,.6,.8,1],{xl:'负载 G（每时隙平均尝试数）',fy:function(v){ return Math.round(v*100)+'%'; },ylOff:44});
+  var xs=range(0,4,160);
+  Curve(g,A,xs,function(x){ return aloha(x).S; },{stroke:OKC});
+  Curve(g,A,xs,function(x){ return aloha(x).idle; },{stroke:FAC,dash:'5 4'});
+  Curve(g,A,xs,function(x){ return aloha(x).coll; },{stroke:WRC});
+  Pa(g,'M'+A.X(1)+','+A.Y(0)+' V'+A.Y(1),{sop:.3,sw:1,dash:'2 3'}); Tx(g,A.X(1)+4,A.Y(.97),'G = 1：S 最大 = 1/e',{size:11,anchor:'start',op:.75});
+  [[a.S,OKC],[a.idle,FAC],[a.coll,WRC]].forEach(function(q){ Ci(g,A.X(G),A.Y(q[0]),4.5,{fill:q[1],fop:1,stroke:'none',sop:0}); });
+  mount('clPlot',F);
+  $('clPlot').insertAdjacentHTML('beforeend',legendHTML([[OKC,'成功（恰好一台发）'],[FAC,'空闲（没人发）'],[WRC,'碰撞（两台以上）']]));
+  var best=(Math.abs(G-1)<1e-9);
+  $('clOut').innerHTML='<div>碰撞概率 '+nf(p,2)+'：每个包平均发 <strong>'+nf(r.EN,2)+'</strong> 次，能量和占用的频谱时间都多 '+pct(r.extra,0)+'。</div>'+
+    '<div style="margin-top:.3rem">时隙 ALOHA 在 G = '+nf(G,2)+' 时：成功 '+pct(a.S,1)+'，空闲 '+pct(a.idle,1)+'，碰撞 '+pct(a.coll,1)+'。'+
+    (best?'<span class="good">这就是最优负载</span>：即使在这里，仍约四分之一的时隙在碰撞、三分之一以上空着。':'成功率'+(G<1?'低于':'也低于')+' G = 1 时的 '+pct(aloha(1).S,1)+'。')+'</div>';
+}
+
+/* ---------------- 交互件 3：PBFT 消息计数 ---------------- */
+function pbSet(v){ $('pbN').value=v; pbGo(); }
+function pbGo(){
+  var n=Math.round(numIn('pbN',4)), out=$('pbOut');
+  if(n<2||n>2000){ $('pbSteps').innerHTML='<span class="bad">n 取 2 到 2000</span>'; out.innerHTML=''; $('pbSeq').innerHTML=''; return; }
+  var c=pbftCount(n);
+  $('pbSteps').innerHTML=
+    '<div><span class="k">1</span>pre-prepare：主节点发给其余 n−1 个 = <span class="mono" id="pbPP">'+nf(c.pp,0,1)+'</span></div>'+
+    '<div><span class="k">2</span>prepare：n−1 个备份节点各发 n−1 条 = (n−1)² = <span class="mono" id="pbPR">'+nf(c.pr,0,1)+'</span></div>'+
+    '<div><span class="k">3</span>commit：n 个节点各发 n−1 条 = n(n−1) = <span class="mono" id="pbCM">'+nf(c.cm,0,1)+'</span></div>';
+  out.innerHTML='<div>合计 2n(n−1) = <strong id="pbTot">'+nf(c.tot,0,1)+'</strong> 条（不计 reply）；把 n 条 reply 也算上是 n(2n−1) = <strong id="pbRep">'+nf(c.withReply,0,1)+'</strong> 条（L17 的口径）。</div>'+
+    '<div style="margin-top:.3rem">无线单跳里一次广播所有邻居都收到，空口发射可以压到 1 + (n−1) + n = <strong id="pbAir">'+nf(c.air,0,1)+'</strong> 次；这时最多容忍 f = ⌊(n−1)/3⌋ = '+c.f+' 个拜占庭节点。</div>';
+  /* 表 */
+  $('pbTab').innerHTML='<table class="compact"><thead><tr><th>n</th><th>不计 reply</th><th>计 reply</th><th>空口广播</th></tr></thead><tbody>'+
+    [4,7,10,100].map(function(k){ var q=pbftCount(k); return '<tr'+(k===n?' style="background:var(--accent-bg)"':'')+'><td>'+k+'</td><td class="mono">'+nf(q.tot,0,1)+'</td><td class="mono">'+nf(q.withReply,0,1)+'</td><td class="mono">'+q.air+'</td></tr>'; }).join('')+'</tbody></table>';
+  /* 时序图（n ≤ 7） */
+  if(n>7){ $('pbSeq').innerHTML='<p class="sub" style="margin:.4rem 0 0">n > 7 时箭头太密，不画时序图。</p>'; return; }
+  var W=640, lane=26, H=36+n*lane+28, F=Fig(W,H,'PBFT 三阶段的点对点消息',520), g=F.g;
+  var x0=86, cols=[[x0,x0+140,'pre-prepare',c.pp],[x0+170,x0+340,'prepare',c.pr],[x0+370,x0+540,'commit',c.cm]];
+  var Y=function(i){ return 30+i*lane; };
+  for(var i=0;i<n;i++){ Ln(g,x0-6,Y(i),W-12,Y(i),{sop:.25,sw:1}); Tx(g,x0-12,Y(i)+4,i===0?'主节点 0':'副本 '+i,{size:11,anchor:'end',op:i===0?1:.75}); }
+  cols.forEach(function(cl,ci){
+    Tx(g,(cl[0]+cl[1])/2,16,cl[2]+'（'+cl[3]+' 条）',{size:11.5,weight:600});
+    var senders=ci===0?[0]:(ci===1?range(1,n-1,n-2).map(Math.round):range(0,n-1,n-1).map(Math.round));
+    if(ci===1&&n===2) senders=[1];
+    var cnt=0;
+    senders.forEach(function(s,si){
+      for(var r=0;r<n;r++){ if(r===s) continue;
+        var xa=cl[0]+(senders.length>1?si*(cl[1]-cl[0]-30)/(senders.length-1):0), xb=xa+30;
+        Ln(g,xa,Y(s),xb,Y(r),{stroke:ci===0?AC:(ci===1?EXC:OKC),sop:.7,sw:1.1,mk:ci===0?F.mk.a:(ci===1?F.mk.e:F.mk.o)}); cnt++; }
+    });
+    cl.push(cnt);
+  });
+  Tx(g,W/2,H-8,'箭头数：'+cols.map(function(cl){ return cl[4]; }).join(' + ')+' = '+cols.reduce(function(s,cl){ return s+cl[4]; },0)+'（由图上实际画出的箭头数出来）',{size:11.5,op:.8});
+  mount('pbSeq',F);
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+drawBand('figBand');
+bdGo();
+drawHoles('figHoles');
+drawDss('figDss');
+drawCrn('figCrn');
+drawAdhoc('figAdhoc');
+clGo();
+drawHop('figHop');
+pbGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); var f=function(e){ if(e.matches) window.onbeforeprint(); }; if(mq.addEventListener) mq.addEventListener('change',f); } })();
+
+</script>
+</body>
+</html>

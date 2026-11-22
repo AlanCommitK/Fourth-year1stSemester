@@ -898,3 +898,5 @@ Moodle 上的 `PBFT-Mathematical Proof.pdf`（14 页）其实是 Castro 与 Lisk
 - 为什么三阶段：pre-prepare 定顺序；prepare 防坏 primary 一号两卖（同 view 内诚实副本上一号一请求）；commit 保证换 view 后顺序不变（$f+1$ 与 $2f+1$ 必相交）。
 - PBFT 消息数 $N=4$：1 / 3 / 9 / 12 / 4；不计 request 合计 $N(2N-1)$ = 28 / 91 / 190（$N=4/7/10$），再不计 reply 为 $2N(N-1)$；$O(N^2)$，只适合小规模许可链。
 - 附读物是 PBFT 原论文（OSDI 1999），不是单独的证明；BFS 只比 NFS 慢 3%；正常流程用 MAC 代替签名。
+
+浏览器版（带法定人数交集计算器、Paxos 逐条拿掉规则、RAFT 日志提交与选举判定、PBFT 消息计数）：[HTML/L16 区块链共识 II.html](HTML/L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html)

@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L10 网络安全：威胁、攻击与防御 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.tool input.num{width:6.8rem; font-size:14px; padding:.25rem .4rem}
+.tool input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.three span.lab,.three span.val{display:block}
+.three .val{font-size:1.2rem}
+/* ---------- 链接 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* ---------- 表：四列以上的宽表放开宽度上限，窄屏改为在 .tw 里横向滚动 ---------- */
+.tw>table.wide{max-width:100%}
+@media (max-width:640px){ .tw>table.wide{min-width:38rem} .tw>table.wide td,.tw>table.wide th{padding:.45rem .55rem} }
+.box .tw>table{margin:.6rem 0}
+.box table{font-size:14.5px}
+/* ---------- 宽窄两版图：窄屏换竖排版，打印用宽版 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+figure>div>svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.toolfig svg{display:block; width:100%; height:auto}
+/* ---------- 打印：Chromium/Safari 里关着的 details 内容藏在 ::details-content，补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+.eq{overflow-x:auto}
+@media (max-width:600px){ .eq{font-size:1.05rem} }
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.small{font-size:13.5px; color:var(--muted)}
+.tw th.nw,.tw td.nw{white-space:nowrap}
+/* 正文字体的 -> 会被连字成箭头，交易文本、代码、SQL 里必须显示原字符 */
+body,input,button,svg text{font-variant-ligatures:none; font-feature-settings:"calt" 0, "liga" 0}
+
+/* ---------- L10 ---------- */
+.m .r{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif; font-size:.92em}
+td.mask{cursor:pointer; color:transparent !important; background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,var(--line) 6px 7px)}
+td.mask *{visibility:hidden}
+@media print{ td.mask{color:inherit !important; background:none !important} td.mask *{visibility:visible !important} }
+#sqTool pre{max-width:none; font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 10</div>
+  <div class="tt">网络安全：威胁、攻击与防御</div>
+  <div class="toc">
+<a href="#s1">1 · 密码学守不住的地方</a>
+<a href="#s1-1" class="sub">1.1 攻击者已经在机器上：上一讲的课后题</a>
+<a href="#s1-2" class="sub">1.2 分析每个攻击的三把尺子</a>
+<a href="#s1-3" class="sub">1.3 本讲的地图</a>
+<a href="#s2">2 · 恶意软件</a>
+<a href="#s2-1" class="sub">2.1 两个独立的问题：怎么传播，做了什么</a>
+<a href="#s2-2" class="sub">2.2 病毒与蠕虫的区别</a>
+<a href="#s2-3" class="sub">2.3 勒索软件：五个阶段，每段配一个防御</a>
+<a href="#s2-4" class="sub">2.4 为什么恶意软件难检测</a>
+<a href="#s3">3 · 网络攻击：攻击基础设施本身</a>
+<a href="#s3-1" class="sub">3.1 先补三样网络常识</a>
+<a href="#s3-2" class="sub">3.2 IP 欺骗与 MAC 欺骗</a>
+<a href="#s3-3" class="sub">3.3 会话劫持：偷的是已经登录的证明</a>
+<a href="#s3-4" class="sub">3.4 ARP 投毒与中间人</a>
+<a href="#s3-5" class="sub">3.5 DNS 投毒，以及 TLS 为什么还能兜底</a>
+<a href="#s3-6" class="sub">3.6 拒绝服务：可用性是容量问题</a>
+<a href="#s4">4 · 应用与人：绕过网络</a>
+<a href="#s4-1" class="sub">4.1 注入：数据被当成指令</a>
+<a href="#s4-2" class="sub">4.2 XSS 与 CSRF：方向相反的两种信任</a>
+<a href="#s4-3" class="sub">4.3 社会工程：合法的人用合法的凭据</a>
+<a href="#s5">5 · 防御：放置、分层、可见、响应</a>
+<a href="#s5-1" class="sub">5.1 防火墙：看懂多少流量，以及放在哪</a>
+<a href="#s5-2" class="sub">5.2 入侵检测与入侵防御</a>
+<a href="#s5-3" class="sub">5.3 分段与零信任</a>
+<a href="#s5-4" class="sub">5.4 日志与事件响应</a>
+<a href="#s6">6 · 考点表：十个攻击与它们的防御</a>
+<a href="#s6-1" class="sub">6.1 likelihood 还是 impact：判断规则</a>
+<a href="#s6-2" class="sub">6.2 十个攻击的完整表</a>
+<a href="#s7">7 · 场景题：沿攻击链放防御</a>
+<a href="#s7-1" class="sub">7.1 把事故 C 写成攻击链</a>
+<a href="#s7-2" class="sub">7.2 评一个设计：三个最严重的问题</a>
+<a href="#s7-3" class="sub">7.3 花预算：六选三</a>
+<a href="#s7-4" class="sub">7.4 capstone 预备题</a>
+<a href="#s8">8 · 主动攻击的实例：模拟卷 Q1(c)</a>
+<a href="#s8-1" class="sub">8.1 从被动到主动：回到 L1 的分类</a>
+<a href="#s8-2" class="sub">8.2 四类主动攻击各配本讲的实例</a>
+<a href="#s8-3" class="sub">8.3 考场答法</a>
+<a href="#s9">9 · 课件参考文献与出处</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 10 — Network Security: Threats, Attacks and Defences</div>
+  <h1>网络安全：威胁、攻击与防御</h1>
+  <p>密码协议默认攻击者待在两个诚实端点之间的网络上；这一讲把攻击者挪到端点、网络基础设施、代码和人身上，逐个看他还能从哪里下手、每一处该用什么挡。路线：三把分析尺子 → 恶意软件 → 网络攻击 → 应用与人 → 防御的放置与分层 → 考点表与场景题。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>前面几讲的密码学都没被攻破：AES（Advanced Encryption Standard，高级加密标准，L4 讲的分组密码）至今安全，TLS 1.3（Transport Layer Security，传输层安全协议第 1.3 版；浏览器地址栏里的 HTTPS，即 HTTP Secure，就是跑在 TLS 上的网页协议）也经住了考验。可组织照样天天被攻破。课件副标题把这一讲的范围说得很直白：「everything cryptography does not protect you from」——<strong>密码学保护不了你的一切</strong>。</p>
+<p>原因是密码协议有一个默认前提：攻击者待在两个诚实端点<strong>之间</strong>的网络上。这一讲把攻击者挪到别处，逐一看他还能从哪里下手、每一处该用什么挡：</p>
+<ol>
+<li>站在<strong>端点</strong>上：恶意软件（第 2 节）；</li>
+<li>攻击<strong>网络基础设施</strong>本身：冒充地址、劫持会话、投毒查找服务、拒绝服务（第 3 节）；</li>
+<li>绕开网络，攻击<strong>代码</strong>和<strong>人</strong>：注入、跨站脚本、社会工程（第 4 节）；</li>
+<li>防御不再是「再加一个算法」，而是<strong>放在哪、怎么分层、看不看得见、出事后能不能响应</strong>（第 5 节）。</li>
+</ol>
+<p>课件的口号是「每个攻击配一个防御，成对地学」。本笔记先在第 1 节立三把分析尺子（违反哪个安全属性、防御降的是发生概率还是损失、密码学管不管用），之后每讲一个攻击当场量一遍，最后在第 6 节汇成课件点名「directly examinable」的十行表。和课件顺序的差别：三把尺子课件到最后的课后题才提出，这里提到开头；四道课后题和课堂活动 4 按题型集中到第 6、7 节（活动 1–3 的解答留在各节末尾）；第 8 节专答模拟卷 Q1(c)。</p>
+<p>课件自称「the breadth lecture」：每个话题比密码学那几讲浅，覆盖面大得多，服务于课程级第 4 条学习成果（总结网络安全的主要漏洞、威胁、攻击及缓解办法）。</p>
+<p><strong>编号。</strong> 文件名与封面写 Lecture 10，全部页脚和正文自称 「Lecture 9」——讲者内部编号比 Moodle 编号小 1：正文里的 「Lecture 8」 指 <a href="L9 实用安全协议.html">L9 实用安全协议</a>，「Lectures 6 and 7」 指 <a href="L7 公钥密码.html">L7 公钥密码</a> 和 <a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a>，「Lecture 1」 就是 <a href="L1 信息安全基础.html">L1 信息安全基础</a>。</p>
+<p style="margin-bottom:0"><strong>材料。</strong> 对应课件 <code>Lecture10_NetworkSecurity_26_TUL</code>，25 页，本笔记的页码一律指 PDF 页。幻灯片自身的编号到 30，PDF 缺了 5 张；按缺页的位置推测，是四个课堂活动之后的讲评页和结尾的下一讲预告页，所以五个活动都没有官方答案，本笔记的解答按课件口径自己做。教材是 Stallings《Cryptography and Network Security》第 8 版第 21 章（课件写的章号有误，见 <a href="#s9">参考文献一节</a>）。课程总览与考情见 《00 课程信息与考情》。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+<p>课件里的考试信号：</p>
+<ul>
+<li>课后题 Task 2：「Produce a table of ten attacks from this lecture. For each: the property violated, the primary defence, and whether that defence reduces likelihood or impact. <strong>This is directly examinable material.</strong>」——这是本讲唯一一句直接点名考试的话，那张表见 <a href="#s6-2">6.2</a>，判断规则见 <a href="#s6-1">6.1</a>；</li>
+<li>「<strong>Every attack here is paired with a defence. Learn them as pairs.</strong>」——每个攻击都要能说出配对的防御；</li>
+<li>「Ask both questions about every incident: how did it get in and spread, and what did it do once it was there?」——分析恶意软件事故的答题框架，见 <a href="#s2-1">2.1</a>；</li>
+<li>L8 课件的结尾预告页说，本讲之后的 capstone（总结性的综合讲，Moodle 上没有资料，见 <a href="#s7-4">7.4</a>）讲「Structured evaluation of unseen systems, which is what the report and the <strong>exam scenarios</strong> ask for」——期末有<strong>场景分析题</strong>，题型就是本讲的课堂活动 3、4 和课后题 Task 3，见 <a href="#s7">场景题一节</a>。</li>
+</ul>
+<p>模拟卷（去年版）对应：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">题号</th><th class="nw">分值</th><th>题面</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td class="nw">Q1(b)</td><td class="nw">4</td><td>「What is the difference between a virus and a worm?」</td><td><a href="#s2-2">2.2</a>，有满分答法</td></tr>
+<tr><td class="nw">Q1(c)</td><td class="nw">7</td><td>「Explain active attack with the aid of a diagram. Give some examples of active attacks.」</td><td><a href="#s8">主动攻击一节</a>；定义与 Darth 图（Darth 是教材给攻击者起的名字）在 <a href="L1 信息安全基础.html">L1 信息安全基础</a></td></tr>
+<tr><td class="nw">Q1(a)</td><td class="nw">7</td><td>「Briefly explain 'threat vector' with an example. How a threat vector can be identified?」</td><td>主出处 L1；本讲的例子见表下</td></tr>
+</tbody></table></div>
+<p>Q1(a) 的要点：<strong>威胁向量</strong>（threat vector）按参考答案是「where a threat originates and the path it takes to reach a target」，即威胁从哪来、走哪条路到达目标；参考答案的例子是带特洛伊木马附件的外部邮件；识别方法是列一张表，写出关心的威胁及其来源和目标。本讲 <a href="#s2-3">2.3</a> 勒索阶段 1 的三条路（钓鱼邮件、被盗凭据、未打补丁的对外服务）都是现成的例子。</p>
+<p style="margin-bottom:0">期末共 4 道 25 分大题。本讲最可能的出法：概念区分（病毒与蠕虫、跨站脚本与跨站请求伪造、入侵检测与入侵防御）、「某攻击违反什么属性、用什么防、降概率还是降损失」、给一个公司场景让你找问题或排优先级。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>密码学守不住的地方</h2>
+
+<h3 id="s1-1"><span class="n">1.1</span>攻击者已经在机器上：上一讲的课后题</h3>
+
+<p><a href="L9 实用安全协议.html">L9 实用安全协议</a>的最后一道课后题问：前面所有协议都假设攻击者在两个诚实端点之间的网络上；如果攻击者已经<strong>在</strong>某台机器上，或者他就是用机器的那个人呢？列出五件我们学过的协议都挡不住的事。课件第 2 页给的就是答案：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em">场景</th><th>课件原话</th><th>为什么密码学帮不上</th></tr></thead>
+<tbody>
+<tr><td>端点上的恶意软件</td><td>「Reads the plaintext before it is ever encrypted, and the keystrokes before that.」</td><td>加密保护的是「路上」的数据；在加密之前就被读走，算法再强也没用</td></tr>
+<tr><td>被钓走的凭据</td><td>「The attacker logs in as a legitimate user. Every check passes because nothing was broken.」</td><td>认证检查的是「凭据对不对」，凭据本身是真的</td></tr>
+<tr><td>恶意或粗心的内部人员</td><td>「Already inside the perimeter, already authenticated, already authorised.」</td><td>他本来就在网络边界（perimeter，组织网络与外界的分界）之内，有合法权限</td></tr>
+<tr><td>没打补丁的内部服务</td><td>「Reachable from any machine on the network, and nobody is encrypting an exploit.」</td><td>漏洞利用（exploit，利用软件缺陷让程序做出设计外行为的输入或代码）走的是正常可达的端口</td></tr>
+<tr><td>拒绝服务</td><td>「No cryptographic operation prevents a flood. Availability is not a property TLS provides.」</td><td>加密能保证内容，保证不了通道不被塞满</td></tr>
+</tbody></table></div>
+
+<p>课件的结论：「AES has never been broken. TLS 1.3 has held up. Organisations are compromised every single day — by everything on this list.」</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>分析每个攻击的三把尺子</h3>
+
+<p>每遇到一个攻击都用这三个问题量一遍，考点表（<a href="#s6-2">6.2</a>）的各列就是它们。</p>
+
+<p><strong>尺子一：违反了哪个安全属性。</strong> 用 <a href="L1 信息安全基础.html">L1 信息安全基础</a>的六个安全目标（课堂活动 2 题面原样列出）：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em">目标</th><th>一句话含义</th></tr></thead>
+<tbody>
+<tr><td>机密性（confidentiality）</td><td>信息不被无权的人读到</td></tr>
+<tr><td>完整性（integrity）</td><td>信息不被未授权地修改</td></tr>
+<tr><td>可用性（availability）</td><td>有权的人需要时用得上</td></tr>
+<tr><td>真实性（authenticity）</td><td>对方确实是他声称的那个人，消息确实来自声称的来源</td></tr>
+<tr><td>可追责性（accountability）</td><td>每个操作都能追到唯一的执行者</td></tr>
+<tr><td>不可否认性（non-repudiation）</td><td>发送方、接收方事后都不能抵赖</td></tr>
+</tbody></table></div>
+
+<p>前三个合称 CIA 三要素（取三个英文首字母）。一个攻击往往同时伤到几个属性，答题写「主要违反的属性 + 一句为什么」，再补次要的。</p>
+
+<p><strong>尺子二：防御降的是 likelihood 还是 impact。</strong> <a href="L1 信息安全基础.html">L1 信息安全基础</a>把风险写成</p>
+
+<div class="eq"><span class="m"><span class="r">Risk</span> = P(<span class="r">threat exploits vulnerability</span>) × <span class="r">cost of damage</span></span></div>
+
+<p>两个因子各有名字：<strong>likelihood</strong>（可能性：攻击发生并成功的概率，对应 <span class="m">P</span>）和 <strong>impact</strong>（影响：攻击成功后造成的损失，对应 cost）。L1 的年化版本 <span class="m"><span class="r">ALE</span> = <span class="r">SLE</span> × <span class="r">ARO</span></span>（ALE，annualised loss expectancy，年化损失期望；SLE，single loss expectancy，单次损失；ARO，annualised rate of occurrence，年发生次数）里，降 likelihood 的防御压的是 ARO，降 impact 的防御压的是 SLE。下文简写 L＝likelihood、I＝impact。</p>
+
+<p>风险是乘积，所以压哪个因子都能把风险降下来；但两类防御的性质完全不同：降 L 的防御<strong>一旦被绕过就不再起作用</strong>；降 I 的防御恰恰在前者被绕过、攻击已经得手<strong>之后</strong>才起作用。具体怎么判断见 <a href="#s6-1">6.1</a>。</p>
+
+<p><strong>尺子三：密码学管不管用。</strong> 课件几乎每页都在指出「这个防御不是密码学」。要建立的直觉是：密码学只解决「数据在两个可信端点之间传输时被读、被改、被冒充」这一类问题。端点本身、可用性、代码缺陷和人，都要靠别的手段。</p>
+
+<h3 id="s1-3"><span class="n">1.3</span>本讲的地图</h3>
+
+<p>课件的学习目标（ILO，intended learning outcome，预期学习成果）原文四条：</p>
+
+<ol>
+<li>「Classify malware by how it spreads and what it does, and explain why the distinction matters」——第 2 节；</li>
+<li>「Describe the major network and application-layer attacks and the property each violates」——第 3、4 节；</li>
+<li>「Explain why social engineering defeats technical controls」——<a href="#s4-3">4.3</a>；</li>
+<li>「Select and place appropriate defences, and justify the placement」——第 5、7 节。</li>
+</ol>
+
+<h2 id="s2"><span class="n">2</span>恶意软件</h2>
+
+<p><strong>恶意软件</strong>（malware，malicious software）的课件定义：「Software written to do something the owner of the machine did not want.」——写出来做机器主人不想让它做的事的软件。</p>
+
+<h3 id="s2-1"><span class="n">2.1</span>两个独立的问题：怎么传播，做了什么</h3>
+
+<p>课件说分类之所以让人糊涂，是因为两个不同的问题常被混在一起：</p>
+
+<p><strong>问题一：它怎么传播</strong>（propagation mechanism，传播机制）</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em">传播机制</th><th>课件原话</th><th>要点</th></tr></thead>
+<tbody>
+<tr><td><strong>病毒</strong>（virus）</td><td>「Attaches itself to a host file or program. It spreads only when a user runs that host — it needs human action.」</td><td>寄生在<strong>宿主</strong>（host，被它感染的另一个文件或程序）里，宿主被运行时才发作、才传播</td></tr>
+<tr><td><strong>蠕虫</strong>（worm）</td><td>「Carries its own propagation code and spreads across a network without any user action at all. This is why worms move so fast.」</td><td>独立程序，自带传播代码，自己在网络上找下一台机器</td></tr>
+<tr><td><strong>特洛伊木马</strong>（Trojan）</td><td>「Does not self-replicate. It is disguised as something the user wanted, and the user installs it themselves.」</td><td><strong>不自我复制</strong>；伪装成有用的东西，由用户亲手装上</td></tr>
+<tr><td><strong>路过式下载</strong>（drive-by download）</td><td>「Delivered by simply visiting a compromised web page, exploiting a flaw in the browser or a plug-in.」</td><td>访问被攻陷的网页，即被利用浏览器或插件的漏洞装上</td></tr>
+</tbody></table></div>
+
+<p><strong>问题二：它做了什么</strong>（payload，载荷：恶意软件到位之后真正执行的那部分功能）</p>
+
+<div class="tw"><table>
+<thead><tr><th>载荷</th><th>课件原话</th></tr></thead>
+<tbody>
+<tr><td><strong>勒索软件</strong>（ransomware）</td><td>「Encrypts data and demands payment. Often exfiltrates it first, so paying does not remove the leverage.」</td></tr>
+<tr><td><strong>间谍软件 / 键盘记录器</strong>（spyware / keylogger）</td><td>「Records keystrokes, screenshots and credentials, and sends them out.」</td></tr>
+<tr><td><strong>僵尸网络客户端</strong>（botnet client）</td><td>「Enrols the machine in a network controlled by an attacker, used for denial of service, spam or mining.」</td></tr>
+<tr><td><strong>rootkit</strong>（隐藏工具包）</td><td>「Hides the presence of other malware by subverting the operating system itself, so tools report a clean machine.」</td></tr>
+<tr><td><strong>擦除器</strong>（wiper）</td><td>「Destroys data outright. No ransom, no profit motive — the destruction is the objective.」</td></tr>
+</tbody></table></div>
+
+<p>几个词：<strong>外传</strong>（exfiltrate，把数据偷偷拷出受害组织）；<strong>僵尸网络</strong>（botnet，攻击者遥控的大批被感染机器，名字来自 robot + network）；rootkit 的名字来自 Unix 的最高权限账户 root；它改的是操作系统本身，杀毒软件向操作系统询问时拿到的就是假答案。</p>
+
+<p><strong>为什么必须分开问。</strong> 课件原话：「Any propagation mechanism can carry any payload.」 两张表可以任意组合，比如装勒索软件的蠕虫「spreads like a worm and does damage like ransomware」。而两半需要<strong>不同的应对</strong>：</p>
+
+<ul>
+<li><strong>传播</strong>靠<strong>分段</strong>（segmentation，把网络切成互相隔开的小块，见 <a href="#s5-3">5.3</a>）和<strong>打补丁</strong>（patching，安装厂商修复漏洞的更新）遏制；</li>
+<li><strong>载荷造成的损失</strong>靠<strong>备份</strong>和<strong>最小权限</strong>（least privilege，每个用户、每个进程只拿完成任务所需的最少权限，L1 的设计原则之一）遏制。</li>
+</ul>
+
+<p>所以分析任何事故都要两句都问，只问一句就只会想到一半的防御。</p>
+
+<p>真实例子（课件未举，用来记）：2017 年的 WannaCry 是「蠕虫 × 勒索」——利用 Windows 文件共享协议 SMB（Server Message Block）第 1 版的漏洞自动传播，到一台机器就加密文件。同年的 NotPetya 外表是勒索，实际无法解密，是「伪装成勒索的擦除器」。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>病毒与蠕虫的区别</h3>
+
+<p>模拟卷 Q1(b) 原题。核心区别只有一条，其余是它的推论：</p>
+
+<p><strong>病毒依附于宿主，蠕虫是独立程序。</strong> 由此：</p>
+
+<ol>
+<li><strong>怎么复制</strong>：病毒把自己的副本插进别的程序或文件里（修改宿主）；蠕虫复制的是它自己这个完整程序，不需要改别人的代码。</li>
+<li><strong>什么时候发作</strong>：病毒寄生在宿主里，只有宿主被运行时它才跟着运行，所以通常要等用户打开文件、运行程序；蠕虫自己就是一个在运行的程序，主动扫描网络、利用服务漏洞钻进下一台机器，<strong>不需要用户做任何事</strong>。</li>
+<li><strong>传播速度</strong>：课件小结第 2 条：「A worm needs no user action. That single property is why worm outbreaks are measured in minutes and virus outbreaks in weeks.」</li>
+</ol>
+
+<p>速度差是怎么来的，算一下就有直觉。2003 年的 Slammer 蠕虫感染数量约每 8.5 秒翻一倍，受害主机至少约 75,000 台。按纯指数增长，要翻倍 <span class="m"><span class="r">log</span><sub>2</sub> 75000 ≈ 16.2</span> 次，用时</p>
+
+<div class="eq"><span class="m">16.2 × 8.5 <span class="r">s</span> ≈ 138 <span class="r">s</span> ≈ 2.3 <span class="r">min</span></span></div>
+
+<p>实测约 10 分钟感染约 90% 的易感主机——比纯指数慢，因为扫描包把带宽自己塞满了。要靠用户打开文件的病毒若每天翻一倍，到 75,000 台要约 16 天。两者相差三到四个数量级（16 天对 2.3 分钟约 <span class="m">10<sup>4</sup></span> 倍，对实测 10 分钟约 <span class="m">2 × 10<sup>3</sup></span> 倍），根子就在「要不要等人」。</p>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>模拟卷 Q1(b) 满分答法（4 分）</div>
+<p><strong>What is the difference between a virus and a worm?</strong></p>
+<ol>
+<li><strong>依附方式</strong>：A virus attaches itself to a host file or program and replicates by inserting copies of itself into other host code. A worm is a standalone program that carries its own propagation code and does not need to modify other host code to replicate.</li>
+<li><strong>触发条件</strong>：A virus runs only when its host is executed, so it normally needs human action (opening a file, running a program). A worm usually needs no user action: it actively scans the network and exploits vulnerable services to reach new machines.</li>
+<li><strong>后果</strong>：Worms therefore typically spread far faster — outbreaks often measured in minutes (e.g. Slammer, 2003, about 90% of vulnerable hosts in about ten minutes), viruses in days or weeks.</li>
+<li><strong>防御侧重</strong>：Worm propagation is contained by patching and network segmentation; viruses mainly by not running untrusted files and by anti-malware scanning.</li>
+</ol>
+<p style="margin-bottom:0">前两点各占分，第 1 点是参考答案的口径（「uses other host files or code to replicate」 对 「does not directly modify other host code」），第 2 点是课件的口径（是否需要用户动作），两点都写最稳；第 3、4 点用来补足分值。</p>
+</div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>两个常见错，以及课件说得太绝对的地方</div>
+<ul style="margin-bottom:0">
+<li>误：「病毒不能自我复制，蠕虫能。」 正：<strong>两者都自我复制</strong>，区别在于要不要宿主、要不要用户动作。不自我复制的是<strong>特洛伊木马</strong>。</li>
+<li>课件写病毒 「spreads <strong>only</strong> when a user runs that host」、蠕虫 「without any user action <strong>at all</strong>」，这是典型情况，不是定义。病毒的定义只要求宿主被运行，宿主可以由系统自动运行（例如感染引导区、开机自动执行的病毒）；反过来，2000 年的 ILOVEYOU 这类<strong>群发邮件型蠕虫</strong>就要用户打开附件才传播。「蠕虫以分钟计、病毒以周计」同样是对扫描型蠕虫的经验概括（群发邮件型病毒能在几天内遍及全球），当直觉用，不要当定理写。考场上按「通常需要 / 不需要用户动作」的措辞写即可。</li>
+</ul>
+</div>
+
+<h3 id="s2-3"><span class="n">2.3</span>勒索软件：五个阶段，每段配一个防御</h3>
+
+<p>课件说勒索软件是「the most damaging category of malware for a decade — and it uses the cryptography from this module against its victim」。课件给了五阶段生命周期，并把四条有效防御各钉在一个阶段上：</p>
+
+<figure>
+<div id="figRansomW" class="only-wide"></div><div id="figRansomN" class="only-narrow"></div>
+<figcaption>上排是攻击阶段，下排是课件 「What actually limits the damage」 的四条防御及其作用的阶段；黄框是课件没给、补上的一项。</figcaption>
+</figure>
+
+<ol>
+<li><strong>初始访问</strong>（initial access）：「Phishing, a stolen credential, or an unpatched internet-facing service.」——<strong>快速给对外服务打补丁</strong>，直接关掉第三条路。</li>
+<li><strong>驻留与提权</strong>（establish and escalate）：「Install persistence, then obtain administrator rights.」 <strong>持久化</strong>（persistence）指让恶意代码在重启、注销后还能自动回来；<strong>提权</strong>（privilege escalation）指从普通用户权限升到管理员权限。——<strong>最小权限</strong>让这一步更难。</li>
+<li><strong>横向移动</strong>（lateral movement，从已攻陷的机器扩散到同一内网的其他机器）：「Spread across the flat internal network to reach as many systems as possible.」 <strong>平坦网络</strong>（flat network）指内网不分区、任何机器都能直接访问任何机器。——<strong>分段</strong>让它够不到全部，最小权限让它走得更慢。</li>
+<li><strong>外传</strong>（exfiltrate）：「Copy the data out BEFORE encrypting it — this is the double extortion step.」 <strong>双重勒索</strong>（double extortion）：先偷数据，再加密；受害者就算能从备份恢复，攻击者还能威胁公开数据。——课件没给这一阶段的防御；能用的是分段、最小权限（能读到的数据少）和出口流量监控。</li>
+<li><strong>先毁备份，再加密</strong>：「Delete or encrypt the backups first, so restoring is not an option, then encrypt everything at once.」 ——<strong>离线或不可变、并且做过恢复演练的备份</strong>。<strong>离线</strong>（offline）指平时不连在网络上；<strong>不可变</strong>（immutable）指写入后在保留期内谁也改不了、删不了，包括管理员；<strong>恢复演练</strong>（restore test）指定期真的从备份恢复一次，证明它能用。</li>
+</ol>
+
+<p><strong>付钱解决不了问题</strong>（课件四条）：数据已被拷走，泄露威胁仍在；攻击者给的解密工具又慢又不全；进来的路没修就还开着；付过钱会被标记为「会付钱的」。</p>
+
+<p>课件底框点明：「Not one of the effective defences is cryptographic — and the attacker is using AES against you, correctly implemented.」 课件还说它们都来自 L1：最小权限是 L1 的设计原则，分段是 L1 的<strong>隔离</strong>（isolation）原则用在网络上，补丁对应 L1 开场引用的数据——31% 的数据泄露「began with exploitation of a known vulnerability」。课件说「restore-tested backups」也是 L1 的内容，但 L1 课件里只出现过备份方案，并没有「备份必须做恢复测试」这一论点。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件小结第 3 条把备份说成了唯一答案</div>
+<p>小结原话：「Ransomware destroys backups before encrypting. Offline, immutable, restore-tested backups are the only reliable answer.」</p>
+<p style="margin-bottom:0">这和课件自己的第 4 阶段矛盾：数据在加密前已经外传，备份只能把<strong>可用性</strong>救回来，对<strong>机密性</strong>的泄露毫无作用。准确的说法是：备份是「加密那一半」唯一可靠的答案；「外传那一半」要靠分段、最小权限、出口监控和尽早检测。课件同页也列了四条防御，不只备份一条。</p>
+</div>
+
+<h3 id="s2-4"><span class="n">2.4</span>为什么恶意软件难检测</h3>
+
+<p>第 1 部分封面预告了「The malware lifecycle, and why detection is hard」，正文却没讲为什么难检测。补几条常见原因（课件外）：</p>
+
+<ul>
+<li><strong>多态 / 变形</strong>（polymorphic / metamorphic）：每传播一次就改变自己的代码形态，按固定特征匹配的检测（<strong>特征检测</strong>，见 <a href="#s5-2">5.2</a>）就失效了；</li>
+<li><strong>加壳</strong>（packing）：把真正的代码压缩、加密起来，运行时才解开，静态扫描看到的只是一层壳；</li>
+<li><strong>rootkit</strong>：篡改操作系统本身，让检测工具拿到的是假报告；</li>
+<li><strong>无文件</strong>（fileless）：只驻留内存或借用系统自带的管理工具，磁盘上没有可扫描的恶意文件；</li>
+<li><strong>零日漏洞</strong>（zero-day，厂商还不知道、还没有补丁的漏洞）：没人见过，就没有特征。</li>
+</ul>
+
+<details class="box">
+  <summary>课堂活动 1 解答：给六个案例分类</summary>
+<p>题目：每个案例回答两个问题——怎么传播、载荷是什么；有的不止一个正确标签。（第 1 部分封面写「classify eight real cases」，实际只有六个。）</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw"></th><th>案例</th><th>怎么传播</th><th>载荷</th></tr></thead>
+<tbody>
+<tr><td class="nw">a</td><td>用户打开一个像发票的邮件附件，装上了记录键盘的软件</td><td><strong>特洛伊木马</strong>（伪装成发票，用户自己打开；入口是钓鱼邮件）</td><td><strong>键盘记录器</strong></td></tr>
+<tr><td class="nw">b</td><td>文件共享服务的漏洞让代码 20 分钟内复制到网络上每台机器，没人做任何事</td><td><strong>蠕虫</strong></td><td>题面没说，答「未说明」——传播清楚、载荷未知，正是两问要分开的例子</td></tr>
+<tr><td class="nw">c</td><td>从搜索广告下载的免费视频剪辑工具功能完全正常，同时在挖加密货币</td><td><strong>特洛伊木马</strong>（功能正常也是木马：用户主动安装）</td><td><strong>挖矿</strong>（cryptojacking，偷用受害者的算力挖加密货币）；课件载荷表里只有僵尸网络客户端提到「mining」，可答 botnet client</td></tr>
+<tr><td class="nw">d</td><td>装在服务器上的软件把自己的进程从任务管理器和杀毒扫描里藏起来</td><td>题面没说怎么进来的</td><td><strong>rootkit</strong></td></tr>
+<tr><td class="nw">e</td><td>代码在网络中自动传播，然后加密能碰到的每个文件并索要赎金</td><td><strong>蠕虫</strong></td><td><strong>勒索软件</strong>（正是 2.1 的「蠕虫 × 勒索」）</td></tr>
+<tr><td class="nw">f</td><td>访问被攻陷的新闻网站，利用过时的浏览器插件装上远程访问工具</td><td><strong>路过式下载</strong></td><td><strong>远程访问工具</strong>（RAT，remote access tool，让攻击者远程操控机器的后门程序）；课件载荷表没有这一项，最接近的是僵尸网络客户端</td></tr>
+</tbody></table></div>
+<p><strong>追问：哪个在组织内传播最快？哪一项控制最能减慢它？</strong></p>
+<p style="margin-bottom:0">最快的是 <strong>b 和 e</strong>，两者都是蠕虫，不需要用户动作；e 带勒索载荷，危害最大。最能<strong>减慢</strong>它的单项控制是<strong>网络分段</strong>：课件原话「propagation is contained by segmentation and patching」，并称分段是对横向移动最有效的单项控制（<a href="#s5-3">5.3</a>）。补丁能从源头堵住漏洞，但有发布到装上的窗口期；题目问「减慢」，答分段，再补一句补丁。</p>
+</details>
+
+<h2 id="s3"><span class="n">3</span>网络攻击：攻击基础设施本身</h2>
+
+<p>第 2 部分的导语：「Attacks on the infrastructure itself, rather than on the data travelling over it.」</p>
+
+<h3 id="s3-1"><span class="n">3.1</span>先补三样网络常识</h3>
+
+<p>课件默认学生懂这些，没讲。</p>
+
+<p><strong>一、两层地址。</strong></p>
+
+<ul>
+<li><strong>IP 地址</strong>（Internet Protocol address，网际协议地址）：网络层的地址，在网络上标识一台主机，如 203.0.113.20（示意的公网地址；192.168.x.x 这类是只在内网有效的私有地址）。路由器只看数据包的<strong>目的</strong> IP 往前转发，<strong>不检查源 IP 是不是真的</strong>。</li>
+<li><strong>MAC 地址</strong>（media access control address，媒体访问控制地址）：链路层的地址，烧在网卡上的硬件地址，如 aa:aa:aa:aa:aa:01，只在同一个<strong>局域网</strong>（LAN，local area network，一台交换机或一个 Wi-Fi 下互相直达的那片网络）内有效。软件可以随意改它。</li>
+<li>局域网里真正把数据送到哪块网卡，靠的是 MAC 地址，所以主机要先把「对方的 IP」翻译成「对方的 MAC」，这个翻译就是 ARP（见 3.4）。</li>
+</ul>
+
+<p><strong>二、TCP 与 UDP。</strong> 传输层的两种协议。<strong>TCP</strong>（Transmission Control Protocol，传输控制协议）先握手建立连接再传数据：客户端发 <strong>SYN</strong>（synchronise，请求建立连接），里面带一个<strong>初始序号</strong>（ISN，initial sequence number，这条连接里字节编号的起点）；服务器回 <strong>SYN-ACK</strong>（同意，并带上自己的初始序号）；客户端再回 <strong>ACK</strong>（acknowledge，确认），里面写「服务器的初始序号 + 1」，表示收到了。这叫<strong>三次握手</strong>。<strong>UDP</strong>（User Datagram Protocol，用户数据报协议）没有握手，发出去就算，所以伪造源地址的 UDP 包对方照收不误。端口（port）是传输层用来区分同一台主机上不同服务的编号，如 HTTPS 网页默认用 443 端口。</p>
+
+<p><strong>三、会话与 cookie。</strong> HTTP（网页使用的应用层协议）本身<strong>无状态</strong>：每个请求互不相干，服务器记不住「刚才是谁」。所以登录成功后，服务器发给浏览器一个随机的<strong>会话令牌</strong>（session token，也叫 session ID），放在 <strong>cookie</strong>（浏览器替网站保存、并在之后<strong>每次</strong>访问该网站时<strong>自动附上</strong>的小段数据）里。之后服务器看到这个令牌，就当作已登录的那个人。这一条同时解释了 3.3 的会话劫持和 4.2 的 CSRF。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>IP 欺骗与 MAC 欺骗</h3>
+
+<p>课件第 9 页的四行「攻击—后果—防御」表，前两行是冒充地址：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="min-width:7.0em">攻击</th><th>是什么</th><th>后果</th><th>防御</th></tr></thead>
+<tbody>
+<tr><td><strong>IP 欺骗</strong>（IP spoofing）</td><td>「Forge the source address of a packet so it appears to come from somewhere else.」</td><td>绕过按地址放行的访问规则；隐藏攻击来源；并使<strong>反射攻击</strong>成为可能——回复发往伪造的地址，不回攻击者（见 3.6）</td><td><strong>入口 / 出口过滤</strong>（ingress / egress filtering）：「reject packets whose source address could not legitimately have come from that direction.」</td></tr>
+<tr><td><strong>MAC 欺骗</strong>（MAC spoofing）</td><td>「Change the hardware address of an interface to impersonate another device on the local network.」</td><td>击破按硬件地址的访问控制——「which is why address filtering on wireless is not a security control」</td><td><strong>802.1X</strong>：「authenticate the device properly rather than trusting an address it chose for itself.」</td></tr>
+</tbody></table></div>
+
+<p>两条防御的道理：</p>
+
+<ul>
+<li><strong>入口 / 出口过滤</strong>：从外面进来（入口）的包若源地址是自己内网的，从内网出去（出口）的包若源地址不是自己内网的，都一定是伪造的，边界路由器直接丢掉——不需要密码学。注意部署位置：受害者在自己边界做入口过滤，只能丢掉「冒充我内网地址」的外来包；反射攻击里被冒充的是受害者自己的地址，要挡住这种伪造包，必须由<strong>攻击者所在的网络</strong>在出口做源地址校验（业界规范 BCP 38，Best Current Practice 38）。所以这道防御靠各网络普遍部署，受害者无法单方面做到。</li>
+<li><strong>802.1X</strong>：IEEE（电气电子工程师学会）制定的端口级接入认证标准。设备接上交换机或 Wi-Fi 后，在认证通过之前端口只放行认证报文，认证靠证书或账户口令，而不是设备自报的 MAC 地址。家用路由器的「MAC 白名单」改一下 MAC 就过了。</li>
+</ul>
+
+<p>两者违反的都是<strong>真实性</strong>：数据包或设备冒充了别人。两条防御都在攻击成功<strong>之前</strong>起作用，降的是 likelihood。</p>
+
+<h3 id="s3-3"><span class="n">3.3</span>会话劫持：偷的是已经登录的证明</h3>
+
+<p><strong>会话劫持</strong>（session hijacking）：「Take over an authenticated session by stealing or predicting the session token.」 偷到或猜到别人的会话令牌，直接接管他已登录的会话。</p>
+
+<p>后果一句话：「The attacker never needs the password. They arrive after authentication has already succeeded, holding the proof of it.」 按 3.1，服务器只认令牌，所以再强的密码也管不了它——它发生在登录<strong>之后</strong>。</p>
+
+<p>令牌怎么被偷：在没加密的连接上（例如咖啡馆的开放 Wi-Fi 上的 HTTP 页面）直接被嗅探到；被 XSS 脚本读走（4.2）；或者令牌生成得不够随机，被猜出来。</p>
+
+<p>课件的防御四条：</p>
+
+<ul>
+<li><strong>把令牌绑定到连接</strong>：「Bind tokens to the connection」——令牌只在发出它的那条连接或那台设备上有效，偷走换个地方用不了；</li>
+<li><strong>短生命周期</strong>：令牌很快过期，偷到也只能用一小会儿（这一条压的是 impact）；</li>
+<li><strong>敏感操作重新认证</strong>：改密码、转账之前再要一次密码或第二因素，光有令牌做不了最要紧的事；</li>
+<li><strong>始终使用 TLS</strong>：「so tokens cannot be captured in transit」——令牌在路上是密文，嗅探不到。配套要给会话 cookie 标 <strong>Secure</strong> 属性（浏览器只在 TLS 连接上发送它），否则某一次明文 HTTP 请求（例如连接被降级成明文）仍会把它带出去。</li>
+</ul>
+
+<p>违反的主要属性是<strong>真实性</strong>（攻击者以受害者的身份行事），连带<strong>机密性</strong>（令牌和账户数据被读）和<strong>可追责性</strong>（日志把攻击者的操作记在受害者名下）。</p>
+
+<h3 id="s3-4"><span class="n">3.4</span>ARP 投毒与中间人</h3>
+
+<p><strong>中间人攻击</strong>（MITM，man in the middle）：「Sit between two parties, relaying and optionally altering traffic.」 攻击者插在通信双方之间，转发流量，想改就改。这正是 <a href="L7 公钥密码.html">L7 公钥密码</a>里 DH 密钥交换（Diffie–Hellman，双方在公开信道上协商出共享密钥的方法）没有认证时会遭遇的攻击，<a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a>用证书解决了它。课件说在局域网里，中间人位置通常靠 ARP 投毒取得。</p>
+
+<p><strong>ARP</strong>（Address Resolution Protocol，地址解析协议）负责局域网里「IP → MAC」的翻译：主机广播「谁有 192.168.1.1？」，持有者回答「192.168.1.1 在 aa:…:01」，主机把答案记进 <strong>ARP 缓存</strong>。课件的关键一句：「It has no authentication whatsoever: any device can answer any request, or send unsolicited replies that hosts accept.」</p>
+
+<figure>
+<div id="figArpW" class="only-wide"></div><div id="figArpN" class="only-narrow"></div>
+<figcaption>左：正常情况下受害主机把发往外网的流量交给网关的 MAC。右：攻击者主动发伪造回复，把「网关 IP → 攻击者 MAC」写进受害主机的缓存，出站流量就先到攻击者手里。</figcaption>
+</figure>
+
+<p>课件描述的攻击：「The attacker announces that the router's IP belongs to the attacker's hardware address. Every machine on the segment now sends its outbound traffic to the attacker, who forwards it on.」 受害者网照上、毫无察觉。</p>
+
+<p><strong>防御</strong>（课件）：「dynamic ARP inspection on switches, static entries for critical hosts, and segmentation to limit who shares a broadcast domain.」</p>
+
+<ul>
+<li><strong>动态 ARP 检测</strong>（DAI，dynamic ARP inspection）：交换机记着「哪个端口上的哪个 MAC 合法地拥有哪个 IP」（这张表来自 <strong>DHCP 侦听</strong>，DHCP snooping：DHCP 即 Dynamic Host Configuration Protocol，动态主机配置协议，负责给新接入的设备自动分配 IP；交换机旁听这个分配过程，记下「哪个端口、哪个 MAC 拿到了哪个 IP」），收到与之不符的 ARP 报文就丢弃；</li>
+<li><strong>静态表项</strong>：网关这类关键主机的 IP–MAC 对应关系手工写死，不接受任何 ARP 回复修改；</li>
+<li><strong>分段</strong>：ARP 只在一个<strong>广播域</strong>（broadcast domain，广播报文能到达的那片网络）里有效，把网络切小，能投毒的人就少。</li>
+</ul>
+
+<p>再往上一层，中间人本身是<strong>唯一一个课件说「IS solved by cryptography」的攻击</strong>：「Authenticated key exchange with certificates. This one IS solved by cryptography, provided validation is done properly.」 即使 ARP 被投毒、流量全经过攻击者，只要双方用 TLS 并正确校验证书，攻击者看到的是密文，改了也会被发现，冒充服务器又拿不出有效证书。违反的属性是<strong>机密性</strong>和<strong>完整性</strong>（「optionally altering」），攻击者冒充网关还伤了真实性。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件的两处简化</div>
+<ul style="margin-bottom:0">
+<li>课件只描述了单向：受害者的<strong>出站</strong>流量到了攻击者手里。要拿到完整的双向中间人位置（课堂活动 2(b) 说的「relays all traffic」），攻击者通常还要同时欺骗网关，让网关把「受害者 IP」对应到攻击者的 MAC，回程流量也绕过来。</li>
+<li>第 9 页底条说「Only the last of these is fixed by cryptography」，即四行里只有中间人靠密码学。但会话劫持那一行的防御里写着「always use TLS」，802.1X 也常用基于证书的认证——密码学在前三行里也是一环。准确的说法是：前三个攻击的<strong>根本</strong>修复在网络设计和会话管理，密码学只是其中一部分；中间人则直接由密码学解决。</li>
+</ul>
+</div>
+
+<h3 id="s3-5"><span class="n">3.5</span>DNS 投毒，以及 TLS 为什么还能兜底</h3>
+
+<p><strong>DNS</strong>（Domain Name System，域名系统）把名字翻译成 IP 地址，如 www.example.com → 203.0.113.10（示意地址）。解析链是：你的电脑问<strong>递归解析器</strong>（recursive resolver，通常由运营商或公司提供，替你一路问到底的那台服务器），解析器再去问负责这个域名的<strong>权威服务器</strong>（authoritative server）；拿到答案后，解析器把它<strong>缓存</strong>一段时间（这段时间叫 TTL，time to live，生存时间），期间再有人问就直接用缓存回答。</p>
+
+<p>课件：「Traditional DNS is unauthenticated and runs over UDP, so a forged reply that arrives before the genuine one is accepted and cached.」 传统 DNS 不认证、跑在 UDP 上。解析器只核对回复里的两样东西：16 位的<strong>事务 ID</strong>（每个查询附带的随机编号）和端口号；对得上就收下，谁先到信谁。攻击者抢在真回复之前塞进一个伪造回复，这就是 <strong>DNS 缓存投毒</strong>（DNS cache poisoning）。</p>
+
+<p>后果是放大的：「Poison a resolver's cache and every user of that resolver is directed to the attacker's server for as long as the entry lives. The user typed the correct name and still arrived at the wrong place.」</p>
+
+<p><strong>防御</strong>（课件）：<strong>DNSSEC</strong>（DNS Security Extensions，DNS 安全扩展）给 DNS 记录加数字签名，解析器验签就能发现伪造；DoT / DoH（DNS over TLS / DNS over HTTPS，把 DNS 查询放进 TLS 或 HTTPS 里传）保护查询在路上不被看、不被改。违反的属性是 DNS 数据的<strong>完整性</strong>，以及用户到达的服务器的<strong>真实性</strong>。</p>
+
+<p><strong>ARP 和 DNS 是同一种攻击。</strong> 课件的总结：「rather than attacking the target, attack the mechanism that tells you where the target is.」 不攻击目标本身，攻击「告诉你目标在哪」的那个查找机制。两个协议都是为「没人撒谎的合作网络」设计的，都没有认证：「Every layer of a system rests on assumptions made by the layer below, and attackers look there first」——这就是 L1 <strong>攻击面</strong>（attack surface，系统里攻击者真正够得着、用得上的那些弱点的集合）的思路：attack the assumption, not the target。</p>
+
+<p><strong>TLS 为什么还能兜底。</strong> 课件的黄框：「If DNS sends you to the attacker's server, that server cannot present a valid certificate for the name you asked for — so TLS validation fails and the browser warns you. Certificate validation is the backstop for a poisoned lookup.」 查找被投毒，你到了假服务器；但假服务器拿不出你要访问的那个名字的有效证书（证书由 CA（certificate authority，证书颁发机构，替网站担保“这个公钥属于这个名字”的机构）签发，攻击者没有对应的私钥），TLS 校验失败，浏览器报警。限制有两条：「it only holds if the user does not click through the warning, and only for protocols that use TLS at all」。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>DoT / DoH 防不了缓存投毒</div>
+<p>课件把 DoT / DoH 和 DNSSEC 并列为 DNS 投毒的防御。但课件描述的攻击是「poison a <strong>resolver's cache</strong>」：投毒发生在<strong>递归解析器 ↔ 权威服务器</strong>这一段。DoT / DoH 加密的是<strong>你的电脑 ↔ 递归解析器</strong>这一段，解析器自己的缓存被毒了，它照样把毒答案通过加密通道忠实地发给你。</p>
+<p style="margin-bottom:0">对缓存投毒真正有效的是 DNSSEC（解析器验签），以及 2008 年以后普遍部署的源端口随机化（查询的端口号也随机选，伪造者要同时猜中事务 ID 和端口）。DoT / DoH 防的是另一种情况：你和解析器之间的本地网络上有人偷看或伪造回复（例如同一个 Wi-Fi 下的攻击者）。</p>
+</div>
+
+<h3 id="s3-6"><span class="n">3.6</span>拒绝服务：可用性是容量问题</h3>
+
+<p><strong>拒绝服务</strong>（DoS，denial of service）：让合法用户用不上服务。课件导语：「The one attack class in this module that no cryptographic mechanism addresses. It targets availability, and availability is a capacity property.」 可用性是<strong>容量</strong>属性：服务器能处理的请求、链路能承载的带宽都有上限，攻击者只要把它占满。</p>
+
+<p>课件分三类，按「耗尽的是哪种资源」区分：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="min-width:7.5em">类别</th><th>耗尽什么</th><th>课件原话</th><th>特点</th></tr></thead>
+<tbody>
+<tr><td><strong>流量型</strong>（volumetric）</td><td>带宽</td><td>「Saturate the target's bandwidth with sheer traffic volume.」</td><td>以 Gbit/s 计；「Nothing on the target can help — the pipe is full before the traffic arrives.」</td></tr>
+<tr><td><strong>协议型</strong>（protocol）</td><td>协议实现里的有限表项</td><td>「Exhaust a finite resource in the protocol implementation, such as the table of half-open connections.」</td><td>典型是 SYN 洪泛；「Costs the attacker almost nothing.」</td></tr>
+<tr><td><strong>应用型</strong>（application）</td><td>服务器的计算</td><td>「Send requests that are cheap to make and expensive to serve — a complex search, a large report.」</td><td>流量小，像正常使用，最难与合法负载区分</td></tr>
+</tbody></table></div>
+
+<p><strong>SYN 洪泛为什么几乎不花钱。</strong> 按 3.1 的三次握手，服务器收到 SYN 后要为这个「握了一半」的连接（<strong>半开连接</strong>，half-open connection）在表里占一格，回 SYN-ACK，然后等 ACK。攻击者伪造源地址发 SYN，ACK 永远不会来，这一格要等超时才释放。算一个例子（假设服务器<strong>未启用 SYN cookies</strong>；表大小、超时是假设的典型值，取 Linux 默认的重传设置，不是课件数据）：表有 1024 格；服务器的 SYN-ACK 重传 5 次，间隔从 1 秒起每次翻倍，一格要占 <span class="m">1 + 2 + 4 + 8 + 16 + 32 = 63</span> 秒才放弃。攻击者只要每秒补</p>
+
+<div class="eq"><span class="m"><span class="frac"><span>1024</span><span>63</span></span> ≈ 16.3</span></div>
+
+<p>个伪造 SYN，就能让表一直是满的，新的合法连接一个也进不来。一个 SYN 包约 60 字节，这只是约 8 kbit/s 的流量——任何一条家用宽带都发得出。</p>
+
+<div class="tool" id="synTool">
+  <h4>SYN 洪泛算账：多少个伪造 SYN 能塞满半开连接表</h4>
+  <p class="sub">默认是笔记里的假设值：表 1024 格，SYN-ACK 重传 5 次、间隔从 1 秒起每次翻倍，SYN 包约 60 字节，未启用 SYN cookies。改任何一格，或改攻击者每秒发多少个，看表占用怎么变；勾上 SYN cookies 看表为什么不再会满。</p>
+  <div class="row">
+    <span class="ctl"><label for="synN">半开表格数</label><input class="num" type="text" inputmode="decimal" id="synN" value="1024" oninput="synGo()"></span>
+    <span class="ctl"><label for="synT0">首次重传间隔（s）</label><input class="num" type="text" inputmode="decimal" id="synT0" value="1" oninput="synGo()"></span>
+    <span class="ctl"><label for="synR">重传次数</label><input class="num" type="text" inputmode="decimal" id="synR" value="5" oninput="synGo()"></span>
+    <span class="ctl"><label for="synSz">SYN 包（字节）</label><input class="num" type="text" inputmode="decimal" id="synSz" value="60" oninput="synGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="synAtk">攻击者每秒发</label><input class="num" type="text" inputmode="decimal" id="synAtk" value="20" oninput="synGo()"></span>
+    <span class="ctl"><label><input type="checkbox" id="synCk" onchange="synGo()"> 启用 SYN cookies</label></span>
+    <button class="btn" onclick="synSet(1024,1,5,60,20)">恢复笔记的数</button>
+    <button class="btn" onclick="synSet(1024,1,5,60,10)">攻击者每秒只发 10 个</button>
+  </div>
+  <div class="steps" id="synSteps"></div>
+  <div class="result" id="synOut"></div>
+</div>
+
+<p><strong>分布式与放大。</strong> <strong>DDoS</strong>（distributed denial of service，分布式拒绝服务）用僵尸网络从成千上万个源同时发起，「blocking one address achieves nothing」。<strong>放大</strong>（amplification）让它更糟：「send a small forged request to a service that replies with a much larger response, addressed to the victim.」 它要和 3.2 的 IP 欺骗配合，又叫<strong>反射放大</strong>（reflection amplification）：</p>
+
+<figure>
+<div id="figReflectW" class="only-wide"></div><div id="figReflectN" class="only-narrow"></div>
+<figcaption>攻击者把请求的源 IP 伪造成受害者的 IP，发给公网上愿意回答任何人的服务器（反射器）；反射器把大得多的响应发往「源地址」，也就是受害者。</figcaption>
+</figure>
+
+<p><strong>放大倍数</strong>（BAF，bandwidth amplification factor）＝ 反射器响应的 UDP 载荷字节数 ÷ 请求的 UDP 载荷字节数（不算包头）。US-CERT（United States Computer Emergency Readiness Team，美国计算机应急准备小组，现已并入 CISA，美国网络安全与基础设施安全局）的告警 TA14-017A 给的值：DNS 约 28–54 倍，NTP（Network Time Protocol，网络时间协议）约 557 倍，Memcached（一种内存缓存服务）10,000–51,000 倍。设攻击者发出 100 Mbit/s 的伪造请求：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">反射器</th><th>放大倍数</th><th>受害者收到</th></tr></thead>
+<tbody>
+<tr><td class="nw">DNS</td><td>28–54</td><td>2.8–5.4 Gbit/s</td></tr>
+<tr><td class="nw">NTP</td><td>556.9</td><td>约 55.7 Gbit/s</td></tr>
+<tr><td class="nw">Memcached</td><td>10,000–51,000</td><td>1,000–5,100 Gbit/s</td></tr>
+</tbody></table></div>
+
+<p>这是<strong>上限量级</strong>：倍数按载荷算，而攻击者的 100 Mbit/s 是含包头的线路速率，小请求的包头占比大，实际要打折；受害者收到多少还受反射器数量和它们自身带宽的限制。量级本身足以说明课件那句「A modest attacker generates enormous traffic」。</p>
+
+<p><strong>防御</strong>（课件）：「Capacity and distribution — absorb it. Upstream filtering and scrubbing services — stop it before it reaches you. Rate limiting per source. SYN cookies for the protocol case.」 逐条：</p>
+
+<ul>
+<li><strong>容量与分布</strong>：带宽、服务器足够多，并分散到多个地点（如 CDN，content delivery network，内容分发网络），洪水被摊薄吸收、服务不中断——按 <a href="#s6-1">6.1</a> 的规则，攻击没能让服务不可用，算降 L；吸收不完全、服务只是变慢时，是在减轻损失程度，算降 I；</li>
+<li><strong>上游过滤与清洗</strong>：在运营商或专业「清洗中心」那里把攻击流量滤掉，只把干净流量送过来——针对流量型；</li>
+<li><strong>按源限速</strong>：每个来源每秒最多多少请求，针对应用型；</li>
+<li><strong>SYN cookies</strong>：针对协议型（下面的 warning 框里说原理）。</li>
+</ul>
+
+<p>课件的结论：「you cannot encrypt your way out of a capacity problem, and that is why availability sits alongside confidentiality and integrity rather than inside them.」 加密、消息认证码、签名只回答「内容对不对、是谁发的」，回答不了「通道有没有被塞满」。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>「没有任何密码学机制能对付 DoS」说得太满</div>
+<p>课件同页列的 <strong>SYN cookies</strong> 恰恰用到了密码学：服务器收到 SYN 后<strong>不在表里占格</strong>，而是把连接信息（双方地址端口）、时间和服务器自己的秘密密钥一起做带密钥的哈希，编进 SYN-ACK 的初始序号（<a href="#s3-1">3.1</a>）里发回去；真客户端回 ACK 时会写上「这个值 + 1」，服务器重算一遍、对得上才建立连接。表项根本不存在，也就无从耗尽。</p>
+<p>准确的说法：<strong>加密（保密性）解决不了容量问题，流量型 DoS 只能靠容量与流量管理；协议型 DoS 可以借助密码学原语缓解。</strong> 考试按课件口径写「availability is a capacity property」即可；若问「为什么」，加上这一层更严谨。</p>
+<p style="margin-bottom:0">另：课件底框说「Recall Lecture 1, Activity 4, item 5: flooding a portal with two million requests per second」，L1 的课堂活动 4 第 5 项其实是 VPN（virtual private network，虚拟专用网）要十一步操作的那一题，L1 全文没有这道「每秒两百万请求」的题，是交叉引用写错了。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 2 解答：违反什么属性，最好的防御是什么</summary>
+<p>题目：对每个攻击，说出它违反的安全目标（从 L1 的六个里选）和最有效的单项防御。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw"></th><th>攻击</th><th>违反（主 / 次）</th><th>最好的防御</th></tr></thead>
+<tbody>
+<tr><td class="nw">a</td><td>僵尸网络洪泛网站，客户打不开</td><td><strong>可用性</strong></td><td>上游清洗＋容量与分布</td></tr>
+<tr><td class="nw">b</td><td>同一 Wi-Fi 下 ARP 投毒，流量全经过攻击者</td><td><strong>机密性＋完整性</strong> / 真实性</td><td>TLS 并正确校验证书；网络层用动态 ARP 检测</td></tr>
+<tr><td class="nw">c</td><td>从未加密连接偷到会话 cookie，冒充用户</td><td><strong>真实性</strong> / 机密性、可追责性</td><td>始终用 TLS 并给 cookie 标 Secure；短寿命、重新认证</td></tr>
+<tr><td class="nw">d</td><td>伪造 DNS 回复，用户被导向攻击者服务器</td><td><strong>完整性</strong> / 真实性</td><td>DNSSEC；TLS 证书校验兜底</td></tr>
+<tr><td class="nw">e</td><td>管理员共用一个账户，删库后查不出是谁</td><td><strong>可追责性</strong> / 不可否认性；完整性、可用性</td><td>每人具名独立账户＋集中、写保护的日志</td></tr>
+<tr><td class="nw">f</td><td>蠕虫在平坦内网扩散并加密文件</td><td><strong>可用性</strong> / 完整性</td><td>传播：分段；损失：离线不可变备份</td></tr>
+</tbody></table></div>
+<p><strong>追问：哪一个是任何密码学机制都解决不了的？为什么？</strong></p>
+<p>课件要的答案是 <strong>(a) DoS</strong>：可用性是容量属性，「you cannot encrypt your way out of a capacity problem」。</p>
+<p style="margin-bottom:0">更严谨地补一句：(f) 实际上也不靠密码学，靠的是网络结构和备份；(e) 的根因是身份管理，但若给每人独立的签名密钥，密码学<strong>能</strong>提供可追责性。而 (b)(c)(d) 都有直接的密码学解（TLS、DNSSEC）。</p>
+</details>
+
+<h2 id="s4"><span class="n">4</span>应用与人：绕过网络</h2>
+
+<p>第 3 部分导语：「Two categories that bypass the network entirely: one attacks the code, the other attacks the person.」</p>
+
+<h3 id="s4-1"><span class="n">4.1</span>注入：数据被当成指令</h3>
+
+<p>课件说<strong>注入</strong>（injection）是「the single most persistent class of application vulnerability」，只有一个原因：「user-supplied data is combined with code, and the interpreter cannot tell which is which.」 用户提供的数据和代码拼在一起，<strong>解释器</strong>（interpreter，读进一段文本、把它当程序执行的组件，如数据库、操作系统的命令行）分不清哪部分是代码、哪部分是数据。</p>
+
+<p><strong>机理，用课件的例子。</strong> 应用把用户名粘进一个字符串，拼成数据库查询。查询语言是 <strong>SQL</strong>（Structured Query Language，结构化查询语言）：</p>
+
+<pre><code>SELECT * FROM users WHERE name = '&lt;input&gt;'</code></pre>
+
+<p>课件：「The attacker supplies input containing a quote character, which closes the string early. Everything after it is read by the database as part of the query rather than as a value — so the attacker is now writing the query.」 课件没给具体输入，补两个，在一张两列三行的表 <code>users(name, grade)</code> 上用 sqlite 实际跑过：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>输入</th><th>拼接后的查询</th><th class="nw">拼接版结果</th><th class="nw">参数化版结果</th></tr></thead>
+<tbody>
+<tr><td><code>bob</code></td><td><code>... WHERE name = 'bob'</code></td><td class="nw">只返回 bob</td><td class="nw">只返回 bob</td></tr>
+<tr><td><code>x' OR '1'='1</code></td><td><code>... WHERE name = 'x' OR '1'='1'</code></td><td class="nw"><strong>返回整张表</strong></td><td class="nw">空</td></tr>
+<tr><td><code>x' UNION SELECT name, grade FROM users --</code></td><td><code>... WHERE name = 'x' UNION SELECT name, grade FROM users --'</code></td><td class="nw"><strong>返回整张表</strong></td><td class="nw">空</td></tr>
+</tbody></table></div>
+
+<p>第二行：输入里的第一个 <code>'</code> 把字符串提前闭合，后面的 <code>OR '1'='1'</code> 成了查询的一部分，条件恒真，所以每一行都满足。第三行：<code>UNION</code> 把另一条查询的结果接上来，<code>--</code> 是 SQL 的注释符，把模板末尾多出来的那个 <code>'</code> 注释掉，免得语法报错。UNION 要求左右两条查询的列数相同，所以这一招成立的前提是攻击者猜对了列数（表若是三列，数据库会直接报错，攻击者再改列数重试）；另外 MySQL 要求 <code>--</code> 后面跟一个空格才算注释。</p>
+
+<p>课件红字：「The database is behaving correctly. It was given a query and it executed it. The fault is entirely in how the query was constructed.」</p>
+
+<p>同样的模式出现在任何「不可信输入到达解释器」的地方：操作系统命令注入、LDAP（Lightweight Directory Access Protocol，轻量目录访问协议，查询组织通讯录、账户目录用的）注入与 XML（Extensible Markup Language，可扩展标记语言，一种结构化数据格式）注入、模板注入、日志注入。</p>
+
+<p><strong>修法：参数化查询</strong>（parameterised query）。「The code and the data are sent to the database SEPARATELY, so no input can ever change the structure of the query.」 应用先把带占位符的查询（<code>WHERE name = ?</code>）交给数据库，数据库把它解析成固定的结构；之后输入才作为一个<strong>值</strong>填进占位符。输入里有多少引号都只是这个值里的字符，结构在它到来之前已经定死了——所以上表参数化版查的是「有没有人名字叫 <code>x' OR '1'='1</code>」，没有，结果为空。课件：「This is a structural fix — it removes the possibility rather than filtering for it.」</p>
+
+<div class="tool" id="sqTool">
+  <h4>SQL 注入演示：同一个输入，拼接与参数化</h4>
+  <p class="sub">示例表 <code>users(name, grade)</code> 三行（演示数据）：(alice, A)、(bob, B)、(carol, C)。拼接版把输入粘进 <code>SELECT * FROM users WHERE name = '…'</code> 再交给数据库；页面里的小解释器按 SQLite 的规则执行它。改输入，看哪些字符越过引号变成了查询结构。</p>
+  <div class="row">
+    <label for="sqIn">输入的用户名</label><input type="text" id="sqIn" value="x' OR '1'='1" style="width:min(100%,24rem)" oninput="sqliGo()">
+  </div>
+  <div class="row">
+    <button class="btn" onclick="sqliSet('bob')">bob</button>
+    <button class="btn" onclick="sqliSet(&quot;x' OR '1'='1&quot;)">x' OR '1'='1</button>
+    <button class="btn" onclick="sqliSet(&quot;x' UNION SELECT name, grade FROM users --&quot;)">UNION 两列</button>
+    <button class="btn" onclick="sqliSet(&quot;x' UNION SELECT name FROM users --&quot;)">UNION 列数猜错</button>
+    <button class="btn" onclick="sqliSet(&quot;O'Brien&quot;)">O'Brien</button>
+  </div>
+  <div id="sqQuery"></div>
+  <div class="panes"><div id="sqCat"></div><div id="sqPar"></div></div>
+  <div class="result" id="sqOut"></div>
+</div>
+
+<p><strong>为什么过滤输入不是修法。</strong> 屏蔽「危险字符」是一张<strong>黑名单</strong>（denylist，列出禁止的东西、其余放行），黑名单总会漏：「encodings, alternative syntaxes and character sets you did not consider」。输入校验值得做，但代替不了代码与数据分离。</p>
+
+<p>课件把它接回 L1 的<strong>故障安全默认</strong>（fail-safe defaults：默认拒绝，出错时落在安全的一边）：「Parameterised queries are fail-safe by construction: the insecure outcome becomes impossible rather than merely discouraged. Input filtering is the opposite — it enumerates badness and hopes the list is complete. Given a choice between removing a possibility and forbidding it, always remove it.」</p>
+
+<p>SQL 注入（SQLi）主要违反<strong>机密性</strong>（整张表被读走），用 <code>UPDATE</code>、<code>DELETE</code> 也能破坏<strong>完整性</strong>；参数化查询让攻击根本不能成功，降 likelihood。</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>XSS 与 CSRF：方向相反的两种信任</h3>
+
+<p>先补一个课件没讲、但说不清这两个攻击就绕不开的概念：<strong>同源策略</strong>（same-origin policy）。浏览器规定，一个网站的脚本只能读同一个「源」（协议、域名、端口都相同）的页面内容（cookie 另有一套按域名划定的作用范围规则，效果类似）。它挡住了「evil.com 的脚本去读你在银行网站上的数据」。但它有两个缺口：注入到银行页面<strong>里面</strong>的脚本，就算同源；它只限制<strong>读响应</strong>，不限制<strong>发请求</strong>。XSS 钻第一个缺口，CSRF 钻第二个。</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:7.5em"></th><th><strong>跨站脚本</strong>（XSS，cross-site scripting）</th><th><strong>跨站请求伪造</strong>（CSRF，cross-site request forgery）</th></tr></thead>
+<tbody>
+<tr><td>定义</td><td>「The attacker gets their script executed in another user's browser, in the context of your site.」</td><td>「The attacker causes the victim's browser to send a request to your site, using the victim's existing session.」</td></tr>
+<tr><td>怎么做</td><td><strong>存储型</strong>（stored）：脚本存进服务器上的评论或个人资料，所有看它的人都中招；<strong>反射型</strong>（reflected）：脚本藏在 URL（网址）的参数里，被页面原样回显</td><td>受害者登录着你的网站时访问了攻击者的网页；那个网页触发一个发往你网站的请求，浏览器自动附上会话 cookie</td></tr>
+<tr><td>结果</td><td>脚本带着受害者的会话运行，能读他的数据、以他的身份操作</td><td>你的网站看到一个已认证、格式正确的请求，照办</td></tr>
+<tr><td>防御（表下逐条解释）</td><td>按输出所在的上下文<strong>编码输出</strong>；<strong>内容安全策略</strong>（CSP）；会话 cookie 标 <strong>HttpOnly</strong> 属性</td><td>攻击者猜不到的 <strong>anti-CSRF 令牌</strong>；cookie 的 <strong>SameSite</strong> 属性；敏感操作重新认证</td></tr>
+</tbody></table></div>
+
+<p>（XSS 的缩写用 X，是为了不和 CSS——Cascading Style Sheets，层叠样式表，网页的样式语言——撞名。）</p>
+
+<figure>
+<div id="figXssW" class="only-wide"></div><div id="figXssN" class="only-narrow"></div>
+<figcaption>左：XSS 中坏东西从你的网站流向用户。右：CSRF 中坏请求从用户的浏览器流向你的网站。</figcaption>
+</figure>
+
+<p>课件要求记住的区分：「XSS abuses the trust a USER has in a SITE — your site serves the attacker's script. CSRF abuses the trust a SITE has in a USER'S BROWSER — your site believes a request because it carried a valid session cookie.」</p>
+
+<p>即：XSS 里用户相信页面来自信任的网站，网站送来的脚本就被当成网站自己的执行；CSRF 里网站相信带合法 cookie 的请求是用户本人想发的，可 cookie 是浏览器自动附的，用户根本不知道发了请求。</p>
+
+<p>防御各自对准一个环节：</p>
+
+<ul>
+<li><strong>编码输出</strong>：把用户内容里的 <code>&lt;</code>、<code>"</code> 等字符转成「只显示、不执行」的形式再放进页面——和 4.1 的「数据不能变成指令」同一个道理；「按上下文」是因为同一段数据放进 HTML（HyperText Markup Language，网页的标记语言）正文、HTML 属性、JavaScript（浏览器里运行的网页脚本语言）里，要转义的字符不同。</li>
+<li><strong>内容安全策略</strong>（CSP，Content Security Policy）：网站告诉浏览器「只执行来自这几个来源的脚本」，即使注入了脚本也不执行。</li>
+<li><strong>HttpOnly</strong>：cookie 的一个属性，标上之后页面脚本读不到这个 cookie。它不阻止 XSS 发生，只是让 XSS 偷不走会话令牌，属于止损。</li>
+<li><strong>anti-CSRF 令牌</strong>：每个表单里放一个随机值，提交时必须带回；攻击者的网页读不到它（同源策略挡住了读），伪造的请求就带不上。</li>
+<li><strong>SameSite</strong>：cookie 的一个属性，告诉浏览器「从别的网站发起的请求不要附上这个 cookie」。取 Strict 时一律不附；取 Lax（现代浏览器的默认值）时，用户点链接跳转过去这种顶层 GET 请求仍会附上。所以它切断了 CSRF 的大部分路径，但不是全部，改数据的操作仍应配 anti-CSRF 令牌、且不用 GET 实现。</li>
+</ul>
+
+<p>XSS 主要违反<strong>真实性</strong>（攻击者以受害者身份操作）与<strong>机密性</strong>（数据被读）；CSRF 主要违反<strong>完整性</strong>（以用户名义执行了他不想要的操作）。</p>
+
+<div class="box def">
+  <div class="h">XSS 还有第三种</div>
+<p style="margin-bottom:0">课件只列了存储型和反射型。另有 <strong>DOM 型</strong>（DOM-based）：脚本根本不经过服务器，而是页面自己的 JavaScript 把 URL 里的内容写进页面结构（DOM，document object model，浏览器内存里的页面结构树）时被执行。防御思路相同：别把数据当代码写进页面。</p>
+</div>
+
+<h3 id="s4-3"><span class="n">4.3</span>社会工程：合法的人用合法的凭据</h3>
+
+<p>课件导语：「The majority of breaches involve the human element — Lecture 1. Social engineering attacks the person, not the system.」 <strong>社会工程</strong>（social engineering）：操纵人去做攻击者想要的事，而不是攻破系统。L1 引用的数据是 62% 的数据泄露涉及人为因素。</p>
+
+<p>五种手法：</p>
+
+<div class="tw"><table>
+<thead><tr><th>手法</th><th>课件原话</th></tr></thead>
+<tbody>
+<tr><td><strong>钓鱼</strong>（phishing）</td><td>「A mass email inviting the recipient to enter credentials on a convincing but fraudulent page, or to open an attachment.」</td></tr>
+<tr><td><strong>鱼叉式钓鱼</strong>（spear phishing）</td><td>「Targeted at one person, using details gathered about them. Far more convincing, and far more successful.」</td></tr>
+<tr><td><strong>商业邮件欺诈</strong>（BEC，business email compromise）</td><td>「An email appearing to come from a senior figure instructing a finance team to make an urgent payment. No malware at all.」</td></tr>
+<tr><td><strong>借口</strong>（pretexting）</td><td>「A constructed story that justifies the request — an IT technician needing access, an auditor needing a file.」</td></tr>
+<tr><td><strong>诱饵与交换条件</strong>（baiting and quid pro quo）</td><td>「Something desirable is offered: a free tool, help with a problem, a device left where it will be found and plugged in.」</td></tr>
+</tbody></table></div>
+
+<p>（quid pro quo 是拉丁语「以此换彼」，指以帮忙为交换索取信息或权限。）</p>
+
+<p><strong>为什么它能击败技术控制</strong>（学习目标第 3 条）。因果链：</p>
+
+<ol>
+<li>技术控制检查的是「这个凭据对不对、这个请求合不合规」；</li>
+<li>社会工程让<strong>合法的人用合法的凭据</strong>去做坏事——财务人员亲手付款，用户亲手输入密码、亲手打开附件；</li>
+<li>所以每一道技术检查都会通过，正是 <a href="#s1-1">1.1</a> 表里「被钓走的凭据」那一行的情形。</li>
+</ol>
+
+<p>它利用的不是缺陷，而是正常、有用的人类行为（课件 「Why it works」 五条）：权威（上级的要求会被服从）、紧迫（时间压力让人跳过核对）、乐于助人（想帮遇到困难的同事）、熟悉（认识的名字降低警惕）、恐惧（威胁后果换来服从）。</p>
+
+<p><strong>真正有用的防御</strong>（课件）：</p>
+
+<ul>
+<li><strong>抗钓鱼的多因素认证</strong>（phishing-resistant MFA；MFA，multi-factor authentication，登录要同时出示两类以上凭据，如密码加手机或硬件密钥）：「a stolen password alone becomes useless」；</li>
+<li><strong>流程控制</strong>：「payment changes verified out of band, by a second person」——<strong>带外</strong>（out of band）指不走可能被攻击者控制的原渠道，例如收到改账号的邮件，就由第二个人打档案里的电话（不是邮件里给的）核实；</li>
+<li><strong>技术过滤</strong>：让更少的钓鱼邮件到达任何人；</li>
+<li><strong>报告文化</strong>：犯了错能安全、快速地报告。</li>
+</ul>
+
+<p><strong>基本没用的防御</strong>：「Telling people to be careful. Annual training that people click through. Punishing those who fall for it — which guarantees that the next person to be caught says nothing, and the incident is discovered days later instead of minutes later.」</p>
+
+<p>课件的原则（红字）：「<strong>Design the process so a single mistake is survivable.</strong>」</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>「抗钓鱼」指的是什么</div>
+<p>课件对抗钓鱼 MFA 只写了「a stolen password alone becomes useless」，但这是<strong>任何</strong> MFA 都有的性质，没说出「抗钓鱼」的意思。</p>
+<p style="margin-bottom:0">普通 MFA（短信或 App 里的六位验证码）挡不住<strong>实时中继钓鱼</strong>：假网站把你输入的密码和验证码当场转发给真网站，攻击者照样登录。抗钓鱼的 MFA（如基于 FIDO2 / WebAuthn 这类业界无密码认证标准的硬件密钥或通行密钥——passkey，存在手机或电脑里、用指纹或面容解锁的登录密钥）用公钥签名做挑战—响应，并且签名里绑定了浏览器实际访问的<strong>域名</strong>：你在假域名上登录，认证器签出来的东西对真网站无效。这是 <a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a> 里签名知识的直接应用。</p>
+</div>
+
+<details class="box">
+  <summary>课堂活动 3 解答：诊断四起事故</summary>
+<p>题目：对每起事故，说出攻击名称、失去的安全目标、最可能防止它的单项改变。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw"></th><th>事故</th><th>攻击</th><th>失去的目标</th><th>最好的单项修复</th></tr></thead>
+<tbody>
+<tr><td class="nw">A</td><td>财务人员收到「院长邮箱」发来的紧急发票邮件，新供应商的银行信息与档案不同，她付了款，到处查不到恶意软件</td><td><strong>商业邮件欺诈</strong>（冒充院长，即 masquerade）</td><td><strong>真实性</strong>（邮件不是院长发的）；后果是付款流程的完整性与资金损失</td><td><strong>流程控制</strong>：任何供应商银行信息的变更，必须由第二人打档案里的电话带外核实</td></tr>
+<tr><td class="nw">B</td><td>学生搜索页显示「You searched for: ‹term›」；攻击者给同学发了一个搜索词里藏着脚本的链接，同学点开后会话被接管</td><td><strong>反射型 XSS</strong></td><td><strong>真实性</strong>（会话被接管）；机密性</td><td><strong>按上下文编码输出</strong>；HttpOnly cookie 是第二道</td></tr>
+<tr><td class="nw">C</td><td>研究员笔记本被邮件附件攻陷，4 小时内六台系里服务器上的文件被加密；每个用户都映射了全部六台的共享盘</td><td>恶意附件（木马）→ <strong>勒索软件</strong>＋横向移动</td><td><strong>可用性</strong>（＋完整性）</td><td><strong>最小权限</strong>：不让每个用户映射全部六台服务器（题面专门给的细节）；同类答案是分段。离线备份只降影响，不算「防止」</td></tr>
+<tr><td class="nw">D</td><td>报表页把 URL 里的过滤值直接拼进查询，攻击者取走了整张学生表</td><td><strong>SQL 注入</strong></td><td><strong>机密性</strong></td><td><strong>参数化查询</strong></td></tr>
+</tbody></table></div>
+<p><strong>追问：哪一起最难防止？这对有限预算该花在哪说明了什么？</strong></p>
+<p style="margin-bottom:0">最难防止的是 <strong>A</strong>（以及 C 的第一步「有人打开附件」）：它攻击的是人，所有技术检查都会通过；B、D 是有结构性修复的代码缺陷，修一次就好。启示：钱别花在「让人永不犯错」上，要花在<strong>让一次错误能被承受</strong>上——第二人核实（只需一个决定）、最小权限、分段、备份。</p>
+</details>
+
+<h2 id="s5"><span class="n">5</span>防御：放置、分层、可见、响应</h2>
+
+<p>第 4 部分导语：「Not one more algorithm. Placement, layering, visibility and the ability to respond.」</p>
+
+<h3 id="s5-1"><span class="n">5.1</span>防火墙：看懂多少流量，以及放在哪</h3>
+
+<p><strong>防火墙</strong>（firewall）「enforces a policy about which traffic may pass between two networks」——在两个网络之间按策略决定哪些流量放行。各类型的区别在于「how much of the traffic they actually understand」，下表从浅到深：</p>
+
+<div class="tw"><table>
+<thead><tr><th>类型</th><th>怎么判断</th><th>优点 / 代价</th></tr></thead>
+<tbody>
+<tr><td><strong>包过滤</strong>（packet filter）</td><td>逐个包看地址、端口、协议</td><td>快而简单；不记得之前的包，「cannot tell a reply from an unsolicited packet」</td></tr>
+<tr><td><strong>状态检测</strong>（stateful inspection）</td><td>跟踪连接，认得出「内部主动发出的连接的回复」</td><td>几十年来的标准；仍然看不见连接<strong>里面</strong>是什么</td></tr>
+<tr><td><strong>应用层防火墙 / 代理</strong>（application-layer / proxy）</td><td>理解应用协议（HTTP、SMTP：Simple Mail Transfer Protocol，简单邮件传输协议），检查内容，自己终结连接再代为转发</td><td>能拦具体动作而不是整个服务；更慢，而且要处理 TLS 才看得见内容</td></tr>
+<tr><td><strong>下一代防火墙</strong>（NGFW，next-generation firewall）</td><td>状态检测 ＋ 应用识别 ＋ 用户身份 ＋ 威胁情报</td><td>如今多数组织部署的；代价是复杂，「misconfiguration is the common failure」</td></tr>
+</tbody></table></div>
+
+<p>区分前两行的例子：内网电脑访问外网网站，回复包从外面进来。包过滤只看这一个包，要么放行「所有从外面来的、源端口 443（HTTPS 的标准端口）的包」（攻击者也能利用），要么连回复也挡掉；状态检测记得「这台电脑刚发起过这条连接」，只放行它的回复。「要处理 TLS」是因为内容加密了，应用层防火墙得作为中间代理先解开才能检查。</p>
+
+<p><strong>放在哪比用哪种更要紧。</strong> 课件：「A perimeter firewall controls what enters and leaves. It does nothing about traffic between two machines inside — which is exactly how incident C in Activity 3 spread. Internal firewalls and segmentation are what limit lateral movement.」</p>
+
+<p><strong>DMZ</strong>（demilitarised zone，隔离区，名字借自「非军事区」）：「Public-facing servers sit in a separate segment between two boundaries. They can be reached from the internet; they cannot reach the internal network. If one is compromised, the attacker has gained a foothold in a place deliberately built to be worth little.」</p>
+
+<figure>
+<div id="figDmzW" class="only-wide"></div><div id="figDmzN" class="only-narrow"></div>
+<figcaption>对外服务器放在两道防火墙之间：互联网能到 DMZ，DMZ 不能到内网。内网再按部门分段，由内部防火墙管各段之间的流量。图中「内网→DMZ」一条是常见配置，课件没有提。</figcaption>
+</figure>
+
+<p>DMZ 的道理：对外服务器最容易被攻破，就把它放在「攻破了也拿不到什么」的地方——假设会被攻破、限制损失，降的是 I。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>入侵检测与入侵防御</h3>
+
+<ul>
+<li><strong>入侵检测系统</strong>（IDS，intrusion detection system）：不串在流量路径上，复制一份流量（或读主机上的行为记录）来看，发现可疑就<strong>告警</strong>；</li>
+<li><strong>入侵防御系统</strong>（IPS，intrusion prevention system）：串在流量路径上，发现可疑就<strong>拦截</strong>。</li>
+</ul>
+
+<p>课件：「The difference is consequential: an IPS that misidentifies legitimate traffic causes an outage.」 IDS 误判只是多一条告警；IPS 误判会把正常业务挡掉，自己造成一次可用性事故。</p>
+
+<p>两种检测方法：</p>
+
+<ul>
+<li><strong>基于特征</strong>（signature-based）：「Matches known patterns. Accurate for known attacks, blind to new ones.」（<a href="#s2-4">2.4</a> 那些手段正是钻这个空子。）</li>
+<li><strong>基于异常</strong>（anomaly-based）：「Learns normal behaviour and flags deviation. Can catch novel attacks, and generates far more false positives — which is why alerts get ignored.」 <strong>误报</strong>（false positive）指把正常行为报成攻击。</li>
+</ul>
+
+<p>误报为什么会多到没人看，课件没解释，算一个数（课件外，数字是假设的）：</p>
+
+<details class="box">
+  <summary>告警为什么没人看：基率的算术</summary>
+<p>设一天有 <span class="m">10<sup>6</sup></span> 个事件，其中真攻击 10 个（<strong>基率</strong>，base rate，真攻击在全部事件里占的比例，<span class="m">10<sup>−5</sup></span>）。检测器的检出率 99%，误报率只有 1%。</p>
+<ul>
+<li>真告警：<span class="m">10 × 0.99 = 9.9</span> 个；</li>
+<li>误报：<span class="m">(10<sup>6</sup> − 10) × 0.01 ≈ 9,999.9</span> 个；</li>
+<li>告警里真攻击的比例：<span class="m"><span class="frac"><span>9.9</span><span>9.9 + 9999.9</span></span> ≈ 0.099%</span>，约每 1,000 条告警里只有 1 条是真的。</li>
+</ul>
+<p style="margin-bottom:0">误报率降到 0.01%，这个比例也只有约 9%。问题不在检测器「差」，而在真攻击本来就极少：误报率乘的是一个巨大的正常事件数。这叫<strong>基率谬误</strong>（base-rate fallacy），是所有入侵检测告警疲劳的数学根源（Axelsson，2000），误报率高的异常检测受害最重。课件说的「Alerts tuned enough that people read them」（<a href="#s5-4">5.4</a>）指的就是这件事。</p>
+</details>
+
+<div class="tool" id="brTool">
+  <h4>告警里有多少是真的：基率计算器</h4>
+  <p class="sub">默认是上面折叠块里的数（一天 10<sup>6</sup> 个事件、10 个真攻击、检出率 99%、误报率 1%）。改误报率或真攻击数，看「告警里真攻击的比例」怎么变，下面的点阵按这个比例画出 1000 条告警。</p>
+  <div class="row">
+    <span class="ctl"><label for="brEv">一天的事件数</label><input class="num" type="text" inputmode="decimal" id="brEv" value="1000000" oninput="brGo()"></span>
+    <span class="ctl"><label for="brAtk">其中真攻击</label><input class="num" type="text" inputmode="decimal" id="brAtk" value="10" oninput="brGo()"></span>
+    <span class="ctl"><label for="brTpr">检出率（%）</label><input class="num" type="text" inputmode="decimal" id="brTpr" value="99" oninput="brGo()"></span>
+    <span class="ctl"><label for="brFpr">误报率（%）</label><input class="num" type="text" inputmode="decimal" id="brFpr" value="1" oninput="brGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="brSet(1000000,10,99,1)">笔记的数（误报率 1%）</button>
+    <button class="btn" onclick="brSet(1000000,10,99,0.01)">误报率降到 0.01%</button>
+  </div>
+  <div class="steps" id="brSteps"></div>
+  <div class="result" id="brOut"></div>
+  <div id="brGrid" style="margin-top:.8rem"></div>
+</div>
+
+<h3 id="s5-3"><span class="n">5.3</span>分段与零信任</h3>
+
+<p><strong>分段</strong>（segmentation）：「Divide the network so that reaching one part does not give access to the rest. Finance separate from research; production separate from test; devices that only need to reach one server able to reach only that server.」 课件的黄字：「It is the single most effective control against lateral movement, and it is Lecture 1's isolation principle applied to a network.」 它直接回应了 2.3 的阶段 3 和事故 C。</p>
+
+<p><strong>微分段</strong>（microsegmentation）：「takes it to the level of the individual workload, so that even two servers in the same rack cannot reach each other unless a policy says so.」 粒度细到每一个<strong>工作负载</strong>（workload，一台服务器、一个虚拟机或容器上跑的一个服务）。</p>
+
+<p><strong>零信任</strong>（zero trust）：「Stop treating the internal network as trusted. Every request is authenticated and authorised on its own merits, regardless of where it came from. Position on the network confers nothing.」 三条支柱：</p>
+
+<div class="tw"><table>
+<thead><tr><th>显式验证（verify explicitly）</th><th>最小权限（least privilege）</th><th>假设已被攻破（assume breach）</th></tr></thead>
+<tbody>
+<tr><td>「Authenticate and authorise every request, using identity and device state.」</td><td>「Grant the minimum access needed, for the shortest time.」</td><td>「Design as though the attacker is already inside — segment, monitor, limit blast radius.」</td></tr>
+</tbody></table></div>
+
+<p><strong>爆炸半径</strong>（blast radius）：一次攻破能波及的范围。课件把它接回 L1「边界消融」时间轴的最后一格「assume breach」：「Zero trust is that conclusion turned into an architecture. It is not a product you buy — it is a decision to stop granting trust on the basis of network location, and it takes years to implement in an organisation that was not built that way.」 权威标准是 NIST SP 800-207《Zero Trust Architecture》（2020；NIST，National Institute of Standards and Technology，美国国家标准与技术研究院；SP，Special Publication，它的特别出版物系列）。</p>
+
+<p>1.1 里的端点恶意软件、钓到的凭据、内部人员全都「已经在里面」，零信任正是针对这一前提的设计。</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>日志与事件响应</h3>
+
+<p>课件导语：「Prevention fails eventually. What separates a contained incident from a catastrophic one is almost always detection speed and preparation.」</p>
+
+<p><strong>事件响应</strong>（incident response）的六个阶段（课件排成 2 行 × 3 列，没画箭头，按阅读顺序走）：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:6.7em">阶段</th><th>课件原话</th></tr></thead>
+<tbody>
+<tr><td><strong>准备</strong>（prepare）</td><td>「Plans written, roles assigned, contacts listed, backups tested, and the process rehearsed before it is needed.」</td></tr>
+<tr><td><strong>检测</strong>（detect）</td><td>「Logging that is centralised, tamper-resistant and actually monitored. Alerts tuned enough that people read them.」</td></tr>
+<tr><td><strong>遏制</strong>（contain）</td><td>「Limit the spread. Isolate affected systems — which requires segmentation to already exist.」</td></tr>
+<tr><td><strong>根除</strong>（eradicate）</td><td>「Remove the attacker's access, including persistence they installed and credentials they took.」</td></tr>
+<tr><td><strong>恢复</strong>（recover）</td><td>「Restore from known-good backups, verify integrity, and monitor closely for return.」</td></tr>
+<tr><td><strong>总结改进</strong>（learn）</td><td>「Establish what actually happened and change something. An incident that produces no change will happen again.」</td></tr>
+</tbody></table></div>
+
+<p>课件没画箭头；按业界惯例，最后一步的改进反馈给下一轮的准备，六个阶段构成一个循环。这六段与 SANS（美国一家安全培训与研究机构）的 PICERL 模型一一对应，PICERL 是 Preparation、Identification、Containment、Eradication、Recovery、Lessons learned 的首字母（课件的 Detect 对应 Identification，Learn 对应 Lessons learned）。NIST 的事件处理指南旧版 SP 800-61 Rev.2（2012）分四段（准备；检测与分析；遏制、根除与恢复；事后活动）；2025 年的 Rev.3 已取代它，改按 NIST 网络安全框架 CSF 2.0 的六项功能组织。考题问阶段，按课件六段答。</p>
+
+<p><strong>日志为什么是安全控制。</strong> 「Logs deliver ACCOUNTABILITY — the Lecture 1 goal that says actions can be traced to an entity. Without them you cannot tell what happened, what was taken, or whether the attacker is still present.」 加粗：「They must be centralised and write-protected — an attacker with administrator rights edits local logs first.」 所以日志要实时送到另一台集中、写保护的服务器。</p>
+
+<p><strong>组织最常跳过的两段</strong>：准备——「A response plan nobody has rehearsed is a document, not a capability」，就像没做过恢复测试的备份；以及总结改进——「skipped because the pressure is to return to normal」。</p>
+
+<p>课件底框，也是本节最该记住的一句：「Notice how many phases depend on decisions made long beforehand: containment needs segmentation, recovery needs tested backups, detection needs logging that was switched on and monitored. <strong>Incident response is mostly work done before the incident.</strong>」</p>
+
+<h2 id="s6"><span class="n">6</span>考点表：十个攻击与它们的防御</h2>
+
+<p>课后题 Task 2 原文：「Produce a table of ten attacks from this lecture. For each: the property violated, the primary defence, and whether that defence reduces likelihood or impact. This is directly examinable material.」 下面先给判断规则，再给完整的表；每行的理由在讲那个攻击的小节，表的最后一列链回去。考场上每一格都可能被要求「justify」。</p>
+
+<h3 id="s6-1"><span class="n">6.1</span>likelihood 还是 impact：判断规则</h3>
+
+<p>以<strong>攻击成功的那一刻</strong>为界：</p>
+
+<ul>
+<li>防御在这一刻<strong>之前</strong>起作用、让攻击打不成 → 降 <strong>likelihood</strong>（L）；</li>
+<li>防御在这一刻<strong>之后</strong>起作用、攻击已经得手但损失变小 → 降 <strong>impact</strong>（I）。</li>
+</ul>
+
+<p>「攻击成功」要按具体攻击来定：勒索软件是「文件被加密」，DoS 是「服务不可用」，注入是「查询被改写」。几个容易判错的：</p>
+
+<ul>
+<li><strong>备份</strong>不阻止任何攻击，加密照样发生，它让你能恢复 → I。</li>
+<li><strong>分段</strong>不阻止第一台机器被攻破，它限制扩散范围 → I（对「攻破某一台特定服务器」这件事而言也降了 L，答题以「限制爆炸半径、降 I」为主）。</li>
+<li><strong>最小权限</strong>两者都有：让提权更难（L），让失陷账户能碰的东西更少（I）。</li>
+<li><strong>检测</strong>（IDS、集中日志）不阻止攻击，缩短攻击者在里面待的时间 → I。</li>
+<li><strong>短令牌寿命、HttpOnly</strong> 不阻止令牌被偷或脚本注入，限制偷到后能做多少 → I。</li>
+<li><strong>容量与清洗</strong>（DoS）：洪水被吸收或拦在外面、服务没有中断，攻击没有「成功」 → L；吸收不完全、服务只是变慢，是得手之后减轻程度 → I。</li>
+</ul>
+
+<p>两类防御的分工见 <a href="#s1-2">1.2</a>；课堂活动 4 问「If a third incident happens anyway, which of your three limits the damage most?」，问的就是降 I 的那一项。</p>
+
+<h3 id="s6-2"><span class="n">6.2</span>十个攻击的完整表</h3>
+
+<p>「密码学？」一列回答 <a href="#s1-2">尺子三</a>：主要防御是不是密码学机制。</p>
+
+<div class="tool" id="qzTool">
+  <h4>考点表自测：遮住一列，凭记忆答</h4>
+  <p class="sub">紧接着的就是课后题 Task 2 那张「directly examinable」的表。点按钮遮住一列（或四列一起），心里答出每一格，再点格子翻开核对。打印时自动全部显示。</p>
+  <div class="row">
+    <button class="btn" onclick="qzMask(2)">遮「违反的属性」</button>
+    <button class="btn" onclick="qzMask(3)">遮「主要防御」</button>
+    <button class="btn" onclick="qzMask(4)">遮「L / I」</button>
+    <button class="btn" onclick="qzMask(5)">遮「密码学？」</button>
+    <button class="btn" onclick="qzMask('all')">四列全遮</button>
+    <button class="btn" onclick="qzShow()">全部显示</button>
+  </div>
+  <div class="result" id="qzOut"></div>
+</div>
+
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">#</th><th>攻击</th><th>违反的属性（主 / 次）</th><th>主要防御</th><th>L / I</th><th>密码学？</th><th class="nw">讲解</th></tr></thead>
+<tbody>
+<tr><td class="nw">1</td><td>蠕虫（worm）</td><td>可用性（自我复制本身就耗尽带宽和主机资源）/ 完整性</td><td><strong>打补丁</strong>堵住被利用的漏洞；分段限制扩散</td><td>补丁 L；分段 I</td><td>否</td><td class="nw"><a href="#s2-2">2.2</a></td></tr>
+<tr><td class="nw">2</td><td>勒索软件（ransomware）</td><td>可用性 / 机密性（先外传）</td><td><strong>离线、不可变、做过恢复演练的备份</strong></td><td>I</td><td>否</td><td class="nw"><a href="#s2-3">2.3</a></td></tr>
+<tr><td class="nw">3</td><td>IP 欺骗（IP spoofing）</td><td>真实性</td><td><strong>入口 / 出口过滤</strong>（防反射要靠攻击者一侧的网络在出口过滤）</td><td>L</td><td>否</td><td class="nw"><a href="#s3-2">3.2</a></td></tr>
+<tr><td class="nw">4</td><td>会话劫持（session hijacking）</td><td>真实性 / 机密性、可追责性</td><td><strong>始终用 TLS 并给 cookie 标 Secure</strong>；令牌绑定连接；短寿命；敏感操作重新认证</td><td>L（短寿命为 I）</td><td>部分（TLS）</td><td class="nw"><a href="#s3-3">3.3</a></td></tr>
+<tr><td class="nw">5</td><td>中间人 / ARP 投毒（MITM）</td><td>机密性、完整性 / 真实性</td><td><strong>带证书的认证密钥交换（TLS），正确校验证书</strong>；动态 ARP 检测</td><td>L</td><td>是</td><td class="nw"><a href="#s3-4">3.4</a></td></tr>
+<tr><td class="nw">6</td><td>DNS 缓存投毒（DNS cache poisoning）</td><td>完整性 / 真实性</td><td><strong>DNSSEC</strong>；TLS 证书校验兜底</td><td>L</td><td>是</td><td class="nw"><a href="#s3-5">3.5</a></td></tr>
+<tr><td class="nw">7</td><td>拒绝服务 / DDoS</td><td>可用性</td><td><strong>容量与分布＋上游过滤清洗</strong>；限速；SYN cookies</td><td>L（吸收不完全时为 I）</td><td>否（SYN cookies 例外）</td><td class="nw"><a href="#s3-6">3.6</a></td></tr>
+<tr><td class="nw">8</td><td>SQL 注入（SQL injection）</td><td>机密性 / 完整性</td><td><strong>参数化查询</strong></td><td>L</td><td>否</td><td class="nw"><a href="#s4-1">4.1</a></td></tr>
+<tr><td class="nw">9</td><td>跨站脚本（XSS）</td><td>真实性 / 机密性</td><td><strong>按上下文编码输出</strong>；CSP；HttpOnly</td><td>L（HttpOnly 为 I）</td><td>否</td><td class="nw"><a href="#s4-2">4.2</a></td></tr>
+<tr><td class="nw">10</td><td>钓鱼 / 商业邮件欺诈（phishing / BEC）</td><td>真实性 / 完整性（付款记录被未授权地改变）</td><td><strong>抗钓鱼 MFA</strong>（钓凭据）；<strong>第二人带外核实</strong>（BEC）</td><td>L</td><td>MFA 是；流程否</td><td class="nw"><a href="#s4-3">4.3</a></td></tr>
+</tbody></table></div>
+
+<p>十行之外，课件里还能凑进表的攻击（题目只要十个，挑自己最有把握的写）：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="min-width:7.5em">攻击</th><th>违反的属性</th><th>主要防御</th><th>L / I</th></tr></thead>
+<tbody>
+<tr><td>病毒 / 特洛伊木马（恶意附件）</td><td>完整性（及载荷所伤的属性）</td><td>邮件过滤；最小权限</td><td>L</td></tr>
+<tr><td>MAC 欺骗</td><td>真实性</td><td>802.1X</td><td>L</td></tr>
+<tr><td>CSRF</td><td>完整性</td><td>anti-CSRF 令牌；SameSite</td><td>L</td></tr>
+<tr><td>内部人员 / 共用账户</td><td>可追责性</td><td>具名独立账户＋集中写保护日志；最小权限</td><td>日志 I（并有威慑 L）；最小权限 L＋I</td></tr>
+</tbody></table></div>
+
+<p>属性归类有弹性，考场上写「主属性 + 一句为什么」即可，不要只写一个词。</p>
+
+<h2 id="s7"><span class="n">7</span>场景题：沿攻击链放防御</h2>
+
+<p>场景题的通用做法（课件散在各题里，归纳如下）：</p>
+
+<ol>
+<li>先问 2.1 的两个问题：怎么进来、怎么扩散、进来后做了什么；</li>
+<li>把事故写成 2.3 那样的阶段序列；</li>
+<li>每个阶段配一个防御，并说出它降的是 likelihood 还是 impact；</li>
+<li>排优先级时，问「如果还会出第三次事故，哪项最能限制损失」。</li>
+</ol>
+
+<h3 id="s7-1"><span class="n">7.1</span>把事故 C 写成攻击链</h3>
+
+<p>课后题 Task 1：取课堂活动 3 的事故 C（研究员笔记本被邮件附件攻陷，4 小时内六台服务器的文件被加密，每个用户都映射了全部六台的共享盘），写成编号的阶段序列，每一阶段配一个能阻止或减慢它的控制。按 <a href="#s2-3">2.3</a> 的五阶段写：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">#</th><th class="nw">阶段</th><th>事故 C 里的样子</th><th>阻止或减慢它的控制</th></tr></thead>
+<tbody>
+<tr><td class="nw">1</td><td class="nw">初始访问</td><td>研究员打开恶意邮件附件</td><td>邮件过滤；补丁</td></tr>
+<tr><td class="nw">2</td><td class="nw">驻留与提权</td><td>恶意代码驻留，可能拿到管理员权限</td><td>最小权限（用户不是本地管理员）</td></tr>
+<tr><td class="nw">3</td><td class="nw">横向移动</td><td>经映射到六台服务器的共享盘扩散</td><td>取消「人人映射全部共享」；分段 / 内部防火墙</td></tr>
+<tr><td class="nw">4</td><td class="nw">外传</td><td>题面没提，现代勒索常有</td><td>出口监控；异常检测</td></tr>
+<tr><td class="nw">5</td><td class="nw">毁备份、加密</td><td>4 小时内六台服务器被加密</td><td>离线不可变、演练过的备份；集中日志＋有人看的告警＋能隔离</td></tr>
+</tbody></table></div>
+
+<p>「4 小时」说明检测和遏制必须以小时计，只能靠事先开着的日志和事先存在的分段，即 5.4 的「Incident response is mostly work done before the incident」。</p>
+
+<h3 id="s7-2"><span class="n">7.2</span>评一个设计：三个最严重的问题</h3>
+
+<p>课后题 Task 3：「A company has an excellent perimeter firewall, antivirus on every machine, and annual security awareness training. Its internal network is flat, all staff are local administrators, and backups run to a network drive that is always mounted. Identify the three most serious problems and justify the ordering.」</p>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答案</span>参考答案</div>
+<p><strong>按「若被攻破，哪一项让损失从可承受变成灾难」排序（impact 优先）：</strong></p>
+<ol>
+<li><strong>备份写在一直挂载的网络盘上。</strong> 勒索软件的第 5 阶段专门先毁备份；挂载着的盘对它就是一块普通的盘，会被一起加密。于是任何一次感染都<strong>不可恢复</strong>。它决定事故能不能被承受，排第一。</li>
+<li><strong>内网是平坦的。</strong> 一台机器失陷就能横向到所有机器（第 3 阶段畅通无阻），决定了爆炸半径。</li>
+<li><strong>全员是本地管理员。</strong> 第 2 阶段「提权」毫不费力，恶意软件可以随意安装、驻留、关掉防护。</li>
+</ol>
+<p>也可以把第 3 条排第一（它在最上游、降 likelihood），只要排序理由前后一致。</p>
+<p style="margin-bottom:0"><strong>顺带指出三项「好看」控制为什么给的是虚假安全感：</strong> 边界防火墙管不了内网两台机器之间的流量；杀毒软件多是特征检测，对新样本是瞎的；年度意识培训属于课件说的「defences that mostly do not」。</p>
+</div>
+
+<p>题目的设计：三个「有」的控制都在降 L，三个问题都在放大 I——只防不备，一被绕过就全盘皆输。</p>
+
+<h3 id="s7-3"><span class="n">7.3</span>花预算：六选三</h3>
+
+<p>课堂活动 4 情境：「A mid-sized company has been breached twice in two years — once by ransomware that spread from one laptop across a flat network, once by a payment redirected after a convincing email.」 董事会给了预算，从六项里选三项、排序、每项一句话说理由。</p>
+
+<p>课件给的四个自问：「Which option addresses which of the two incidents? Which reduces the likelihood, and which reduces the impact? Which costs money, and which costs only a decision? If a third incident happens anyway, which of your three limits the damage most?」 照这四个问题把六项逐个定位：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th style="min-width:7.5em">选项</th><th>针对哪次事故</th><th>L / I</th><th>花钱还是只需决定</th><th>评价</th></tr></thead>
+<tbody>
+<tr><td>A 边界换下一代防火墙</td><td><strong>都不针对</strong>：勒索在内网扩散，边界管不到；BEC 没有恶意软件</td><td>略降 L</td><td>花钱</td><td>本题的诱饵，首先排除</td></tr>
+<tr><td>B 网络分段（财务 / 科研 / 普通办公）</td><td>第一次（勒索横向扩散）</td><td>I</td><td>花钱、花工夫</td><td>强</td></tr>
+<tr><td>C 全员抗钓鱼 MFA</td><td>第二次：仅当邮件从被盗账户发出才有用，伪造发件人则无效；对第一次无效</td><td>L</td><td>花钱</td><td>中</td></tr>
+<tr><td>D 异常检测 IDS ＋ 监控合同</td><td>第一次（可能发现横向移动）</td><td>I（缩短检测时间）</td><td>花钱，误报多</td><td>中偏弱</td></tr>
+<tr><td>E 离线不可变备份 ＋ 季度恢复演练</td><td>第一次</td><td>I</td><td>花钱</td><td>强</td></tr>
+<tr><td>F 供应商银行信息变更由第二人电话核实</td><td><strong>第二次，直接切断</strong></td><td>L</td><td><strong>只需一个决定</strong></td><td>性价比最高</td></tr>
+</tbody></table></div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答案</span>参考排序</div>
+<ol>
+<li><strong>F</strong>——直接消除第二次事故的成功路径，几乎不花钱。</li>
+<li><strong>B</strong>——第一次事故的根因是平坦网络，分段正对横向移动（5.3）。</li>
+<li><strong>E</strong>——回答「第三次事故还是发生了怎么办」：备份决定能不能恢复。</li>
+</ol>
+<p style="margin-bottom:0">最不情愿放弃的是 <strong>C</strong>：对凭据钓鱼很有效，但对这两次事故都不是决定性的。F、E、B 的排法也可以（更看重第三次事故的损失上限）。得分点：<strong>不选 A</strong>；每项说出针对哪次事故、降 L 还是 I；可提一句 E 挡不住双重勒索的外传。</p>
+</div>
+
+<h3 id="s7-4"><span class="n">7.4</span>capstone 预备题</h3>
+
+<p>课后题 Task 4：「Choose any system you use regularly — a university service, a banking app, a smart device. Write half a page: what assets it holds, who might attack it, what the most likely attack path is, and which single control would most reduce the risk. Bring it to Lecture 10.」 课件说「Task 4 is not optional — Lecture 10 is built around the systems you bring to it.」</p>
+
+<p>这里的「Lecture 10」是讲者的内部编号，指本讲之后的 capstone 讲（L8 课件的预告页称它「Evaluating and securing a system ... Structured evaluation of unseen systems」）。<strong>这一讲在 Moodle 上没有任何课件或资料</strong>，本讲之后 Moodle 上直接是区块链部分。能确定的只是题型：给没见过的系统做结构化评估，也就是期末场景题的样子。答题骨架就是 Task 4 的四问，以学校的在线学习平台为例：</p>
+
+<ul>
+<li><strong>资产</strong>：学生作业与成绩、个人信息、账户凭据、截止日期前的可用性；</li>
+<li><strong>攻击者</strong>：想改成绩的学生、窃取凭据的钓鱼团伙、勒索团伙；</li>
+<li><strong>最可能的攻击路径</strong>：钓鱼拿到教职工凭据 → 登录平台改成绩或导出数据——每道检查都会通过（1.1）；</li>
+<li><strong>单项最有效的控制</strong>：教职工账户启用抗钓鱼 MFA（降 likelihood）。</li>
+</ul>
+
+<h2 id="s8"><span class="n">8</span>主动攻击的实例：模拟卷 Q1(c)</h2>
+
+<p>模拟卷 Q1(c)（7 分）：「Explain active attack with the aid of a diagram. Give some examples of active attacks.」 被动 / 主动攻击的分类和 Darth 示意图在 <a href="L1 信息安全基础.html">L1 信息安全基础</a>；这里先勾起要点，重点是每类主动攻击在真实网络里的样子。</p>
+
+<h3 id="s8-1"><span class="n">8.1</span>从被动到主动：回到 L1 的分类</h3>
+
+<p><a href="L1 信息安全基础.html">L1 信息安全基础</a>按 ITU-T X.800（国际电信联盟电信标准化部门 ITU-T 发布的 OSI 安全体系结构建议书；OSI，Open Systems Interconnection，开放系统互连，网络分层的参考模型）把攻击分成两类，攻击者沿用 Stallings 教材的名字 Darth，通信双方是 Alice 和 Bob。<strong>被动攻击</strong>（passive attack）只旁听——读取消息内容，或者做<strong>流量分析</strong>（traffic analysis，内容加密了也能看出谁和谁通信、多频繁、多大量），威胁机密性，难发现，策略是<strong>预防</strong>（加密）。<strong>主动攻击</strong>（active attack）是 Darth 串进通信路径，修改数据流或制造假数据流（「The message that arrives is not the message that was sent」），分冒充、重放、篡改消息、拒绝服务四类，威胁完整性、真实性和可用性，难以绝对防止，策略是<strong>检测并恢复</strong>。</p>
+
+<h3 id="s8-2"><span class="n">8.2</span>四类主动攻击各配本讲的实例</h3>
+
+<figure>
+<div id="figActiveW" class="only-wide"></div><div id="figActiveN" class="only-narrow"></div>
+<figcaption>每格是 L1 的 Darth 图的一个变体：红色箭头是 Darth 加进通信里的东西，灰色虚线是被冒充或被挡住的正常通信。</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>主动攻击（L1 的四类）</th><th>本讲的实例</th></tr></thead>
+<tbody>
+<tr><td><strong>冒充</strong>（masquerade，假装成另一实体）</td><td>IP 欺骗、MAC 欺骗（3.2）；DNS 伪造回复冒充权威服务器（3.5）；ARP 投毒冒充网关（3.4）；BEC 冒充院长（4.3）；CSRF 让网站把攻击者造出的请求当成用户本人发的（4.2）</td></tr>
+<tr><td><strong>重放</strong>（replay，截获合法数据单元、过后重发）</td><td>截获会话 cookie 后拿来登录（3.3 会话劫持：先被动截获，后主动重发）</td></tr>
+<tr><td><strong>篡改消息</strong>（modification of messages，改动、延迟或重排一条合法消息）</td><td>ARP 投毒后的中间人「relaying and optionally altering traffic」（3.4）</td></tr>
+<tr><td><strong>拒绝服务</strong>（denial of service，阻止设施的正常使用）</td><td>僵尸网络洪泛、SYN 洪泛、反射放大（3.6）；蠕虫扫描把网络塞满（2.2）</td></tr>
+</tbody></table></div>
+
+<p>L1 说冒充「usually in combination with one of the others」：ARP 投毒本身是冒充（假装成网关），目的是拿到中间人位置去篡改；会话劫持是重放，效果是冒充受害者。本讲里的被动攻击则是在开放 Wi-Fi 上嗅探未加密的会话 cookie（重放之前的那一步）和键盘记录。</p>
+
+<h3 id="s8-3"><span class="n">8.3</span>考场答法</h3>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>模拟卷 Q1(c) 满分答法（7 分）</div>
+<p><strong>定义（约 2 分）</strong>：An active attack involves some modification of the data stream or the creation of a false stream: the attacker (Darth) inserts himself into the communication path between Alice and Bob, so the message that arrives is not the message that was sent. Active attacks threaten integrity, authenticity and availability. Unlike passive attacks they are hard to prevent absolutely, so the goal is to detect them and recover.</p>
+<p><strong>图（约 2 分）</strong>：画 Alice、Bob 和中间的通信设施（Internet or other communications facility），Darth 串在路径上：Alice → Darth → Bob。旁边并排画被动攻击作对比（Darth 只从线上引一条虚线旁听）。标准画法见 <a href="L1 信息安全基础.html">L1 信息安全基础</a>；想多拿分，在箭头旁注明四类攻击各自的动作（见本节四格图）。</p>
+<p><strong>例子（约 3 分）</strong>，四类各一句，再配一个具体实例：</p>
+<ul style="margin-bottom:0">
+<li><strong>Masquerade</strong>: one entity pretends to be another — e.g. IP spoofing, or a business email compromise in which an email appears to come from a senior manager.</li>
+<li><strong>Replay</strong>: a valid data unit is captured and retransmitted later — e.g. a stolen session cookie or a captured authentication sequence replayed to gain access.</li>
+<li><strong>Modification of messages</strong>: part of a legitimate message is altered, delayed or reordered — e.g. a man in the middle after ARP poisoning altering traffic he relays.</li>
+<li><strong>Denial of service</strong>: normal use of a facility is prevented — e.g. a botnet flooding a web server, or a SYN flood exhausting the half-open connection table.</li>
+</ul>
+</div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>参考答案多了一个 repudiation：两本教材分法不同</div>
+<p>模拟卷参考答案列的例子是「modification, masquerading, replaying, repudiation, and denial of service」。这套写法来自 Forouzan 的教材，它按受威胁的安全目标归类，把<strong>抵赖</strong>（repudiation）也算作主动攻击，参考答案照此列出。今年 L1 用 Stallings 的四类，按四类答；抵赖在今年课件里是 STRIDE 威胁模型（L1 讲过，名字取自六类威胁的英文首字母：Spoofing 仿冒、Tampering 篡改、Repudiation 抵赖、Information disclosure 信息泄露、Denial of service 拒绝服务、Elevation of privilege 权限提升）里的 R，由不可否认性对抗；顺带提一句不会扣分。</p>
+<p style="margin-bottom:0">参考答案里还有一段「authentication sequences can be captured and replayed...」，是 Stallings 对冒充的举例：截获合法的认证过程再重放，让低权限实体冒充高权限实体。</p>
+</div>
+
+<h2 id="s9"><span class="n">9</span>课件参考文献与出处</h2>
+
+<p>课件最后一页的读物：教材 Stallings《Cryptography and Network Security》第 8 版；辅助读物 Rhodes-Ousley《Information Security: The Complete Reference》第 2 版（网络防御、防火墙放置、事件响应的实践章节）；Verizon 每年免费发布的 DBIR（Data Breach Investigations Report，数据泄露调查报告，「Which attacks actually occur, in what proportion」，L1 的数据就来自它）；OWASP Top Ten（OWASP，Open Worldwide Application Security Project，开放全球应用安全项目，发布最常见的十类网页应用漏洞及成熟的防御写法）。布置的延伸学习：读 OWASP Top Ten；浏览当年 DBIR 摘要，记下今年哪些攻击占主导；完成课后题 Task 4。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件给的教材章号和 OWASP 描述都不准</div>
+<ul style="margin-bottom:0">
+<li>课件写「Chapter 10 for malicious software; Chapter 11 for intruders and intrusion detection; Chapter 12 for firewalls」。《Cryptography and Network Security》第 8 版的第 10、11、12 章是其他公钥密码体制、密码学哈希函数、消息认证码；防火墙、入侵检测、恶意软件、DDoS 都在<strong>第 21 章 Network Endpoint Security</strong>。课件的章号其实是 Stallings 另一本书《Network Security Essentials》第 6 版的（第 10 章恶意软件、第 11 章入侵者、第 12 章防火墙）。</li>
+<li>课件说 OWASP Top Ten 里「injection, XSS and CSRF are all there」。2021 版起 XSS 已并入 Injection 一类；CSRF 自 2017 版起就不再单列，只作为一个弱点编号被归到访问控制类下面。Injection 也从 2017 版的第 1 位降到 2021 版第 3 位、2025 版第 5 位——说它「most persistent」（最持久）没错，但别写成「最常见」。</li>
+</ul>
+</div>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li>主题：密码协议只假设攻击者在两个诚实端点之间；端点上的恶意软件、钓到的凭据、内部人员、没补丁的服务、DoS 都在假设之外。</li>
+<li>三把尺子：违反哪个属性（C、I、A、真实性、可追责性、不可否认性）；降 L 还是 I（以攻击成功那一刻为界，之前起作用降 L，之后降 I）；密码学管不管用。</li>
+<li>恶意软件两问：怎么传播（病毒、蠕虫、木马、路过式下载）× 做了什么（勒索、间谍 / 键盘记录、僵尸网络、rootkit、擦除器），任意组合；传播靠分段＋补丁，损失靠备份＋最小权限。</li>
+<li><strong>病毒 vs 蠕虫</strong>：病毒依附宿主、宿主运行才发作、通常要用户动作；蠕虫独立、自带传播代码、不需用户动作，以分钟计。两者都自我复制，<strong>不复制的是木马</strong>。</li>
+<li>勒索五阶段：初始访问 → 驻留提权 → 横向移动 → 外传 → 毁备份再加密；对应补丁、最小权限、分段、离线不可变且演练过的备份（备份救不了外传）。</li>
+<li>身份类：IP 欺骗 → 入口 / 出口过滤（防反射靠攻击者一侧出口过滤）；MAC 欺骗 → 802.1X；会话劫持 → TLS＋Secure、令牌绑定、短寿命、重新认证；中间人 → 带证书的认证密钥交换，<strong>唯一直接由密码学解决的一项</strong>。</li>
+<li>查找类：ARP 投毒（ARP 毫无认证）→ 动态 ARP 检测、静态表项、分段；DNS 缓存投毒 → DNSSEC，TLS 证书校验兜底；DoT / DoH 防不了缓存投毒。</li>
+<li>DoS：流量型（带宽）/ 协议型（SYN 洪泛）/ 应用型（贵请求）；DDoS、反射放大（伪造源 IP）；容量、清洗、限速、SYN cookies。可用性是容量属性；SYN cookies 本身用了带密钥哈希。</li>
+<li>注入：数据被解释器当成指令 → <strong>参数化查询</strong>（结构性修复）；过滤输入是必漏的黑名单。</li>
+<li><strong>XSS 滥用用户对网站的信任</strong> → 编码输出、CSP、HttpOnly；<strong>CSRF 滥用网站对浏览器的信任</strong> → anti-CSRF 令牌、SameSite、重新认证。</li>
+<li>社会工程让合法的人用合法的凭据做坏事；有用：抗钓鱼 MFA、第二人带外核实、技术过滤、报告文化；原则：「Design the process so a single mistake is survivable.」</li>
+<li>防火墙：包过滤 → 状态检测 → 应用层代理 → NGFW；<strong>放在哪比用哪种更要紧</strong>；DMZ 让对外服务器被攻破也不值钱。</li>
+<li>IDS 告警、IPS 拦截（误判造成中断）；特征检测对新攻击瞎，异常检测误报多（基率谬误）。</li>
+<li>分段是对横向移动最有效的单项控制（L1 隔离原则）；零信任：显式验证、最小权限、假设已被攻破。</li>
+<li>事件响应六段：准备、检测、遏制、根除、恢复、总结改进；日志集中且写保护；<strong>事件响应主要是事前的工作</strong>。</li>
+<li>考点表（「directly examinable」）见 6.2；主动攻击（Q1(c)）四类冒充、重放、篡改、拒绝服务，各配本讲实例，见第 8 节。</li>
+</ul></div>
+
+<footer>
+<p>下一讲：课件预告的 capstone（讲者内部编号 Lecture 10，「Evaluating and securing a system」）在 Moodle 上没有课件；Moodle 上本讲之后是区块链部分的 <a href="L11 分布式账本与区块链导论.html">L11 分布式账本与区块链导论</a>。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L10 网络安全：威胁、攻击与防御.md</code> 的阅读优化版，内容一致；页内交互件的数值都由页面脚本按笔记的假设现算（SQL 注入演示用的是按 SQLite 规则写的小解释器，已与 sqlite3 逐条对拍）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   svgkit.js — 学习页配图与交互件共用的极简 SVG 层（不依赖任何外部库）
+   配色规则：中性线条与文字用 currentColor + 透明度（随明暗主题自动变）；
+   强调色的填充硬编码 #2F6F8F；强调色的线条与文字、其余语义色（红/绿/金）开页时从 CSS 变量读一次
+   （深色主题下 #2F6F8F 的字和细线太暗，所以线与字改用 --accent 的取值，与 L1 的做法相同）。
+   ==========================================================================*/
+var SVGNS = 'http://www.w3.org/2000/svg';
+var ACC = '#2F6F8F';
+
+/** 数字转文本：负号用 U+2212；d 为小数位；sep 为真时加千分位逗号 */
+function nf(v, d, sep){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  if(sep){ var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); s=p.join('.'); }
+  return s.replace(/-/g, '−');
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+var THEME = null;
+function themeColors(){
+  if(THEME) return THEME;
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  THEME = { accent: ACC, acc: g('--accent', ACC), warn: g('--warn','#B4534B'), ok: g('--ok','#3F8A63'), exam: g('--exam','#9A6B2F'),
+            muted: g('--muted','#5C6673'), faint: g('--faint','#8A929C') };
+  return THEME;
+}
+
+var FIG_SEQ = 0;
+/** 一张图：W×H 的 viewBox，label 是给读屏的文字说明 */
+function Fig(W, H, label){
+  this.W=W; this.H=H; this.c=themeColors(); this.id='f'+(++FIG_SEQ);
+  this.svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, role:'img', 'aria-label':label});
+  this.defs = svgEl('defs'); this.svg.appendChild(this.defs);
+  this.g = svgEl('g', {'font-family':'inherit', 'font-size':'13', 'text-anchor':'middle'});
+  this.svg.appendChild(this.g);
+  this.mk = {};
+}
+Fig.prototype.marker = function(col){
+  if(this.mk[col]) return this.mk[col];
+  var id = this.id+'m'+Object.keys(this.mk).length;
+  var m = svgEl('marker', {id:id, markerWidth:10, markerHeight:10, refX:8, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path', {d:'M0,0 L9,4 L0,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[col]=id; return id;
+};
+/** 矩形框。o: {col 描边色, fill 填充色, fo 填充透明度, so 描边透明度, rx, dash, sw} */
+Fig.prototype.box = function(x,y,w,h,o){
+  o=o||{};
+  var col=o.col||'currentColor', scol=(col===ACC)?this.c.acc:col;
+  var r=svgEl('rect', {x:x, y:y, width:w, height:h, rx:(o.rx===undefined?7:o.rx),
+    fill:o.fill||(o.col||'currentColor'), 'fill-opacity':(o.fo===undefined?(o.col?0.1:0.04):o.fo),
+    stroke:scol, 'stroke-opacity':(o.so===undefined?(o.col?0.9:0.4):o.so), 'stroke-width':o.sw||1.4,
+    'stroke-dasharray':o.dash||null});
+  this.g.appendChild(r); return r;
+};
+/** 文字：lines 为字符串或数组；(x,y) 为首行基线。o: {col, size, weight, anchor, lh, op} */
+Fig.prototype.text = function(x,y,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var t=svgEl('text', {x:x, y:y, fill:(o.col===ACC?this.c.acc:o.col)||'currentColor', 'font-size':size, 'font-weight':o.weight||null,
+    'text-anchor':o.anchor||'middle', 'fill-opacity':(o.op===undefined?(o.col?null:0.88):o.op)});
+  for(var i=0;i<lines.length;i++){
+    var s=svgEl('tspan', {x:x, dy:(i?lh:0)}); s.textContent=lines[i]; t.appendChild(s);
+  }
+  this.g.appendChild(t); return t;
+};
+/** 以 (cx,cy) 为中心放一段多行文字 */
+Fig.prototype.textC = function(cx,cy,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var y0 = cy - (lines.length-1)*lh/2 + size*0.36;
+  return this.text(cx, y0, lines, o);
+};
+/** 框 + 居中文字 */
+Fig.prototype.node = function(x,y,w,h,lines,o){
+  o=o||{};
+  this.box(x,y,w,h,o);
+  return this.textC(x+w/2, y+h/2, lines, {col:o.tcol, size:o.size, weight:o.weight, lh:o.lh});
+};
+/** 折线或路径。pts: [[x,y],...] 或 'M..' 字符串。o: {col, sw, dash, arrow:true|false|'both', op} */
+Fig.prototype.path = function(pts,o){
+  o=o||{};
+  var col=o.col||'currentColor'; if(col===ACC) col=this.c.acc;
+  var d = (typeof pts==='string') ? pts : pts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ');
+  var a={d:d, fill:'none', stroke:col, 'stroke-width':o.sw||1.6, 'stroke-dasharray':o.dash||null,
+         'stroke-opacity':(o.op===undefined?(o.col?1:0.55):o.op)};
+  if(o.arrow!==false){
+    var mcol = o.col ? col : 'currentColor';
+    var id=this.marker(mcol);
+    a['marker-end']='url(#'+id+')';
+    if(o.arrow==='both') a['marker-start']='url(#'+this.marker2(mcol)+')';
+  }
+  var p=svgEl('path',a); this.g.appendChild(p); return p;
+};
+Fig.prototype.marker2 = function(col){
+  var key='rev'+col;
+  if(this.mk[key]) return this.mk[key];
+  var id=this.id+'r'+Object.keys(this.mk).length;
+  var m=svgEl('marker',{id:id, markerWidth:10, markerHeight:10, refX:1, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path',{d:'M9,0 L0,4 L9,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[key]=id; return id;
+};
+Fig.prototype.mount = function(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  host.innerHTML=''; host.appendChild(this.svg);
+};
+
+/* ============================================================================
+   L10 网络安全：配图（按笔记附图重画成 SVG）与交互件
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 图 1 勒索软件五阶段 */
+var RANSOM = {
+  stage: [['① 初始访问','Initial access'], ['② 驻留与提权','Establish & escalate'], ['③ 横向移动','Move laterally'],
+          ['④ 外传数据','Exfiltrate'], ['⑤ 先毁备份，再加密','Destroy backups,','then encrypt']],
+  desc:  [['钓鱼邮件、被盗凭据、','未打补丁的对外服务'], ['装上持久化，','再拿管理员权限'], ['在平坦内网里','扩散到尽量多的机器'],
+          ['加密之前先把数据拷走','（双重勒索）'], ['删掉/加密备份，','然后一次性全部加密']],
+  def:   [['快速给对外服务打补丁','→ 堵上阶段 ① 的一条路'], ['最小权限','→ 阶段 ② 更难、③ 更慢'], ['网络分段','→ 阶段 ③ 够不到全部'],
+          ['（课件未给）','出口监控、分段','→ 限制外传'], ['离线/不可变、做过','恢复演练的备份','→ 阶段 ⑤ 毁不掉']],
+  li:    [['降 likelihood'], ['降 likelihood','＋impact'], ['降 impact'], ['降 impact'], ['降 impact']]
+};
+var RANSOM_TITLE = '勒索软件的五个阶段，以及每个阶段由哪一项防御来卡';
+var RANSOM_NOTE = '绿框是课件 “What actually limits the damage” 的四条，每条钉在一个阶段上；四条都不是密码学——攻击者用的反而是正确实现的 AES。';
+
+function drawRansom(hostId, narrow){
+  var c = themeColors();
+  var stCol = function(i){ return i<2 ? ACC : c.warn; };
+  var dfCol = function(i){ return i===3 ? c.exam : c.ok; };
+  var f;
+  if(!narrow){
+    f = new Fig(920, 420, RANSOM_TITLE);
+    f.text(460, 26, RANSOM_TITLE, {size:15, weight:'700', op:1});
+    for(var i=0;i<5;i++){
+      var x = 10 + i*183, w = 168, cx = x + w/2;
+      f.node(x, 48, w, 72, RANSOM.stage[i], {col:stCol(i), fo:0.13, tcol:stCol(i), weight:'600', size:(i===4?12.5:13.5), lh:17});
+      if(i<4) f.path([[x+w+1, 84],[x+w+14, 84]], {});
+      f.node(x, 136, w, 62, RANSOM.desc[i], {size:12.5, lh:18});
+      f.node(x, 252, w, 84, RANSOM.def[i], {col:dfCol(i), fo:0.1, size:12, lh:18});
+      f.path([[cx, 250],[cx, 202]], {col:dfCol(i)});
+      f.text(cx, 358, RANSOM.li[i], {col:dfCol(i), size:12.5, lh:16});
+    }
+    f.text(460, 404, RANSOM_NOTE, {size:12, op:0.7});
+  } else {
+    f = new Fig(380, 900, RANSOM_TITLE);
+    f.text(190, 22, ['勒索软件的五个阶段，','以及每个阶段由哪一项防御来卡'], {size:14.5, weight:'700', op:1, lh:20});
+    for(var j=0;j<5;j++){
+      var y = 60 + j*160;
+      var st = RANSOM.stage[j].length===3 ? [RANSOM.stage[j][0]+'  '+RANSOM.stage[j][1]+' '+RANSOM.stage[j][2]] : [RANSOM.stage[j][0]+'  '+RANSOM.stage[j][1]];
+      f.node(10, y, 360, 30, st, {col:stCol(j), fo:0.13, tcol:stCol(j), weight:'600', size:12.5});
+      f.node(10, y+38, 165, 84, RANSOM.desc[j], {size:12, lh:17});
+      f.node(205, y+38, 165, 84, RANSOM.def[j], {col:dfCol(j), fo:0.1, size:11.5, lh:17});
+      f.path([[203, y+80],[179, y+80]], {col:dfCol(j)});
+      f.text(287, y+138, [RANSOM.li[j].join(' ')], {col:dfCol(j), size:12});
+      if(j<4) f.path([[190, y+144],[190, y+158]], {});
+    }
+    f.text(190, 862, ['绿框是课件 “What actually limits the damage” 的四条，','每条钉在一个阶段上；四条都不是密码学——','攻击者用的反而是正确实现的 AES。'], {size:11.5, op:0.7, lh:16});
+  }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 2 ARP 投毒前后 */
+function drawArp(hostId, narrow){
+  var c = themeColors();
+  var W = narrow ? 440 : 900, H = narrow ? 1000 : 530;
+  var TT = 'ARP 投毒：改掉“网关 IP 对应哪块网卡”这一条，流量就绕到攻击者那里';
+  var f = new Fig(W, H, TT);
+  if(narrow) f.text(220, 24, ['ARP 投毒：改掉“网关 IP 对应哪块网卡”','这一条，流量就绕到攻击者那里'], {size:15, weight:'700', op:1, lh:20});
+  else f.text(450, 26, TT, {size:15, weight:'700', op:1});
+  function panel(ox, oy, after){
+    var red = c.warn;
+    function X(v){ return ox+v; } function Y(v){ return oy+v; }
+    f.text(X(220), Y(20), after ? '投毒之后' : '投毒之前', {col:after?red:ACC, size:15.5, weight:'700'});
+    f.node(X(250), Y(40), 170, 32, '→ 互联网', {size:12.5});
+    f.node(X(240), Y(100), 190, 78, ['网关（路由器）','IP 192.168.1.1','MAC aa:aa:aa:aa:aa:01'], {col:ACC, fo:0.08, size:12.5, lh:18});
+    f.node(X(10), Y(100), 170, 78, ['受害主机','IP 192.168.1.20'], {col:ACC, fo:0.08, size:13, lh:20});
+    f.path([[X(335), Y(99)],[X(335), Y(76)]], {});
+    f.node(X(170), Y(270), 190, 78, ['攻击者','IP 192.168.1.66','MAC ee:ee:ee:ee:ee:66'], {col:red, fo:0.1, size:12.5, lh:18});
+    if(!after){
+      f.path([[X(181), Y(139)],[X(237), Y(139)]], {col:ACC, sw:2.2});
+      f.text(X(209), Y(130), '出站流量', {col:ACC, size:12});
+      f.node(X(10), Y(388), 270, 56, ['受害主机的 ARP 缓存','192.168.1.1 → aa:…:01'], {col:ACC, fo:0.05, size:12.5, lh:19});
+    } else {
+      f.path([[X(140), Y(179)],[X(228), Y(267)]], {col:red, sw:2.2});
+      f.text(X(196), Y(204), ['出站流量','先到攻击者'], {col:red, size:12, anchor:'start', lh:16});
+      f.path([[X(330), Y(269)],[X(345), Y(181)]], {col:red, sw:2.2});
+      f.text(X(352), Y(222), ['攻击者转发，','可偷看、可改'], {col:red, size:12, anchor:'start', lh:16});
+      f.path([[X(168), Y(298)],[X(62), Y(181)]], {col:c.exam, dash:'6 4', sw:1.6});
+      f.text(X(8), Y(330), ['未经请求的伪造回复：','“192.168.1.1 在 ee:…:66”'], {col:c.exam, size:11.5, anchor:'start', lh:16});
+      f.node(X(10), Y(388), 270, 56, ['受害主机的 ARP 缓存','192.168.1.1 → ee:…:66（被改）'], {col:red, fo:0.05, tcol:red, size:12.5, lh:19});
+    }
+  }
+  if(narrow){ panel(0, 60, false); panel(0, 530, true); f.path([[10,515],[430,515]], {arrow:false, op:0.2, sw:1}); }
+  else { panel(10, 48, false); panel(460, 48, true); f.path([[450,58],[450,510]], {arrow:false, op:0.2, sw:1}); }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 3 反射放大 */
+function drawReflect(hostId, narrow){
+  var c = themeColors(), red = c.warn;
+  var TT = '反射放大：伪造源地址 = 受害者，让反射器把放大后的回复砸向受害者';
+  var NOTE = '量级（按载荷算的上限）：100 Mbit/s 伪造请求经 NTP（放大倍数约 557）反射，受害者至多收到约 55.7 Gbit/s。';
+  var f;
+  if(!narrow){
+    f = new Fig(900, 370, TT);
+    f.text(450, 26, TT, {size:15, weight:'700', op:1});
+    f.node(20, 145, 170, 80, ['攻击者','（或僵尸网络）'], {col:red, fo:0.1, size:13.5, lh:20});
+    f.node(710, 145, 170, 80, ['受害者','带宽被塞满'], {col:ACC, fo:0.1, size:13.5, lh:20});
+    [62, 154, 246].forEach(function(y, k){
+      f.node(360, y, 200, 62, ['开放反射器 '+(k+1), '（DNS / NTP / Memcached）'], {size:12.5, lh:19});
+      f.path([[191, 185],[357, y+31]], {col:red, sw:1.2});
+      f.path([[562, y+31],[702, 185]], {col:red, sw:5});
+    });
+    f.text(272, 56, ['小请求','源 IP 伪造成受害者'], {col:red, size:12, lh:16});
+    f.text(636, 52, ['大响应','发往“源地址”＝受害者'], {col:red, size:12, lh:16});
+    f.text(450, 350, NOTE, {size:12, op:0.7});
+  } else {
+    f = new Fig(380, 580, TT);
+    f.text(190, 22, ['反射放大：伪造源地址 = 受害者，','让反射器把放大后的回复砸向受害者'], {size:14, weight:'700', op:1, lh:19});
+    f.node(105, 60, 170, 56, ['攻击者','（或僵尸网络）'], {col:red, fo:0.1, size:12.5, lh:18});
+    [8, 134, 260].forEach(function(x, k){
+      f.node(x, 214, 112, 74, ['开放反射器 '+(k+1), '（DNS / NTP /', 'Memcached）'], {size:11.5, lh:17});
+      f.path([[190, 117],[x+56, 211]], {col:red, sw:1.2});
+      f.path([[x+56, 290],[190, 420]], {col:red, sw:4.5});
+    });
+    f.node(105, 424, 170, 56, ['受害者','带宽被塞满'], {col:ACC, fo:0.1, size:12.5, lh:18});
+    f.text(8, 146, ['小请求，','源 IP 伪造','成受害者'], {col:red, size:11.5, anchor:'start', lh:15});
+    f.text(8, 334, ['大响应发往','“源地址”','＝受害者'], {col:red, size:11.5, anchor:'start', lh:15});
+    f.text(190, 518, ['量级（按载荷算的上限）：100 Mbit/s 伪造请求','经 NTP（放大倍数约 557）反射，','受害者至多收到约 55.7 Gbit/s。'], {size:11.5, op:0.7, lh:16});
+  }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 4 XSS 与 CSRF */
+function drawXssCsrf(hostId, narrow){
+  var c = themeColors(), red = c.warn;
+  var TT = 'XSS 与 CSRF：被滥用的信任方向相反';
+  var W = narrow ? 440 : 900, H = narrow ? 870 : 440;
+  var f = new Fig(W, H, TT);
+  f.text(W/2, 26, TT, {size:15.5, weight:'700', op:1});
+  function xss(ox, oy){
+    function X(v){ return ox+v; } function Y(v){ return oy+v; }
+    f.text(X(220), Y(24), 'XSS：用户对网站的信任', {col:red, size:15, weight:'700'});
+    f.node(X(10), Y(60), 180, 92, ['你的网站','（页面里混进了','攻击者的脚本）'], {col:ACC, fo:0.08, size:12.5, lh:19});
+    f.node(X(250), Y(60), 180, 92, ['受害者的浏览器','已登录你的网站'], {size:12.5, lh:19});
+    f.path([[X(191), Y(106)],[X(246), Y(106)]], {col:ACC, sw:2});
+    f.text(X(220), Y(96), '送出页面', {col:ACC, size:11.5});
+    f.node(X(10), Y(240), 180, 82, ['攻击者','把脚本存进评论 /','放进 URL 参数'], {col:red, fo:0.1, size:12.5, lh:19});
+    f.path([[X(100), Y(239)],[X(100), Y(156)]], {col:red, sw:2});
+    f.node(X(250), Y(240), 180, 82, ['脚本以“你的网站”的','身份运行：读数据、','冒充受害者操作'], {col:red, fo:0.04, tcol:red, size:12.5, lh:19});
+    f.path([[X(340), Y(153)],[X(340), Y(236)]], {col:red, sw:2});
+  }
+  function csrf(ox, oy){
+    function X(v){ return ox+v; } function Y(v){ return oy+v; }
+    f.text(X(220), Y(24), 'CSRF：网站对用户浏览器的信任', {col:ACC, size:15, weight:'700'});
+    f.node(X(10), Y(60), 180, 92, '攻击者的网页', {col:red, fo:0.1, size:13});
+    f.node(X(250), Y(60), 180, 92, ['受害者的浏览器','已登录你的网站'], {size:12.5, lh:19});
+    f.path([[X(191), Y(106)],[X(246), Y(106)]], {col:red, sw:2});
+    f.text(X(220), Y(96), '触发请求', {col:red, size:11.5});
+    f.node(X(250), Y(240), 180, 82, ['你的网站','看到合法会话 cookie，','照办'], {col:ACC, fo:0.08, size:12.5, lh:19});
+    f.path([[X(340), Y(153)],[X(340), Y(236)]], {col:ACC, sw:2});
+    f.text(X(328), Y(190), ['浏览器自动','附上会话 cookie'], {col:ACC, size:12, anchor:'end', lh:16});
+  }
+  if(narrow){
+    xss(0, 46); csrf(0, 420); f.path([[10,400],[430,400]], {arrow:false, op:0.2, sw:1});
+    f.text(220, 812, ['XSS：坏东西从你的网站流向用户（站点送出了攻击者的脚本）。','CSRF：坏请求从用户浏览器流向你的网站','（站点相信了带 cookie 的请求）。'], {size:11.5, op:0.7, lh:16});
+  } else {
+    xss(10, 48); csrf(460, 48); f.path([[450,60],[450,390]], {arrow:false, op:0.2, sw:1});
+    f.text(450, 424, 'XSS：坏东西从你的网站流向用户（站点送出了攻击者的脚本）。CSRF：坏请求从用户浏览器流向你的网站（站点相信了带 cookie 的请求）。', {size:11.5, op:0.7});
+  }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 5 DMZ 与内部分段 */
+function drawDmz(hostId, narrow){
+  var c = themeColors(), red = c.warn, gold = c.exam, ok = c.ok;
+  var TT = '边界、DMZ 与内部分段：防火墙放在哪比用哪种更要紧';
+  var f;
+  function xmark(x, y){ f.path([[x-10,y-10],[x+10,y+10]], {col:red, sw:2.6, arrow:false}); f.path([[x-10,y+10],[x+10,y-10]], {col:red, sw:2.6, arrow:false}); }
+  if(!narrow){
+    f = new Fig(920, 480, TT);
+    f.text(460, 26, TT, {size:15, weight:'700', op:1});
+    f.node(10, 195, 130, 80, '互联网', {size:14});
+    f.box(175, 172, 50, 150, {col:gold, fo:0.25}); f.textC(200, 218, ['外','防','火','墙'], {col:gold, weight:'700', size:13.5, lh:22});
+    f.node(265, 145, 170, 180, ['DMZ','（隔离区）','Web 服务器','邮件服务器'], {col:gold, fo:0.1, size:13.5, lh:22});
+    f.box(475, 172, 50, 150, {col:gold, fo:0.25}); f.textC(500, 218, ['内','防','火','墙'], {col:gold, weight:'700', size:13.5, lh:22});
+    f.box(560, 62, 350, 384, {col:ACC, fo:0.02, dash:'7 5'});
+    f.text(735, 88, '内网（按部门分段）', {col:ACC, size:14, weight:'700'});
+    ['财务网段','科研网段','普通办公网段'].forEach(function(s, k){
+      var y = 112 + k*108;
+      f.node(585, y, 195, 82, s, {col:ACC, fo:0.07, size:13.5});
+      f.path([[783, y+41],[812, y+41]], {col:ACC, arrow:'both', sw:1.4});
+    });
+    f.node(816, 112, 76, 298, ['内','部','防','火','墙','／','分','段','策','略'], {col:ACC, fo:0.22, tcol:ACC, weight:'700', size:13, lh:25});
+    f.path([[141, 262],[262, 262]], {col:ok, sw:2.2});
+    f.text(200, 160, '允许', {col:ok, size:12.5});
+    f.path([[583, 156],[438, 156]], {col:ok, sw:1.8, dash:'7 5'});
+    f.text(500, 124, ['内网→DMZ','（常见配置）'], {col:ok, size:11.5, lh:15});
+    f.path([[436, 290],[581, 290]], {col:red, sw:2.2});
+    xmark(548, 290);
+    f.text(500, 342, ['禁止','DMZ→内网'], {col:red, size:12, lh:16});
+    f.text(460, 468, '边界防火墙只管“进出”，管不了内网两台机器之间；横向移动要靠内部防火墙和分段挡。DMZ 被攻破，攻击者得到的是一块故意不值钱的地方。', {size:11.5, op:0.7});
+  } else {
+    f = new Fig(380, 740, TT);
+    f.text(190, 22, ['边界、DMZ 与内部分段：','防火墙放在哪比用哪种更要紧'], {size:14.5, weight:'700', op:1, lh:20});
+    f.node(110, 62, 160, 44, '互联网', {size:13.5});
+    f.node(60, 126, 260, 30, '外防火墙', {col:gold, fo:0.25, tcol:gold, weight:'700', size:13});
+    f.node(100, 178, 180, 96, ['DMZ（隔离区）','Web 服务器','邮件服务器'], {col:gold, fo:0.1, size:12.5, lh:20});
+    f.node(60, 296, 260, 30, '内防火墙', {col:gold, fo:0.25, tcol:gold, weight:'700', size:13});
+    f.box(8, 346, 364, 316, {col:ACC, fo:0.02, dash:'7 5'});
+    f.text(20, 370, '内网（按部门分段）', {col:ACC, size:13, weight:'700', anchor:'start'});
+    ['财务网段','科研网段','普通办公网段'].forEach(function(s, k){
+      var y = 390 + k*88;
+      f.node(30, y, 220, 64, s, {col:ACC, fo:0.07, size:13});
+      f.path([[252, y+32],[284, y+32]], {col:ACC, arrow:'both', sw:1.4});
+    });
+    f.node(288, 390, 70, 240, ['内','部','防','火','墙','／','分','段','策','略'], {col:ACC, fo:0.22, tcol:ACC, weight:'700', size:12, lh:21});
+    f.path([[190, 107],[190, 175]], {col:ok, sw:2.2});
+    f.text(200, 172, '允许', {col:ok, size:12, anchor:'start'});
+    f.path([[46, 388],[46, 238],[97, 238]], {col:ok, sw:1.8, dash:'7 5'});
+    f.text(12, 190, ['内网→DMZ','（常见配置）'], {col:ok, size:11, anchor:'start', lh:14});
+    f.path([[230, 276],[230, 386]], {col:red, sw:2.2});
+    xmark(230, 340);
+    f.text(240, 379, '禁止 DMZ→内网', {col:red, size:11.5, anchor:'start'});
+    f.text(190, 688, ['边界防火墙只管“进出”，管不了内网两台机器之间；','横向移动要靠内部防火墙和分段挡。DMZ 被攻破，','攻击者得到的是一块故意不值钱的地方。'], {size:11.5, op:0.7, lh:16});
+  }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 6 四类主动攻击 */
+function drawActive4(hostId, narrow){
+  var c = themeColors(), red = c.warn, gold = c.exam;
+  var TT = '四类主动攻击：Darth 都不只是旁听，而是往通信里加东西或者截断通信';
+  var W = narrow ? 440 : 900, H = narrow ? 1250 : 650;
+  var f = new Fig(W, H, TT);
+  if(narrow) f.text(220, 24, ['四类主动攻击：Darth 都不只是旁听，','而是往通信里加东西或者截断通信'], {size:14.5, weight:'700', op:1, lh:20});
+  else f.text(450, 26, TT, {size:15, weight:'700', op:1});
+  var P = [
+    {t:'伪装 masquerade', d:['Darth 冒充 Alice 发消息','例：IP/MAC 欺骗、DNS 伪造回复、BEC 冒充院长'], k:'masq'},
+    {t:'重放 replay', d:['先截获合法数据，过后再发一遍','例：截获会话 cookie 后拿来登录（会话劫持）'], k:'replay'},
+    {t:'篡改消息 modification', d:['Darth 串在路径中间，转发时改内容','例：ARP 投毒后的中间人转发时改包'], k:'mod'},
+    {t:'拒绝服务 denial of service', d:['让 Bob 无法正常提供服务','例：僵尸网络洪泛、SYN 洪泛、反射放大'], k:'dos'}
+  ];
+  function panel(ox, oy, p){
+    function X(v){ return ox+v; } function Y(v){ return oy+v; }
+    f.box(X(4), Y(0), 432, 290, {fo:0.015, so:0.15, rx:9});
+    f.text(X(220), Y(26), p.t, {col:red, size:15, weight:'700'});
+    f.text(X(220), Y(52), p.d, {size:12, op:0.75, lh:18});
+    f.node(X(14), Y(206), 106, 46, 'Alice', {col:ACC, fo:0.08, size:13.5});
+    f.node(X(320), Y(206), 106, 46, 'Bob', {col:ACC, fo:0.08, size:13.5});
+    f.node(X(166), Y(110), 108, 46, 'Darth', {col:red, fo:0.1, tcol:red, size:13.5});
+    var g = 'currentColor';
+    if(p.k==='masq'){
+      f.path([[X(121), Y(229)],[X(316), Y(229)]], {dash:'6 4', op:0.35});
+      f.text(X(220), Y(272), '真的 Alice 什么也没发', {size:11.5, op:0.6});
+      f.path([[X(275), Y(140)],[X(330), Y(203)]], {col:red, sw:2});
+      f.text(X(300), Y(128), '“我是 Alice”', {col:red, size:12, anchor:'start'});
+    } else if(p.k==='replay'){
+      f.path([[X(121), Y(229)],[X(316), Y(229)]], {col:ACC, sw:2});
+      f.text(X(220), Y(272), '① 合法消息照常送达', {col:ACC, size:11.5});
+      f.path([[X(150), Y(228)],[X(186), Y(160)]], {col:gold, dash:'5 4', sw:1.6});
+      f.text(X(150), Y(168), '② 复制一份', {col:gold, size:11.5, anchor:'end'});
+      f.path([[X(275), Y(140)],[X(330), Y(203)]], {col:red, sw:2});
+      f.text(X(300), Y(128), '③ 过后重发', {col:red, size:12, anchor:'start'});
+    } else if(p.k==='mod'){
+      f.path([[X(70), Y(205)],[X(163), Y(142)]], {col:ACC, sw:2});
+      f.text(X(70), Y(150), '原消息 m', {col:ACC, size:12});
+      f.path([[X(275), Y(140)],[X(330), Y(203)]], {col:red, sw:2});
+      f.text(X(300), Y(128), '改过的 m′', {col:red, size:12, anchor:'start'});
+    } else {
+      f.path([[X(121), Y(229)],[X(316), Y(229)]], {dash:'6 4', op:0.35});
+      f.text(X(220), Y(272), 'Alice 的正常请求进不去', {size:11.5, op:0.6});
+      f.path([[X(275), Y(128)],[X(336), Y(203)]], {col:red, sw:1.8});
+      f.path([[X(275), Y(138)],[X(330), Y(203)]], {col:red, sw:1.8});
+      f.path([[X(275), Y(148)],[X(324), Y(203)]], {col:red, sw:1.8});
+      f.text(X(318), Y(118), '海量请求', {col:red, size:12, anchor:'start'});
+    }
+  }
+  if(narrow){ for(var i=0;i<4;i++) panel(0, 60 + i*298, P[i]); }
+  else { panel(10, 46, P[0]); panel(460, 46, P[1]); panel(10, 346, P[2]); panel(460, 346, P[3]); }
+  f.mount(hostId);
+}
+
+/* ================================================================ 交互件 1：SYN 洪泛算账 */
+function readNum(id, lo){
+  var el = document.getElementById(id), v = Number(String(el.value).replace(/,/g,'').trim());
+  var bad = (el.value.trim()==='' || !isFinite(v) || (lo!==undefined && v < lo));
+  el.classList.toggle('badin', bad);
+  return bad ? null : v;
+}
+function synCalc(N, t0, R, size){
+  var terms = []; for(var k=0;k<=R;k++) terms.push(t0*Math.pow(2,k));
+  var T = terms.reduce(function(a,b){return a+b;}, 0);
+  var rate = N / T;
+  return {terms:terms, T:T, rate:rate, kbps:rate*size*8/1000};
+}
+function synSet(n, t0, r, sz, atk){
+  document.getElementById('synN').value=n; document.getElementById('synT0').value=t0;
+  document.getElementById('synR').value=r; document.getElementById('synSz').value=sz;
+  document.getElementById('synAtk').value=atk; synGo();
+}
+function n1(v){ return Number.isInteger(v) ? nf(v) : nf(v,1); }
+function synGo(){
+  var N=readNum('synN',1), t0=readNum('synT0',0.001), R=readNum('synR',0), sz=readNum('synSz',1), atk=readNum('synAtk',0);
+  var cookie=document.getElementById('synCk').checked;
+  var st=document.getElementById('synSteps'), out=document.getElementById('synOut');
+  if([N,t0,R,sz,atk].indexOf(null)>=0 || R>20){ st.innerHTML='<span class="bad">请填正数（重传次数为 0–20 的整数）</span>'; out.innerHTML='请先修正输入。'; return; }
+  R=Math.round(R);
+  var r=synCalc(N,t0,R,sz);
+  st.innerHTML =
+    '<div><span class="k">1</span>一格被占多久：SYN-ACK 重传 '+R+' 次、间隔从 '+nf(t0)+' 秒起每次翻倍，'+
+      '<span class="mono">'+r.terms.map(function(x){return nf(x);}).join('+')+' = '+nf(r.T)+'</span> 秒后才放弃</div>'+
+    '<div><span class="k">2</span>要让 '+nf(N,0,true)+' 格一直满着，每秒补 <span class="mono">'+nf(N,0,true)+' / '+nf(r.T)+' ≈ '+nf(r.rate,1)+'</span> 个伪造 SYN</div>'+
+    '<div><span class="k">3</span>折成流量：'+nf(r.rate,1)+' 个/秒 × '+nf(sz)+' 字节 × 8 ≈ <span class="mono">'+nf(r.kbps,1)+' kbit/s</span></div>';
+  var occ = cookie ? 0 : Math.min(N, atk*r.T), pct = occ/N*100;
+  var full = !cookie && atk >= r.rate;
+  var bar = '<div style="height:14px;border-radius:7px;background:var(--surface);border:1px solid var(--line2);overflow:hidden;margin:.45rem 0">'+
+            '<div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+(full?'var(--warn)':'var(--accent)')+'"></div></div>';
+  var msg;
+  if(cookie) msg = '<span class="good">启用 SYN cookies：服务器收到 SYN 不在表里占格，连接信息编进 SYN-ACK 的初始序号里，表无从耗尽。</span>';
+  else if(full) msg = '<span class="bad">攻击者每秒 '+n1(atk)+' 个 ≥ '+nf(r.rate,1)+' 个：半开表一直是满的，新的合法连接一个也进不来。</span>';
+  else msg = '攻击者每秒 '+n1(atk)+' 个 &lt; '+nf(r.rate,1)+' 个：稳态约占 '+nf(occ,0,true)+' 格（'+nf(pct,1)+'%），还有空位。';
+  out.innerHTML = '<div class="three" style="margin-top:0">'+
+    '<div><span class="lab">一格占用时间</span><span class="val">'+nf(r.T)+' s</span></div>'+
+    '<div><span class="lab">填满所需速率</span><span class="val">'+nf(r.rate,1)+' /s</span></div>'+
+    '<div><span class="lab">所需带宽</span><span class="val">'+nf(r.kbps,1)+' kbit/s</span></div></div>'+
+    '<div style="margin-top:.7rem">半开连接表占用（攻击者每秒发 '+n1(atk)+' 个）</div>'+bar+'<div>'+msg+'</div>';
+}
+
+/* ================================================================ 交互件 2：基率谬误 */
+function brSet(ev, atk, tpr, fpr){
+  document.getElementById('brEv').value=ev; document.getElementById('brAtk').value=atk;
+  document.getElementById('brTpr').value=tpr; document.getElementById('brFpr').value=fpr; brGo();
+}
+function brCalc(ev, atk, tpr, fpr){
+  var tp = atk*tpr, fp = (ev-atk)*fpr;
+  return {tp:tp, fp:fp, prec: (tp+fp>0) ? tp/(tp+fp) : NaN};
+}
+/** 科学计数：1.0 × 10⁻⁵ 的 HTML 写法 */
+function sci(x){
+  if(x===0) return '0';
+  var e=Math.floor(Math.log10(Math.abs(x))), m=x/Math.pow(10,e);
+  if(Math.abs(m-10)<1e-9){ m=1; e++; }
+  return (e===0) ? nf(m,1) : nf(m,1)+' × 10<sup>'+nf(e)+'</sup>';
+}
+function fmtPct(p){
+  var x = p*100;
+  if(x>=10) return nf(x,1)+'%';
+  if(x>=1) return nf(x,2)+'%';
+  if(x>=0.01) return nf(x,3)+'%';
+  return sci(x)+'%';
+}
+function brGo(){
+  var ev=readNum('brEv',1), atk=readNum('brAtk',0), tpr=readNum('brTpr',0), fpr=readNum('brFpr',0);
+  var st=document.getElementById('brSteps'), out=document.getElementById('brOut'), grid=document.getElementById('brGrid');
+  if([ev,atk,tpr,fpr].indexOf(null)>=0 || atk>ev || tpr>100 || fpr>100){ st.innerHTML='<span class="bad">检查输入：真攻击数不能超过事件数，两个百分比在 0–100 之间</span>'; out.innerHTML='请先修正输入。'; grid.innerHTML='<p class="small">（无图）</p>'; return; }
+  var r=brCalc(ev, atk, tpr/100, fpr/100);
+  st.innerHTML =
+    '<div><span class="k">1</span>基率 = '+nf(atk,0,true)+' / '+nf(ev,0,true)+' = <span class="mono">'+sci(atk/ev)+'</span></div>'+
+    '<div><span class="k">2</span>真告警：'+nf(atk,0,true)+' × '+nf(tpr)+'% = <span class="mono">'+nf(r.tp,1,true)+'</span> 个</div>'+
+    '<div><span class="k">3</span>误报：('+nf(ev,0,true)+' − '+nf(atk,0,true)+') × '+nf(fpr)+'% ≈ <span class="mono">'+nf(r.fp,1,true)+'</span> 个</div>'+
+    '<div><span class="k">4</span>告警里真攻击的比例：'+nf(r.tp,1,true)+' / ('+nf(r.tp,1,true)+' + '+nf(r.fp,1,true)+') ≈ <span class="mono">'+(isFinite(r.prec)?fmtPct(r.prec):'—')+'</span></div>';
+  if(!isFinite(r.prec)){ out.innerHTML='一条告警都没有。'; grid.innerHTML='<p class="small">（无图）</p>'; return; }
+  var per = r.prec>0 ? 1/r.prec : Infinity;
+  out.innerHTML = '告警里真攻击占 <strong>'+fmtPct(r.prec)+'</strong>，'+
+    (r.prec>0 ? '约每 <strong>'+nf(per, per<10?1:0, true)+'</strong> 条告警里有 1 条是真的。' : '没有一条告警是真的。')+
+    (r.prec<0.05 ? ' <span class="bad">值班的人很快就不再看告警了。</span>' : '');
+  /* 1000 条告警的点阵：深色 = 真攻击 */
+  var nTrue = Math.round(r.prec*1000), cols=50, rows=20, s=12;
+  var c=themeColors();
+  var f=new Fig(cols*s+4, rows*s+4, '1000 条告警中真攻击的条数');
+  for(var i=0;i<1000;i++){
+    var x=2+(i%cols)*s, y=2+Math.floor(i/cols)*s, hot = i<nTrue;
+    f.g.appendChild(svgEl('rect',{x:x+1,y:y+1,width:s-3,height:s-3,rx:2,
+      fill: hot ? c.warn : 'currentColor', 'fill-opacity': hot ? 1 : 0.13}));
+  }
+  grid.innerHTML='<div class="small">按这个比例，每 1000 条告警里有 <strong>'+nTrue+'</strong> 条是真攻击（红点）：</div>';
+  var d=document.createElement('div'); d.className='toolfig'; d.style.maxWidth='640px'; d.appendChild(f.svg); grid.appendChild(d);
+}
+
+/* ================================================================ 交互件 3：SQL 注入 */
+var SQLI_TABLE = [['alice','A'],['bob','B'],['carol','C']];
+var SQLI_TEMPLATE = ["SELECT * FROM users WHERE name = '", "'"];
+/* 词法：返回 [{t:类型, v:值, s:起点, e:终点}]；类型 kw/id/str/num/op/cmt */
+var SQL_KW = ['SELECT','FROM','WHERE','OR','AND','NOT','UNION','ALL'];
+function sqlLex(q){
+  var out=[], i=0;
+  while(i<q.length){
+    var ch=q[i];
+    if(/\s/.test(ch)){ i++; continue; }
+    if(ch==='-' && q[i+1]==='-'){ out.push({t:'cmt', v:q.slice(i), s:i, e:q.length}); break; }
+    if(ch==="'"){
+      var j=i+1, v='';
+      while(true){
+        if(j>=q.length) throw {msg:'unrecognized token: "'+q.slice(i)+'"', pos:i};
+        if(q[j]==="'"){ if(q[j+1]==="'"){ v+="'"; j+=2; continue; } break; }
+        v+=q[j]; j++;
+      }
+      out.push({t:'str', v:v, s:i, e:j+1}); i=j+1; continue;
+    }
+    if(/[0-9]/.test(ch)){ var m=/^[0-9]+(\.[0-9]+)?/.exec(q.slice(i)); out.push({t:'num', v:Number(m[0]), s:i, e:i+m[0].length}); i+=m[0].length; continue; }
+    if(/[A-Za-z_]/.test(ch)){
+      var w=/^[A-Za-z_][A-Za-z_0-9]*/.exec(q.slice(i))[0];
+      out.push({t: SQL_KW.indexOf(w.toUpperCase())>=0 ? 'kw' : 'id', v:w, s:i, e:i+w.length}); i+=w.length; continue;
+    }
+    var two=q.substr(i,2);
+    if(two==='!='||two==='<>'||two==='<='||two==='>='){ out.push({t:'op', v:two, s:i, e:i+2}); i+=2; continue; }
+    if('=*,()<>;'.indexOf(ch)>=0){ out.push({t:'op', v:ch, s:i, e:i+1}); i++; continue; }
+    throw {msg:'unrecognized token: "'+ch+'"', pos:i};
+  }
+  return out;
+}
+/* 语法与求值（只覆盖演示需要的子集，写法照 SQLite） */
+function sqlRun(q, table){
+  var tk=sqlLex(q).filter(function(t){ return t.t!=='cmt'; }), p=0;
+  function peek(){ return tk[p]; }
+  function isKw(w){ return tk[p] && tk[p].t==='kw' && tk[p].v.toUpperCase()===w; }
+  function isOp(o){ return tk[p] && tk[p].t==='op' && tk[p].v===o; }
+  function fail(){ var t=tk[p]; throw {msg: t ? 'near "'+t.v+'": syntax error' : 'incomplete input'}; }
+  function expectKw(w){ if(!isKw(w)) fail(); p++; }
+  function operand(){
+    var t=peek(); if(!t) fail();
+    if(t.t==='str'||t.t==='num'){ p++; return function(){ return t.v; }; }
+    if(t.t==='id'){
+      var c=t.v.toLowerCase(); if(c!=='name'&&c!=='grade') throw {msg:'no such column: '+t.v};
+      p++; return function(row){ return c==='name'?row[0]:row[1]; };
+    }
+    if(isOp('(')){ p++; var e=expr(); if(!isOp(')')) fail(); p++; return e; }
+    fail();
+  }
+  function cmp(){
+    var a=operand();
+    var t=peek();
+    if(t && t.t==='op' && ['=','!=','<>','<','>','<=','>='].indexOf(t.v)>=0){
+      p++; var b=operand(), op=t.v;
+      return function(row){
+        var x=a(row), y=b(row);
+        if(typeof x!==typeof y){ x=String(x); y=String(y); }
+        switch(op){ case '=': return x===y; case '!=': case '<>': return x!==y;
+          case '<': return x<y; case '>': return x>y; case '<=': return x<=y; default: return x>=y; }
+      };
+    }
+    return function(row){ var v=a(row); return !!(typeof v==='string' ? Number(v) : v); };
+  }
+  function factor(){ if(isKw('NOT')){ p++; var f=factor(); return function(r){ return !f(r); }; } return cmp(); }
+  function term(){ var a=factor(); while(isKw('AND')){ p++; var b=factor(), a0=a; a=(function(x,y){ return function(r){ return x(r)&&y(r); }; })(a0,b); } return a; }
+  function expr(){ var a=term(); while(isKw('OR')){ p++; var b=term(), a0=a; a=(function(x,y){ return function(r){ return x(r)||y(r); }; })(a0,b); } return a; }
+  function select(){
+    expectKw('SELECT');
+    var cols=[];
+    if(isOp('*')){ p++; cols=[function(r){return r[0];}, function(r){return r[1];}]; }
+    else { cols.push(operand()); while(isOp(',')){ p++; cols.push(operand()); } }
+    expectKw('FROM');
+    var t=peek(); if(!t||t.t!=='id') fail(); if(t.v.toLowerCase()!=='users') throw {msg:'no such table: '+t.v}; p++;
+    var where=null; if(isKw('WHERE')){ p++; where=expr(); }
+    return {cols:cols, where:where};
+  }
+  var parts=[select()], all=[];
+  while(isKw('UNION')){ p++; var isAll=false; if(isKw('ALL')){ p++; isAll=true; } all.push(isAll); parts.push(select()); }
+  if(isOp(';')) p++;
+  if(p<tk.length) fail();
+  for(var k=1;k<parts.length;k++) if(parts[k].cols.length!==parts[0].cols.length)
+    throw {msg:'SELECTs to the left and right of UNION do not have the same number of result columns'};
+  function rowsOf(s){ return table.filter(function(r){ return !s.where || s.where(r); }).map(function(r){ return s.cols.map(function(c){ return c(r); }); }); }
+  var res=rowsOf(parts[0]);
+  var anyDistinct = parts.length>1 && all.some(function(a){return !a;});
+  for(var u=1;u<parts.length;u++) res=res.concat(rowsOf(parts[u]));
+  if(anyDistinct){
+    var seen={}, d=[];
+    res.forEach(function(r){ var k=JSON.stringify(r); if(!seen[k]){ seen[k]=1; d.push(r); } });
+    d.sort(function(a,b){ return JSON.stringify(a)<JSON.stringify(b)?-1:1; });
+    res=d;
+  }
+  return res;
+}
+function sqliSet(v){ document.getElementById('sqIn').value=v; sqliGo(); }
+function sqliRows(rows){
+  if(!rows.length) return '<span class="small">（空，0 行）</span>';
+  return '<table class="compact" style="width:auto;margin:.3rem 0 0"><thead><tr>'+rows[0].map(function(_,i){return '<th>列 '+(i+1)+'</th>';}).join('')+
+    '</tr></thead><tbody>'+rows.map(function(r){ return '<tr>'+r.map(function(x){return '<td class="mono">'+esc(x)+'</td>';}).join('')+'</tr>'; }).join('')+'</tbody></table>'+
+    '<div class="small">'+rows.length+' 行</div>';
+}
+function sqliGo(){
+  var inp=document.getElementById('sqIn').value;
+  var q=SQLI_TEMPLATE[0]+inp+SQLI_TEMPLATE[1], i0=SQLI_TEMPLATE[0].length, i1=i0+inp.length;
+  var c=themeColors();
+  /* 上色：输入范围里被当成代码的词 = 红；被当成值的字符串 = 绿；注释 = 灰 */
+  var view='', toks=null, lexErr=null;
+  try{ toks=sqlLex(q); }catch(e){ lexErr=e; }
+  var codeFromInput = 0;
+  if(toks){
+    var pos=0;
+    toks.forEach(function(t){
+      view+=esc(q.slice(pos,t.s));
+      var s=esc(q.slice(t.s,t.e)), fromIn = (t.s < i1 && t.e > i0);
+      if(t.t==='cmt') s='<span style="opacity:.5">'+s+'</span>';
+      else if(t.t==='str') s='<span style="color:var(--ok)">'+s+'</span>';
+      else if(fromIn && (t.s>=i0 || t.e<=i1)){ s='<span style="color:var(--warn);font-weight:700;text-decoration:underline">'+s+'</span>'; codeFromInput++; }
+      view+=s; pos=t.e;
+    });
+    view+=esc(q.slice(pos));
+  } else view=esc(q);
+  document.getElementById('sqQuery').innerHTML='<pre style="margin:.3rem 0;white-space:pre-wrap;word-break:break-all"><code>'+view+'</code></pre>'+
+    '<div class="small">绿色 = 被数据库当成<strong>值</strong>的字符串；<span style="color:var(--warn);font-weight:700;text-decoration:underline">红色下划线</span> = 来自你的输入、却被当成<strong>查询结构</strong>的词；灰色 = 注释。</div>';
+  var a, b;
+  try{ a='<div class="'+(codeFromInput?'bad':'good')+'" style="font-size:13.5px">'+(codeFromInput?'查询结构已被输入改写':'结构没变')+'</div>'+sqliRows(sqlRun(q, SQLI_TABLE)); }
+  catch(e){ a='<div class="bad" style="font-size:13.5px">数据库报错：'+esc(e.msg)+'</div>'; }
+  var pr=SQLI_TABLE.filter(function(r){ return r[0]===inp; });
+  b='<div class="small">查询结构先定死为 <code>WHERE name = ?</code>，输入整段作为一个值填进去：查「有没有人名字叫 <code>'+esc(inp)+'</code>」</div>'+sqliRows(pr);
+  document.getElementById('sqCat').innerHTML='<h4 style="margin:0 0 .2rem;font-size:14.5px">拼接版</h4>'+a;
+  document.getElementById('sqPar').innerHTML='<h4 style="margin:0 0 .2rem;font-size:14.5px">参数化版</h4>'+b;
+  var out=document.getElementById('sqOut');
+  if(codeFromInput) out.innerHTML='<span class="bad">输入里有 '+codeFromInput+' 个词越过了引号、变成了查询的一部分——攻击者在写查询。</span>参数化版对同一输入只当作一个名字去比，结构不受影响。';
+  else out.innerHTML='<span class="good">输入完整地待在引号里，只是一个值。</span>两种写法结果相同。';
+}
+
+/* ================================================================ 交互件 4：考点表遮挡自测 */
+var QZ_COLS = {2:'违反的属性', 3:'主要防御', 4:'L / I', 5:'密码学？'};
+function qzTable(){ var t=document.getElementById('qzTool').nextElementSibling; return t ? t.querySelector('table') : null; }
+function qzInit(){
+  var tb=qzTable(); if(!tb) return;
+  tb.querySelectorAll('tbody td').forEach(function(td){
+    td.addEventListener('click', function(){ if(td.classList.contains('mask')){ td.classList.remove('mask'); qzStat(); } });
+  });
+  qzStat();
+}
+function qzMask(col){
+  var tb=qzTable(); if(!tb) return;
+  tb.querySelectorAll('tbody tr').forEach(function(tr){
+    var td=tr.children[col]; if(col==='all'){ for(var k in QZ_COLS) tr.children[k].classList.add('mask'); } else td.classList.add('mask');
+  });
+  qzStat();
+}
+function qzShow(){ var tb=qzTable(); tb.querySelectorAll('td.mask').forEach(function(td){ td.classList.remove('mask'); }); qzStat(); }
+function qzStat(){
+  var tb=qzTable(), n=tb.querySelectorAll('td.mask').length;
+  document.getElementById('qzOut').innerHTML = n ? ('还遮着 <strong>'+n+'</strong> 格：先在心里答出来，再点格子翻开核对。') : '表格完全显示。选一列遮住，凭记忆说出每一格，再点开核对。';
+}
+
+
+/* ---------- 交互件与配图初始化 ---------- */
+drawRansom('figRansomW',false); drawRansom('figRansomN',true);
+drawArp('figArpW',false); drawArp('figArpN',true);
+synGo();
+drawReflect('figReflectW',false); drawReflect('figReflectN',true);
+sqliGo();
+drawXssCsrf('figXssW',false); drawXssCsrf('figXssN',true);
+drawDmz('figDmzW',false); drawDmz('figDmzN',true);
+brGo();
+qzInit();
+drawActive4('figActiveW',false); drawActive4('figActiveN',true);
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+
+</script>
+</body>
+</html>

@@ -299,7 +299,7 @@ table.ktab td span.fut{opacity:.35}
   <p>这一讲拆开 AES（Advanced Encryption Standard，高级加密标准）——今天几乎所有加密流量背后的那个分组密码。主线是一个问题：<strong>一个完全公开、内部没有任何秘密的算法，怎样只靠一把 128 位密钥，把明文变成看上去毫无规律的密文？</strong></p>
   <p>AES 的回答是每一轮对整块 16 个字节做四件事：<strong>SubBytes 提供非线性，ShiftRows 把字节搬到别的列，MixColumns 把一列的四个字节搅在一起，AddRoundKey 把密钥加进来</strong>，重复十轮。前三件是公开的固定运算，最后一件只有密钥；四件交替起来才是密码。</p>
   <p>课件让同一块 16 字节从明文一路走完第 1 轮，本笔记沿用这条数值线索，每一步都能和 FIPS 197 附录 B 的官方中间值对上。和课件顺序只有一处不同：字节的乘法与求逆（有限域 GF(2⁸)）提前到四种变换之前讲，因为 SubBytes 的造表方法已经要用到它。这里提到的术语都在下文对应小节定义。</p>
-  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Lecture4_5_AES_26_TUL</code>，31 页，文件名虽带「4_5」，全部内容都是 Lecture 4；Lecture 5（工作模式）的课件尚缺。教材 Stallings 第 8 版第 6 章。课件没有给出课堂活动的答案（答案页疑似隐藏、未导出），本笔记的解答是自己算的，数值全部用程序核对过。</p>
+  <p style="margin-bottom:0">课程总览与考情见笔记《00 课程信息与考情》。对应课件 <code>Lecture4_5_AES_26_TUL</code>，31 页，文件名虽带「4_5」，全部内容都是 Lecture 4；Lecture 5（工作模式）见 L6 对称密码的安全使用。教材 Stallings 第 8 版第 6 章。课件没有给出课堂活动的答案（答案页疑似隐藏、未导出），本笔记的解答是自己算的，数值全部用程序核对过。</p>
 </div>
 
 <div class="box exam">
@@ -321,7 +321,7 @@ table.ktab td span.fut{opacity:.35}
 <p>课件列了四个问题：</p>
 <ol>
   <li><strong>56 位密钥太短。</strong>1998 年一台约 25 万美元的专用破解机（Deep Crack，见 L3 8.1）用 56 小时穷举出了 DES 密钥；1999 年缩短到 22 小时。L2 的暴力破解耗时表里每秒试 <span class="m">10<sup>9</sup></span> 把时 DES 平均要 1.14 年，专用硬件比这快得多。课件的说法是「密钥长度就是保质期」（L3 8.4），DES 到期了。</li>
-  <li><strong>64 位分组太小。</strong>同一把密钥下加密几十 GB 数据后，重复的密文分组就开始以显著的概率出现。数字来自<strong>生日界</strong>（birthday bound：在 <span class="m">2<sup>b</sup></span> 种可能的值里随机取，取到约 <span class="m">2<sup>b/2</sup></span> 个时就会以显著概率出现两个相同的值，得名于「23 个人里有两人同一天生日的概率已过半」的生日悖论）：<span class="m">N</span> 个随机分组两两配对有约 <span class="m">N<sup>2</sup>/2</span> 对，每一对恰好相同的概率是 <span class="m">2<sup>−64</sup></span>，于是重复次数的期望约为 <span class="m">N<sup>2</sup>/2<sup>65</sup></span>；<span class="m">N = 2<sup>32</sup></span> 时它已经是 <span class="m">1/2</span>，至少出现一次重复的概率约 <span class="m">1 − e<sup> −1/2</sup> ≈ 39%</span>。<span class="m">2<sup>32</sup></span> 个 8 字节分组就是 32 GiB（GiB、EiB 是二进制单位：1 GiB = <span class="m">2<sup>30</sup></span> 字节，1 EiB = <span class="m">2<sup>60</sup></span> 字节；L3 用的 EB 是十进制单位，1 EB = <span class="m">10<sup>18</sup></span> 字节）。重复的密文分组会泄露两段明文之间的关系，具体泄露什么取决于怎样把分组密码用在长消息上，即工作模式（L3 1.1；例如在 CBC 模式下，两个相同的密文分组泄露对应两个明文分组的异或；课件把工作模式放在 Lecture 5）。AES 的分组是 128 位，同样的界推到 <span class="m">2<sup>64</sup></span> 个分组，约 256 EiB，现实中碰不到。</li>
+  <li><strong>64 位分组太小。</strong>同一把密钥下加密几十 GB 数据后，重复的密文分组就开始以显著的概率出现。数字来自<strong>生日界</strong>（birthday bound：在 <span class="m">2<sup>b</sup></span> 种可能的值里随机取，取到约 <span class="m">2<sup>b/2</sup></span> 个时就会以显著概率出现两个相同的值，得名于「23 个人里有两人同一天生日的概率已过半」的生日悖论）：<span class="m">N</span> 个随机分组两两配对有约 <span class="m">N<sup>2</sup>/2</span> 对，每一对恰好相同的概率是 <span class="m">2<sup>−64</sup></span>，于是重复次数的期望约为 <span class="m">N<sup>2</sup>/2<sup>65</sup></span>；<span class="m">N = 2<sup>32</sup></span> 时它已经是 <span class="m">1/2</span>，至少出现一次重复的概率约 <span class="m">1 − e<sup> −1/2</sup> ≈ 39%</span>。<span class="m">2<sup>32</sup></span> 个 8 字节分组就是 32 GiB（GiB、EiB 是二进制单位：1 GiB = <span class="m">2<sup>30</sup></span> 字节，1 EiB = <span class="m">2<sup>60</sup></span> 字节；L3 用的 EB 是十进制单位，1 EB = <span class="m">10<sup>18</sup></span> 字节）。重复的密文分组会泄露两段明文之间的关系，具体泄露什么取决于怎样把分组密码用在长消息上，即工作模式（L3 1.1；例如在 CBC 模式下，两个相同的密文分组泄露对应两个明文分组的异或；课件把工作模式放在 Lecture 5，即 L6 对称密码的安全使用）。AES 的分组是 128 位，同样的界推到 <span class="m">2<sup>64</sup></span> 个分组，约 256 EiB，现实中碰不到。</li>
   <li><strong>三重 DES 只是权宜之计。</strong>三重 DES（Triple DES，3DES）把 DES 连跑三遍，付出三倍的运算。三密钥 3DES 的密钥是 168 位，但因为中间相遇攻击（meet-in-the-middle：从明文一侧正向加密、从密文一侧反向解密，在中间查表配对），有效强度只有约 112 位（两密钥版约 80 位），见 L3 10.1 与 L3 10.2。它慢，分组仍是 64 位，软件实现也别扭；NIST 已禁止它用于新的加密。</li>
   <li><strong>软件性能差。</strong>DES 为 1970 年代的硬件设计，大量逐位置换：在硬件里只是交换几根导线，几乎免费；在软件里每一位都要单独移位、取出、放回，非常慢——正好和通用处理器的世界反过来。</li>
 </ol>
@@ -1188,7 +1188,7 @@ table.ktab td span.fut{opacity:.35}
 
 <h3 id="s11-3"><span class="n">11.3</span>一个分组密码还不是一个系统</h3>
 
-<p>AES 一次只加密<strong>恰好 128 位</strong>。真实的消息更长、更短或分批到达；要用分组密码保护一个文件、一条连接或一块硬盘，还需要一个<span class="term">工作模式</span><span class="en">（mode of operation：规定怎样把分组密码反复用在任意长度的数据上）</span>。课件说：选错模式毁掉的系统，远比 AES 本身的任何弱点多——这是 Lecture 5 的内容。</p>
+<p>AES 一次只加密<strong>恰好 128 位</strong>。真实的消息更长、更短或分批到达；要用分组密码保护一个文件、一条连接或一块硬盘，还需要一个<span class="term">工作模式</span><span class="en">（mode of operation：规定怎样把分组密码反复用在任意长度的数据上）</span>。课件说：选错模式毁掉的系统，远比 AES 本身的任何弱点多——这是 Lecture 5（L6 对称密码的安全使用）的内容。</p>
 
 <details class="box">
   <summary>课堂活动 4 解答：评判四个说法</summary>
@@ -1227,7 +1227,7 @@ table.ktab td span.fut{opacity:.35}
 </ul></div>
 
 <footer>
-<p>下一讲：<strong>使用对称密码</strong>——工作模式（ECB/CBC/CTR/GCM）、随机性、用 CMAC 和 GCM 做消息认证、密钥管理。截至 2026/10/21 这一套课件尚未发布。</p>
+<p>下一讲：<strong>使用对称密码</strong>——工作模式（ECB/CBC/CTR/GCM）、随机性、用 CMAC 和 GCM 做消息认证、密钥管理，见 L6 对称密码的安全使用。</p>
 <p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L4 AES.md</code> 的阅读优化版，内容一致；页内交互件的数值全部由页面里的 AES 内核现算（内核已用 FIPS 197 附录 B/C 测试向量与 pycryptodome 随机对拍核对）。检索与双链请在 Obsidian 里用。</p>
 </footer>
 

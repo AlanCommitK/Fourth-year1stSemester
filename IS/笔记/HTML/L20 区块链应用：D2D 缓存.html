@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L20 区块链应用：D2D 缓存 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* 四列以上的表在窄屏改为在 .tw 里横向滚动 */
+@media (max-width:640px){ .tw>table.wide{min-width:34rem} }
+th.nw,td.nw{white-space:nowrap}
+/* 骨架里 details.box>*{display:block} 打不开已关闭的 details（内容在 ::details-content 里），这里补上 */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+/* ---------- 公式（tex.py 的输出） ---------- */
+.m .up{font-style:normal; font-family:inherit; font-size:.94em}
+.m b.bs{font-weight:700}
+.m .ss{display:inline-flex; flex-direction:column; vertical-align:-.55em; line-height:1.05; font-size:.68em; font-style:normal; margin-left:.04em}
+.m .ss>span{display:block}
+.m .bigop{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1.05; margin:0 .2em}
+.m .bigop .opc{font-size:1.6em; font-style:normal; line-height:1}
+.m .bigop .lim{font-size:.62em; font-style:normal}
+.m .bigd{font-size:1.45em; font-style:normal; line-height:1; vertical-align:-.12em}
+@media (max-width:600px){ .eq{font-size:1rem; overflow-x:auto; overflow-y:hidden} }
+/* ---------- 图：JS 现画的 SVG；窄屏保持最小宽度，在图框里横向滑动，不撑破页面 ---------- */
+.fs{overflow-x:auto; overflow-y:hidden}
+.fs>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.tool .fs>svg{border-radius:8px}
+.legend{display:flex; flex-wrap:wrap; gap:.3rem 1rem; font-size:13px; color:var(--muted); margin:.4rem 0 0}
+.legend i{display:inline-block; width:.85rem; height:.85rem; border-radius:3px; vertical-align:-.1rem; margin-right:.35rem}
+.kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:.6rem; margin:.6rem 0}
+.kv div{background:var(--surface2); border-radius:8px; padding:.55rem .8rem}
+.kv .lab{display:block; font-size:12.5px; color:var(--muted)}
+.kv .val{display:block; font-size:1.2rem; font-weight:600; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.kv .val small{font-size:.7em; color:var(--muted); font-weight:400}
+.tool input.num{width:5.6rem; font-size:14px; padding:.25rem .4rem}
+.pill{display:inline-block; padding:0 .45rem; border-radius:20px; font-size:12.5px; border:1px solid currentColor}
+.pill.good{color:var(--ok)} .pill.bad{color:var(--warn)}
+.tool .steps .mono{font-size:14px}
+
+.dqg{display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:.45rem 1.1rem; margin:.2rem 0 .9rem}
+.dqg .ctl{justify-content:space-between}
+.dqg label{font-size:14px; color:var(--muted)}
+.dqg input.num{width:5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 20</div>
+  <div class="tt">区块链应用：D2D 缓存</div>
+  <div class="toc">
+<a href="#s1">1 · 要解决的问题：让手机互相递内容</a>
+<a href="#s1-1" class="sub">1.1 D2D、缓存与三种取法</a>
+<a href="#s1-2" class="sub">1.2 存什么：一个要学的决策</a>
+<a href="#s2">2 · 为什么要联邦学习，又为什么要区块链</a>
+<a href="#s2-1" class="sub">2.1 联邦学习：交模型，不交数据</a>
+<a href="#s2-2" class="sub">2.2 联邦学习自己的短板</a>
+<a href="#s2-3" class="sub">2.3 区块链补上联邦学习的短板</a>
+<a href="#s3">3 · 双层区块链：子链 Raft，主链 PBFT</a>
+<a href="#s3-1" class="sub">3.1 三步走</a>
+<a href="#s3-2" class="sub">3.2 子链为什么用 Raft</a>
+<a href="#s3-3" class="sub">3.3 主链为什么用 PBFT</a>
+<a href="#s3-4" class="sub">3.4 抗拜占庭到底靠谁</a>
+<a href="#s3-5" class="sub">3.5 第三种故障：遗漏</a>
+<a href="#s4">4 · 缓存策略怎么学</a>
+<a href="#s4-1" class="sub">4.1 从 Q 值到 Double DQN</a>
+<a href="#s4-2" class="sub">4.2 本地、区域、全局三级更新</a>
+<a href="#s5">5 · 仿真结果</a>
+<a href="#s6">6 · 代价与局限</a>
+<a href="#s7">7 · 与 L19 对照</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 20 — Blockchain for D2D Caching</div>
+  <h1>区块链应用：D2D 缓存</h1>
+  <p>怎样让一群互不信任的手机一起学出缓存策略，既不交出各自的数据，又不让个别坏手机把结果带歪？</p>
+</header>
+
+
+<div class="box def">
+<div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>这是区块链应用的第二个实例。场景是手机网络：附近的手机之间可以直接传文件，如果热门内容事先存在别人手机上，就不必每次都从基站下载。问题是<strong>每部手机该存哪些内容</strong>——这要靠学习大家的请求规律，而请求规律是隐私。这一讲回答：<strong>怎样让一群互不信任的手机一起学出缓存策略，既不交出各自的数据，又不让个别坏手机把结果带歪？</strong></p>
+<p>方案由三层东西叠起来：</p>
+<ol>
+<li><strong>深度强化学习</strong>（deep reinforcement learning，DRL：让程序在反复试错中根据奖励学会决策，并用神经网络表示学到的东西），具体算法是 Double DQN（一种用两套参数分别"选动作""评动作"的 DRL 算法，<a href="#s4-1">4.1</a> 展开）：每部手机自己学"存什么能省最多时延"；</li>
+<li><strong>联邦学习</strong>（federated learning，FL）：手机之间只交换<strong>模型</strong>（学到的那一大串参数）、不交换数据，保护隐私；</li>
+<li><strong>双层区块链</strong>：每个簇内一条<strong>子链</strong>用 <strong>Raft</strong>（只容崩溃故障、由单个 leader 主导的共识），簇与簇之间一条<strong>主链</strong>用 <strong>PBFT</strong>（实用拜占庭容错，能容忍少数节点作恶的共识），记录并核验模型更新。</li>
+</ol>
+<p>课件按论文的结构排：背景 → 贡献 → 系统模型 → 问题建模（公式）→ 解法（框架、Double DQN、模型更新与算法）→ 仿真。本笔记先讲系统要解决的问题与联邦学习，再把<strong>双层区块链和两种共识的选择</strong>提到前面重点讲（这是本课的主线，逐条挂回 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>），Double DQN 与模型更新公式放到后面、讲到能看懂系统为止。最后一节和 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 对照。</p>
+<p>对应课件 <code>Lecture 20 - BC for D2D-slides.pdf</code>，11 页，Moodle 标题 "Lecture 20 - Tutorial II"，也是论文汇报幻灯片，没有学习目标、活动和例题。Moodle 上的 <strong>Research Paper 3</strong> 应是下面这篇期刊论文（按 Moodle 三篇论文的主题顺序推断，尚未在 Moodle 上逐一核对）：Runze Cheng, Yao Sun, Yijing Liu, Le Xia, Daquan Feng, Muhammad Ali Imran, "Blockchain-Empowered Federated Learning Approach for an Intelligent and Reliable D2D Caching Scheme", <em>IEEE Internet of Things Journal</em>, vol. 9, no. 11, pp. 7879–7890, 2022。课件封面的标题却是同一组作者的会议版 "A Privacy-preserved D2D Caching Scheme Underpinned by Blockchain-enabled Federated Learning"（IEEE GLOBECOM 2021，GLOBECOM 即 IEEE 全球通信大会 Global Communications Conference；期刊名里的 IoT 是 Internet of Things，物联网），幻灯片内容混用了两版：方案名 <strong>DBFL</strong>（double-layer blockchain-based federated learning，双层区块链联邦学习）出自会议版，<strong>BDRFL</strong>（double-layer blockchain-based deep reinforcement federated learning，双层区块链深度强化联邦学习）出自期刊版，课件 p10 干脆写成 "BDRFL (DBFL)"。两者指同一个方案，本笔记统称 DBFL。课件没定义的符号与仿真规模按论文原文补。课程总览见 00 课程信息与考情。</p>
+</div>
+
+<div class="box exam">
+<div class="h"><span class="tag">考点</span>本讲考情与模拟卷</div>
+<p>课件原文没有考试提示；总复习课件 <code>Lecture 20-Summary.pdf</code> 里本讲一页都没有。本讲主要作为下面几道题的应用例：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">模拟卷题</th><th class="nw">分值</th><th class="nw">本讲怎么用</th><th class="nw">见</th></tr></thead>
+<tbody>
+<tr><td>Q4(a)(v) RAFT 的三种角色，能否抗拜占庭</td><td class="nw">4</td><td>子链用 Raft、主链必须换 PBFT，正是因为 Raft 不抗拜占庭</td><td class="nw"><a href="#s3-4">3.4</a></td></tr>
+<tr><td>Q4(a)(iv) 3 个拜占庭节点至少要几个合法节点</td><td class="nw">3</td><td>主链 PBFT 的簇数下限</td><td class="nw"><a href="#s3-3">3.3</a></td></tr>
+<tr><td>Q3(b)(iv) 3 个崩溃节点至少要几个合法节点</td><td class="nw">3</td><td>子链 Raft 的簇内人数下限</td><td class="nw"><a href="#s3-2">3.2</a></td></tr>
+<tr><td>Q3(b)(i) 两类故障</td><td class="nw">4</td><td>本讲多出一个"遗漏故障"，答题仍写崩溃与拜占庭两类</td><td class="nw"><a href="#s3-5">3.5</a></td></tr>
+<tr><td>Q4(c)(iv) 其他区块链应用</td><td class="nw">2</td><td>参考答案 "any distributed systems requiring trusted data exchange"：D2D 缓存 / 联邦学习的可信模型交换可以作为一条</td><td class="nw"><a href="#s2-3">2.3</a></td></tr>
+<tr><td>Q3(a)(iii) 公有链、私有链、联盟链的准入</td><td class="nw">3</td><td>论文明说子链是联盟链（每台设备须获许可才能加入），又一个有许可链的实例</td><td class="nw"><a href="#s6">第 6 节</a></td></tr>
+<tr><td>Q3(b)(ii) 列举三种共识机制</td><td class="nw">3</td><td>Raft、PBFT 在本讲以应用形式出现</td><td class="nw"><a href="#s3-2">3.2</a></td></tr>
+<tr><td>Q3(b)(v) 分片（卷面写作 sharing）的优点</td><td class="nw">2</td><td>双层链的分层扩容与分片同一思路，可对照记 high scalability、great transaction capacity</td><td class="nw"><a href="#s3-3">3.3</a></td></tr>
+<tr><td>Q4(c)(iii) 区块链用于某种网络的两个挑战</td><td class="nw">2</td><td>手机上的计算与通信开销、主链规模两难</td><td class="nw"><a href="#s6">第 6 节</a></td></tr>
+</tbody></table></div>
+<p>Double DQN 与马尔可夫决策过程（MDP）的公式不太可能考，<a href="#s4">第 4 节</a> 只讲到能看懂系统设计。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>要解决的问题：让手机互相递内容</h2>
+
+<h3 id="s1-1"><span class="n">1.1</span>D2D、缓存与三种取法</h3>
+
+<p><strong>D2D</strong>（device-to-device，设备到设备通信）是蜂窝网络里让两部挨得近的设备直接传数据、不经过基站中转的技术。蜂窝网络（cellular network）就是手机网：一个<strong>基站</strong>（base station，BS）覆盖一片区域，区域里的手机——通信里叫 <strong>UE</strong>（user equipment，用户设备）——平时都通过基站收发数据。</p>
+
+<p><strong>缓存</strong>（caching）是一种"预下载"：在用户请求之前，就把可能被请求的内容存到离用户近的地方。课件 p3 说它能显著减轻网络压力、降低用户的时延。</p>
+
+<p>把两者合起来，就是 D2D 缓存：每部手机拿出一部分存储空间缓存内容，邻居要时用 D2D 直接递过去，每部手机都相当于一台小服务器。</p>
+
+<figure>
+<div id="figCache" class="fs"></div>
+<figcaption>系统模型（课件 p5）：一个基站覆盖的大椭圆里有若干个手机簇；三种箭头是一部手机拿到内容的三种方式。</figcaption>
+</figure>
+
+<p>课件 p5 的系统模型：一个中心基站，若干部能缓存、能 D2D 通信的 UE，按位置分成簇（cluster，图中 Cluster A、Cluster B）。假设基站的缓存足够大，所有内容都能从基站拿到。一部手机要一个内容，有三种取法：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">取法</th><th class="nw">从哪拿</th><th class="nw">时延</th></tr></thead>
+<tbody>
+<tr><td>self-caching（自缓存）</td><td class="nw">自己手机里已经存了</td><td class="nw">几乎为零</td></tr>
+<tr><td>D2D-caching（D2D 缓存）</td><td>邻近手机存了，经 D2D 递过来</td><td class="nw">短</td></tr>
+<tr><td>BS-caching（基站缓存）</td><td>谁都没存，只好从基站下载</td><td class="nw">最长</td></tr>
+</tbody></table></div>
+
+<p>缓存的价值就是让尽量多的请求落在前两行。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>存什么：一个要学的决策</h3>
+
+<p>每部手机空间有限，只能存一部分内容。存什么最划算，取决于这片区域里大家爱看什么，而这会随地点、时段变化——没有一张固定的答案表，只能从请求记录里学。</p>
+
+<p>论文把它写成一个<strong>多智能体马尔可夫决策过程</strong>（multi-agent Markov decision process，multi-agent MDP）。<strong>MDP</strong> 描述"一边观察、一边做决定"的问题。名字里的<strong>马尔可夫</strong>（Markov）指一条假设：下一个状态只取决于当前状态和当前动作，与更早的历史无关。具体是：每个时刻，决策者（叫<strong>智能体</strong> agent）看到当前<strong>状态</strong>（state），选一个<strong>动作</strong>（action），得到一份<strong>奖励</strong>（reward），状态随之变化；目标是让长期累计的奖励最大。"多智能体"是因为每部手机都是一个智能体，而且彼此影响：邻居存了什么，直接决定我能不能用 D2D 省时延。</p>
+
+<p>课件 p6 的三样东西（课件没解释符号，按论文补；左面板标题 "Action and Space" 应为 "Action and State"）：</p>
+
+<ul>
+<li><strong>动作</strong>：<span class="m">𝒜<sub>u</sub> = {a<sub>u,1</sub>, …, a<sub>u,f</sub>}</span>，<span class="m">a<sub>u,f</sub> ∈ {0, 1}</span> 表示手机 <span class="m">u</span> 存不存第 <span class="m">f</span> 个内容；</li>
+<li><strong>状态</strong>：<span class="m">𝒮<span class="ss"><span>t</span><span>u</span></span> = (𝒫<span class="ss"><span>t</span><span>u</span></span>, 𝒬<span class="ss"><span>t</span><span>u</span></span>)</span>。<span class="m">𝒫</span> 是手机 <span class="m">u</span> 覆盖范围内各内容的<strong>流行度</strong>估计（某内容的请求数占总请求数的比例）；<span class="m">𝒬</span> 是本地<strong>命中率</strong>（hit rate：在 <span class="m">u</span> 周围的手机里，有多大比例是从 <span class="m">u</span> 这里拿到某内容的）；</li>
+<li><strong>奖励</strong>：省下的时延。核心是这一项：</li>
+</ul>
+
+<div class="eq"><span class="m">H<span class="ss"><span>t</span><span>u,f</span></span> = τ<span class="ss"><span>f</span><span>u0</span></span> − Γ<span class="ss"><span>t</span><span>u,f</span></span></span></div>
+
+<p><span class="m">τ<span class="ss"><span>f</span><span>u0</span></span></span> 是手机 <span class="m">u</span> 从基站下载内容 <span class="m">f</span> 要花的时间，<span class="m">Γ<span class="ss"><span>t</span><span>u,f</span></span></span> 是它实际拿到 <span class="m">f</span> 花的时间。两者之差就是"因为有人缓存而省下的时延"。例（数值为示意）：从基站下载要 50 ms，邻居经 D2D 递过来要 10 ms，<span class="m">H = 50 − 10 = 40</span> ms；自己就存着，<span class="m">H ≈ 50</span> ms；谁都没存，只能从基站下载，<span class="m">H = 0</span>。</p>
+
+<details class="box">
+<summary>课件 p6 的总奖励与回报公式（理解用）</summary>
+<p>总时延节省：</p>
+<div class="eq"><span class="m">Y<span class="ss"><span>t</span><span>u</span></span> = <span class="bigop"><span class="lim">κ</span><span class="opc">∑</span><span class="lim">i=1</span></span>d<span class="ss"><span>t</span><span>u,i</span></span>H<span class="ss"><span>t</span><span>u,i</span></span> + <span class="bigop"><span class="lim">κ</span><span class="opc">∑</span><span class="lim">i=1</span></span><span class="bigop"><span class="lim">&nbsp;</span><span class="opc">∑</span><span class="lim">μ∈𝒩<sub>u</sub></span></span>a<span class="ss"><span>t</span><span>μ,i</span></span> d<span class="ss"><span>t</span><span>u,i</span></span> H<span class="ss"><span>t</span><span>μ,i</span></span></span></div>
+<p><span class="m">κ</span> 是内容总数；<span class="m">d<span class="ss"><span>t</span><span>u,i</span></span> ∈ {0, 1}</span> 表示 <span class="m">u</span> 此刻有没有请求内容 <span class="m">i</span>；<span class="m">𝒩<sub>u</sub></span> 是 <span class="m">u</span> 的 D2D 邻居集合。第一项是 <span class="m">u</span> 自己的各个请求省下的时延。按论文式 (1)–(3)，实际时延 <span class="m">Γ<span class="ss"><span>t</span><span>u,f</span></span> = (1 − a<span class="ss"><span>t</span><span>u,f</span></span>)[Z<span class="ss"><span>t</span><span>u,f</span></span> + τ<span class="ss"><span>f</span><span>u0</span></span>∏<sub>μ∈𝒩<sub>u</sub></sub>(1 − a<span class="ss"><span>t</span><span>μ,f</span></span>)]</span>（<span class="m">Z</span> 是从最快的持有邻居取来的时延），所以 <span class="m">H<sub>u,i</sub></span> 本身已经包含了"自己缓存"（<span class="m">Γ = 0</span>）和"邻居经 D2D 递来"（<span class="m">Γ = Z</span>）两种节省——正文例子里的 40 ms 就是第一项算出来的。第二项与邻居的缓存动作 <span class="m">a<sub>μ,i</sub></span> 相乘，把邻居也写进了 <span class="m">u</span> 的奖励；它的确切含义论文没有说明，下标也可疑（用邻居的 <span class="m">H<sub>μ,i</sub></span> 却乘 <span class="m">u</span> 的请求 <span class="m">d<sub>u,i</sub></span>），理解到"邻居的动作进入我的奖励，这就是多智能体"即可。</p>
+<p>总奖励 <span class="m">R<sub>t</sub></span> 把所有 UE 的 <span class="m">Y</span> 汇总起来（课件式中求和上限 <span class="m">α</span> 是 UE 总数，与后面的学习率 <span class="m">α</span> 撞了符号；式中另有 <span class="m">1/|𝒩<sub>u</sub>|</span> 归一化和一项邻居项，这里不展开）。</p>
+<p>回报（return）：</p>
+<div class="eq"><span class="m">R̂<sub>t</sub> = <span class="bigop"><span class="lim">m−1</span><span class="opc">∑</span><span class="lim">i=0</span></span>γ<sup>i</sup>R<sub>t+i</sub> + γ<sup>m</sup>R̂<sub>t+m</sub></span></div>
+<p><strong>折扣因子</strong>（discount factor）<span class="m">γ ∈ (0, 1)</span> 让越远的奖励打越多折：前 <span class="m">m</span> 步用真实拿到的奖励，第 <span class="m">m</span> 步以后的用估计值 <span class="m">R̂<sub>t+m</sub></span> 兜底。例：<span class="m">γ = 0.9</span>、<span class="m">m = 3</span>，三步奖励 1、2、3，兜底估计 10：<span class="m">R̂<sub>t</sub> = 1 + 0.9 × 2 + 0.81 × 3 + 0.729 × 10 = 12.52</span>。</p>
+</details>
+
+<h2 id="s2"><span class="n">2</span>为什么要联邦学习，又为什么要区块链</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>联邦学习：交模型，不交数据</h3>
+
+<p>要学好"这片区域爱看什么"，最直接的办法是把所有手机的请求记录收集到一台服务器上一起训练。但请求记录就是"谁在什么时候看了什么"，是典型的隐私。</p>
+
+<p><strong>FL</strong>（federated learning，联邦学习）换了一个做法（课件 p3）："requires exchanges of learning models rather than raw data"。一轮联邦学习是这样的：</p>
+
+<ol>
+<li>每部手机下载当前的全局模型；</li>
+<li>用<strong>自己的</strong>数据在本地训练，得到一个改进过的本地模型；</li>
+<li>只把模型参数（或参数的改动量）上传，原始数据不离开手机；</li>
+<li>汇总方把大家的模型按某种权重平均，得到新的全局模型；</li>
+<li>下一轮重复。</li>
+</ol>
+
+<p>这里的<strong>模型</strong>（model）就是<strong>神经网络</strong>（neural network：由大量可调参数组成、靠数据训练出输入输出关系的函数）里那一大串可调的参数，记作 <span class="m"><b class="bs">ω</b></span>；"训练"就是根据数据一点点调这些参数。参数里浓缩了"从数据里学到的规律"，却不直接包含任何一条原始记录。</p>
+
+<p>DBFL 的联邦学习是<strong>两级</strong>的（课件 p4 "double-stage cluster-based"）：手机先在簇内汇总成<strong>区域模型</strong>（area model），各簇的区域模型再汇总成<strong>全局模型</strong>（global model）。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>联邦学习自己的短板</h3>
+
+<p>普通的联邦学习有一个汇总方（通常是一台服务器），这带来和 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 一样的中心化问题，外加两个新问题：</p>
+
+<ul>
+<li><strong>汇总方必须被信任，而且是单点</strong>：它挂了，全体停摆；它作恶，可以随意篡改全局模型；</li>
+<li><strong>参与者可能交来坏的更新</strong>：有的手机中途掉线、不再更新；有的手机故意上传乱七八糟的参数，把全局模型带歪——这叫<strong>模型投毒</strong>（model poisoning）。汇总方只看得到参数，看不到数据，很难判断一份更新是不是认真训练出来的；</li>
+<li><strong>没有记录，也没有激励</strong>：谁交了什么、哪一轮被谁带歪了，事后无从追查；认真训练耗电耗流量，却没有回报。</li>
+</ul>
+
+<h3 id="s2-3"><span class="n">2.3</span>区块链补上联邦学习的短板</h3>
+
+<p>课件 p3 对区块链的定位："a distributed ledger technology providing immutable and persistent data records, can be expected to serve as an information verification and storage tool in FL"。对应上面三条：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">联邦学习的短板</th><th class="nw">区块链怎样补</th></tr></thead>
+<tbody>
+<tr><td>汇总方是单点、要被信任</td><td>汇总由当选的 leader（簇里被选出来负责汇总的那部手机，<a href="#s3-2">3.2</a> 讲它怎么选）做，结果要经共识认可才算数；leader 掉线会自动重选。作恶的 leader 在簇内识不破，只能靠主链核验它交上来的区域模型（见 <a href="#s3-4">3.4</a>）</td></tr>
+<tr><td class="nw">坏的更新</td><td>每份更新写进区块前要被核验，只有通过的才参与汇总；主链用 PBFT 容忍少数作恶 leader（不让它们左右结果），坏的更新本身靠核验剔除</td></tr>
+<tr><td class="nw">无记录、无激励</td><td>每份模型更新连同附加信息（Additional Information）上链，不可篡改、可追溯；上链的参与者拿奖励（Reward，课件 p7 图中的比特币加镐图标）</td></tr>
+</tbody></table></div>
+
+<p>这就是模拟卷 Q4(c)(iv) 参考答案 "any distributed systems requiring trusted data exchange" 的又一个实例：这里交换的可信"数据"是模型更新。</p>
+
+<h2 id="s3"><span class="n">3</span>双层区块链：子链 Raft，主链 PBFT</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>三步走</h3>
+
+<figure>
+<div id="figDbfl" class="fs"></div>
+<figcaption>DBFL 的整体框架（课件 p7）：左边浅蓝的 Sublayer 是各簇的本地训练、区域汇总和子链，右边浅粉的 Mainlayer 是主链和全局模型。图例里绿、黄、红分别是可信、不确定、恶意节点。</figcaption>
+</figure>
+
+<p>课件 p7 说方案分三步：</p>
+
+<ol>
+<li><strong>发布任务、本地训练</strong>（task publishment and local model training）：<strong>任务发布者</strong>（Task Publisher，图左上）发布训练任务并挑选参与的 UE（"UE Selection"），基站与缓存服务器提供内容；各簇（FL Cluster 1 … FL Cluster a）里的手机用自己的数据训练本地模型。</li>
+<li><strong>子链与区域模型更新</strong>（sublayer blockchains and area models update）：每个簇用 Raft 选出一个 <strong>leader</strong>（"Sublayer Leader Election"），成员把本地模型交给它；leader 核验后汇总成区域模型（"Area Model Aggregation"），把区域模型和附加信息打包进本簇的子链。</li>
+<li><strong>主链与全局模型更新</strong>（main blockchain and global model update）：各簇的 leader 组成主链，用 PBFT 达成共识；按论文的设计，各 leader 每轮轮流当主节点（"Primary Leader Take Turns"，这和标准 PBFT 不同，见 <a href="#s3-3">3.3</a> 的说明），由它汇总出全局模型，写进主链（"Block 0 → Block 1 → …"）。</li>
+</ol>
+
+<p>图中的 (a)(b)(c) 三个标记和 "Uncertain Node"（不确定节点），课件和论文都没有解释。</p>
+
+<p>课件 p9 的两个算法框就是第 2、3 步的伪代码。按论文补上的关键动作：</p>
+
+<ul>
+<li><strong>Algorithm 2（子链）</strong>：每部手机下载全局模型 → 选动作、观察状态、拿奖励、更新本地模型 → 上传给簇 leader；然后 "Implement Raft consensus and elect new leaders"；leader 逐个核验成员交来的更新（原文 "Varificate updates"，即 verify）——论文的核验办法是看成员报告的训练用时与数据量对不对得上——只用通过的更新汇总区域模型，打包进子链的新块。</li>
+<li><strong>Algorithm 3（主链）</strong>：各 leader 取来各簇的区域更新并核验 → "Implement PBFT consensus and a area leader UE become a new global leader" → 这个全局 leader 汇总全局模型，打包进主链。论文的核验办法是：主节点对照上一版全局模型检查损失，并评估各区域模型的缓存命中率，<strong>只用表现好的区域模型更新全局模型</strong>。</li>
+</ul>
+
+<h3 id="s3-2"><span class="n">3.2</span>子链为什么用 Raft</h3>
+
+<p>先回忆 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 的 <strong>Raft</strong>（一种由单个 leader 主导日志复制、只容崩溃类故障的共识）：节点有三种角色——<strong>leader</strong>（领导者，接收请求、管理日志复制）、<strong>follower</strong>（跟随者，被动响应）、<strong>candidate</strong>（候选者，正在拉票想当 leader）。分两个阶段：</p>
+
+<ul>
+<li><strong>选主</strong>：leader 定期给 follower 发<strong>心跳</strong>（heartbeat：不带内容、只表示"我还活着"的消息）；follower 超过一段时间收不到心跳，就认定 leader 挂了，转成 candidate 拉票，拿到<strong>多数</strong>票就当选；</li>
+<li><strong>日志复制</strong>：<strong>日志</strong>（log）是按顺序编号的一串记录，每个节点各存一份；leader 把每条新记录发给 follower，多数节点存下，这条记录就算<strong>提交</strong>（commit：确定生效、不会再被撤回）。</li>
+</ul>
+
+<p>放到一个簇里，这套机制和 DBFL 的需求一一对上：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">DBFL 簇内的需要</th><th class="nw">Raft 提供的</th></tr></thead>
+<tbody>
+<tr><td>簇里要有一个汇总区域模型的人</td><td>Raft 的 leader 天然就是这个汇总者，"Sublayer Leader Election" 就是 Raft 选主</td></tr>
+<tr><td>汇总者掉线不能让整簇停摆</td><td class="nw">心跳超时自动重新选主</td></tr>
+<tr><td>区域模型的每次更新要在簇内留底</td><td>区域模型就是一条条日志，复制到多数成员上，这串日志就是子链</td></tr>
+<tr><td>手机算力、电量、带宽有限，簇内更新很频繁</td><td>Raft 的消息只在 leader 与各 follower 之间往返，follower 之间不互发，消息量随人数线性增长，比 PBFT 的平方增长便宜得多</td></tr>
+</tbody></table></div>
+
+<p>代价是 Raft <strong>只容崩溃类故障</strong>：<span class="m">N</span> 个节点里最多 <span class="m">f</span> 个崩溃时，要求</p>
+
+<div class="eq"><span class="m">N ≥ 2f + 1</span></div>
+
+<p>（推导见 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>：两组多数必须相交，<span class="m">2(N − f) &gt; N</span>。）论文仿真里每个簇 5 部手机，<span class="m">5 ≥ 2f + 1</span> 给出 <span class="m">f ≤ 2</span>：一个簇最多能有 2 部手机掉线还照常工作。反过来，要容 3 部手机崩溃，簇里至少 <span class="m">2 × 3 + 1 = 7</span> 部——和模拟卷 Q3(b)(iv) 的算法一样（3 个崩溃节点 → 至少 7 个节点，合法节点至少 4 个）。</p>
+
+<p>论文的会议版写明 "we only consider the omission fault in the sublayer chains"，期刊版说子链 "help UEs to reach consensus under crash and omission failures"：设计者有意让子链只防"掉线、漏消息"这一类不怀恶意的故障。会议版也给了子链不用 PoW（工作量证明）、PoS（权益证明）的理由：受限于手机的低计算能力，"the proof-based consensus mechanisms with high consumption … cannot be directly applied"——和 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 排除 PoW 是同一个思路。</p>
+
+<h3 id="s3-3"><span class="n">3.3</span>主链为什么用 PBFT</h3>
+
+<p>主链的参与者<strong>只有各簇的 leader</strong>。它决定全局模型，全局模型又会被下发给每一部手机——一个作恶的 leader 如果能把投毒的区域模型混进去，坏的是整个网络。所以这一层必须防拜占庭故障，Raft 不行，要用 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a> 主讲、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 复习的 <strong>PBFT</strong>（practical Byzantine fault tolerance，实用拜占庭容错）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>PBFT 的机制（L16、L17）</th><th class="nw">在 DBFL 主链上</th></tr></thead>
+<tbody>
+<tr><td>每个 view（视图：由同一个主节点主持的一段任期）有一个主节点（primary），其余是<strong>备份节点</strong>（backup）；主节点只在被怀疑出问题时才换（view change）</td><td>论文设计为各 leader <strong>每轮</strong>轮流当全局 leader（"Primary Leader Take Turns"），比 PBFT"出问题才换"频繁得多，见下面的说明框</td></tr>
+<tr><td><strong>预准备</strong>（pre-prepare，主节点给请求编号并广播）→ <strong>准备</strong>（prepare，备份节点互相确认收到的是同一编号的同一请求）→ <strong>提交</strong>（commit，攒够 <span class="m">2f + 1</span> 个一致的准备消息后互相广播"可以执行了"），节点两两交换消息</td><td>leader 们对"用哪些区域模型、全局模型是什么"达成一致</td></tr>
+<tr><td>容错下界 <span class="m">n ≥ 3f + 1</span></td><td>簇数决定能容几个作恶 leader</td></tr>
+<tr><td>客户端收到 <span class="m">f + 1</span> 个一致的回复才接受结果</td><td>会议版：<span class="m">f + 1</span> 个节点给出相同结果，请求才算成功</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+<div class="h"><span class="tag">辨析</span>每轮换主节点是 DBFL 的设计，不是 PBFT 本身的机制</div>
+<p>标准 PBFT 的主节点在一个 view 内固定，同一个 view 里处理成千上万个请求都是它；只有怀疑它故障、触发 view change 时，才按 <span class="m">p = v <span class="up">mod</span> n</span> 换下一个（<a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 都把"每一轮换一个 primary"列为误解）。DBFL 让各簇 leader 每轮轮流当全局 leader，可以理解为每一轮都主动进入一个新 view。答 PBFT 本身的题时，按 L16、L17 的口径写"primary 按视图固定，只在 view change 时更换"。</p>
+</div>
+
+<p>PBFT 消息量随节点数平方增长（<a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 里算过：按点对点条数、正常情况、不计客户端请求，4 个节点不含 reply 24 条，含 reply 28 条，后者是 L17 的口径），所以它只适合<strong>小规模</strong>的网络——这正是双层设计的用意：几十上百部手机在各自的簇里用便宜的 Raft，只有少数几个 leader 上主链跑昂贵的 PBFT。期刊版的原话是 PBFT "is capable of detecting Byzantine failures in the <strong>small-scale</strong> mainlayer network"。"detecting" 是论文的说法，准确地说 PBFT 是<strong>容忍</strong>（在至多 <span class="m">f</span> 个作恶者存在时照样达成正确的一致）而不是<strong>指认</strong>——它不告诉你哪个节点是坏的，view change 也只是怀疑主节点。</p>
+
+<p>这和 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a> 讲的扩容思路是一个方向——侧链（sidechain：挂在主链旁边、分担交易的另一条链）和分片（sharding：把网络分成若干组，各组并行处理自己那部分交易）：把大量的局部工作分到多条并行的小链上做，主链只接收汇总后的结果，主链的负担随簇数而不是随手机数增长。</p>
+
+<p>主链要容 <span class="m">f</span> 个作恶 leader，簇数（= 主链节点数）至少 <span class="m">3f + 1</span>：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">簇数（主链节点数）</th><th>最多容忍的作恶 leader 数 <span class="m">⌊(n − 1)/3⌋</span></th></tr></thead>
+<tbody>
+<tr><td class="nw">3</td><td class="nw">0</td></tr>
+<tr><td class="nw">4</td><td class="nw">1</td></tr>
+<tr><td class="nw">7</td><td class="nw">2</td></tr>
+<tr><td class="nw">10</td><td class="nw">3</td></tr>
+</tbody></table></div>
+
+<p>最后一行就是模拟卷 Q4(a)(iv)：3 个拜占庭节点 → 至少 10 个节点，合法节点至少 7 个。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>期刊版论文里的三处说法不要照抄</div>
+<p>读 Research Paper 3（期刊版）原文时会遇到：</p>
+<ul>
+<li>"the maximum number of malicious nodes in PBFT that can be tolerated is <span class="m">f = (n<sub>a</sub> − 1)/2</span>"——<strong>错</strong>，应为 <span class="m">(n<sub>a</sub> − 1)/3</span>。会议版写的就是 <span class="m">(n<sub>a</sub> − 1)/3</span>，与 <span class="m">n ≥ 3f + 1</span> 一致。按期刊版的式子，3 个簇能容 1 个作恶 leader，正好和上表（3 簇 <span class="m">f = 0</span>）相反。</li>
+<li>"Only over half of the leaders confirm the validity of the model"——"过半"是 Raft 那类崩溃容错的法定人数；拜占庭容错要 <span class="m">2f + 1</span>（即超过 2/3）个一致的准备 / 提交消息，客户端要 <span class="m">f + 1</span> 个一致回复。</li>
+<li>在子链用 PBFT 会带来 "exponential growth of consensus complexity"——实际是平方增长，不是指数增长。</li>
+</ul>
+</div>
+
+<h3 id="s3-4"><span class="n">3.4</span>抗拜占庭到底靠谁</h3>
+
+<figure>
+<div id="figFaults" class="fs"></div>
+<figcaption>双层链的容错分工（按论文仿真规模画：3 个簇，每簇 5 部手机）。子链防掉线，主链容忍作恶 leader；成员的坏更新靠 leader 的核验挡掉。恶意 UE 与掉线 UE 在论文里分属两个仿真场景，画在一起只为示意。</figcaption>
+</figure>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>"双层区块链抗拜占庭"不等于每一层都抗</div>
+<p>课件 p7 原文："it resists Byzantine and omission faults by utilizing a double-layer blockchain"。</p>
+<p>误：子链和主链都能抵抗拜占庭故障。</p>
+<p>正：<strong>子链的 Raft 本身不抗拜占庭</strong>——模拟卷 Q4(a)(v) 的参考答案就是 "RAFT cannot resist Byzantine attacks/failures"：follower 无条件信任 leader 发来的日志，一个作恶的 leader 可以给不同成员发不同内容，一个作恶的成员也可以谎报任期抢票。整套方案的抗拜占庭能力只来自两类、共三处：① <strong>主链的 PBFT</strong>（容忍不超过 <span class="m">⌊(n − 1)/3⌋</span> 个作恶 leader）；② <strong>leader 对成员的核验</strong>（训练用时与数据量是否对得上）；③ <strong>主节点对区域模型的核验</strong>（损失与缓存命中率）。②③ 属于应用层的核验。核验不是共识协议的一部分，靠的是"坏更新表现出来就是差"。</p>
+</div>
+
+<p>还有一个容易漏掉的细节：论文仿真只有 <strong>3 个簇</strong>，主链 3 个节点，<span class="m">3 ≥ 3f + 1</span> 给出 <span class="m">f = 0</span>——<strong>按 PBFT 的下界，一个作恶 leader 都容不下</strong>。仿真里的拜占庭故障是"一部手机随机上传假的更新"，它被挡住靠的是 leader 和主节点的核验，而不是 PBFT 的容错下界。要让主链真的能容 1 个作恶 leader，至少要 4 个簇。</p>
+
+<div class="tool" id="tlTool">
+  <h4>两层各能容几个坏节点</h4>
+  <p class="sub">子链（簇内 Raft）只容崩溃：每簇 N 部手机最多容 ⌊(N−1)/2⌋ 部掉线。主链（各簇 leader 跑 PBFT）容拜占庭：n 个簇最多容 ⌊(n−1)/3⌋ 个作恶 leader。改每簇人数和簇数，或反过来问「要容 f 个至少要多少个节点」。</p>
+  <div class="row">
+    <span class="ctl"><label for="tlN">每簇手机数 N</label><input class="num" type="text" inputmode="numeric" id="tlN" value="5" oninput="tlGo()"></span>
+    <button class="btn" onclick="tlSet('tlN',5)">5（论文仿真）</button>
+    <button class="btn" onclick="tlSet('tlN',7)">7</button>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="tlC">簇数 n</label><input class="num" type="text" inputmode="numeric" id="tlC" value="3" oninput="tlGo()"></span>
+    <button class="btn" onclick="tlSet('tlC',3)">3（论文仿真）</button>
+    <button class="btn" onclick="tlSet('tlC',4)">4</button>
+    <button class="btn" onclick="tlSet('tlC',10)">10</button>
+  </div>
+  <div class="kv" id="tlKv"></div>
+  <div class="fs" id="tlFig"></div>
+  <div class="row" style="margin-top:.8rem">
+    <span class="ctl"><label for="tlF">要容 f 个</label><input class="num" type="text" inputmode="numeric" id="tlF" value="3" oninput="tlGo()"></span>
+    <span class="sub" style="margin:0">（模拟卷 Q3(b)(iv) 与 Q4(a)(iv) 都是 f = 3）</span>
+  </div>
+  <div class="result" id="tlOut"></div>
+</div>
+
+<h3 id="s3-5"><span class="n">3.5</span>第三种故障：遗漏</h3>
+
+<p>课件 p7、p10 出现了一个前几讲没有的词：<strong>遗漏故障</strong>（omission fault）。三种故障按"坏到什么程度"排成一个层级：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">故障</th><th class="nw">节点做什么</th><th class="nw">在 DBFL 仿真里</th></tr></thead>
+<tbody>
+<tr><td class="nw">崩溃（crash）</td><td>从某一刻起彻底停止，之后什么都不发（这是严格的 crash-stop；L17 记的课件 fail-stop 允许节点重启）</td><td class="nw">—</td></tr>
+<tr><td>遗漏（omission）</td><td>时有时无地漏发或漏收一部分消息，但发出去的内容都是对的</td><td>一部手机连续 10 轮以上不再上传更新</td></tr>
+<tr><td>拜占庭（Byzantine）</td><td>任意行为，包括发错误的、互相矛盾的内容</td><td>一部手机随机生成假的模型更新</td></tr>
+</tbody></table></div>
+
+<p>崩溃是"从某刻起遗漏一切"，所以是遗漏的特例；遗漏又是"只少发、不乱发"的拜占庭特例。能防拜占庭的协议一定能防另两种，反之不行。</p>
+
+<p>读会议版原文会撞上一处相反的说法：它在正文里把遗漏故障写成 "agents send false data accidentally"（无意中发错数据）。这不是标准用法，期刊版已改成 "A node fails to do partial expected processes (like the sending process, receiving process, etc.)"，两版仿真里的遗漏故障也都是"连续 10 轮以上不更新"。按标准定义答题。若真是"无意中发错数据"，Raft 也挡不住——Raft 不检查内容——要靠 leader 的核验。</p>
+
+<p>Raft 能处理遗漏：它本来就假设网络会丢包（<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 的运行前提 "Unreliable network communication"），漏掉的消息靠 leader 重发补上，长期不响应的成员就当它崩溃。</p>
+
+<p>答模拟卷 Q3(b)(i)（"List and explain two typical failures"）仍写课内的两类：崩溃故障（节点无法正常收发）、拜占庭故障（节点可以任意发送错误信息）。遗漏故障是本讲补充，不要拿它替换其中一类。</p>
+
+<h2 id="s4"><span class="n">4</span>缓存策略怎么学</h2>
+
+<p>这一节讲课件 p8、p9 的公式。它们属于机器学习，不是本课重点；读懂"每部手机在本地学什么、学到的东西怎样一级级汇总"就够了，公式推算和算例都收在折叠框里。</p>
+
+<h3 id="s4-1"><span class="n">4.1</span>从 Q 值到 Double DQN</h3>
+
+<p>DBFL 里每部手机就是一个 DRL（深度强化学习）智能体。它学的东西可以用四句话说清：</p>
+
+<ul>
+<li><strong>Q 值</strong>：<span class="m">Q(s, a)</span> 表示"在状态 <span class="m">s</span> 下做动作 <span class="m">a</span>，之后一直照最好的方式做，长期能拿到多少回报"。有了 Q 值，决策就是挑 Q 值最大的动作。记号上，<span class="m"><span class="up">arg</span> <span class="up">max</span><sub>a</sub> Q(s, a)</span> 给出<strong>使 Q 最大的那个动作</strong>，<span class="m"><span class="up">max</span><sub>a</sub> Q(s, a)</span> 给出<strong>那个最大值本身</strong>，两者不能混用。</li>
+<li><strong>DQN</strong>（deep Q-network，深度 Q 网络）：缓存问题的状态和动作组合太多，没法列表，于是用一个参数为 <span class="m"><b class="bs">ω</b></span> 的神经网络近似 Q 值，记作 <span class="m">Q(s, a; <b class="bs">ω</b>)</span>。<strong>联邦学习里交换、汇总的"模型"，就是每部手机这个 Q 网络的参数 <span class="m"><b class="bs">ω</b></span></strong>，和 <a href="#s2-1">2.1</a> 的 <span class="m"><b class="bs">ω</b></span> 是同一个东西。</li>
+<li><strong>训练目标</strong>：课件 p8 第一式 <span class="m">Q(s<sub>t</sub>, a<sub>t</sub>; <b class="bs">ω</b>) ≈ r<sub>t</sub> + γ Q(s<sub>t+1</sub>, a<sub>t+1</sub>; <b class="bs">ω</b>)</span> 说，此刻的 Q 值应当约等于"这一步拿到的奖励 <span class="m">r<sub>t</sub></span> + 打折后的下一步 Q 值"（<span class="m">γ</span> 是折扣因子，<span class="m">0 &lt; γ &lt; 1</span>）。每一步据此算一个<strong>目标值</strong> <span class="m">y<sub>t</sub></span>，让网络输出向它靠。<strong>损失</strong>（loss）<span class="m">L<sub>t</sub> = <sup>1</sup>⁄<sub>2</sub>[Q(s<sub>t</sub>, a<sub>t</sub>; <b class="bs">ω</b>) − y<sub>t</sub>]<sup>2</sup> = <sup>1</sup>⁄<sub>2</sub>δ<span class="ss"><span>2</span><span>t</span></span></span> 量的是网络输出离目标多远，差值 <span class="m">δ<sub>t</sub></span> 叫 <strong>TD 误差</strong>（temporal-difference error，时序差分误差：前后两个时刻的估计之间的不一致）。</li>
+<li><strong>Double DQN</strong>：目标值要用到"下一状态里最好的动作值有多大"，而估计值带噪声时，<strong>取最大会系统性地偏高</strong>。Double DQN 的改法是把"选"和"评"分给两套参数：用正在训练的网络 <span class="m"><b class="bs">ω</b></span> <strong>选</strong>下一步的动作，用<strong>目标网络</strong>（target network：<span class="m"><b class="bs">ω</b></span> 隔一段时间复制一份、中间保持不动的旧参数）<span class="m"><b class="bs">ω</b><sup>−</sup></span> <strong>评</strong>这个动作值多少。两套参数的误差不会恰好朝同一个方向，偏高被削弱。</li>
+</ul>
+
+<details class="box">
+<summary>Double DQN 的公式与算例（理解用）</summary>
+<p><strong>为什么取最大会偏高</strong>：设两个动作的真实价值都是 0，估计值各带一个相互独立、服从标准正态分布（标准差为 1）的误差。两个估计中较大者的期望是 <span class="m">1/√<span class="sqrt">π</span> ≈ 0.56</span>，而不是 0——取最大总是挑到"碰巧估高了"的那个。</p>
+<p><strong>公式</strong>：</p>
+<div class="eq"><span class="m">a<sup>∗</sup> = <span class="up">arg</span> <span class="up">max</span><sub>a</sub> Q(s<sub>t+1</sub>, a; <b class="bs">ω</b>),   y<sub>t</sub> = r<sub>t</sub> + γ Q(s<sub>t+1</sub>, a<sup>∗</sup>; <b class="bs">ω</b><sup>−</sup>)</span></div>
+<p>普通 DQN 则是 <span class="m">y<sub>t</sub> = r<sub>t</sub> + γ <span class="up">max</span><sub>a</sub> Q(s<sub>t+1</sub>, a; <b class="bs">ω</b><sup>−</sup>)</span>：在目标网络上既选又评。</p>
+<p><strong>算例</strong>：<span class="m">r<sub>t</sub> = 1</span>，<span class="m">γ = 0.9</span>，下一状态有两个动作。训练中的网络给出 <span class="m">Q(a<sub>1</sub>) = 5</span>、<span class="m">Q(a<sub>2</sub>) = 6</span>，选 <span class="m">a<sup>∗</sup> = a<sub>2</sub></span>；目标网络给出 <span class="m">Q(a<sub>1</sub>) = 7</span>、<span class="m">Q(a<sub>2</sub>) = 4</span>。</p>
+<ul>
+<li>Double DQN：<span class="m">y<sub>t</sub> = 1 + 0.9 × 4 = 4.6</span>；</li>
+<li>普通 DQN（直接取目标网络的最大值 7）：<span class="m">y<sub>t</sub> = 1 + 0.9 × 7 = 7.3</span>，偏高；</li>
+<li>若此刻 <span class="m">Q(s<sub>t</sub>, a<sub>t</sub>; <b class="bs">ω</b>) = 4</span>，则 <span class="m">δ<sub>t</sub> = 4 − 4.6 = −0.6</span>，<span class="m">L<sub>t</sub> = <sup>1</sup>⁄<sub>2</sub> × 0.36 = 0.18</span>。</li>
+</ul>
+<p><strong>符号约定</strong>：本式取 <span class="m">δ<sub>t</sub> = Q − y<sub>t</sub></span>，与论文式 (10)(11) 一致，这样才有下一小节的 <span class="m"><b class="bs">g</b> = δ<sub>t</sub> ∂Q/∂<b class="bs">ω</b></span>；多数教材把 TD 误差定义为 <span class="m">y<sub>t</sub> − Q</span>，符号相反。</p>
+</details>
+
+<div class="tool" id="dqTool">
+  <h4>Double DQN：目标值、TD 误差与一步更新</h4>
+  <p class="sub">默认是上面折叠框里的算例。改任何一个数，看「训练网络选、目标网络评」与普通 DQN「目标网络上直接取最大」差在哪，以及 TD 误差、损失和参数这一步往哪挪。</p>
+  <div class="dqg">
+    <span class="ctl"><label for="dqR">奖励 r<sub>t</sub></label><input class="num" type="text" id="dqR" value="1" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqG">折扣 γ</label><input class="num" type="text" id="dqG" value="0.9" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqQ1">训练网络 Q(a₁)</label><input class="num" type="text" id="dqQ1" value="5" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqQ2">训练网络 Q(a₂)</label><input class="num" type="text" id="dqQ2" value="6" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqT1">目标网络 Q(a₁)</label><input class="num" type="text" id="dqT1" value="7" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqT2">目标网络 Q(a₂)</label><input class="num" type="text" id="dqT2" value="4" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqQ">此刻 Q(s<sub>t</sub>, a<sub>t</sub>; ω)</label><input class="num" type="text" id="dqQ" value="4" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqD">∂Q/∂ω</label><input class="num" type="text" id="dqD" value="2" oninput="dqGo()"></span>
+    <span class="ctl"><label for="dqA">学习率 α</label><input class="num" type="text" id="dqA" value="0.001" oninput="dqGo()"></span>
+  </div>
+  <div class="row"><button class="btn" onclick="dqReset()">恢复笔记算例</button></div>
+  <div class="steps" id="dqSteps"></div>
+  <div class="result" id="dqOut"></div>
+  <h4 style="margin-top:1.2rem">为什么取最大会偏高</h4>
+  <p class="sub">两个动作的真实价值都是 0，估计值各带一个独立的标准正态误差。抽很多对，看较大者平均是多少（随机数种子固定，结果可复现）。</p>
+  <div class="row">
+    <span class="ctl"><label for="dqN">抽几对</label><input class="num" type="text" inputmode="numeric" id="dqN" value="10000"></span>
+    <button class="btn" onclick="dqSample()">抽样</button>
+  </div>
+  <div class="result" id="dqBias"></div>
+</div>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>课件 Double DQN 两式的写法</div>
+<p>课件 p8 写的是 <span class="m">a<sup>∗</sup> = <span class="up">arg</span> <span class="up">max</span><sub>x</sub> Q(s<sub>t+1</sub>, a; <b class="bs">ω</b>)</span> 和 <span class="m">y<sub>t</sub> = r<sub>t</sub> + γ · <span class="up">max</span><sub>a</sub> Q(s<sub>t+1</sub>, a<sup>∗</sup>; <b class="bs">ω</b><sup>−</sup>)</span>。这两式在两篇论文原文里就是这样写的（会议版式 (8)(9)，期刊版式 (12)(13)），不是课件转录出错。</p>
+<p>误：照抄这两式。</p>
+<p>正：第一式的下标应是 <span class="m">a</span>（对动作取 argmax）；第二式里 <span class="m">a<sup>∗</sup></span> 已经选定，外面再套 <span class="m"><span class="up">max</span><sub>a</sub> </span> 既多余、又会让人误以为还在目标网络上取最大，那就退回普通 DQN 了。标准写法是 <span class="m">y<sub>t</sub> = r<sub>t</sub> + γ Q(s<sub>t+1</sub>, a<sup>∗</sup>; <b class="bs">ω</b><sup>−</sup>)</span>（van Hasselt 等，AAAI 2016，AAAI 即美国人工智能协会年会）。同理，p9 Algorithm 2 第 5 行选动作应是 argmax 而非 max；第 1 行的 "reply memories" 应为 replay memory（<strong>经验回放</strong>：把过去的"状态、动作、奖励、下一状态"存起来，训练时随机抽取，打散相邻样本之间的相关性）。</p>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>本地、区域、全局三级更新</h3>
+
+<p>课件 p9 左栏三个式子，对应 <a href="#s3-1">3.1</a> 的三步。</p>
+
+<p><strong>本地模型</strong>（每部手机）用<strong>梯度下降</strong>（gradient descent：沿着让损失下降最快的方向把参数挪一小步）更新：</p>
+
+<div class="eq"><span class="m"><b class="bs">ω</b><sub>u,t+1</sub> = <b class="bs">ω</b><sub>u,t</sub> − α <b class="bs">g</b><sub>u,t</sub>,   <b class="bs">g</b><sub>u,t</sub> = <span class="frac"><span>∂(δ<span class="ss"><span>2</span><span>t</span></span>/2)</span><span>∂<b class="bs">ω</b></span></span> = δ<sub>t</sub><span class="frac"><span>∂Q(s<sub>t</sub>, a<sub>t</sub>; <b class="bs">ω</b>)</span><span>∂<b class="bs">ω</b></span></span></span></div>
+
+<p><span class="m">α</span> 是<strong>学习率</strong>（learning rate：每一步挪多远），<span class="m"><b class="bs">g</b></span> 是<strong>梯度</strong>（损失对每个参数的变化率）。</p>
+
+<details class="box">
+<summary>梯度一步的算例（理解用）</summary>
+<p>接上一小节折叠框里的例子：<span class="m">δ<sub>t</sub> = −0.6</span>。若 <span class="m">∂Q/∂ω = 2</span>、<span class="m">α = 0.001</span>，则 <span class="m">ω</span> 的变化为 <span class="m">−α δ<sub>t</sub> ∂Q/∂ω = −0.001 × (−0.6) × 2 = +0.0012</span>。<span class="m">δ<sub>t</sub> &lt; 0</span> 说明 Q 值估低了，参数往调高 Q 的方向挪。</p>
+</details>
+
+<p><strong>区域模型</strong>（簇 leader）把通过核验的成员梯度按数据量加权：</p>
+
+<div class="eq"><span class="m"><b class="bs">ω</b><span class="ss"><span>t+1</span><span>a</span></span> = <b class="bs">ω</b><span class="ss"><span>t</span><span>a</span></span> − α<span class="bigop"><span class="lim">&nbsp;</span><span class="opc">∑</span><span class="lim">u∈U<sub>c</sub></span></span><span class="frac"><span>s<sub>u,n</sub></span><span>S<sub>a</sub></span></span> <b class="bs">g</b><sub>t,u</sub></span></div>
+
+<p><span class="m">U<sub>c</sub></span> 是本簇<strong>通过核验</strong>的手机，<span class="m">s<sub>u,n</sub></span> 是手机 <span class="m">u</span> 的训练数据量。按会议版的定义，分母 <span class="m">S<sub>a</sub> = ∑<sub>u∈U<sub>a</sub></sub>s<sub>u,n</sub></span> 是<strong>全簇</strong> <span class="m">U<sub>a</sub></span> 的数据总量，而求和只跑通过核验的 <span class="m">U<sub>c</sub></span>。所以：</p>
+
+<ul>
+<li>全员通过核验时，权重就是各自的数据占比，加起来为 1。例：三部手机数据量 100、300、600，权重 0.1、0.3、0.6；数据多的手机说话分量大。</li>
+<li>有人被剔除时，权重和小于 1，被剔除者那份权重没有重新分给别人，等效于这一步走得更短。例：600 那部被剔除，剩下两部权重 0.1、0.3，和为 0.4。（期刊版把求和与分母都写成同一个集合，两版本身不一致。）</li>
+</ul>
+
+<p>没通过核验的手机不在 <span class="m">U<sub>c</sub></span> 里，它的梯度根本不进这个和——这就是 leader 挡住坏更新的位置。</p>
+
+<p><strong>全局模型</strong>（主链的全局 leader）：</p>
+
+<div class="eq"><span class="m"><b class="bs">ω</b><span class="ss"><span>r+1</span><span>g</span></span> = <span class="bigop"><span class="lim">&nbsp;</span><span class="opc">∑</span><span class="lim">a∈A</span></span><span class="frac"><span>1</span><span>n<sub>a</sub></span></span> <b class="bs">ω</b><span class="ss"><span>r</span><span>a</span></span></span></div>
+
+<p>课件没定义 <span class="m">n<sub>a</sub></span>。论文里 <span class="m">n<sub>a</sub></span> 是主链（PBFT）的节点总数，也就是区域模型的个数，所以这是<strong>简单平均</strong>：3 个簇各占 1/3。和区域那一级按数据量加权不同，这里一个小簇和一个大簇分量一样，是设计上的一个取舍。式子里加的是区域模型本身 <span class="m"><b class="bs">ω</b><sub>a</sub></span>，而区域那一级加的是梯度 <span class="m"><b class="bs">g</b></span>——两级汇总的对象不同：前者是<strong>联邦平均</strong>（FedAvg，federated averaging：把各方的模型参数直接做加权平均，联邦学习最常用的汇总法）的等权版本，后者等价于 leader 代成员走一步梯度下降。</p>
+
+<div class="tool" id="agTool">
+  <h4>区域模型与全局模型的权重</h4>
+  <p class="sub">区域一级：leader 只把通过核验的成员梯度加进来，权重 = 该成员的数据量 ÷ 全簇数据总量 S<sub>a</sub>（分母含被剔除的成员，按会议版的定义）。全局一级：区域模型简单平均，每个 1/n<sub>a</sub>。默认是笔记里的三部手机 100、300、600；取消勾选看剔除一部之后的权重和。</p>
+  <div class="row">
+    <span class="ctl"><label for="agS1">u1 数据量</label><input class="num" type="text" id="agS1" value="100" oninput="agGo()"><label><input type="checkbox" id="agP1" checked onchange="agGo()"> 通过</label></span>
+    <span class="ctl"><label for="agS2">u2</label><input class="num" type="text" id="agS2" value="300" oninput="agGo()"><label><input type="checkbox" id="agP2" checked onchange="agGo()"> 通过</label></span>
+    <span class="ctl"><label for="agS3">u3</label><input class="num" type="text" id="agS3" value="600" oninput="agGo()"><label><input type="checkbox" id="agP3" checked onchange="agGo()"> 通过</label></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="agNa">区域模型个数 n<sub>a</sub></label><input class="num" type="text" inputmode="numeric" id="agNa" value="3" oninput="agGo()"></span>
+  </div>
+  <div class="tw" id="agTab"></div>
+  <div class="result" id="agOut"></div>
+</div>
+
+<h2 id="s5"><span class="n">5</span>仿真结果</h2>
+
+<p>论文的仿真：3 个簇，每簇 5 部手机，10 个大小相同的内容。课件 p10 列了三个对比方案：</p>
+
+<ul>
+<li><strong>Zipf Random</strong>：按 <strong>Zipf 分布</strong>（一种描述流行度的经验规律：第 <span class="m">k</span> 热门的内容被请求的概率正比于 <span class="m">1/k<sup>s</sup></span>，少数热门内容占了大部分请求）随机决定缓存什么，不学习。<span class="m">s = 1</span>、10 个内容时，最热门的一个占 34.1% 的请求，前三个占 62.6%；</li>
+<li><strong>DRL-based</strong>：多智能体协作的 DRL（会议版："value function-based, it enables multi-agent cooperatively learning"），但没有全局模型聚合；</li>
+<li><strong>FL-based</strong>：做联邦学习，但不用区块链。</li>
+</ul>
+
+<p>两种故障场景：遗漏故障（有手机长期不更新）、拜占庭故障（有手机上传随机的假更新）。纵轴是时延节省，课件没给单位。</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">方案</th><th>遗漏故障下（后段读图）</th><th>拜占庭故障下（后段读图）</th></tr></thead>
+<tbody>
+<tr><td class="nw">DBFL</td><td>≈2.8–3.3，最高</td><td>≈3.0–3.6，最高</td></tr>
+<tr><td class="nw">FL-based</td><td class="nw">≈2.0–2.4</td><td>≈1.2–2.2，与 DRL 交错</td></tr>
+<tr><td class="nw">DRL-based</td><td class="nw">≈1.2–1.6</td><td class="nw">≈1.2–2.2</td></tr>
+<tr><td>Zipf Random</td><td>≈0.8–1.2，最低</td><td>≈0.8–1.2，最低</td></tr>
+</tbody></table></div>
+
+<p>读法：</p>
+
+<ul>
+<li>遗漏场景下 FL 高于 DRL：论文的解释是 DBFL 和 FL 的本地模型每 10 轮用全局模型更新一次，等于共享了"大家爱看什么"的规律，又没交数据；</li>
+<li>DBFL 高于 FL：课件的解释是 "fault nodes can be detected and replaced in the BDRFL-based scheme"——坏手机和掉线的手机被识别、被排除在汇总之外。拜占庭场景下 FL-based 被假更新拖到和 DRL 差不多，DBFL 不受影响，差距最明显；</li>
+<li>学习率：左上图是在没有任何故障或恶意节点的理想环境下画的，看的是损失（模型输出离目标多远）随训练回合的变化；曲线降到不再明显下降叫<strong>收敛</strong>（convergence）。课件说 0.001 "achieves a fast and stable convergence speed"。读图，0.1 起步降得最快但一直抖、不收敛到 0；0.01 约第 250 轮已接近 0，比 0.001（约第 400 轮）更早；0.001 的长处是终值低而稳。论文自己也写四条曲线"converge after around 500 episodes"，收敛时间差不多，"fast" 的说法和图不完全吻合。</li>
+</ul>
+
+<h2 id="s6"><span class="n">6</span>代价与局限</h2>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">代价或局限</th><th class="nw">说明</th></tr></thead>
+<tbody>
+<tr><td class="nw">手机上的开销</td><td>每部手机要本地训练神经网络，还要参加 Raft 的心跳、投票和日志复制，耗电、耗流量；leader 负担更重</td></tr>
+<tr><td class="nw">主链规模受限</td><td>PBFT 消息量随节点数平方增长，主链只能容纳少量 leader；而容错能力 <span class="m">⌊(n − 1)/3⌋</span> 又要求节点不能太少。3 个簇时一个作恶 leader 都容不下</td></tr>
+<tr><td>簇 leader 是信任点</td><td>子链 Raft 默认 leader 诚实；一个作恶的 leader 在簇内没人能识破，只能指望主链核验它交上来的区域模型</td></tr>
+<tr><td class="nw">核验可被绕过</td><td>"训练用时与数据量是否对得上""命中率好不好"是经验性检查，一个精心伪造、表现看似正常的坏更新未必挡得住</td></tr>
+<tr><td class="nw">部分中心化</td><td>任务发布者挑选参与的 UE，基站掌握全部内容。课件没说链的类型，论文明说用联盟链："consortium blockchains are exploited, where every device needs to get a permit to participate"（会议版），"it is necessary to develop a permissioned blockchain"（期刊版），即有许可链</td></tr>
+<tr><td>联邦学习的隐私不是绝对的</td><td>（课件外）模型参数或梯度本身可能泄露训练数据的部分信息，已有从梯度反推样本的攻击，叫梯度反演（gradient inversion）；"不交原始数据"降低了风险，不等于零泄露</td></tr>
+</tbody></table></div>
+
+<p>和 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 列的区块链代价一样，这些都是用开销换可信。</p>
+
+<h2 id="s7"><span class="n">7</span>与 L19 对照</h2>
+
+<p>两讲是同一个课题组、同一个套路——"AI（人工智能）做决策 + 区块链保可信"——用在两种网络上，放在一起最好记。表中 L19 一栏的术语——CRN（consensus RSU node，共识路边单元节点）、BFT-DPoS（按质押选代表、再由代表超过 2/3 签名确认的共识）、LSTM（长短期记忆网络）、VRI（车辆风险指数）——详见 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a>：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw"></th><th>L19 BEST（网联自动驾驶）</th><th>L20 DBFL（D2D 缓存）</th></tr></thead>
+<tbody>
+<tr><td class="nw">要保护什么</td><td class="nw">车辆的行驶数据</td><td class="nw">缓存模型的更新</td></tr>
+<tr><td class="nw">上链的是什么</td><td>数据本身（各车状态记录）</td><td class="nw">模型参数加附加信息</td></tr>
+<tr><td class="nw">原始数据</td><td class="nw">加密上传，存进链里</td><td>不离开手机（联邦学习）</td></tr>
+<tr><td class="nw">谁参与共识</td><td>质押投票选出的 CRN（路边单元）</td><td>子链：簇内手机；主链：各簇 leader</td></tr>
+<tr><td class="nw">共识</td><td>BFT-DPoS，一层</td><td>子链 Raft + 主链 PBFT，两层</td></tr>
+<tr><td class="nw">拜占庭容错来自</td><td>超过 2/3 的签名确认</td><td>主链 PBFT + 两处应用层核验；子链只防崩溃与遗漏</td></tr>
+<tr><td class="nw">AI 部件</td><td>LSTM 回归出 VRI，云端、预训练</td><td>Double DQN 学缓存策略，手机上分布式训练</td></tr>
+<tr><td class="nw">激励</td><td>CRN 按质押分 token，作恶扣罚换人</td><td class="nw">上链参与者得奖励</td></tr>
+<tr><td>Moodle 论文（按主题推断）</td><td>Research Paper 2（IEEE Network 2022）</td><td>Research Paper 3（IEEE IoT Journal 2022）</td></tr>
+</tbody></table></div>
+
+<p>一句话：L19 是"数据上链"，L20 是"模型上链"；L19 用一种兼顾效率的 BFT 共识，L20 用"只容崩溃的便宜共识在下、抗拜占庭的昂贵共识在上"的分层。</p>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li><strong>问题</strong>：D2D = 邻近设备直连传数据；缓存 = 预先把内容存到近处。三种取法：self-caching（自己有，时延约 0）、D2D-caching（邻居递，短）、BS-caching（基站下载，最长）。存什么要学：多智能体 MDP，动作 <span class="m">a<sub>u,f</sub> ∈ {0, 1}</span>，状态 = 本地流行度 + 命中率，奖励 = 省下的时延 <span class="m">H = τ<span class="ss"><span>f</span><span>u0</span></span> − Γ<span class="ss"><span>t</span><span>u,f</span></span></span>。</li>
+<li><strong>联邦学习</strong>：本地训练、只交模型不交数据，保护请求记录的隐私；两级汇总：本地 → 区域 → 全局。短板：汇总方单点且要被信任、坏更新（掉线 / 投毒）、无记录无激励。</li>
+<li><strong>区块链补短板</strong>：更新上链不可篡改可追溯；经共识与核验才参与汇总；奖励参与者。是 Q4(c)(iv) "trusted data exchange" 的又一例。</li>
+<li><strong>三步</strong>：发布任务与本地训练 → 子链与区域模型（Raft 选 leader，leader 核验后汇总、上子链）→ 主链与全局模型（leader 间 PBFT，按论文设计每轮轮流当 primary——标准 PBFT 只在 view change 时换；只用命中率好的区域模型）。</li>
+<li><strong>子链 Raft</strong>：Raft 的 leader 就是簇的汇总者；心跳超时重新选主；区域模型即日志；消息线性、便宜。只容崩溃 / 遗漏，<span class="m">N ≥ 2f + 1</span>：5 部手机容 2 个；容 3 个要 7 个。</li>
+<li><strong>主链 PBFT</strong>：只有各簇 leader 参加，规模小，扛得住平方级消息；容忍（不是指认）作恶 leader，防它投毒全局模型；<span class="m">n ≥ 3f + 1</span>：3 簇 <span class="m">f = 0</span>，4 簇 <span class="m">f = 1</span>，10 簇 <span class="m">f = 3</span>；<span class="m">f + 1</span> 个一致回复才算成功。类似侧链 / 分片的分层扩容。期刊版写的 <span class="m">f = (n<sub>a</sub> − 1)/2</span>、"过半"、"exponential" 都不对。</li>
+<li><strong>勘误</strong>：课件说双层链"抗拜占庭与遗漏故障"，但 <strong>Raft 不抗拜占庭</strong>；抗拜占庭只来自两类三处：主链 PBFT、leader 对成员的核验、主节点对区域模型的核验。仿真 3 个簇时 PBFT 连 1 个作恶 leader 都容不下。</li>
+<li><strong>故障层级</strong>：崩溃 ⊂ 遗漏 ⊂ 拜占庭。遗漏 = 漏发漏收但内容不错（会议版"无意发错数据"的说法不标准）。考 Q3(b)(i) 仍答崩溃与拜占庭。</li>
+<li><strong>Double DQN</strong>：Q 值 = 某状态做某动作的长期回报；取最大会偏高 → 训练网络选动作、目标网络 <span class="m"><b class="bs">ω</b><sup>−</sup></span> 评动作；<span class="m">y<sub>t</sub> = r<sub>t</sub> + γQ(s<sub>t+1</sub>, a<sup>∗</sup>; <b class="bs">ω</b><sup>−</sup>)</span>，损失 <span class="m"><sup>1</sup>⁄<sub>2</sub>δ<span class="ss"><span>2</span><span>t</span></span></span>。课件式子的 <span class="m"><span class="up">arg</span> <span class="up">max</span><sub>x</sub> </span>、多余的 <span class="m"><span class="up">max</span><sub>a</sub> </span> 是笔误。</li>
+<li><strong>三级更新</strong>：联邦学习交换的模型就是 Q 网络参数 <span class="m"><b class="bs">ω</b></span>。本地梯度下降；区域按数据量占比加权（只含通过核验的成员；分母是全簇数据量，全员通过时权重和才为 1）；全局 <span class="m">1/n<sub>a</sub></span> 简单平均（<span class="m">n<sub>a</sub></span> = 区域模型个数）。</li>
+<li><strong>仿真</strong>：3 簇 × 5 部手机、10 个内容；遗漏场景 DBFL &gt; FL &gt; DRL &gt; Zipf Random；拜占庭场景 DBFL 最高、FL 与 DRL 交错、Zipf 最低，DBFL 的优势最明显，因为坏节点被识别、排除。</li>
+<li><strong>方案名</strong>：DBFL（会议版）与 BDRFL（期刊版）是同一方案；Moodle 的 Research Paper 3 按主题推断是期刊版。</li>
+<li><strong>局限</strong>：手机耗电耗流量、主链规模两难、leader 是信任点、核验可被绕过、任务发布者带来部分中心化、梯度仍可能泄露隐私。</li>
+</ul></div>
+
+
+<footer>
+<p>本讲是后半程最后一讲。后半程总复习见课件 <code>Lecture 20-Summary.pdf</code>（只覆盖 L11–L18），课程总览见 00 课程信息与考情。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L20 区块链应用：D2D 缓存.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ===================== kit.js：三讲共用的 SVG 画图与数字格式 =====================
+   配色规则同 L1/L4：中性线条与文字用 currentColor + 透明度（自动跟随明暗主题）；
+   强调色 #2F6F8F 硬编码（只给线框与底色，文字仍用 currentColor，暗色下才看得清）；
+   其余语义色在开页时从 CSS 变量读一次。 */
+var AC='#2F6F8F';
+var CSSV=getComputedStyle(document.documentElement);
+function cssv(n,fb){ var v=(CSSV.getPropertyValue(n)||'').trim(); return v||fb; }
+var WRC=cssv('--warn','#B4534B'), OKC=cssv('--ok','#3F8A63'), EXC=cssv('--exam','#9A6B2F'),
+    MUC=cssv('--muted','#5C6673'), FAC=cssv('--faint','#8A929C'), ACT=cssv('--accent','#2F6F8F');
+var MONO='ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+var SVGNS='http://www.w3.org/2000/svg';
+function $(id){ return document.getElementById(id); }
+
+/* 数字：负号用 U+2212；d 位小数；big=true 时加千分位 */
+function nf(v,d,big){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s=(d===undefined)?String(v):Number(v).toFixed(d);
+  if(big){ var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,','); s=p.join('.'); }
+  return s.replace(/-/g,'−');
+}
+function pct(v,d){ return nf(v*100,d===undefined?1:d)+'%'; }
+
+function El(tag,attrs,parent){
+  var e=document.createElementNS(SVGNS,tag);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null&&attrs[k]!==undefined) e.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+var _svgN=0;
+/* 新建一张图：W×H 的 viewBox；minW 为窄屏下的最小显示宽度（外层 .fs 负责横向滑动） */
+function Fig(W,H,label,minW,maxW){
+  var s=El('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':label});
+  s.style.display='block'; s.style.width='100%'; s.style.height='auto';
+  if(minW) s.style.minWidth=minW+'px';
+  if(maxW) s.style.maxWidth=maxW+'px';
+  var id='g'+(++_svgN);
+  var defs=El('defs',null,s);
+  var mk={};
+  [['n','currentColor',.6],['a',AC,.95],['w',WRC,.95],['o',OKC,.95],['e',EXC,.95]].forEach(function(c){
+    var m=El('marker',{id:id+c[0],markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto',markerUnits:'strokeWidth'},defs);
+    El('path',{d:'M0,0 L8,3 L0,6 z',fill:c[1],'fill-opacity':c[2]},m);
+    mk[c[0]]='url(#'+id+c[0]+')';
+  });
+  var g=El('g',{'font-family':'inherit','font-size':13},s);
+  return {svg:s,g:g,mk:mk,id:id};
+}
+function mount(host,F){ var h=typeof host==='string'?$(host):host; h.innerHTML=''; h.appendChild(F.svg); return F; }
+
+/* 文字。t 里可用 _{..} / ^{..} 写下标、上标，用 \n 换行。
+   o: size, anchor, fill, op(透明度), weight, italic, mono, lh(行高倍数) */
+function Tx(g,x,y,t,o){
+  o=o||{};
+  var size=o.size||13, lh=o.lh||1.3;
+  var e=El('text',{x:x,y:y,fill:o.fill||'currentColor','font-size':size,'text-anchor':o.anchor||'middle'},g);
+  if(o.op!==undefined) e.setAttribute('fill-opacity',o.op);
+  if(o.weight) e.setAttribute('font-weight',o.weight);
+  if(o.italic) e.setAttribute('font-style','italic');
+  if(o.mono) e.setAttribute('font-family',MONO);
+  String(t).split('\n').forEach(function(line,li){
+    var parts=line.split(/(_\{[^}]*\}|\^\{[^}]*\})/), first=true;
+    parts.forEach(function(p){
+      if(p==='') return;
+      var ts=El('tspan',null,e);
+      if(first){ ts.setAttribute('x',x); if(li>0) ts.setAttribute('dy',size*lh); }
+      if(/^[_^]\{/.test(p)){
+        var dn=p[0]==='_';
+        ts.textContent=p.slice(2,-1); ts.setAttribute('font-size',size*.72);
+        ts.setAttribute('dy',(first&&li>0?size*lh:0)+(dn?size*.3:-size*.38));
+        var back=El('tspan',{dy:(dn?-size*.3:size*.38),'font-size':size},e); back.textContent='​';
+      } else ts.textContent=p;
+      first=false;
+    });
+  });
+  return e;
+}
+/* 矩形。o: fill, fop, stroke, sop, sw, rx, dash */
+function Rc(g,x,y,w,h,o){
+  o=o||{};
+  var e=El('rect',{x:x,y:y,width:w,height:h,rx:o.rx===undefined?6:o.rx,
+    fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.04:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.3:o.sop,'stroke-width':o.sw||1.2},g);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  if(o.none) e.setAttribute('stroke','none');
+  return e;
+}
+/* 路径。o: stroke, sop, sw, dash, mk（F.mk.n 等）, fill */
+function Pa(g,d,o){
+  o=o||{};
+  var e=El('path',{d:d,fill:o.fill||'none',stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.55:o.sop,
+    'stroke-width':o.sw||1.4,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  if(o.fop!==undefined) e.setAttribute('fill-opacity',o.fop);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  if(o.mk) e.setAttribute('marker-end',o.mk);
+  if(o.mks) e.setAttribute('marker-start',o.mks);
+  return e;
+}
+function Ln(g,x1,y1,x2,y2,o){ return Pa(g,'M'+x1+','+y1+' L'+x2+','+y2,o); }
+function Ci(g,cx,cy,r,o){
+  o=o||{};
+  var e=El('circle',{cx:cx,cy:cy,r:r,fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.08:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.4:o.sop,'stroke-width':o.sw||1.2},g);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  return e;
+}
+/* 无线链路：两点之间画一段带折线的「闪电」 */
+function Zig(g,x1,y1,x2,y2,o){
+  o=o||{};
+  var dx=x2-x1, dy=y2-y1, L=Math.sqrt(dx*dx+dy*dy), ux=dx/L, uy=dy/L, nx=-uy, ny=ux, a=o.amp||6;
+  var p1=[x1+dx*.42+nx*a, y1+dy*.42+ny*a], p2=[x1+dx*.58-nx*a, y1+dy*.58-ny*a];
+  return Pa(g,'M'+x1+','+y1+' L'+p1[0]+','+p1[1]+' L'+p2[0]+','+p2[1]+' L'+x2+','+y2,o);
+}
+/* ---------- 小图标（全部用线条画，跟随主题色） ---------- */
+function icPhone(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Rc(g,x-7*s,y-12*s,14*s,24*s,{rx:3*s,fill:col,fop:.12,stroke:col,sop:.75,sw:1.3});
+  Rc(g,x-5*s,y-9*s,10*s,12*s,{rx:1,fill:col,fop:.18,stroke:'none',sop:0});
+  Ci(g,x,y+7.5*s,1.4*s,{fill:col,fop:.6,stroke:'none',sop:0});
+}
+function icLaptop(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Rc(g,x-13*s,y-11*s,26*s,16*s,{rx:2,fill:col,fop:.12,stroke:col,sop:.75,sw:1.3});
+  Pa(g,'M'+(x-17*s)+','+(y+9*s)+' L'+(x-13*s)+','+(y+5*s)+' L'+(x+13*s)+','+(y+5*s)+' L'+(x+17*s)+','+(y+9*s)+' Z',{stroke:col,sop:.75,sw:1.3,fill:col,fop:.08});
+}
+function icTower(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Pa(g,'M'+(x-9*s)+','+(y+16*s)+' L'+x+','+(y-10*s)+' L'+(x+9*s)+','+(y+16*s)+' M'+(x-5.5*s)+','+(y+6*s)+' L'+(x+5.5*s)+','+(y+6*s)+' M'+(x-3*s)+','+(y-1*s)+' L'+(x+3*s)+','+(y-1*s),{stroke:col,sop:.8,sw:1.4});
+  Ci(g,x,y-11*s,2.2*s,{fill:col,fop:.8,stroke:'none',sop:0});
+  [7,11].forEach(function(r){
+    Pa(g,'M'+(x-r*s*.7)+','+(y-11*s-r*s*.7)+' A'+r*s+','+r*s+' 0 0 0 '+(x-r*s*.7)+','+(y-11*s+r*s*.7),{stroke:col,sop:.55,sw:1.2});
+    Pa(g,'M'+(x+r*s*.7)+','+(y-11*s-r*s*.7)+' A'+r*s+','+r*s+' 0 0 1 '+(x+r*s*.7)+','+(y-11*s+r*s*.7),{stroke:col,sop:.55,sw:1.2});
+  });
+}
+function icServer(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  for(var i=0;i<3;i++){ Rc(g,x-10*s,y-12*s+i*8*s,20*s,7*s,{rx:1.5,fill:col,fop:.12,stroke:col,sop:.7,sw:1.1}); Ci(g,x+6*s,y-8.5*s+i*8*s,1.1*s,{fill:col,fop:.7,stroke:'none',sop:0}); }
+}
+function icCloud(g,x,y,w,h,col){ col=col||'currentColor';
+  var d='M'+(x-w*.38)+','+(y+h*.3)+' C'+(x-w*.6)+','+(y+h*.3)+' '+(x-w*.6)+','+(y-h*.15)+' '+(x-w*.34)+','+(y-h*.12)+
+    ' C'+(x-w*.3)+','+(y-h*.55)+' '+(x+w*.05)+','+(y-h*.6)+' '+(x+w*.1)+','+(y-h*.28)+
+    ' C'+(x+w*.3)+','+(y-h*.48)+' '+(x+w*.55)+','+(y-h*.25)+' '+(x+w*.42)+','+(y+h*.02)+
+    ' C'+(x+w*.62)+','+(y+h*.1)+' '+(x+w*.55)+','+(y+h*.32)+' '+(x+w*.38)+','+(y+h*.3)+' Z';
+  return Pa(g,d,{stroke:col,sop:.6,sw:1.3,fill:col,fop:.08});
+}
+function icCar(g,x,y,s,col){ s=s||1; col=col||'currentColor';
+  Pa(g,'M'+(x-16*s)+','+(y+4*s)+' L'+(x-16*s)+','+(y-2*s)+' L'+(x-9*s)+','+(y-3*s)+' L'+(x-5*s)+','+(y-9*s)+' L'+(x+7*s)+','+(y-9*s)+' L'+(x+11*s)+','+(y-3*s)+' L'+(x+16*s)+','+(y-2*s)+' L'+(x+16*s)+','+(y+4*s)+' Z',{stroke:col,sop:.8,sw:1.3,fill:col,fop:.15});
+  Ci(g,x-9*s,y+5*s,3*s,{fill:'currentColor',fop:.5,stroke:'none',sop:0}); Ci(g,x+9*s,y+5*s,3*s,{fill:'currentColor',fop:.5,stroke:'none',sop:0});
+}
+function icDoc(g,x,y,s){ s=s||1;
+  Pa(g,'M'+(x-6*s)+','+(y-8*s)+' L'+(x+3*s)+','+(y-8*s)+' L'+(x+6*s)+','+(y-5*s)+' L'+(x+6*s)+','+(y+8*s)+' L'+(x-6*s)+','+(y+8*s)+' Z',{sop:.7,sw:1.1,fill:'currentColor',fop:.06});
+  for(var i=0;i<3;i++) Ln(g,x-3.5*s,y-3*s+i*3.6*s,x+3.5*s,y-3*s+i*3.6*s,{sop:.5,sw:1});
+}
+function icCoin(g,x,y,s){ s=s||1;
+  Ci(g,x,y,7*s,{fill:EXC,fop:.35,stroke:EXC,sop:.9,sw:1.2}); Tx(g,x,y+3.6*s,'B',{size:9*s,weight:700,fill:EXC});
+}
+/* 一个小区块（立方体） */
+function icBlock(g,x,y,s,col){ s=s||1; col=col||AC;
+  var a=8*s;
+  Pa(g,'M'+(x-a)+','+(y-a*.5)+' L'+x+','+(y-a)+' L'+(x+a)+','+(y-a*.5)+' L'+(x+a)+','+(y+a*.6)+' L'+x+','+(y+a*1.1)+' L'+(x-a)+','+(y+a*.6)+' Z',{stroke:col,sop:.85,sw:1.1,fill:col,fop:.25});
+  Pa(g,'M'+(x-a)+','+(y-a*.5)+' L'+x+','+y+' L'+(x+a)+','+(y-a*.5)+' M'+x+','+y+' L'+x+','+(y+a*1.1),{stroke:col,sop:.8,sw:1});
+}
+/* 圆圈编号 ①②… */
+var CIRC='⓪①②③④⑤⑥⑦⑧⑨⑩';
+function Badge(g,x,y,n,col){
+  Ci(g,x,y,9,{fill:col||AC,fop:.9,stroke:'none',sop:0});
+  Tx(g,x,y+4.2,String(n),{size:11.5,weight:700,fill:'#fff'});
+}
+/* 在 host 里放一行 HTML 图例：items=[[颜色, 文字, 透明度]] */
+function legendHTML(items){
+  return '<div class="legend">'+items.map(function(it){
+    var sw=it[0]==='transparent'?'border:1.2px dashed currentColor;opacity:.6':'background:'+it[0]+';opacity:'+(it[2]===undefined?1:it[2]);
+    return '<span><i style="'+sw+'"></i>'+it[1]+'</span>'; }).join('')+'</div>';
+}
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function numIn(id,fb){ var v=parseFloat(String($(id).value).replace(/−/g,'-')); return isFinite(v)?v:fb; }
+/* 简单坐标系：box={x,y,w,h}（像素），xr/yr=[min,max]，ticks 为刻度值数组，fmt 为刻度文字函数。返回 {X,Y} 映射。 */
+function Axes(g,box,xr,yr,xt,yt,o){
+  o=o||{};
+  var X=function(v){ return box.x+(v-xr[0])/(xr[1]-xr[0])*box.w; };
+  var Y=function(v){ return box.y+box.h-(v-yr[0])/(yr[1]-yr[0])*box.h; };
+  Rc(g,box.x,box.y,box.w,box.h,{fop:0,sop:.25,rx:0,sw:1});
+  xt.forEach(function(v){ var px=X(v); Ln(g,px,box.y,px,box.y+box.h,{sop:.08,sw:1}); Ln(g,px,box.y+box.h,px,box.y+box.h+4,{sop:.35,sw:1});
+    Tx(g,px,box.y+box.h+16,(o.fx||String)(v),{size:11,op:.65}); });
+  yt.forEach(function(v){ var py=Y(v); Ln(g,box.x,py,box.x+box.w,py,{sop:.08,sw:1}); Ln(g,box.x-4,py,box.x,py,{sop:.35,sw:1});
+    Tx(g,box.x-7,py+4,(o.fy||String)(v),{size:11,op:.65,anchor:'end'}); });
+  if(o.xl) Tx(g,box.x+box.w/2,box.y+box.h+33,o.xl,{size:12,op:.75});
+  if(o.yl) { var t=Tx(g,0,0,o.yl,{size:12,op:.75}); t.setAttribute('transform','translate('+(box.x-(o.ylOff||42))+','+(box.y+box.h/2)+') rotate(-90)'); }
+  return {X:X,Y:Y};
+}
+function Curve(g,A,xs,f,o){
+  o=o||{}; var pts=xs.map(function(x){ return A.X(x).toFixed(1)+','+A.Y(f(x)).toFixed(1); });
+  return Pa(g,'M'+pts.join(' L'),{stroke:o.stroke||AC,sop:o.sop===undefined?1:o.sop,sw:o.sw||2,dash:o.dash});
+}
+function range(a,b,n){ var r=[]; for(var i=0;i<=n;i++) r.push(a+(b-a)*i/n); return r; }
+
+/* ===================== L20 区块链应用：D2D 缓存：图与交互件 =====================
+   图由下面的函数现画；交互件的数值一律由纯函数现算。 */
+
+/* ---------------- 纯函数 ---------------- */
+function raftF(N){ return Math.floor((N-1)/2); }            /* N ≥ 2f + 1 */
+function pbftF(n){ return Math.floor((n-1)/3); }            /* n ≥ 3f + 1 */
+function ddqn(o){
+  var aStar=o.q2>o.q1?2:1, yD=o.r+o.g*(aStar===1?o.t1:o.t2), yN=o.r+o.g*Math.max(o.t1,o.t2);
+  var d=o.q-yD, L=d*d/2, dw=-o.al*d*o.dq;
+  return {aStar:aStar, yD:yD, yN:yN, d:d, L:L, dw:dw};
+}
+function regionWeights(s,pass){
+  var S=s.reduce(function(a,b){ return a+b; },0), w=s.map(function(x,i){ return pass[i]?x/S:0; });
+  return {S:S, w:w, sum:w.reduce(function(a,b){ return a+b; },0)};
+}
+/* 种子固定的标准正态抽样（Box–Muller + 线性同余），结果可复现 */
+function rngN(seed){ var s=seed>>>0||1; function u(){ s=(1664525*s+1013904223)>>>0; return (s+.5)/4294967296; } return function(){ return Math.sqrt(-2*Math.log(u()))*Math.cos(2*Math.PI*u()); }; }
+function maxBias(n,seed){ var z=rngN(seed), t=0; for(var i=0;i<n;i++){ var a=z(), b=z(); t+=Math.max(a,b); } return t/n; }
+
+/* ---------------- 图：系统模型，三种取法（课件 p5） ---------------- */
+function drawCache(id){
+  var F=Fig(780,340,'一个基站覆盖的区域里有两个手机簇，三种箭头是拿到内容的三种方式',600), g=F.g;
+  El('ellipse',{cx:390,cy:184,rx:376,ry:150,fill:AC,'fill-opacity':.08,stroke:AC,'stroke-opacity':.55,'stroke-width':1.4},g);
+  El('ellipse',{cx:210,cy:236,rx:170,ry:78,fill:OKC,'fill-opacity':.12,stroke:OKC,'stroke-opacity':.8,'stroke-width':1.4},g);
+  El('ellipse',{cx:600,cy:214,rx:132,ry:70,fill:OKC,'fill-opacity':.12,stroke:OKC,'stroke-opacity':.8,'stroke-width':1.4},g);
+  icTower(g,390,70,2.1);
+  var PU='#8a63b8';
+  var ue=function(x,y){ icPhone(g,x,y,1.15); Ci(g,x+16,y-2,4,{fill:AC,fop:.6,stroke:'none',sop:0}); Pa(g,'M'+(x+10)+','+(y+12)+' q6,-10 12,0',{stroke:AC,sop:.7,sw:1.4}); };
+  var A1=[112,240], A2=[218,176], A3=[262,248], A4=[338,248], B1=[556,210], B2=[640,210];
+  [A1,A2,A3,A4,B1,B2].forEach(function(p){ ue(p[0],p[1]); });
+  /* 自缓存 */
+  Pa(g,'M'+(A1[0]-10)+','+(A1[1]-6)+' H'+(A1[0]-44)+' V'+(A1[1]-40)+' H'+(A1[0])+' V'+(A1[1]-16),{stroke:OKC,sop:1,sw:2,mk:F.mk.o});
+  Tx(g,A1[0]-20,A1[1]-48,'Self-caching',{size:14,weight:700,fill:OKC});
+  /* D2D */
+  [[A3,A4],[B1,B2]].forEach(function(pr){ var a=pr[0], b=pr[1]; Pa(g,'M'+a[0]+','+(a[1]-16)+' V'+(a[1]-32)+' H'+b[0]+' V'+(b[1]-16),{stroke:PU,sop:1,sw:2,mk:null}); Pa(g,'M'+b[0]+','+(b[1]-24)+' V'+(b[1]-16),{stroke:PU,sop:1,sw:2,mk:F.mk.n});
+    Tx(g,(a[0]+b[0])/2,a[1]-40,'D2D-caching',{size:14,weight:700,fill:PU}); });
+  /* 基站缓存 */
+  Ln(g,382,96,236,164,{sop:.5,sw:1.6}); Tx(g,268,120,'BS-caching',{size:14,weight:700,op:.55});
+  Ln(g,400,96,546,196,{sop:.5,sw:1.6,mk:F.mk.n}); Tx(g,532,128,'BS-caching',{size:14,weight:700,op:.55});
+  Tx(g,A1[0],A1[1]+30,'UEs',{size:11.5,italic:true,op:.8});
+  Tx(g,210,300,'Cluster A',{size:13,weight:700,italic:true}); Tx(g,600,262,'Cluster B',{size:13,weight:700,italic:true});
+  mount(id,F);
+}
+
+/* ---------------- 图：DBFL 整体框架（课件 p7） ---------------- */
+function drawDbfl(id){
+  var F=Fig(1000,450,'DBFL 框架：子层做本地训练、区域汇总与子链，主层做主链与全局模型',760), g=F.g;
+  var PK='#c0497a', node=function(x,y,col){ Ci(g,x,y,6.5,{fill:col,fop:.75,stroke:col,sop:1,sw:1}); };
+  var ph=function(x,y,col){ icPhone(g,x,y,.95); node(x-6,y+6,col); };
+  /* 子层与主层底色 */
+  Rc(g,10,44,710,346,{rx:34,fill:AC,fop:.07,stroke:AC,sop:.45});
+  Tx(g,64,66,'Sublayer',{size:15,weight:700,anchor:'start'});
+  Rc(g,736,52,254,326,{rx:30,fill:PK,fop:.07,stroke:PK,sop:.5});
+  Tx(g,762,76,'Mainlayer',{size:15,weight:700,anchor:'start'});
+  /* 本地训练面板 */
+  Rc(g,24,80,268,300,{rx:12,fill:'currentColor',fop:.04,sop:.18}); Tx(g,158,98,'Local Model Training',{size:12.5});
+  Rc(g,34,110,96,96,{rx:6,fill:'currentColor',fop:.03,sop:.3}); Tx(g,82,128,'Task Publisher',{size:11.5});
+  Ci(g,70,158,8,{fill:AC,fop:.7,stroke:'none',sop:0}); Pa(g,'M56,186 q14,-22 28,0 z',{stroke:'none',fill:AC,fop:.7}); Rc(g,88,150,30,24,{rx:2,fop:.05,sop:.6});
+  Rc(g,34,236,96,106,{rx:6,fill:'currentColor',fop:.03,sop:.3}); Tx(g,82,254,'BS and',{size:11.5}); Tx(g,82,268,'Caching Server',{size:11.5});
+  icTower(g,66,306,1.1); icServer(g,104,312,.9);
+  var C1={x:162,y:110,w:118,h:118}, Ca={x:162,y:248,w:118,h:118};
+  [[C1,'FL Cluster 1',[OKC,OKC,WRC,OKC]],[Ca,'FL Cluster a',[OKC,OKC,OKC,EXC]]].forEach(function(c){
+    var b=c[0]; Rc(g,b.x,b.y,b.w,b.h,{rx:8,fill:'currentColor',fop:.03,sop:.3});
+    [[b.x+30,b.y+34],[b.x+88,b.y+34],[b.x+30,b.y+82],[b.x+88,b.y+82]].forEach(function(p,i){ ph(p[0],p[1],c[2][i]); });
+    Tx(g,b.x+b.w/2,b.y+b.h-4,c[1],{size:11});
+    Pa(g,'M'+(b.x+30)+','+(b.y+20)+' V'+(b.y+12)+' H'+(b.x+88)+' V'+(b.y+18),{stroke:OKC,sop:.9,sw:1.3,mk:F.mk.o}); Tx(g,b.x+59,b.y+10,'(b)',{size:10.5,weight:700});
+  });
+  Tx(g,221,240,'⋯',{size:16,op:.6});
+  /* UE 选择 (c) */
+  Pa(g,'M130,158 H146 V150 H160',{stroke:AC,sop:.9,sw:1.3,mk:F.mk.a}); Pa(g,'M146,158 V292 H160',{stroke:AC,sop:.9,sw:1.3,mk:F.mk.a});
+  Pa(g,'M130,300 H140 V170 H160',{stroke:OKC,sop:.9,sw:1.3,mk:F.mk.o}); Pa(g,'M140,300 V330 H160',{stroke:OKC,sop:.9,sw:1.3,mk:F.mk.o});
+  Tx(g,145,214,'UE',{size:10.5}); Tx(g,145,226,'Selection',{size:10.5});
+  Tx(g,152,186,'(c)',{size:10.5,weight:700}); Tx(g,152,322,'(c)',{size:10.5,weight:700});
+  /* 选 leader → 区域汇总 */
+  Pa(g,'M282,166 H336',{sop:.8,sw:1.8,dash:'5 4',mk:F.mk.n}); Pa(g,'M282,306 H336',{sop:.8,sw:1.8,dash:'5 4',mk:F.mk.n});
+  Tx(g,309,140,'Sublayer',{size:10.5}); Tx(g,309,152,'Leader',{size:10.5}); Tx(g,309,280,'Sublayer',{size:10.5}); Tx(g,309,292,'Leader',{size:10.5});
+  Tx(g,309,180,'Election',{size:10.5}); Tx(g,309,320,'Election',{size:10.5}); Tx(g,300,198,'(a)',{size:10.5,weight:700});
+  Rc(g,338,80,96,300,{rx:10,fill:'currentColor',fop:.04,sop:.18}); Tx(g,386,98,'Area Model',{size:12}); Tx(g,386,112,'Aggregation',{size:12});
+  [[166],[306]].forEach(function(r){ var y=r[0]; Rc(g,348,y-40,76,80,{rx:6,fill:'currentColor',fop:.03,sop:.35}); ph(386,y-14,OKC); ph(362,y+20,OKC); ph(410,y+20,OKC); Ln(g,384,y-2,366,y+6,{sop:.4,dash:'2 2'}); Ln(g,388,y-2,406,y+6,{sop:.4,dash:'2 2'}); });
+  Tx(g,386,240,'⋯',{size:16,op:.6});
+  Pa(g,'M426,166 H466',{sop:.8,sw:1.8,dash:'5 4',mk:F.mk.n}); Pa(g,'M426,306 H466',{sop:.8,sw:1.8,dash:'5 4',mk:F.mk.n});
+  Tx(g,446,158,'Leader',{size:10.5}); Tx(g,446,298,'Leader',{size:10.5});
+  /* 子链面板 */
+  Rc(g,468,80,240,300,{rx:12,fill:'currentColor',fop:.04,sop:.18}); Tx(g,588,98,'Sublayer Blockchain and',{size:12}); Tx(g,588,112,'Area Model Update',{size:12});
+  Rc(g,474,124,52,236,{rx:6,fill:'currentColor',fop:.03,sop:.35}); Rc(g,586,124,116,236,{rx:6,fill:'currentColor',fop:.03,sop:.35}); Tx(g,644,138,'Sublayer Blockchain',{size:10.5});
+  [168,246,326].forEach(function(y,i){ ph(500,y,OKC); icDoc(g,548,y-14,.75); icCoin(g,548,y+12,.8); Pa(g,'M530,'+y+' H584',{sop:.7,sw:1.4,mk:F.mk.n,mks:F.mk.n});
+    icBlock(g,604,y,1.05); icBlock(g,634,y,1.05); Tx(g,660,y+4,'⋯',{size:13,op:.6}); icBlock(g,686,y,1.05); });
+  Tx(g,500,214,'⋯',{size:14,op:.6}); Tx(g,644,292,'⋯',{size:14,op:.6});
+  /* 主链 */
+  Rc(g,750,88,226,92,{rx:26,fill:'currentColor',fop:.03,sop:.4}); Tx(g,863,106,'Main Blockchain',{size:12.5});
+  [[790,'Block 0'],[862,'Block 1'],[950,'Block a']].forEach(function(b){ Rc(g,b[0]-28,122,56,36,{rx:3,fill:OKC,fop:.3,stroke:OKC,sop:.8}); Tx(g,b[0],144,b[1],{size:11}); });
+  Pa(g,'M820,140 H832',{sop:.6,mk:F.mk.n}); Pa(g,'M892,140 H904',{sop:.6}); Tx(g,910,144,'⋯',{size:12,op:.6}); Pa(g,'M914,140 H920',{sop:.6,mk:F.mk.n});
+  Pa(g,'M862,190 V246',{sop:.8,sw:1.8,mk:F.mk.n,mks:F.mk.n}); icCoin(g,834,218,1.3); icDoc(g,892,218,1.2);
+  Rc(g,760,256,206,84,{rx:10,fill:PK,fop:.08,stroke:PK,sop:.35}); ph(796,298,OKC); Tx(g,880,294,'Global Model',{size:12}); Tx(g,880,309,'Update',{size:12});
+  /* 任务发布与 primary 轮换 */
+  Pa(g,'M82,110 V26 H862 V86',{sop:.85,sw:1.6,mk:F.mk.n}); Tx(g,180,20,'Task Publish',{size:11.5});
+  Pa(g,'M500,360 V402 H862 V344',{sop:.85,sw:1.6,dash:'6 4',mk:F.mk.n}); Tx(g,680,418,'Primary Leader Take Turns',{size:11.5});
+  mount(id,F);
+  $(id).insertAdjacentHTML('beforeend',legendHTML([[OKC,'Trusted Node（可信）',.75],[EXC,'Uncertain Node（不确定）',.75],[WRC,'Malicious Node（恶意）',.75]])
+    .replace('</div>','<span>带 B 的金色圆 = Reward（奖励）</span><span>文档图标 = Additional Information（附加信息）</span></div>'));
+}
+
+/* ---------------- 图：双层链的容错分工（3 簇 × 5 部手机） ---------------- */
+function drawFaults(id){
+  var nC=3, N=5, fMain=pbftF(nC), fSub=raftF(N), PK='#c0497a';
+  var F=Fig(780,510,'主链 PBFT 与三个子链 Raft 的容错分工',620), g=F.g;
+  Rc(g,24,14,732,124,{rx:8,fill:PK,fop:.06,stroke:PK,sop:.85,sw:1.6});
+  Tx(g,390,40,'主链（mainlayer）：PBFT',{size:15,weight:700,fill:PK});
+  Tx(g,390,66,'参与者只有各簇的 leader；论文设计让各 leader 每轮轮流当主节点（标准 PBFT 的主节点只在 view change 时才换）',{size:11.5});
+  Tx(g,390,88,'容忍拜占庭故障（不指认坏节点），需 N ≥ 3f + 1 → '+nC+' 个 leader 时 f = '+fMain+'；至少 '+(3*1+1)+' 个簇才能容 1 个作恶 leader',{size:11.5});
+  Tx(g,390,110,'额外验证：primary 核对各区域模型的缓存命中率，只用表现好的区域模型更新全局模型',{size:11.5,op:.7});
+  for(var c=0;c<nC;c++){
+    var x0=24+c*248, bw=236, lx=x0+bw/2, ly=286;
+    Rc(g,x0,252,bw,178,{rx:6,fill:AC,fop:.07,stroke:AC,sop:.7,sw:1.4});
+    Ln(g,lx,ly-14,lx,142,{stroke:AC,sop:.9,sw:1.6,mk:F.mk.a});
+    Tx(g,lx+8,200,'区域模型＋附加信息',{size:11.5,anchor:'start'});
+    var mem=[[x0+40,318],[x0+82,356],[x0+bw-82,356],[x0+bw-40,318]];
+    mem.forEach(function(m,k){
+      Ln(g,lx,ly,m[0],m[1],{sop:.35,dash:'3 3',sw:1});
+      var col=AC, op=.45, lab=null;
+      if(c===0&&k===2){ col=WRC; op=.9; lab=['恶意 UE',WRC]; }
+      if(c===2&&k===1){ col='currentColor'; op=.4; lab=['掉线 UE','currentColor']; }
+      Ci(g,m[0],m[1],10,{fill:col,fop:op,stroke:col,sop:.8});
+      if(lab) Tx(g,m[0],m[1]+27,lab[0],{size:11,fill:lab[1],op:lab[1]==='currentColor'?.7:1});
+    });
+    Ci(g,lx,ly,11,{fill:AC,fop:.9,stroke:AC,sop:1}); Tx(g,lx+16,ly+4,'leader',{size:11.5,anchor:'start'});
+    Tx(g,lx,418,'簇 '+(c+1)+'：子链 Raft（'+N+' 个 UE）',{size:12.5,weight:700});
+  }
+  Tx(g,390,456,'子链容错：只针对崩溃 / 遗漏故障。'+N+' 个 UE 时 N ≥ 2f + 1 → 最多容 '+fSub+' 个；不抗拜占庭。',{size:11.5});
+  Tx(g,390,478,'成员交来的坏更新，靠 leader 核对「训练用时与数据量对不对得上」挡在区域模型之外（应用层检查，不是共识）。',{size:11.5});
+  Tx(g,390,500,'恶意 UE 与掉线 UE 在论文中是两个分开的仿真场景，这里画在一张图上只为示意；灰色不对应课件图例的 Uncertain Node。',{size:11,op:.65});
+  mount(id,F);
+}
+
+/* ---------------- 交互件 1：两层各能容几个坏节点 ---------------- */
+function tlSet(k,v){ $(k).value=v; tlGo(); }
+function tlGo(){
+  var N=Math.round(numIn('tlN',5)), n=Math.round(numIn('tlC',3)), fq=Math.round(numIn('tlF',3)), out=$('tlOut');
+  if(!(N>=1&&N<=12&&n>=1&&n<=12&&fq>=0&&fq<=50)){ $('tlKv').innerHTML=''; $('tlFig').innerHTML='<p class="sub">每簇手机数、簇数取 1 到 12，f 取 0 到 50</p>'; out.innerHTML='<span class="bad">输入超出范围</span>'; return; }
+  var fs=raftF(N), fm=pbftF(n), wrong=(n-1)/2;
+  $('tlKv').innerHTML=
+    '<div><span class="lab">子链：每簇最多容崩溃 ⌊(N−1)/2⌋</span><span class="val" id="tlFs">'+fs+'</span></div>'+
+    '<div><span class="lab">主链：最多容作恶 leader ⌊(n−1)/3⌋</span><span class="val" id="tlFm">'+fm+'</span></div>'+
+    '<div><span class="lab">期刊版错式 (n−1)/2 会给出</span><span class="val" id="tlWrong">'+nf(wrong,wrong%1?1:0)+'</span></div>';
+  /* 画 n 个簇，每簇 N 部手机：掉线的画灰（最多 fs 个），作恶 leader 画红（最多 fm 个） */
+  var cw=Math.min(150,Math.max(96,640/n)), W=Math.max(560,n*cw+40), F=Fig(W,170,'n 个簇、每簇 N 部手机，按两层的容错上限标出能扛住的坏节点',Math.min(W,520),W*1.2), g=F.g;
+  for(var c=0;c<n;c++){
+    var x0=20+c*cw, lx=x0+cw/2-6;
+    Rc(g,x0+4,40,cw-8,118,{rx:8,fill:AC,fop:.06,stroke:AC,sop:.5});
+    var evil=c<fm;
+    Ln(g,lx,62,lx,24,{stroke:AC,sop:.6,sw:1.3,mk:F.mk.a});
+    for(var k=1;k<N;k++){
+      var ang=Math.PI*(k)/(N), mx=lx-Math.cos(ang)*(cw*.36), my=88+Math.sin(ang)*42, drop=k<=fs;
+      Ln(g,lx,64,mx,my,{sop:.3,dash:'2 2',sw:1});
+      Ci(g,mx,my,7,{fill:drop?'currentColor':AC,fop:drop?.35:.45,stroke:drop?'currentColor':AC,sop:.7});
+    }
+    Ci(g,lx,64,9,{fill:evil?WRC:AC,fop:.9,stroke:evil?WRC:AC,sop:1});
+    Tx(g,lx,152,'簇 '+(c+1),{size:11.5});
+  }
+  Tx(g,20,16,'主链 PBFT：'+n+' 个 leader',{size:12,anchor:'start',weight:600});
+  mount('tlFig',F);
+  $('tlFig').insertAdjacentHTML('beforeend',legendHTML([[AC,'正常',.45],['currentColor','掉线 UE（每簇最多容 '+fs+' 个）',.35],[WRC,'作恶 leader（最多容 '+fm+' 个）',.9]]));
+  out.innerHTML='<div>每簇 '+N+' 部手机：Raft 要 N ≥ 2f + 1，所以每簇最多 <strong>'+fs+'</strong> 部掉线还照常工作。'+n+' 个簇：PBFT 要 n ≥ 3f + 1，主链最多容 <strong>'+fm+'</strong> 个作恶 leader'+(fm===0?'——<span class="bad">一个都容不下</span>，至少要 4 个簇才能容 1 个':'')+'。按期刊版的 (n−1)/2 会算成 '+nf(wrong,wrong%1?1:0)+'，与 n ≥ 3f + 1 不符。</div>'+
+    '<div style="margin-top:.3rem">反过来问：要容 f = '+fq+' 个，只防崩溃（Raft）至少 2f + 1 = <strong id="tlRaft">'+(2*fq+1)+'</strong> 个节点（合法至少 '+(fq+1)+' 个）；防拜占庭（PBFT）至少 3f + 1 = <strong id="tlPbft">'+(3*fq+1)+'</strong> 个节点（合法至少 '+(2*fq+1)+' 个）。</div>';
+}
+
+/* ---------------- 交互件 2：Double DQN 的目标值与一步更新 ---------------- */
+var DQ0={dqR:1,dqG:0.9,dqQ1:5,dqQ2:6,dqT1:7,dqT2:4,dqQ:4,dqD:2,dqA:0.001};
+function dqReset(){ for(var k in DQ0) $(k).value=DQ0[k]; dqGo(); }
+function dqGo(){
+  var o={r:numIn('dqR',1),g:numIn('dqG',.9),q1:numIn('dqQ1',5),q2:numIn('dqQ2',6),t1:numIn('dqT1',7),t2:numIn('dqT2',4),q:numIn('dqQ',4),dq:numIn('dqD',2),al:numIn('dqA',.001)};
+  var r=ddqn(o), as=r.aStar, tv=as===1?o.t1:o.t2, tmax=Math.max(o.t1,o.t2);
+  var fmt=function(v){ return nf(Math.round(v*1e6)/1e6); };
+  $('dqSteps').innerHTML=
+    '<div><span class="k">1</span>选：训练网络 ω 在下一状态给出 Q(a₁) = '+fmt(o.q1)+'、Q(a₂) = '+fmt(o.q2)+'，argmax 选 <strong>a* = a'+(as===1?'₁':'₂')+'</strong></div>'+
+    '<div><span class="k">2</span>评：目标网络 ω⁻ 给 a* 的值是 '+fmt(tv)+'，Double DQN 目标 y = r + γ·Q(a*; ω⁻) = '+fmt(o.r)+' + '+fmt(o.g)+' × '+fmt(tv)+' = <strong id="dqYd">'+fmt(r.yD)+'</strong></div>'+
+    '<div><span class="k">3</span>对照：普通 DQN 直接取目标网络的最大值 '+fmt(tmax)+'，y = '+fmt(o.r)+' + '+fmt(o.g)+' × '+fmt(tmax)+' = <strong id="dqYn">'+fmt(r.yN)+'</strong>'+(r.yN>r.yD?'，<span class="bad">偏高 '+fmt(r.yN-r.yD)+'</span>':'，两者相同')+'</div>'+
+    '<div><span class="k">4</span>TD 误差 δ = Q(s<sub>t</sub>, a<sub>t</sub>; ω) − y = '+fmt(o.q)+' − '+fmt(r.yD)+' = <strong id="dqDel">'+fmt(r.d)+'</strong>，损失 L = ½δ² = <strong id="dqL">'+fmt(r.L)+'</strong></div>'+
+    '<div><span class="k">5</span>一步梯度下降：Δω = −α·δ·∂Q/∂ω = −'+fmt(o.al)+' × ('+fmt(r.d)+') × '+fmt(o.dq)+' = <strong id="dqDw">'+(r.dw>0?'+':'')+fmt(r.dw)+'</strong></div>';
+  $('dqOut').innerHTML='<div>'+(r.d<0?'δ < 0：Q 值估低了，参数往调高 Q 的方向挪。':(r.d>0?'δ > 0：Q 值估高了，参数往调低 Q 的方向挪。':'δ = 0：已经对准目标，这一步不动。'))+'（本式取 δ = Q − y，与论文一致；多数教材取 y − Q，符号相反。）</div>';
+}
+function dqSample(){
+  var n=Math.round(numIn('dqN',10000)); n=clamp(n,100,200000);
+  var m=maxBias(n,20221);
+  $('dqBias').innerHTML='抽 '+n.toLocaleString('en')+' 对独立的标准正态误差，较大者的平均 = <strong id="dqBm">'+nf(m,3)+'</strong>；理论值 1/√π = <strong>'+nf(1/Math.sqrt(Math.PI),3)+'</strong>。两个动作真实价值都是 0，取最大却平均高出约 0.56。';
+}
+
+/* ---------------- 交互件 3：区域与全局的加权 ---------------- */
+function agGo(){
+  var s=[1,2,3].map(function(i){ return Math.max(0,numIn('agS'+i,0)); }), pass=[1,2,3].map(function(i){ return $('agP'+i).checked; });
+  var na=Math.round(numIn('agNa',3)), out=$('agOut');
+  if(s.every(function(x){ return x===0; })||!(na>=1&&na<=50)){ out.innerHTML='<span class="bad">数据量至少有一个大于 0，n<sub>a</sub> 取 1 到 50</span>'; $('agTab').innerHTML='<p class="sub">输入不合法</p>'; return; }
+  var R=regionWeights(s,pass);
+  $('agTab').innerHTML='<table class="compact"><thead><tr><th>手机</th><th>数据量 s<sub>u,n</sub></th><th>通过核验</th><th>权重 s<sub>u,n</sub>/S<sub>a</sub></th></tr></thead><tbody>'+
+    s.map(function(x,i){ return '<tr'+(pass[i]?'':' style="opacity:.55"')+'><td>u'+(i+1)+'</td><td class="mono">'+x+'</td><td>'+(pass[i]?'是':'<span class="bad">否，被剔除</span>')+'</td><td class="mono" id="agW'+(i+1)+'">'+nf(R.w[i],3)+'</td></tr>'; }).join('')+
+    '<tr><td colspan="3">合计（分母 S<sub>a</sub> = '+R.S+'，含被剔除者）</td><td class="mono" id="agSum">'+nf(R.sum,3)+'</td></tr></tbody></table>';
+  out.innerHTML='<div>权重和 = <strong>'+nf(R.sum,3)+'</strong>'+(Math.abs(R.sum-1)<1e-9?'：全员通过核验，权重就是各自的数据占比，加起来为 1。':'：有人被剔除，被剔除者那份权重没有分给别人，等效于这一步走得更短。')+'</div>'+
+    '<div style="margin-top:.3rem">全局一级：'+na+' 个区域模型简单平均，每个权重 1/n<sub>a</sub> = <strong id="agG">'+nf(1/na,3)+'</strong>——小簇和大簇分量一样。</div>';
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+drawCache('figCache');
+drawDbfl('figDbfl');
+drawFaults('figFaults');
+tlGo();
+dqGo(); dqSample();
+agGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); var f=function(e){ if(e.matches) window.onbeforeprint(); }; if(mq.addEventListener) mq.addEventListener('change',f); } })();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L9 实用安全协议 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.ctl{display:inline-flex; align-items:center; gap:.45rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.tool input.num{width:5.2rem; font-size:14px; padding:.25rem .4rem}
+input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.tool tr.use td{background:var(--accent-bg)}
+.c3{color:var(--exam); font-weight:700}
+.mono{font-variant-numeric:tabular-nums}
+/* ---------- 链接 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* ---------- 公式（沿用 L4 的 HTML 公式，补三样） ---------- */
+.m .up{font-style:normal}
+.m .tx{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; font-size:.9em}
+.ovs{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:.95; margin:0 .1em}
+.ovs>span:first-child{font-size:.62em; font-style:normal}
+.eq .m{display:inline-block; max-width:100%}
+@media (max-width:600px){ .eq{font-size:1.02rem; overflow-x:auto} }
+/* ---------- 宽窄两版图：窄屏换窄版，打印用宽版 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+figure>div{margin:0 auto}
+/* 骨架里 details.box>*{display:block} 打不开已关闭的 details（内容在 ::details-content 里），这里补上 */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+/* ---------- 表格在窄屏横向滚动，不把列挤成一字一行 ---------- */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* ---------- 盒子里的嵌套折叠块 ---------- */
+.box details.box{margin:1rem 0 .3rem; background:var(--surface)}
+/* ---------- SHA-256 雪崩 ---------- */
+.hexline{display:flex; gap:.6rem; align-items:baseline; margin:.25rem 0}
+.hexline .lab{font-size:13px; color:var(--muted); flex:0 0 1rem}
+.hexline code{word-break:break-all; font-size:13.5px; background:none; padding:0; letter-spacing:.02em}
+.bitbar{display:grid; grid-template-columns:repeat(32,1fr); gap:2px; margin:.2rem 0 .7rem; max-width:34rem}
+.bitbar i{display:block; height:9px; border-radius:2px; background:var(--line)}
+.bitbar i.on{background:var(--exam)}
+/* ---------- 证书链判定器 ---------- */
+.chgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.6rem .8rem; margin:.4rem 0 1rem}
+.chgrid fieldset{border:1px solid var(--line); border-radius:8px; padding:.4rem .8rem .7rem; margin:0; display:flex; flex-direction:column; gap:.45rem; min-width:0}
+.chgrid legend{font-size:13px; color:var(--muted); padding:0 .3rem}
+.chgrid label{font-size:14px; color:var(--muted)}
+.chgrid input.date{width:7.4rem; font-size:14px; padding:.2rem .35rem}
+.chgrid input.dom{width:11.5rem; font-size:14px; padding:.2rem .35rem}
+.chgrid .ctl{flex-wrap:wrap}
+.ck{margin:.55rem 0}
+.ckl{margin:.15rem 0 .15rem 2rem; font-size:14.5px; line-height:1.65}
+.ckl .mk{display:inline-block; width:1.2rem; font-weight:700}
+.ckl.pass .mk{color:var(--ok)} .ckl.fail{color:var(--warn)} .ckl.fail .mk{color:var(--warn)} .ckl.soft .mk{color:var(--exam)}
+.row.pre{gap:.4rem}
+/* 长的十六进制摘要、域名等行内代码允许在任意处折行，免得窄屏撑破页面 */
+main p code, main li code, main td code{overflow-wrap:anywhere}
+.tool table.compact th{white-space:nowrap}
+.tool table.compact td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px}
+.tool table.compact td{white-space:nowrap}
+/* ---------- 滑动窗口 ---------- */
+.swseq{display:flex; flex-wrap:wrap; gap:4px; margin:.2rem 0 .7rem; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:14px; line-height:1.3}
+.swseq span{min-width:2.6em; text-align:center; padding:.2em .2em; border-radius:5px; border:1px solid var(--line); background:var(--ok-bg); cursor:pointer}
+.swseq span i{display:block; font-style:normal; font-size:10.5px; color:var(--muted); font-family:-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif}
+.swseq span.rej{background:var(--warn-bg); color:var(--warn)} .swseq span.rej i{color:var(--warn)}
+.swseq span.cur{outline:2px solid var(--accent); outline-offset:1px; font-weight:700}
+.swnow{font-size:15px; margin:.3rem 0}
+.swwin{display:flex; flex-wrap:wrap; gap:3px; margin:.3rem 0 .4rem; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px}
+.swwin span{min-width:2.2em; text-align:center; padding:.15em .1em; border-radius:4px; border:1px dashed var(--line2); color:var(--faint)}
+.swwin span.got{background:var(--accent-bg); border:1px solid var(--accent); color:var(--text)}
+.swwin span.me{outline:2px solid var(--exam); outline-offset:1px}
+.tool tr.badrow td{background:var(--warn-bg)}
+.ckl.soft{color:var(--muted)}
+#wpPlot{max-width:560px; margin:.4rem 0}
+#wpPlot svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+.tool select{max-width:100%}
+.tool .ctl{max-width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 9</div>
+  <div class="tt">实用安全协议</div>
+  <div class="toc">
+<a href="#s1">1 · 协议是部件的排列</a>
+<a href="#s1-1" class="sub">1.1 安全协议是什么</a>
+<a href="#s1-2" class="sub">1.2 标准敌手模型</a>
+<a href="#s1-3" class="sub">1.3 四个问题</a>
+<a href="#s1-4" class="sub">1.4 怎样读消息序列</a>
+<a href="#s2">2 · 新鲜性与重放</a>
+<a href="#s2-1" class="sub">2.1 重放攻击</a>
+<a href="#s2-2" class="sub">2.2 加密和 MAC 挡不住</a>
+<a href="#s2-3" class="sub">2.3 三种新鲜性机制</a>
+<a href="#s2-4" class="sub">2.4 滑动窗口</a>
+<a href="#s2-5" class="sub">2.5 活动 1：四个协议</a>
+<a href="#s3">3 · 挑战–应答与反射</a>
+<a href="#s3-1" class="sub">3.1 单向与双向认证</a>
+<a href="#s3-2" class="sub">3.2 反射攻击</a>
+<a href="#s3-3" class="sub">3.3 修复：两个方向不一样</a>
+<a href="#s4">4 · Needham–Schroeder</a>
+<a href="#s4-1" class="sub">4.1 五条消息</a>
+<a href="#s4-2" class="sub">4.2 Denning–Sacco 攻击</a>
+<a href="#s4-3" class="sub">4.3 修复：时间戳封进票</a>
+<a href="#s4-4" class="sub">4.4 十七年说的是公钥版</a>
+<a href="#s5">5 · Kerberos</a>
+<a href="#s5-1" class="sub">5.1 两处改动</a>
+<a href="#s5-2" class="sub">5.2 六条消息</a>
+<a href="#s5-3" class="sub">5.3 为什么拆成两个</a>
+<a href="#s5-4" class="sub">5.4 时间戳挡住了什么</a>
+<a href="#s5-5" class="sub">5.5 假设与代价</a>
+<a href="#s6">6 · TLS 1.3</a>
+<a href="#s6-1" class="sub">6.1 证书原样转发的中间人</a>
+<a href="#s6-2" class="sub">6.2 提供什么、不提供什么</a>
+<a href="#s6-3" class="sub">6.3 握手两版</a>
+<a href="#s6-4" class="sub">6.4 CertificateVerify 与 Finished</a>
+<a href="#s6-5" class="sub">6.5 前向保密</a>
+<a href="#s6-6" class="sub">6.6 记录层序列号</a>
+<a href="#s6-7" class="sub">6.7 活动 3：部件来源</a>
+<a href="#s6-8" class="sub">6.8 TLS 怎样失败</a>
+<a href="#s7">7 · IPsec 与 VPN</a>
+<a href="#s7-1" class="sub">7.1 网络层保护</a>
+<a href="#s7-2" class="sub">7.2 AH 与 ESP</a>
+<a href="#s7-3" class="sub">7.3 传输与隧道模式</a>
+<a href="#s7-4" class="sub">7.4 IPsec 与 TLS 怎么选</a>
+<a href="#s8">8 · 网络准入控制</a>
+<a href="#s8-1" class="sub">8.1 NAC</a>
+<a href="#s8-2" class="sub">8.2 三个组件与 802.1X</a>
+<a href="#s8-3" class="sub">8.3 四种执行手段</a>
+<a href="#s8-4" class="sub">8.4 EAP 是框架</a>
+<a href="#s8-5" class="sub">8.5 EAP 方法与消息流</a>
+<a href="#s9">9 · 无线安全</a>
+<a href="#s9-1" class="sub">9.1 三代方案</a>
+<a href="#s9-2" class="sub">9.2 WEP</a>
+<a href="#s9-3" class="sub">9.3 WPA2 四次握手</a>
+<a href="#s9-4" class="sub">9.4 WPA3 与 SAE</a>
+<a href="#s9-5" class="sub">9.5 个人与企业模式</a>
+<a href="#s9-6" class="sub">9.6 活动 4：四种接入设计</a>
+<a href="#s10">10 · 协议管不到的地方</a>
+<a href="#s10-1" class="sub">10.1 防火墙后面</a>
+<a href="#s10-2" class="sub">10.2 攻击者在机器上</a>
+<a href="#s11">11 · 七条结论</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 9 — Security Protocols in Practice</div>
+  <h1>实用安全协议</h1>
+  <p>零件全都正确，拼出来的协议为什么还会坏？路线：敌手模型与四个问题 → 新鲜性与重放 → 反射攻击 → Needham–Schroeder 与 Denning–Sacco → Kerberos → TLS 1.3 → IPsec → 网络准入控制与 EAP → 无线安全 → 协议管不到的地方。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>前几讲造好了零件：认证加密、消息认证码、Diffie–Hellman 密钥交换、数字签名与证书。这一讲不引入新零件，只问：<strong>零件全都正确，拼出来的协议为什么还会坏？</strong> 课件的回答是"A protocol is an arrangement, not a collection"。主线：</p>
+<ol>
+  <li>先立规矩：攻击者控制网络但破不了密码，协议要回答四个问题，其中最容易被忘的是<strong>新鲜性</strong>（第 1、2 节）；</li>
+  <li>用这套眼光读认证协议：挑战–应答与反射攻击、Needham–Schroeder 与 Denning–Sacco 攻击、它的后代 Kerberos（第 3–5 节）；</li>
+  <li>读 TLS 1.3：每个零件都学过，新的是把证书上的身份绑到这一次密钥交换上的那一步；IPsec 是同一套零件在网络层的排法（第 6、7 节）；</li>
+  <li>退到更前面一道关：设备连网之前，准入控制与无线安全决定放不放它进来（第 8、9 节）。</li>
+</ol>
+<p>与课件顺序的差别：课件第 2 页对上一讲课后题的讲评挪到 <a href="#s6-1">6.1</a> 作 TLS 的引子；IPsec 从课件末尾提前到 TLS 之后；滑动窗口从 IPsec 页挪到 <a href="#s2-4">2.4</a>；TLS 一节先讲握手、再讲它的性质。课件五个课堂活动的讲评页都没有导出，解答是自己做的。</p>
+<p>课程总览与考情见《00 课程信息与考情》。对应课件 <code>Lecture9_SecurityProtocols_26_TUL</code>，27 页；本笔记的"第 N 页"指 PDF 物理页，第 9 页起与幻灯片右下角编号不同。课件页脚自称 Lecture 8，正文按页脚编号引用别的讲：</p>
+<div class="tw"><table>
+<thead><tr><th>课件正文写的</th><th style="white-space:nowrap">本库笔记</th></tr></thead>
+<tbody>
+<tr><td>Lecture 1、2、4</td><td style="white-space:nowrap"><a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html">L1 信息安全基础</a>、<a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html">L2 古典密码与密码分析</a>、<a href="L4%20AES.html">L4 AES</a></td></tr>
+<tr><td>Lecture 5</td><td style="white-space:nowrap"><a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a></td></tr>
+<tr><td>Lecture 6</td><td style="white-space:nowrap"><a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a></td></tr>
+<tr><td>Lecture 7</td><td style="white-space:nowrap"><a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a></td></tr>
+<tr><td>Lecture 9（课后作业"before Lecture 9"）</td><td style="white-space:nowrap"><a href="L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html">L10 网络安全：威胁、攻击与防御</a></td></tr>
+</tbody></table></div>
+<details class="box">
+  <summary>教材章号、标准版本与延伸阅读</summary>
+<p style="margin-bottom:0">课件写的 Stallings 第 8 版第 15、16、17 章其实是第 7 版章号；第 8 版对应第 16 章（认证与 Kerberos）、第 17 章（TLS）、第 18 章（无线）、第 20 章（IPsec），网络准入控制（NAC）与 EAP 只在第 7 版 §16.1–16.3。课件引用的 TLS 1.3 规范 RFC 8446（RFC 即 Request for Comments，IETF 发布互联网标准所用的文档系列）已于 2026 年 7 月被 RFC 9846 取代，协议版本不变。延伸阅读：Denning 与 Sacco 1981 年的原论文（发表在 CACM，即 Communications of the ACM，共 4 页，课件说两页）；Anderson《Security Engineering》第 3 版的协议一章。课件还建议抓包看一次 TLS 握手：不导入密钥时，明文可见的只有握手的头两条消息（ClientHello、ServerHello，见 6.3）和一条兼容用的 ChangeCipherSpec，其余握手消息都显示为加密数据。</p>
+</details>
+</div>
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>课件原话里的考试信号与模拟卷对应题</div>
+<p>课件第 3 页的学习目标："Explain why freshness is required, and choose between nonces, timestamps and sequence numbers"；"<strong>Read a protocol written as a message sequence and identify a replay flaw</strong>"；"Trace the TLS 1.3 handshake and say which earlier lecture supplied each component"；"Compare network access control mechanisms and justify a choice"。同页说本讲对应课程的 ILO 2（intended learning outcome，预期学习成果）："interpret a number of different security protocols"。</p>
+<p>带考评意味的原话：</p>
+<ul>
+  <li>"The step nearly everyone misses — Binding the two halves together"（第 2 页）与 "CertificateVerify is the step almost everyone missed in the take-home task"（第 16 页），见 <a href="#s6-4">6.4</a>；</li>
+  <li>"The one that is easiest to forget — Freshness"（第 5 页），见 <a href="#s2-2">2.2</a>；</li>
+  <li>"The padlock means less than students think"（第 15 页），见 <a href="#s6-2">6.2</a>；</li>
+  <li>"the answer is in the structure, not the mathematics"（第 12 页）：协议题考结构，不考计算，见 <a href="#s4-2">4.2</a>；</li>
+  <li>"Seven things to leave with"（第 26 页），见 <a href="#s11">第 11 节</a>。</li>
+</ul>
+<p>别的讲里的信号：L6 课件说四个情景各判一句的活动"is the shape of the scenario questions in the exam"，本讲活动 1（<a href="#s2-5">2.5</a>）、活动 4（<a href="#s9-6">9.6</a>）就是这个形状；L7 把"无认证的密钥交换挡不住中间人"列为考试要求，本讲 <a href="#s6-1">6.1</a> 是它的延续；L8 课件预告页说 "Lecture 10 — The capstone. Structured evaluation of unseen systems, which is what the report and the exam scenarios ask for."（这一讲不在 Moodle 上）。</p>
+<p>模拟卷（去年版，4 道大题共 100 分）与本讲有关的一道：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap">题号</th><th style="white-space:nowrap">分值</th><th>题目</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">Q1(c)</td><td style="white-space:nowrap">7</td><td>"Explain active attack with the aid of a diagram. Give some examples of active attacks."</td><td><a href="#s2-1">2.1</a>；规范答法见复习卡代表题 1</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">本讲其余内容旧卷里没有，今年最可能的是"给消息序列找缺陷并修复"和"评估一个接入设计"两类情景题（据上面的信号推测）。</p>
+</div>
+<h2 id="s1"><span class="n">1</span>协议是部件的排列</h2>
+<h3 id="s1-1"><span class="n">1.1</span>安全协议是什么</h3>
+<p>课件的定义："A security protocol is a defined sequence of messages between parties, designed to achieve a stated goal in the presence of an adversary who controls the network." <span class="term">安全协议</span><span class="en">（security protocol）</span>就是一串事先定死的消息（谁发、发什么、收到后查什么），为一个明确目标服务，并且要在控制网络的<span class="term">敌手</span><span class="en">（adversary，即攻击者）</span>在场时仍然达成目标。</p>
+<p>课件称本讲是综合讲："Nothing here is a new primitive … What is new is how they are ASSEMBLED — and the fact that correct components can be assembled into a broken protocol." <span class="term">原语</span><span class="en">（primitive）</span>指分组密码、消息认证码、密钥交换、签名这些最基本的密码学部件。</p>
+<h3 id="s1-2"><span class="n">1.2</span>标准敌手模型</h3>
+<p>对"攻击者能做什么"的明确假设叫<span class="term">敌手模型</span><span class="en">（adversary model）</span>。课件用的标准模型，正式名称是 <span class="term">Dolev–Yao 模型</span><span class="en">（Dolev–Yao model，1983）</span>：</p>
+<div class="tw"><table>
+<thead><tr><th>攻击者能做的</th><th>攻击者做不到的</th></tr></thead>
+<tbody>
+<tr><td>读到每一条消息</td><td>破解底层密码学</td></tr>
+<tr><td>随意删除、延迟、重排消息</td><td>猜出密钥，伪造消息认证码或签名</td></tr>
+<tr><td>注入自己构造的消息</td><td>没有密钥就读出被正确加密的内容</td></tr>
+<tr><td>把见过的任何消息在任何时候重发</td><td></td></tr>
+<tr><td>同时开多个会话，用一个攻击另一个</td><td></td></tr>
+</tbody></table></div>
+<p>故意假设密码学完美，是为了把问题分开："We assume the primitives are perfect and ask whether the protocol is still secure. If it is not, the flaw is in the arrangement." 本讲每个攻击都属于这一类：没有密钥被猜出，没有算法被破解。</p>
+<h3 id="s1-3"><span class="n">1.3</span>每个协议都要回答的四个问题</h3>
+<div class="tw"><table>
+<thead><tr><th>问题</th><th>属性</th></tr></thead>
+<tbody>
+<tr><td>Who am I talking to?</td><td><span class="term">认证</span><span class="en">（authentication）</span>：对方确实是他声称的人</td></tr>
+<tr><td>Is this message fresh?</td><td><span class="term">新鲜性</span><span class="en">（freshness）</span>：消息是此刻为这次通信产生的，不是录下来的旧消息</td></tr>
+<tr><td>Has it been altered?</td><td><span class="term">完整性</span><span class="en">（integrity）</span>：途中没被改</td></tr>
+<tr><td>Can anyone else read it?</td><td><span class="term">机密性</span><span class="en">（confidentiality）</span>：只有预定的接收方能读</td></tr>
+</tbody></table></div>
+<p>完整性和机密性来自 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s4-1">CIA 三要素</a>。课件说最容易被忘的是新鲜性："Freshness is a property of a message IN TIME — and no amount of encryption tells you whether what you are reading was sent just now or captured last year." 前三个属性看一条消息本身就能检查，新鲜性要看消息和时间的关系（第 2 节）。</p>
+<h3 id="s1-4"><span class="n">1.4</span>怎样读一条消息序列</h3>
+<div class="tw"><table>
+<thead><tr><th>记号</th><th>意思</th></tr></thead>
+<tbody>
+<tr><td><span class="m">A → B: X</span></td><td>A 发给 B 消息 <span class="m">X</span></td></tr>
+<tr><td><span class="m">E(K, X)</span></td><td>用对称密钥 <span class="m">K</span> 加密 <span class="m">X</span>；没有 <span class="m">K</span> 的人读不出，也造不出合法密文</td></tr>
+<tr><td><span class="m"><span class="up">MAC</span>(K, X)</span></td><td><span class="term">消息认证码</span><span class="en">（message authentication code，MAC，见 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>）</span>：没有 <span class="m">K</span> 算不出的短标签，<span class="m">X</span> 改一位就对不上；不隐藏 <span class="m">X</span></td></tr>
+<tr><td><span class="m">[X, Y]</span> 或 <span class="m">X ‖ Y</span></td><td>把几项拼接在一起</td></tr>
+<tr><td><span class="m">ID<sub>A</sub></span></td><td>A 的<span class="term">身份标识</span><span class="en">（identifier）</span></td></tr>
+<tr><td><span class="m">N</span></td><td><span class="term">nonce</span><span class="en">（number used once，一次性数）</span></td></tr>
+<tr><td><span class="m">T</span>、<span class="m">TS</span></td><td><span class="term">时间戳</span><span class="en">（timestamp）</span></td></tr>
+</tbody></table></div>
+<p><span class="term">长期密钥</span><span class="en">（long-term key）</span>用几个月到几年，如用户与服务器预先共享的密钥、证书对应的私钥，泄露影响大，所以要少用；<span class="term">会话密钥</span><span class="en">（session key）</span>为一次通信临时生成、用完即丢，泄露只赔掉这一次。本讲多数协议的目的，就是用长期密钥安全地建立一把新的会话密钥。</p>
+<p>读每条消息问四件事，这也是答题的标准写法：<strong>谁发给谁；发了什么；用什么密钥保护（谁能读、谁能造）；防什么攻击（删掉这条或某个字段，攻击者能干成什么）</strong>。攻击者统一叫 Darth，与教材和 L1 一致。</p>
+<h2 id="s2"><span class="n">2</span>新鲜性与重放攻击</h2>
+<h3 id="s2-1"><span class="n">2.1</span>重放：不需要任何密码分析的攻击</h3>
+<p><span class="term">重放攻击</span><span class="en">（replay attack）</span>：截获一条合法的、正确加密、正确认证的消息，过后原样再发一次。"Every check passes, because the message is genuine. It is simply not current."</p>
+<figure>
+<div id="figReplayW" class="only-wide"></div><div id="figReplayN" class="only-narrow"></div>
+<figcaption>没有新鲜性的转账请求：Darth 不需要任何密钥，抄一遍就能让服务器再转一次</figcaption>
+</figure>
+<p>消息 ① 是 Alice 发给服务器的 "Alice", MAC(<span class="m">K</span>, "transfer £100 to Bob")，<span class="m">K</span> 是两者共享的密钥，服务器验证通过就转账。第二天 Darth 把同一串字节发一遍，MAC 依然有效——它不是伪造的，是抄的。服务器分不出两条，再转 £100，Darth 想发几次就发几次。</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap">课件列的四类场景</th><th>重放后果</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">支付指令</td><td>每重放一次就再转一次钱</td></tr>
+<tr><td style="white-space:nowrap">认证交换</td><td>录下一次登录应答，以后拿来冒充用户，不需要口令</td></tr>
+<tr><td style="white-space:nowrap">门禁与车辆遥控</td><td>录下的开锁信号能再开门。<span class="term">滚动码</span><span class="en">（rolling code：每按一次发一个新码，接收端只认没用过的码）</span>就是防这个的</td></tr>
+<tr><td style="white-space:nowrap">会话建立</td><td>重放旧的密钥协商消息，迫使对方重用一把攻击者已知的旧密钥（<a href="#s4-2">4.2</a> 的伏笔）</td></tr>
+</tbody></table></div>
+<p>重放是<span class="term">主动攻击</span><span class="en">（active attack）</span>：攻击者往网络里发东西、改变系统行为，而不只是旁听。按 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-2">L1 5.2</a>，主动攻击有冒充、重放、篡改、拒绝服务四类，受威胁的是完整性和可用性，冒充首先破坏真实性。重放常和冒充连用：录下别人的认证过程再重放，就是在冒充那个人——这正是模拟卷 Q1(c) 参考答案的例子。</p>
+<h3 id="s2-2"><span class="n">2.2</span>加密和 MAC 为什么挡不住重放</h3>
+<p>"Both are properties of the message content, and the content is unchanged — that is the whole point of a replay." 加密保证没人读得懂，重放不需要读懂；MAC 保证内容没被改，重放一个字节都没改。要挡住重放，消息里必须有<strong>每次都不同、接收方又能检查</strong>的东西："a nonce it issued, a timestamp it can bound, or a counter it is tracking"。</p>
+<h3 id="s2-3"><span class="n">2.3</span>三种新鲜性机制与怎样选</h3>
+<ul>
+  <li><strong>nonce</strong>：验证方先生成一个新随机值发过去，要求回应里包含它。回应带着它，就一定是收到之后才做出来的。</li>
+  <li><strong>时间戳</strong>：发送方写入当前时间，接收方拒收超出可接受<span class="term">窗口</span><span class="en">（window，如"与本地时钟差不过 5 分钟"）</span>的消息。</li>
+  <li><span class="term">序列号</span><span class="en">（sequence number）</span>：双方给消息计数，见过的或顺序不对的编号拒收。</li>
+</ul>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th>nonce</th><th>时间戳</th><th>序列号</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">好处</td><td>不需要共享时钟；不可预测，没法预先算好应答</td><td>不多一个往返，单条消息就能用</td><td>便宜；还能发现删除和重排</td></tr>
+<tr><td style="white-space:nowrap">代价</td><td>多一个<span class="term">往返</span><span class="en">（round trip：消息发过去、等回复回来的一个来回）</span></td><td>要时钟同步，这本身是基础设施问题和攻击面；<strong>接受窗口就是重放窗口</strong></td><td>双方整个会话都要保存状态，状态不跨会话</td></tr>
+<tr><td style="white-space:nowrap">适合的信道</td><td>双向、能多付一个往返、不信任时钟（TLS，即第 6 节的传输层安全协议）</td><td>消息必须单独成立、有同步时钟（第 5 节 Kerberos 认证系统的票据）</td><td>已建立的会话内部，或单向多消息</td></tr>
+</tbody></table></div>
+<p>课件口诀（结尾七条之三）："nonce if you can challenge, timestamp if you have clocks, counter otherwise."</p>
+<p>表里的<span class="term">攻击面</span><span class="en">（attack surface）</span>见 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s6-2">L1 6.2</a>：时钟同步服务也成了攻击者够得着的部件。"窗口就是重放窗口"指：接受 5 分钟以内的消息，那么 5 分钟里截获的消息照样能重放，而且能重放多次。要关窗，接收方还得记住窗口内见过的消息、拒收重复的，这种记录叫<span class="term">重放缓存</span><span class="en">（replay cache）</span>；时间戳让缓存只需保存 5 分钟。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>nonce 的本义只要求不重复</div>
+<p style="margin-bottom:0">课件把"Unpredictable, so it cannot be pre-computed"写成 nonce 的一般优点。nonce 的定义只要求同一把密钥下不重复（<a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 讲 CTR 计数器模式时说过）；要求攻击者猜不到的只是挑战–应答里的挑战，否则攻击者可以抢先冒充验证方，向合法用户索取未来挑战的应答。L6 讲 GCM（带认证的计数器模式）时也说，它的 IV（初始化向量）可以确定性生成（TLS 1.3 就是），也可以随机生成。</p>
+</div>
+<p>课件此处举序列号的例子是"the CTR-mode counter from Lecture 5 doing double duty"。若把它理解成 CTR 计数器块里的分组计数，那是一条消息内部的编号；讲者的意思应是"每条消息的 nonce 用计数器生成，顺带当序列号用"，TLS 1.3 的记录序号就是这样（<a href="#s6-6">6.6</a>）。</p>
+<h3 id="s2-4"><span class="n">2.4</span>序列号的滑动窗口</h3>
+<p>单向、多消息、会乱序到达的信道（传感器读数、走不同路径的 IP 包），不能要求编号严格加 1，否则一个迟到的包会让后面的全被拒。<span class="term">滑动窗口</span><span class="en">（sliding window）</span>：接收方记住见过的最大编号 <span class="m">top</span>，以及最近 <span class="m">W</span> 个编号里哪些已收过。收到编号 <span class="m">s</span>：</p>
+<div class="tw"><table>
+<thead><tr><th>情况</th><th>处理</th></tr></thead>
+<tbody>
+<tr><td><span class="m">s &gt; top</span></td><td>接受，令 <span class="m">top := s</span>，窗口右移</td></tr>
+<tr><td><span class="m">top − W &lt; s ≤ top</span>，没见过</td><td>接受（乱序但新）</td></tr>
+<tr><td><span class="m">top − W &lt; s ≤ top</span>，见过</td><td>重放，拒收</td></tr>
+<tr><td><span class="m">s ≤ top − W</span></td><td>太旧，拒收；也可能是迟到太久的合法包，这是代价</td></tr>
+</tbody></table></div>
+<p>例：<span class="m">W = 8</span>，依次到达 1, 2, 4, 3, 9, 5, 9, 1, 12, 4, 6，被拒的是第二个 9（重放）、9 之后的 1 和 12 之后的 4（太旧），其余接受。第 7 节的 IPsec（网络层的安全协议）就这么做，其 ESP 标准 RFC 4303 规定窗口至少 32、默认 64（<a href="#s7-2">7.2</a>）。课件说这就是活动 1 协议 C 该选的机制。</p>
+<div class="tool" id="swTool">
+  <h4>滑动窗口重放检测</h4>
+  <p class="sub">接收方只记两样东西：见过的最大编号 <span class="m">top</span>，以及窗口里哪些编号收过。改窗口大小或到达序列，点任意一格看那一刻的窗口（实心 = 收过，框线 = 当前这个编号）。</p>
+  <div class="row">
+    <span class="ctl"><label for="swW">窗口 W</label><input type="text" id="swW" value="8" class="num" oninput="swAt=-1;swGo()"></span>
+    <span class="ctl" style="flex:1 1 16rem"><label for="swSeq">到达序列</label><input type="text" id="swSeq" value="1, 2, 4, 3, 9, 5, 9, 1, 12, 4, 6" style="width:100%" oninput="swAt=-1;swGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="swStep(-1)">← 上一个</button>
+    <button class="btn" onclick="swStep(1)">下一个 →</button>
+    <button class="btn" onclick="swSet(8,'1, 2, 4, 3, 9, 5, 9, 1, 12, 4, 6')">笔记的例子</button>
+    <button class="btn" onclick="swSet(4,'1, 2, 4, 3, 9, 5, 9, 1, 12, 4, 6')">同一序列、W = 4</button>
+    <button class="btn" onclick="swSet(8,'5, 5, 6, 7, 7')">连续重放</button>
+  </div>
+  <div class="steps" id="swSteps"></div>
+  <div class="result" id="swOut"></div>
+</div>
+<h3 id="s2-5"><span class="n">2.5</span>课堂活动 1：四个协议的重放缺陷</h3>
+<p>题目（第 8 页）：各判断能否被重放；能的话加 nonce、时间戳还是序列号，为什么。</p>
+<ul>
+  <li><strong>A</strong> 门锁：遥控器发 <span class="m">E(K, <span class="up">&quot;unlock&quot;</span>)</span>，解密正确就开门。单向，无回传信道。</li>
+  <li><strong>B</strong> 登录：服务器发随机值 <span class="m">R</span>，客户端回 MAC(<span class="m">K</span>, <span class="m">R</span>)。双向，无共享时钟。</li>
+  <li><strong>C</strong> 传感器：每分钟发 "sensor7", temp, MAC(<span class="m">K</span>, temp)，可能乱序到达。单向，消息很多。</li>
+  <li><strong>D</strong> 支付接口："pay £100 to Bob", timestamp, MAC(<span class="m">K</span>, message ‖ timestamp)，服务器接受五分钟以内的请求。单向，时钟已同步。追问：D 够不够？攻击者还能做什么？</li>
+</ul>
+<details class="box">
+  <summary>课堂活动 1 解答</summary>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th>会被重放吗</th><th>攻击者能做什么</th><th>加什么，为什么</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">A 门锁</td><td>会</td><td>录下一次密文原样重发就能开门，密文每次都一样</td><td><strong>序列号</strong>（滚动码）。无回传信道，锁没法先发挑战；遥控器的时钟成本高、会漂移；计数器只要各存一个整数</td></tr>
+<tr><td style="white-space:nowrap">B 登录</td><td>不会被简单重放（<span class="m">R</span> 真随机、不复用）</td><td>旧应答只回答旧的 <span class="m">R</span>。剩下的不是重放问题：只有单向认证；挡不住实时中继</td><td>已经用了 <strong>nonce</strong>，正是双向、无时钟时的选择</td></tr>
+<tr><td style="white-space:nowrap">C 传感器</td><td>会</td><td>重放旧读数，如着火时重放"温度正常"；而且 MAC 不覆盖 "sensor7"，别的传感器的读数可被改标成它</td><td><strong>序列号加滑动窗口</strong>（<a href="#s2-4">2.4</a>），MAC 覆盖身份和编号：MAC(<span class="m">K</span>, "sensor7" ‖ seq ‖ temp)</td></tr>
+<tr><td style="white-space:nowrap">D 支付</td><td>五分钟内会</td><td>截获后<strong>五分钟内可原样重发任意多次</strong>，每次都付 £100</td><td>加唯一请求编号与服务器端重放缓存：时间戳让缓存只存五分钟，缓存把窗口关上；或改用每客户端递增的序列号</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">D 说明时间戳只给重放划了范围，没有关掉它（结尾七条之五）。</p>
+</details>
+<details class="box">
+  <summary>课后作业 Task 1 解答：用滚动码修复门锁</summary>
+<ol>
+  <li>遥控器 → 锁：<span class="m">ID<sub>fob</sub>, c, <span class="up">MAC</span>(K, <span class="up">&quot;unlock&quot;</span> ‖ ID<sub>fob</sub> ‖ c)</span>，发出后 <span class="m">c</span> 加 1，写入断电不丢的存储。</li>
+  <li>锁检查 <span class="m">c<sub>last</sub> &lt; c ≤ c<sub>last</sub>+W</span> 且 MAC 正确 → 开锁，令 <span class="m">c<sub>last</sub> := c</span>。</li>
+</ol>
+<p style="margin-bottom:0">遥控器存 <span class="m">K</span> 和 <span class="m">c</span>；锁存每个遥控器的 <span class="m">K</span>、<span class="m">c<sub>last</sub></span> 和前瞻窗口 <span class="m">W</span>（如 256）。失步（在锁收不到的地方误按）时：落差在 <span class="m">W</span> 内，锁直接跳到新值，中间的码作废；超出 <span class="m">W</span>，进入重同步，如要求连续两个相邻的有效码，或重新配对。滚动码只防重放用过的码，挡不住"先干扰并截留一个没用过的码、日后再用"（RollJam 类攻击）；有回传信道时应改用挑战–应答。</p>
+</details>
+<h2 id="s3"><span class="n">3</span>挑战–应答与反射攻击</h2>
+<h3 id="s3-1"><span class="n">3.1</span>单向认证与直观的双向扩展</h3>
+<p>问题（第 10 页）："Alice must prove she holds a secret, without revealing it, over a channel an attacker is recording." <span class="term">挑战–应答</span><span class="en">（challenge–response）</span>，双方共享 <span class="m">K</span>：</p>
+<ol>
+  <li><span class="m">B → A: N<sub>b</sub></span> —— 明文。Bob 每次新出一个 nonce，录下的旧应答"回答的是 Bob 再也不会问的问题"，所以防重放；</li>
+  <li><span class="m">A → B: <span class="up">MAC</span>(K, N<sub>b</sub>)</span> —— 没有 <span class="m">K</span> 算不出，Bob 由此知道对方此刻持有 <span class="m">K</span>；<span class="m">K</span> 本身从不上网。</li>
+</ol>
+<p>这是<span class="term">单向认证</span><span class="en">（one-way authentication）</span>："Bob now knows Alice is present. Alice knows nothing about Bob." 直观的<span class="term">双向认证</span><span class="en">（mutual authentication）</span>是让 Alice 也出一道题：</p>
+<ol>
+  <li><span class="m">B → A: N<sub>b</sub></span></li>
+  <li><span class="m">A → B: <span class="up">MAC</span>(K, N<sub>b</sub>), N<sub>a</sub></span></li>
+  <li><span class="m">B → A: <span class="up">MAC</span>(K, N<sub>a</sub>)</span></li>
+</ol>
+<p>每条消息都正确，问题出在两个方向用了<strong>完全相同的构造</strong> MAC(<span class="m">K</span>, 挑战)。</p>
+<h3 id="s3-2"><span class="n">3.2</span>反射攻击：同时开两个会话</h3>
+<p><span class="term">反射攻击</span><span class="en">（reflection attack）</span>：把对方发出的挑战，在另一个会话里原样"反射"回给对方，让对方替你算出应答。按课件画出的角色（Bob 先出挑战），Darth 冒充 Bob：</p>
+<figure>
+<div id="figReflW" class="only-wide"></div><div id="figReflN" class="only-narrow"></div>
+<figcaption>Darth 一个密钥都没有，靠 Alice 在会话 2 里替他回答了会话 1 的问题</figcaption>
+</figure>
+<p>会话 1 里 Darth 随便发一个 <span class="m">X</span>，Alice 回 MAC(<span class="m">K</span>, <span class="m">X</span>) 和挑战 <span class="m">N<sub>a</sub></span>；Darth 另开会话 2，把 <span class="m">N<sub>a</sub></span> 当挑战发给 Alice，Alice 回 MAC(<span class="m">K</span>, <span class="m">N<sub>a</sub></span>)；Darth 拿它交回会话 1，Alice 认定对方是 Bob。课件："every message is correctly formed and every MAC verifies … they use the protocol against itself by running two sessions at once."</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件的文字版攻击 Bob，需要一个没写出的前提</div>
+<p style="margin-bottom:0">课件说攻击者"ask Bob to answer the very challenge they were asked — then relay his answer back"。按图上的顺序 Bob 只在第 3 条回答挑战、而且要先验证第 2 条，所以这只有在 Bob 在别的会话里也当应答方（角色对称、谁都能发起）时才成立。只用图上的角色，能直接成立的是上面攻击 Alice 的版本；修复相同。</p>
+</div>
+<h3 id="s3-3"><span class="n">3.3</span>修复：让两个方向不一样</h3>
+<p>"make the two directions different — include the sender's identity, or use separate keys."</p>
+<ul>
+  <li><strong>把身份写进 MAC</strong>：Alice 回 MAC(<span class="m">K</span>, <span class="m">N<sub>b</sub> ‖</span> "Alice")，Bob 回 MAC(<span class="m">K</span>, <span class="m">N<sub>a</sub> ‖</span> "Bob")。会话 2 里 Alice 算出的带 "Alice"，会话 1 要的带 "Bob"，反射来的值对不上。</li>
+  <li><strong>两个方向用不同密钥</strong> <span class="m">K<sub>AB</sub> ≠ K<sub>BA</sub></span>：Alice 算出的东西永远不会被她自己接受。</li>
+</ul>
+<p>TLS 1.3 两样都用：两个方向的签名带不同的上下文串，流量密钥也分方向。背后的原则是：<strong>消息里写明谁发的、发给谁、是哪一步</strong>，不让接收方从上下文推断。</p>
+<div class="tool" id="rfTool" data-mode="plain">
+  <h4>反射攻击，修与不修</h4>
+  <p class="sub">MAC 用 HMAC-SHA256 取前 8 位十六进制（演示用）。三种协议：原样的双向挑战–应答、把发送者身份写进 MAC、两个方向用不同密钥。看 Darth 反射回来的值能不能被 Alice 接受。</p>
+  <div class="row mode">
+    <button class="btn on" data-m="plain" onclick="rfMode('plain')">原协议 MAC(K, 挑战)</button>
+    <button class="btn" data-m="id" onclick="rfMode('id')">身份写进 MAC</button>
+    <button class="btn" data-m="dir" onclick="rfMode('dir')">分方向密钥 K<sub>AB</sub> ≠ K<sub>BA</sub></button>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="rfK">共享密钥 K</label><input type="text" id="rfK" value="alice-bob-shared" style="width:11rem" oninput="rfGo()"></span>
+    <button class="btn" onclick="rfRand()">换一组随机挑战</button>
+  </div>
+  <div class="steps" id="rfSteps"></div>
+  <div class="result" id="rfOut"></div>
+</div>
+<h2 id="s4"><span class="n">4</span>Needham–Schroeder 对称密钥协议</h2>
+<h3 id="s4-1"><span class="n">4.1</span>五条消息逐条读</h3>
+<p>挑战–应答假设双方已有共享密钥。1000 个用户两两共享要 <span class="m">1000 × 999/2 = 499 500</span> 把；改为每人只和一个可信的<span class="term">密钥分发中心</span><span class="en">（key distribution centre，KDC）</span>共享一把，只要 1000 把，两人要通信时由 KDC 现场生成会话密钥。<strong>Needham–Schroeder 对称密钥协议</strong>（1978）就做这件事，课件说它是 Kerberos 的祖先。<span class="m">K<sub>a</sub></span>、<span class="m">K<sub>b</sub></span> 是 Alice、Bob 各自与 KDC 的长期密钥，<span class="m">K<sub>s</sub></span> 是新会话密钥，<span class="m">f</span> 是对 nonce 的某个公开变换（如 <span class="m">N<sub>2</sub>+1</span>）。</p>
+<figure>
+<div id="figNsW" class="only-wide"></div><div id="figNsN" class="only-narrow"></div>
+<figcaption>消息 ③ 标红：Denning–Sacco 攻击下手的地方</figcaption>
+</figure>
+<ul>
+  <li><strong>① A → KDC：<span class="m">ID<sub>A</sub>, ID<sub>B</sub>, N<sub>1</sub></span></strong>，明文。<span class="m">N<sub>1</sub></span> 由 Alice 记住，回复里出现同一个 <span class="m">N<sub>1</sub></span>，才说明回复针对这次请求。</li>
+  <li><strong>② KDC → A：<span class="m">E(K<sub>a</sub>, [K<sub>s</sub>, ID<sub>B</sub>, N<sub>1</sub>, E(K<sub>b</sub>, [K<sub>s</sub>, ID<sub>A</sub>])])</span></strong>。外层 <span class="m">K<sub>a</sub></span>：只有 Alice 能拿到 <span class="m">K<sub>s</sub></span>，也证明消息来自 KDC。<span class="m">N<sub>1</sub></span> 防攻击者重放旧的 ②、塞给 Alice 旧密钥。<span class="m">ID<sub>B</sub></span> 防攻击者在 ① 里把 <span class="m">ID<sub>B</sub></span> 换成自己——那样 KDC 发的是"Alice 与 Darth"的密钥。内层 <span class="m">E(K<sub>b</sub>, …)</span> 是封给 Bob 的票，Alice 读不了也改不了。</li>
+  <li><strong>③ A → B：<span class="m">E(K<sub>b</sub>, [K<sub>s</sub>, ID<sub>A</sub>])</span></strong>。只有 Bob 能解开，知道这把钥匙用于和 Alice 通信、确实出自 KDC。<strong>但里面没有任何 Bob 能检验新鲜性的东西</strong>：能确定"KDC 某时发的"，确定不了"这一次发的"。</li>
+  <li><strong>④ B → A：<span class="m">E(K<sub>s</sub>, N<sub>2</sub>)</span></strong>，Bob 出挑战。</li>
+  <li><strong>⑤ A → B：<span class="m">E(K<sub>s</sub>, f(N<sub>2</sub>))</span></strong>。只有持有 <span class="m">K<sub>s</sub></span> 的人算得出；用 <span class="m">f</span> 变换，是因为原样送回 <span class="m">E(K<sub>s</sub>, N<sub>2</sub>)</span> 的话，任何人把 ④ 弹回去就能通过。</li>
+</ul>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件第 11 页的四处说法不准</div>
+<ul style="margin-bottom:0">
+  <li>"N₂ assures Bob that Alice is present now"：<span class="m">N<sub>2</sub></span> 只证明此刻对面有人持有 <span class="m">K<sub>s</sub></span>，证明不了是 Alice，更证明不了 <span class="m">K<sub>s</sub></span> 是新的。这是给活动 2 埋的伏笔，背下来会答错。</li>
+  <li>"Every message is encrypted under a key only its intended reader holds"：① 是明文。</li>
+  <li>"widely deployed"：广泛部署的是后代 Kerberos。</li>
+  <li>"believed correct for seventeen years"：见 <a href="#s4-4">4.4</a>。</li>
+</ul>
+</div>
+<h3 id="s4-2"><span class="n">4.2</span>Denning–Sacco 攻击</h3>
+<p>活动 2 的情境（第 12 页）：Darth "has somehow recovered an OLD session key Kₛ from a session that finished long ago"，还录下了那次的 ③；长期密钥仍保密，KDC 诚实，密码学没被破。会话密钥用得多、存放的地方多（内存、日志），比长期密钥容易泄露，这个假设并不苛刻。</p>
+<figure>
+<div id="figDsW" class="only-wide"></div><div id="figDsN" class="only-narrow"></div>
+<figcaption>Darth 只用一把旧会话密钥和一条旧消息，就让 Bob 接受了一次新"会话"</figcaption>
+</figure>
+<details class="box">
+  <summary>课堂活动 2 规范答法</summary>
+<p><strong>(a) Bob 收到重放的消息 3 会怎样？</strong> 用 <span class="m">K<sub>b</sub></span> 解开，得到 <span class="m">K<sub>s</sub></span> 与 <span class="m">ID<sub>A</sub></span>，认为 KDC 为他和 Alice 发了会话密钥，于是发出消息 4。因为消息 3 含会话密钥和身份，却不含任何证明它是新的东西：既无时间戳，也无 Bob 自己的 nonce。</p>
+<p><strong>(b) Darth 能完成 4、5 吗？</strong> 能。两条只要求持有 <span class="m">K<sub>s</sub></span>，Darth 正好持有旧 <span class="m">K<sub>s</sub></span>：解出 <span class="m">N<sub>2</sub>′</span>，算 <span class="m">f(N<sub>2</sub>′)</span> 再加密回去。<span class="m">N<sub>2</sub></span> 只证明有人知道 <span class="m">K<sub>s</sub></span>。</p>
+<p><strong>(c) Bob 相信什么、实际是什么？</strong> Bob 相信刚和 Alice 建立了一把只有两人知道的新密钥、Alice 此刻在线；实际上密钥是旧的且已泄露，对方是 Darth，此后 Bob 用 <span class="m">K<sub>s</sub></span> 加密的一切 Darth 都能读、也能冒充 Alice 回复。</p>
+<p style="margin-bottom:0"><strong>(d) 缺什么、怎么修？</strong> 缺<strong>新鲜性</strong>（消息 3 对 Bob 的新鲜性）。修复：让 Bob 的票里带上他能检验新鲜性的东西——KDC 写入的时间戳（<a href="#s4-3">4.3</a>），或者 Bob 事先给出、经 KDC 封进票里的一个值。</p>
+</details>
+<p>失败全在排法：消息 ② 对 Alice 有新鲜性保证（<span class="m">N<sub>1</sub></span>），消息 ③ 对 Bob 没有。</p>
+<h3 id="s4-3"><span class="n">4.3</span>修复：把时间戳封进票里</h3>
+<p>Denning–Sacco 的修复（Stallings 第 8 版 §16.2），KDC 在两份密文里都放进时间戳 <span class="m">T</span>：</p>
+<ol>
+  <li><span class="m">A → KDC: ID<sub>A</sub> ‖ ID<sub>B</sub></span></li>
+  <li><span class="m">KDC → A: E(K<sub>a</sub>, [K<sub>s</sub> ‖ ID<sub>B</sub> ‖ T ‖ E(K<sub>b</sub>, [K<sub>s</sub> ‖ ID<sub>A</sub> ‖ T])])</span></li>
+  <li><span class="m">A → B: E(K<sub>b</sub>, [K<sub>s</sub> ‖ ID<sub>A</sub> ‖ T])</span></li>
+  <li><span class="m">B → A: E(K<sub>s</sub>, N<sub>2</sub>)</span></li>
+  <li><span class="m">A → B: E(K<sub>s</sub>, f(N<sub>2</sub>))</span></li>
+</ol>
+<p>（教材在第 4、5 条把 Bob 的挑战写作 <span class="m">N<sub>1</sub></span>，这里保留原协议的名字 <span class="m">N<sub>2</sub></span>。原协议 ① 的 <span class="m">N<sub>1</sub></span> 被拿掉了，Alice 的新鲜性改由 <span class="m">T</span> 提供。）</p>
+<p>要点是 <strong><span class="m">T</span> 在 <span class="m">K<sub>b</sub></span> 封装的票里面</strong>：放在外面攻击者可以改成当前时间；放在里面他没有 <span class="m">K<sub>b</sub></span> 改不了，旧票带着旧时间。Alice 和 Bob 各自检查</p>
+<div class="eq"><span class="m">|<span class="up">Clock</span>−T| &lt; Δt<sub>1</sub>+Δt<sub>2</sub></span></div>
+<p><span class="m"><span class="up">Clock</span></span> 是本地时钟，<span class="m">Δt<sub>1</sub></span> 是 KDC 时钟与本地时钟的正常偏差，<span class="m">Δt<sub>2</sub></span> 是网络时延：消息上的时间与现在相差不超过"钟差加路上的时间"才算新。例：<span class="m">Δt<sub>1</sub> = 30</span> s、<span class="m">Δt<sub>2</sub> = 5</span> s，容差 35 s，几年前的旧票必然被拒。代价是各方要时钟同步。</p>
+<p>另一种修法不靠全网时钟（Neuman–Stubblebine 1993）：Bob 先把自己给出的一个值 <span class="m">T<sub>b</sub></span> 用 <span class="m">K<sub>b</sub></span> 封好交给 KDC，KDC 解开后把 <span class="m">T<sub>b</sub></span> 抄进新票 <span class="m">E(K<sub>b</sub>, [ID<sub>A</sub> ‖ K<sub>s</sub> ‖ T<sub>b</sub>])</span>。Bob 在票里看到自己刚给出的 <span class="m">T<sub>b</sub></span>，就知道票和其中的 <span class="m">K<sub>s</sub></span> 是这之后才做出来的；<span class="m">T<sub>b</sub></span> 只由 Bob 自己的时钟检查。协议里 Alice 另用 <span class="m">K<sub>s</sub></span> 加密 Bob 的 nonce 交回，那只是密钥确认，挡不住持有旧 <span class="m">K<sub>s</sub></span> 的人——挡住旧票的是 <span class="m">T<sub>b</sub></span>。</p>
+<h3 id="s4-4"><span class="n">4.4</span>十七年说的是公钥版</h3>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>"seventeen years" 是另一个协议的故事</div>
+<p>课件四处（第 9、11、12、26 页）说 Needham–Schroeder 的缺陷十七年才被发现，可第 11 页自己写着 "Published in 1978" 和 "In 1981 Denning and Sacco found a flaw"：<strong>对称版只有 3 年</strong>。17 年属于同一篇 1978 年论文里的<strong>公钥版</strong>：1995 年 Lowe 用<span class="term">模型检测</span><span class="en">（model checking：让程序穷举协议所有可能的消息交错、自动找攻击）</span>发现了它的中间人攻击，<span class="m">1978 + 17 = 1995</span>。考试若问年数，写清版本。</p>
+<details class="box">
+  <summary>Needham–Schroeder 公钥版与 Lowe 攻击（课件外）</summary>
+<p style="margin-bottom:0">核心三条：<span class="m">A → B: E(PK<sub>B</sub>, [N<sub>a</sub>, ID<sub>A</sub>])</span>；<span class="m">B → A: E(PK<sub>A</sub>, [N<sub>a</sub>, N<sub>b</sub>])</span>；<span class="m">A → B: E(PK<sub>B</sub>, N<sub>b</sub>)</span>，<span class="m">E(PK<sub>B</sub>, · )</span> 是用 Bob 公钥加密（<a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>）。Lowe 攻击：合法用户 Darth 在 Alice 主动找他时，把她的第一条消息重新加密给 Bob、把 Bob 的回复原样转给 Alice，骗 Alice 替他解出 <span class="m">N<sub>b</sub></span>，于是 Bob 以为在和 Alice 通信。修复：第二条加 <span class="m">ID<sub>B</sub></span>。和 <a href="#s3-3">3.3</a> 同一原则：消息里写明是谁发的。</p>
+</details>
+</div>
+<p>课件由此得出的教训（七条之四）："Suspect any protocol whose security rests on careful reading."</p>
+<h2 id="s5"><span class="n">5</span>Kerberos</h2>
+<h3 id="s5-1"><span class="n">5.1</span>两处改动与两个新概念</h3>
+<p><strong>Kerberos</strong> 是 MIT（Massachusetts Institute of Technology，麻省理工学院）开发的认证系统，今天用在 Windows 域（由中央服务器统一管理账号的一组 Windows 计算机）和许多 Unix 网络里。课件："It takes the Needham–Schroeder structure, adds timestamps, and separates the KDC into two services." 两个服务是：</p>
+<ul>
+  <li><span class="term">认证服务器</span><span class="en">（authentication server，AS）</span>：登录时核验用户，发给他一张<span class="term">票据授予票据</span><span class="en">（ticket-granting ticket，TGT）</span>；</li>
+  <li><span class="term">票据授予服务器</span><span class="en">（ticket-granting server，TGS）</span>：凭 TGT 签发访问具体服务的<span class="term">服务票据</span><span class="en">（service ticket）</span>。</li>
+</ul>
+<p><span class="term">票据</span><span class="en">（ticket）</span>是 Needham–Schroeder 里"封给 Bob 的包"的升级版：用某个服务器的长期密钥加密，装着会话密钥、用户身份和有效期，用户只能转交。<span class="term">认证符</span><span class="en">（authenticator）</span>是出示票据时附带的一小段数据，用票里的会话密钥加密，含用户身份和当前时间戳，证明出示者此刻持有那把会话密钥。</p>
+<h3 id="s5-2"><span class="n">5.2</span>六条消息</h3>
+<p>课件第 13 页只画了简化的前四条，没写密钥。下面是 Stallings 的第 4 版完整六条：</p>
+<figure>
+<div id="figKrbW" class="only-wide"></div><div id="figKrbN" class="only-narrow"></div>
+<figcaption>三对交换：每次登录一次、每类服务一次、每次会话一次</figcaption>
+</figure>
+<div class="tw"><table>
+<thead><tr><th>密钥</th><th>谁和谁共享</th></tr></thead>
+<tbody>
+<tr><td><span class="m">K<sub>c</sub></span></td><td>用户与 AS，<strong>由用户口令派生</strong>，长期</td></tr>
+<tr><td><span class="m">K<sub>tgs</sub></span>、<span class="m">K<sub>v</sub></span></td><td>AS 与 TGS、TGS 与服务器 V，长期</td></tr>
+<tr><td><span class="m">K<sub>c, tgs</sub></span>、<span class="m">K<sub>c, v</sub></span></td><td>用户与 TGS、用户与 V，会话</td></tr>
+</tbody></table></div>
+<p>两张票（<span class="m">AD<sub>C</sub></span> 是客户端网络地址）：<span class="m">Ticket<sub>tgs</sub> = E(K<sub>tgs</sub>, [K<sub>c, tgs</sub> ‖ ID<sub>C</sub> ‖ AD<sub>C</sub> ‖ ID<sub>tgs</sub> ‖ TS<sub>2</sub> ‖ Lifetime<sub>2</sub>])</span>，<span class="m">Ticket<sub>v</sub></span> 结构相同，用 <span class="m">K<sub>v</sub></span> 封装 <span class="m">K<sub>c, v</sub></span>、<span class="m">TS<sub>4</sub></span>、<span class="m">Lifetime<sub>4</sub></span>。</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap">#</th><th>消息</th><th>防什么</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">①</td><td><span class="m">C → AS</span>：<span class="m">ID<sub>C</sub> ‖ ID<sub>tgs</sub> ‖ TS<sub>1</sub></span>，明文</td><td><span class="m">TS<sub>1</sub></span> 让 AS 检查客户端时钟是否同步</td></tr>
+<tr><td style="white-space:nowrap">②</td><td><span class="m">AS → C</span>：<span class="m">E(K<sub>c</sub>, [K<sub>c, tgs</sub> ‖ ID<sub>tgs</sub> ‖ TS<sub>2</sub> ‖ Lifetime<sub>2</sub> ‖ Ticket<sub>tgs</sub>])</span></td><td>只有知道口令的真用户解得开，口令不上网就完成了用户认证；TGT 用户改不了</td></tr>
+<tr><td style="white-space:nowrap">③</td><td><span class="m">C → TGS</span>：<span class="m">ID<sub>v</sub> ‖ Ticket<sub>tgs</sub> ‖ E(K<sub>c, tgs</sub>, [ID<sub>C</sub> ‖ AD<sub>C</sub> ‖ TS<sub>3</sub>])</span></td><td>认证符证明出示者此刻持有 <span class="m">K<sub>c, tgs</sub></span>：偷到 TGT 而没有会话密钥的人造不出它</td></tr>
+<tr><td style="white-space:nowrap">④</td><td><span class="m">TGS → C</span>：<span class="m">E(K<sub>c, tgs</sub>, [K<sub>c, v</sub> ‖ ID<sub>v</sub> ‖ TS<sub>4</sub> ‖ Ticket<sub>v</sub>])</span></td><td>只有持有 <span class="m">K<sub>c, tgs</sub></span> 的用户读得到 <span class="m">K<sub>c, v</sub></span></td></tr>
+<tr><td style="white-space:nowrap">⑤</td><td><span class="m">C → V</span>：<span class="m">Ticket<sub>v</sub> ‖ E(K<sub>c, v</sub>, [ID<sub>C</sub> ‖ AD<sub>C</sub> ‖ TS<sub>5</sub>])</span></td><td>同 ③；<strong>V 不联系 KDC</strong></td></tr>
+<tr><td style="white-space:nowrap">⑥</td><td><span class="m">V → C</span>：<span class="m">E(K<sub>c, v</sub>, TS<sub>5</sub>+1)</span>，可选</td><td>只有持有 <span class="m">K<sub>v</sub></span> 的真服务器拿得到 <span class="m">K<sub>c, v</sub></span>，双向认证；回 <span class="m">TS<sub>5</sub>+1</span> 防认证符被原样弹回</td></tr>
+</tbody></table></div>
+<p>第 5 版（RFC 4120）把三对交换叫 AS、TGS、AP 交换，（AP 指 application，即应用服务器），并在前两个请求里另加了 nonce，所以并非只靠时间戳。</p>
+<h3 id="s5-3"><span class="n">5.3</span>为什么把 KDC 拆成两个</h3>
+<p>"The Authentication Server sees the password-derived key once, at login. After that the client uses the ticket-granting ticket, so the long-term key is not needed again all day." 由口令派生的 <span class="m">K<sub>c</sub></span> 只在 ② 用一次，之后凭 TGT 换各种服务票，不必再输口令，长期密钥暴露的时间也缩短了。这就是<span class="term">单点登录</span><span class="en">（single sign-on，SSO）</span>，也是 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 的<strong>密钥层级</strong>（用少数高价值长期密钥保护一批短命的低层密钥）用在认证上。</p>
+<p>课件"What Kerberos gets right"另两条：服务离线验票，V 用自己的 <span class="m">K<sub>v</sub></span> 就能验，不必每次问 KDC；票会过期，被偷的票有用的时间很短。</p>
+<h3 id="s5-4"><span class="n">5.4</span>时间戳到底挡住了什么</h3>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>挡住 Denning–Sacco 的是票里的时间戳，不是认证符里的</div>
+<p>课件说"Timestamps in the authenticator close the Denning–Sacco replay"。Denning–Sacco 的攻击者<strong>持有旧会话密钥</strong>：拿到旧 <span class="m">K<sub>c, v</sub></span> 和旧 <span class="m">Ticket<sub>v</sub></span> 的 Darth 自己就能造一个带当前时间的认证符（第 4 版还要冒用 <span class="m">AD<sub>C</sub></span> 那个地址）。挡住他的是票里用 <span class="m">K<sub>v</sub></span> 封装的 <span class="m">TS<sub>4</sub></span> 和 <span class="m">Lifetime<sub>4</sub></span>，他改不了，过期的票被拒——与 <a href="#s4-3">4.3</a> 把 <span class="m">T</span> 封进票里同理。</p>
+<p style="margin-bottom:0">两种时间戳各管一种攻击：票里的签发时间和有效期限制旧会话密钥能用多久；认证符里的时间戳加服务器的重放缓存，对付<strong>不知道会话密钥</strong>的人重放截获的认证符。即便如此，旧密钥在票的有效期内（Windows 域默认 10 小时）仍可用，只是限了时：七条之五 "A timestamp bounds a replay window; it does not close it."</p>
+</div>
+<h3 id="s5-5"><span class="n">5.5</span>Kerberos 的假设与代价</h3>
+<ol>
+  <li><strong>时钟必须同步</strong>："Skew beyond the window breaks logins; a manipulated clock widens the replay window." RFC 4120 的典型容差是 5 分钟。</li>
+  <li><strong>KDC 是全盘失败的单点</strong>："compromise it and every identity in the domain is forged."例如 TGS 的长期密钥被偷，就能给任何用户伪造 TGT（俗称"黄金票据"）。</li>
+  <li><strong>长期密钥由口令派生，弱口令可离线猜</strong>：拿到一条 ②，就能在自己电脑上逐个猜口令、算 <span class="m">K<sub>c</sub></span>、试解密，KDC 毫无察觉。这叫<span class="term">离线字典攻击</span>（offline dictionary attack：拿着截获的数据，在本地用一本常见口令"字典"逐个试）。</li>
+</ol>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>"The password never crosses the network, in any form" 说过头了</div>
+<p style="margin-bottom:0">口令本身不上网，但口令派生密钥加密的数据会上网：② 就是 <span class="m">E(K<sub>c</sub>, …)</span>；第 5 版的<span class="term">预认证</span>（pre-authentication：客户端先发一个 <span class="m">E(K<sub>c</sub>, <span class="tx">时间戳</span>)</span> 证明自己知道口令，AS 才回 ②）也是。所以同一页才说"weak passwords remain guessable offline"。</p>
+</div>
+<p>课后 Task 2 问的就是第 1 条代价背后的取舍。</p>
+<details class="box">
+  <summary>课后作业 Task 2 解答：依赖时间戳的两个代价</summary>
+<ol style="margin-bottom:0">
+  <li><strong>时钟不同步，合法登录失败</strong>（偏差超过典型的 5 分钟）。应对：域内分层时间同步，成员机跟随域控制器，监控漂移；时间源本身也要认证，防止被篡改来撑大窗口。</li>
+  <li><strong>窗口就是重放窗口</strong>，窗口内截获的认证符可能被重用。应对：服务器维护重放缓存（RFC 4120 要求，除非应用自己另有抗重放手段），配合短票据寿命，必要时做双向认证（⑥）。</li>
+</ol>
+</details>
+<h2 id="s6"><span class="n">6</span>TLS 1.3</h2>
+<p><span class="term">TLS</span><span class="en">（Transport Layer Security，传输层安全协议）</span>是浏览器地址栏挂锁背后的协议；网址以 https 开头时，<span class="term">HTTPS</span>（HTTP Secure，在 TLS 连接里跑网页协议 HTTP，HyperText Transfer Protocol）底下就是它。本节讲 2018 年定稿的 1.3 版。</p>
+<h3 id="s6-1"><span class="n">6.1</span>起点：证书原样转发的中间人</h3>
+<p>上一讲的课后作业问：证书只证明服务器持有某把私钥，浏览器怎样从"这真是 bank.com"走到"我们共享这次会话的密钥"？课件第 2 页说几乎人人都答出了三步：</p>
+<ol>
+  <li><strong>认证服务器</strong>：校验证书链与名字（<a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a> 的检查清单）；</li>
+  <li><strong>协商新秘密</strong>：跑一次 Diffie–Hellman 密钥交换（DH，<a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>）；</li>
+  <li><strong>切换到对称密码</strong>：用这个秘密驱动 AES-GCM（<a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>）加密数据，因为公钥运算太慢。</li>
+</ol>
+<p>几乎人人漏掉的第四步："Binding the two halves together." 服务器必须证明，它跑的这次密钥交换和证书属于同一个主人，否则 L7 的中间人攻击就会回来。L7 用小数字完整演示过 DH 的中间人；TLS 场景多出的只有一点：Darth 把 bank 的<strong>真证书原样转发</strong>。沿用 L7 的记号（<span class="m">Y = α<sup>X</sup> <span class="up">mod</span> q</span>，Darth 自选 <span class="m">X<sub>D1</sub></span>、<span class="m">X<sub>D2</sub></span>）：</p>
+<ol>
+  <li>客户端 → Darth：<span class="m">Y<sub>A</sub></span>；</li>
+  <li>Darth → bank：<span class="m">Y<sub>D1</sub></span>；</li>
+  <li>bank → Darth：<span class="m">Y<sub>B</sub></span> 与 bank 的证书；</li>
+  <li>Darth → 客户端：bank 的证书（原样）与 <span class="m">Y<sub>D2</sub></span>。</li>
+</ol>
+<p>证书的链、名字、有效期全对，客户端"认证了 bank"，密钥却和 Darth 共享，bank 那边同样。证书只证明 bank 持有私钥，没有任何东西证明 <span class="m">Y<sub>D2</sub></span> 是 bank 发的。修复："the server SIGNS the key exchange values with the private key its certificate certifies"：Darth 没有 bank 的私钥，伪造不出覆盖 <span class="m">Y<sub>D2</sub></span> 的签名。TLS 1.3 里这一步叫 CertificateVerify（<a href="#s6-4">6.4</a>）。</p>
+<h3 id="s6-2"><span class="n">6.2</span>TLS 提供什么、不提供什么</h3>
+<div class="tw"><table>
+<thead><tr><th>提供的</th><th>不提供的</th></tr></thead>
+<tbody>
+<tr><td><strong>服务器认证</strong>：你在和证书上写的那个服务器说话</td><td><strong>客户端认证</strong>：默认没有，服务器要求时才有</td></tr>
+<tr><td><strong>机密性</strong>：AES-GCM 或 ChaCha20-Poly1305（L6 讲过的两种认证加密）</td><td><strong>端点上的保护</strong>：只保护传输途中，你电脑上的恶意软件先读到明文</td></tr>
+<tr><td><strong>完整性</strong>：改动会被认证标签发现</td><td><strong>网站诚实的保证</strong>：只说明到达了那个名字的网站</td></tr>
+<tr><td><strong>前向保密</strong>：服务器私钥日后被盗也解不开过去的流量（<a href="#s6-5">6.5</a>）</td><td><strong>流量分析的防护</strong>：旁观者仍能看到你连哪个服务器、何时、传了多少（<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-3">L1 的流量分析</a>）；ClientHello 里要访问的主机名也是明文</td></tr>
+</tbody></table></div>
+<p>客户端认证要服务器发出 CertificateRequest（<a href="#s6-3">6.3</a>），双方都出示证书叫<span class="term">双向 TLS</span><span class="en">（mutual TLS，mTLS）</span>，多用在服务器之间。</p>
+<p>"The padlock means less than students think"：挂锁只表示连接加密了、证书和输入的名字对得上。<span class="term">钓鱼</span><span class="en">（phishing：仿冒正规网站骗取口令）</span>网站照样拿得到有效证书，因为申请证书只需证明控制着域名，不需要证明诚实。</p>
+<h3 id="s6-3"><span class="n">6.3</span>握手：课件版与完整版</h3>
+<figure>
+<div id="figSlideW" class="only-wide"></div><div id="figSlideN" class="only-narrow"></div>
+<figcaption>课件第 16 页的 TLS 1.3 握手，{ } 表示加密，标红的 3、4 号是证书与签名</figcaption>
+</figure>
+<p><strong>为什么只要一个往返。</strong> 课件："The client sends its DH share in the first message, guessing which group the server will pick." <span class="term">组</span><span class="en">（group）</span>指 DH 运算所在的数学结构，如某条椭圆曲线，双方必须用同一个。客户端直接猜一个组并附上 DH 公开值，猜对时服务器在第二条回自己的值，双方立刻算出密钥，之后一切加密。TLS 1.2 的客户端要等服务器选好参数、发来 DH 值后才发自己的，所以要两个往返。猜错时服务器回 <strong>HelloRetryRequest</strong>（重试请求，指明它要的组），退化为两个往返。课件说"keys are ready after message 2"，此时就绪的是只加密握手后半段的<span class="term">握手流量密钥</span><span class="en">（handshake traffic secret）</span>；加密应用数据的<span class="term">应用流量密钥</span><span class="en">（application traffic secret）</span>要到服务器 Finished 之后才派生。</p>
+<p>RFC 8446 §2 的完整握手：</p>
+<figure>
+<div id="figTlsW" class="only-wide"></div><div id="figTlsN" class="only-narrow"></div>
+<figcaption>{ } 用握手流量密钥，[ ] 用应用流量密钥，* 与虚线表示可选</figcaption>
+</figure>
+<p>图里的几个概念：<strong>transcript</strong>（握手记录）是到目前为止收发过的全部握手消息按序拼在一起，对它做的哈希相当于整段对话的指纹，任何一条被改一个字节都会变；<span class="term">HMAC</span><span class="en">（hash-based MAC）</span>是用哈希函数构造的消息认证码；<span class="term">HKDF</span>（HMAC-based key derivation function，基于 HMAC 的密钥派生函数）由一个共享秘密加一段标签派生出新密钥，标签不同密钥就互不相关，TLS 用它派生出各方向、各阶段的全部密钥。</p>
+<p>和课件版比，完整版多出五样：</p>
+<ol>
+  <li>双方的 <strong>random</strong>（各 32 字节随机数）——它就是第 2 节说"TLS uses them"的 nonce，保证每次握手的 transcript 与密钥都不同，旧握手重放没用；</li>
+  <li>ServerHello 里的 supported_versions，版本靠它协商，<a href="#s6-4">6.4</a> 的降级防护要用到；</li>
+  <li><strong>EncryptedExtensions</strong>（服务器装其余协商结果的消息）才是第一条加密消息；</li>
+  <li>要求客户端证书时的 CertificateRequest，以及客户端的 Certificate 与 CertificateVerify；</li>
+  <li>两个方向各用一把密钥，与 <a href="#s3-3">3.3</a> 对付反射的做法一致。</li>
+</ol>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件握手图漏的与简化的</div>
+<p style="margin-bottom:0">课件自称"Simplified, but structurally accurate"，但漏掉的 random 和 EncryptedExtensions 恰好是两头的接口：没有 random，第 2 节的新鲜性在 TLS 里找不到落脚点。另外两处：应用数据也可能用 ChaCha20-Poly1305（第 15 页自己就这样写），不只是 AES-GCM；服务器发完自己的 Finished 就可以先发数据，不必等消息 6。</p>
+</div>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>"TLS 1.3 contains no primitive you have not met" 只在概念上成立</div>
+<p style="margin-bottom:0">七条之六这样说。MAC、密钥派生、认证加密的概念都见过，但 Finished 用的 HMAC、整个密钥派生用的 HKDF，本课程都没讲过（L6 只讲了 CMAC）。第 14 页"Everything from Lectures 2 to 7 appears inside it"也是修辞：古典密码和 DES 在 TLS 1.3 里不出现。答活动 3 的 e 写"MAC（L6）"即可。</p>
+</div>
+<h3 id="s6-4"><span class="n">6.4</span>CertificateVerify 绑定身份，Finished 确认密钥</h3>
+<p>课件右下框："Message 4 is the binding … That is what ties the identity in the certificate to the key exchange actually performed — and it is what defeats the man in the middle."</p>
+<p><strong>为什么是它。</strong> 服务器用证书私钥对到 Certificate 为止的 transcript 签名，签名数据前面还带一个上下文串 "TLS 1.3, server CertificateVerify"。这段 transcript 里有客户端实际收到的 DH 值。回到 <a href="#s6-1">6.1</a>：真 bank 签的是它看到的 transcript（里面是 <span class="m">Y<sub>D1</sub></span>，random 也对不上），Darth 没有私钥，造不出覆盖 <span class="m">Y<sub>D2</sub></span> 的签名，客户端验签失败。</p>
+<p><strong>证书与签名的分工。</strong> 证书说"这把公钥属于 bank.com"，由 <span class="term">CA</span><span class="en">（certificate authority，证书颁发机构）</span>担保；CertificateVerify 说"这次握手确实是这把私钥的主人做的"。这就是 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a> 八项检查的最后一项"持有私钥"：证书是公开的，谁都能原样复制，前七项检查全过；只有当场用私钥签名，才证明对面是证书的主人。</p>
+<p><strong>Finished 替代不了它。</strong> Finished 是用这次 DH 派生的密钥对 transcript 算的 HMAC，作用是<span class="term">密钥确认</span><span class="en">（key confirmation：证明对方算出了同样的密钥、看到了同样的握手）</span>。在中间人攻击里 Darth 本人就是客户端这次 DH 的对端，算得出合法的 Finished。所以活动 3 的追问"删掉哪一条整个协议就垮"，答案是 CertificateVerify。</p>
+<div class="tool" id="tmTool">
+  <h4>删掉哪一条，中间人就复活</h4>
+  <p class="sub">沿用 L7 活动 4 的 DH 参数，Darth 自选 <span class="m">X<sub>D1</sub></span>、<span class="m">X<sub>D2</sub></span>（6.1 的四步）。选一种情形，看客户端的三项检查各自怎样。transcript 只示意三条消息，摘要与 Finished 用 SHA-256 / HMAC 现算。</p>
+  <div class="row">
+    <span class="ctl"><label for="tmSc">情形</label><select id="tmSc" onchange="tmGo()">
+      <option value="none">没有中间人</option>
+      <option value="relay" selected>Darth 原样转发真证书，握手完整</option>
+      <option value="nocv">Darth 原样转发真证书，删掉 CertificateVerify</option>
+      <option value="owncert">Darth 换上自己的证书</option></select></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="tmQ">q</label><input type="text" id="tmQ" value="23" class="num" oninput="tmGo()"></span>
+    <span class="ctl"><label for="tmA">α</label><input type="text" id="tmA" value="5" class="num" oninput="tmGo()"></span>
+    <span class="ctl"><label for="tmXA">客户端 X<sub>A</sub></label><input type="text" id="tmXA" value="6" class="num" oninput="tmGo()"></span>
+    <span class="ctl"><label for="tmXB">bank X<sub>B</sub></label><input type="text" id="tmXB" value="15" class="num" oninput="tmGo()"></span>
+    <span class="ctl"><label for="tmXD1">X<sub>D1</sub></label><input type="text" id="tmXD1" value="3" class="num" oninput="tmGo()"></span>
+    <span class="ctl"><label for="tmXD2">X<sub>D2</sub></label><input type="text" id="tmXD2" value="7" class="num" oninput="tmGo()"></span>
+  </div>
+  <div class="steps" id="tmSteps"></div>
+  <div class="result" id="tmOut"></div>
+</div>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>降级防护不只靠 Finished</div>
+<p>课件第 16 页说"Messages 5 and 6 protect against downgrade: each side MACs the whole transcript"。<span class="term">降级攻击</span><span class="en">（downgrade attack）</span>是篡改协商，让双方同意更弱的算法或旧版本。只靠 Finished 不够：它的密钥派生自这次协商出的 DH 秘密，若攻击者能把双方降到一个他破得了的弱组，就算得出 Finished。以证书认证的完整握手为例，TLS 1.3 的防护有四层：</p>
+<ol>
+  <li>CertificateVerify 用长期私钥签名，覆盖 ClientHello 里的完整提议，被删改会被发现；</li>
+  <li>Finished 再确认一遍 transcript；</li>
+  <li>服务器若被迫协商到旧版本，会在 ServerHello.random 末尾写一个固定的"降级哨兵"，支持 1.3 的客户端看到就中止（前提是被降到的旧版本连接用临时 DH；用 RSA 密钥传输时没有这层保护）；</li>
+  <li>弱选项被整个删除："You cannot be downgraded to something that no longer exists."</li>
+</ol>
+<p style="margin-bottom:0">课件只说了最弱的第 2 层。</p>
+</div>
+<h3 id="s6-5"><span class="n">6.5</span>前向保密</h3>
+<p><span class="term">前向保密</span><span class="en">（forward secrecy）</span>：长期私钥日后泄露，过去录下的会话仍解不开。</p>
+<p>旧版 TLS 的 <span class="term">RSA 密钥传输</span><span class="en">（RSA key transport）</span>没有前向保密：客户端生成一个秘密值，用服务器证书里的 RSA 公钥加密发过去，双方由它和两边的随机数算出会话密钥。录下握手的人日后不论靠入侵、法院命令还是等待（"by breach, by court order, or by patience"）拿到私钥，就能解出那个秘密值，随机数本来就是明文，过去所有会话都被解密。课件说加密的是"the session key"，准确地说是 48 字节的<span class="term">预主密钥</span><span class="en">（pre-master secret）</span>，会话密钥再由它派生（与 L7 一致）。</p>
+<p><span class="term">临时 DH</span><span class="en">（ephemeral Diffie–Hellman）</span>有前向保密：DH 私有值每次握手新生成、用完即删；长期私钥只用来签名，从不参与算共享秘密。日后偷到私钥，能冒充服务器做将来的握手，却算不出过去的共享秘密。TLS 1.3 删掉了 RSA 传输。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>TLS 1.3 并不是每个会话都有前向保密</div>
+<p>课件第 15 页说"every session now uses an ephemeral Diffie–Hellman exchange"，说过头了。TLS 1.3 支持<span class="term">会话恢复</span><span class="en">（session resumption）</span>：完整握手后服务器发给客户端一张恢复票据，双方得到一个<span class="term">预共享密钥</span><span class="en">（pre-shared key，PSK）</span>，下次直接用它建立密钥、省掉证书和签名。若只用 PSK、不再做 DH（psk_ke 模式），就<strong>没有前向保密</strong>：谁日后拿到 PSK 或服务器加密票据的密钥，就能解开这些会话。RFC 8446 §1.2（RFC 9846 §1.3）的准确说法是"all public-key based key exchange mechanisms now provide forward secrecy"。</p>
+<details class="box">
+  <summary>0-RTT：为省一个往返放弃新鲜性（课件外）</summary>
+<p style="margin-bottom:0">持有 PSK 的客户端可以在第一条消息里就附带应用数据，不等任何往返，叫 0-RTT（zero round-trip time）早期数据。这些数据发在服务器回复之前，里面不可能有服务器的新 nonce：录下来再发一次，服务器会再执行一次（RFC 8446 §8："TLS does not provide inherent replay protections for 0-RTT data"），若内容是"pay £100 to Bob"就是活动 1 的协议 D。它相对 PSK 也没有前向保密。所以只能放<span class="term">幂等</span><span class="en">（idempotent：执行一次与多次效果相同，如读网页）</span>的请求，服务器还可让每张票据只用一次（又是重放缓存）。</p>
+</details>
+</div>
+<h3 id="s6-6"><span class="n">6.6</span>记录层：序列号身兼两职</h3>
+<p>握手后，应用数据切成一条条<span class="term">记录</span><span class="en">（record）</span>，每条用认证加密保护；GCM 的 nonce 在同一把密钥下重复，机密性和完整性一起崩溃（L6）。TLS 1.3 的做法：</p>
+<div class="eq"><span class="m"><span class="up">nonce</span> = <span class="up">IV</span> ⊕ <span class="tx">64 位记录序号</span></span></div>
+<p><span class="term">IV</span><span class="en">（initialisation vector，初始化向量）</span>在这里是与每一级流量密钥一起由 HKDF 派生的 12 字节值，同一把密钥下不变；记录序号在每把新密钥下从 0 开始、每条加 1，左补 0 到 12 字节再异或。序号递增，nonce 就不重复；序号不许回绕，实际上认证加密（AEAD，L6）的用量上限（AES-GCM 约 <span class="m">2<sup>24.5</sup></span> 条满长记录）远早于 <span class="m">2<sup>64</sup></span> 就逼着换密钥。</p>
+<p><strong>身兼两职</strong>：序号不在记录里传输，双方各自数。中间的记录被删、重排或重放，接收方算出的 nonce 对不上，认证标签校验失败，连接报错（截掉末尾几条靠的是关闭告警 close_notify）。一个计数器既保证 nonce 唯一，又检查新鲜性。</p>
+<div class="tool" id="rcTool">
+  <h4>不传输的序号怎样发现删除、重排和重放</h4>
+  <p class="sub">发送方按 0、1、2… 给记录编号，用 nonce = IV ⊕ 序号加密；编号本身不发出去。接收方自己数，用自己数出的序号算 nonce 去验标签（标签用 HMAC 演示）。</p>
+  <div class="row">
+    <span class="ctl"><label for="rcIV">IV</label><input type="text" id="rcIV" value="1f2e3d4c5b6a798897a6b5c4" style="width:16rem" class="mono" oninput="rcGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="rcAt">攻击者</label><select id="rcAt" onchange="rcGo()">
+      <option value="none">什么都不做</option><option value="delete" selected>删掉第 k 条</option><option value="swap">第 k 条与下一条对调</option>
+      <option value="replay">把第 k 条再发一遍</option><option value="trunc">截掉末尾两条</option></select></span>
+    <span class="ctl"><label for="rcK">k</label><select id="rcK" onchange="rcGo()"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></span>
+  </div>
+  <div class="steps" id="rcSteps"></div>
+  <div class="result" id="rcOut"></div>
+</div>
+<h3 id="s6-7"><span class="n">6.7</span>课堂活动 3：每个部件来自哪一讲</h3>
+<p>题目（第 17 页）：说出每个部件来自哪一讲、哪个概念——a 消息 1、2 里的临时公开值与共享秘密；b 消息 3 的证书和证书链；c 消息 4 的签名；d 应用数据的 AES-GCM；e 消息 5、6 的 Finished MAC；f 会话内 nonce 或计数器不能重复。追问：删掉哪一条消息整个协议就垮，会让什么攻击得逞？</p>
+<details class="box">
+  <summary>课堂活动 3 解答</summary>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>来自</th><th>概念</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">a</td><td><a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a></td><td>（椭圆曲线）Diffie–Hellman，临时生成、用完丢弃，带来前向保密</td></tr>
+<tr><td style="white-space:nowrap">b</td><td><a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a></td><td>X.509 证书（证书格式的标准）与证书链校验</td></tr>
+<tr><td style="white-space:nowrap">c</td><td><a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>，所用 RSA 或椭圆曲线来自 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a></td><td>数字签名：私钥签 transcript 的哈希，证书里的公钥验</td></tr>
+<tr><td style="white-space:nowrap">d</td><td><a href="L4%20AES.html">L4 AES</a> 与 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a></td><td>AES 加 GCM 认证加密模式</td></tr>
+<tr><td style="white-space:nowrap">e</td><td><a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a></td><td>消息认证码，做密钥确认与握手完整性（实为 HMAC）</td></tr>
+<tr><td style="white-space:nowrap">f</td><td><a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 与本讲 <a href="#s2-3">2.3</a></td><td>nonce 唯一：GCM 的 nonce 重复会同时毁掉机密性和完整性；TLS 用记录序号保证</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0"><strong>追问</strong>：删掉 CertificateVerify，中间人攻击复活（理由见 <a href="#s6-4">6.4</a>）。</p>
+</details>
+<h3 id="s6-8"><span class="n">6.8</span>TLS 在实践中怎样失败</h3>
+<p>课件第 18 页："Almost every real failure has been in negotiation, in validation, or in implementation — never in the cryptography."</p>
+<div class="tw"><table>
+<thead><tr><th>失败类型</th><th>是什么</th><th>怎么应对</th></tr></thead>
+<tbody>
+<tr><td>降级攻击</td><td>篡改协商，让双方用更弱的密码或旧版本（如 2015 年的 Logjam、FREAK，降到 1990 年代美国出口管制留下的弱参数）</td><td>签名与 MAC 覆盖 transcript，弱选项整个删掉（<a href="#s6-4">6.4</a>）</td></tr>
+<tr><td>证书校验缺陷</td><td>接受了本该拒绝的证书：名字不对、过期、链条过不了基本约束</td><td>L8 的清单没实现全；有的库默认设置实际上关掉了校验</td></tr>
+<tr><td>实现缺陷</td><td>内存安全漏洞（读写了不属于它的内存，如 2014 年 OpenSSL（最常用的开源 TLS 库）的 Heartbleed）、计时侧信道（<a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s8-3">L3 8.3</a>）、状态机错误（实现跳过了本该检查的一步，如 2014 年苹果的 goto fail 跳过了签名校验）</td><td>最著名的 TLS 漏洞都在常用库的实现里，不在协议规范里</td></tr>
+<tr><td>信任库与 CA 失败</td><td>错签的证书在密码学上完美，校验全过；TLS 识别不了可信机构说的谎</td><td>协议之外解决：证书透明度（签发的证书都要公开登记）、短有效期、CAA 记录（域名声明只许哪些 CA 给它签证书），见 L8</td></tr>
+<tr><td>用户点掉警告</td><td>警告多因证书过期弹出，用户习惯性点掉，真危险时也失效</td><td>L1 的<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s7-3">心理可接受性</a>；浏览器故意让绕过警告变麻烦</td></tr>
+</tbody></table></div>
+<p>底部："TLS 1.3 removed features rather than adding them: no static RSA key exchange, no weak ciphers, no renegotiation." 删掉的还有静态 DH 和压缩；<span class="term">重协商</span><span class="en">（renegotiation）</span>是在已建立的连接中途重新握手换参数，历史上出过攻击。这是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s6-2">L1 的缩小攻击面</a>用在协议设计上。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>"never in the cryptography" 只对 TLS 1.3 大体成立</div>
+<p style="margin-bottom:0">TLS 1.2 及更早版本多次败在协议规范里的密码构造上：BEAST（2011）、Lucky 13（2013）、RC4（1987 年的一种流密码，<a href="#s9-2">9.2</a>）偏差攻击（2013）、POODLE（2014，SSL 3.0；SSL 是 TLS 的前身 Secure Sockets Layer）。准确说法是：TLS 1.3 至今的失败主要在协商、校验和实现；早期版本败在密码构造上，而 1.3 把这些构造全删了。</p>
+</div>
+<h2 id="s7"><span class="n">7</span>IPsec 与 VPN</h2>
+<h3 id="s7-1"><span class="n">7.1</span>在网络层保护每一个包</h3>
+<p>"TLS protects one connection between two applications. IPsec protects traffic at the network layer, so every packet between two points is covered regardless of which application sent it." <span class="term">IP</span><span class="en">（Internet Protocol，互联网协议）</span>层负责把数据包从一台主机送到另一台，所有应用的数据最终都装在 IP 包里。<span class="term">IPsec</span><span class="en">（IP security）</span>在这一层加密和认证每个包，应用程序不用改。典型用途是 <span class="term">VPN</span><span class="en">（virtual private network，虚拟专用网）</span>：在公共互联网上搭一条加密隧道，让两个分支的内网（站点到站点），或出差员工和公司内网（远程接入），像接在同一个私有网络里。</p>
+<p>课件底部："IPsec negotiates keys with Diffie–Hellman, authenticates with certificates or shared secrets, encrypts with AES, and protects against replay with sequence numbers in a sliding window … Different layer, different requirement, same toolbox."</p>
+<details class="box">
+  <summary>协商密钥的 IKEv2（课件外）</summary>
+<p style="margin-bottom:0">课件没提协议名字：做这件事的是 IKEv2（Internet Key Exchange version 2，RFC 7296），最少两对消息。IKE_SA_INIT（明文）交换算法提议、DH 公开值和双方 nonce，由此派生出包括加密、完整性、认证在内的一组密钥；IKE_AUTH（在派生出的密钥保护下）交换身份和证书，AUTH 字段对"自己的第一条消息 ‖ 对方的 nonce ‖ 用认证密钥对自己身份算的 MAC"签名。签名把身份绑到这次 DH 上（相当于 CertificateVerify），MAC 过的身份把身份绑到这次派生的密钥上（相当于 Finished）。这种"签名绑身份、MAC 确认密钥"的结构叫 SIGMA，TLS 1.3 与 IKEv2 都属于它。</p>
+</details>
+<h3 id="s7-2"><span class="n">7.2</span>AH 与 ESP</h3>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>AH（Authentication Header，认证头）</th><th>ESP（Encapsulating Security Payload，封装安全载荷）</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">提供</td><td>完整性与来源认证，覆盖部分 IP 头</td><td>加密，加完整性与认证</td></tr>
+<tr><td style="white-space:nowrap">机密性</td><td>完全没有</td><td>有（加密可选，实际几乎总是开启）</td></tr>
+<tr><td style="white-space:nowrap">现状</td><td>很少用</td><td>实际部署用的就是它</td></tr>
+</tbody></table></div>
+<p>AH 少用，一是 ESP 本身也给完整性；二是 AH 保护 IP 头里的地址，一经过 <span class="term">NAT</span>（network address translation，网络地址转换：家用路由器把内网地址换成公网地址）就因地址被改而校验失败。</p>
+<p>ESP 头里有 <span class="term">SPI</span><span class="en">（security parameter index，安全参数索引）</span>，告诉接收方用哪个<span class="term">安全关联</span>（security association，SA：两端之间单方向的一份约定，规定算法、密钥和当前序列号，一对通信每个方向一个）；还有每包加 1 的<strong>序列号</strong>，接收方用 <a href="#s2-4">2.4</a> 的滑动窗口查重放。包尾的 <span class="term">ICV</span><span class="en">（integrity check value，完整性校验值）</span>相当于 MAC。</p>
+<h3 id="s7-3"><span class="n">7.3</span>传输模式与隧道模式</h3>
+<figure>
+<div id="figIpsecW" class="only-wide"></div><div id="figIpsecN" class="only-narrow"></div>
+<figcaption>ESP 的两种模式：传输模式只保护载荷，隧道模式把整个原始包包起来再套新 IP 头</figcaption>
+</figure>
+<ul>
+  <li><span class="term">传输模式</span><span class="en">（transport mode）</span>：只保护载荷，原 IP 头可见；用于主机到主机，网关只能用它保护自己收发的包。</li>
+  <li><span class="term">隧道模式</span><span class="en">（tunnel mode）</span>：整个原始包连同 IP 头加密，再套一个新 IP 头。新 IP 头写两端网关地址，必须是明文，否则路由器没法转发。典型用于网关到网关（站点到站点 VPN），<strong>隐藏了内部地址</strong>。远程接入 VPN 是主机到网关，也用隧道模式，所以课件写的"Gateway to gateway"只是典型用法。</li>
+</ul>
+<h3 id="s7-4"><span class="n">7.4</span>IPsec 与 TLS 怎么选</h3>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>IPsec</th><th>TLS</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">层</td><td>网络层</td><td>传输层之上，做在应用里</td></tr>
+<tr><td style="white-space:nowrap">覆盖</td><td>两点之间的一切流量</td><td>一次一条连接</td></tr>
+<tr><td style="white-space:nowrap">需要的改动</td><td>对应用透明</td><td>每个应用都要集成</td></tr>
+<tr><td style="white-space:nowrap">典型用途</td><td>站点到站点、远程接入 VPN</td><td>单个客户端到服务器的会话</td></tr>
+</tbody></table></div>
+<p>判据就是课件底部框的标题"The same components, arranged for a different requirement"：要保护两个地点之间的全部通信、又不想逐个改应用，用 IPsec；要保护某个应用和某台服务器之间的会话，并在应用层知道对方是谁（浏览器要核对网址），用 TLS。</p>
+<h2 id="s8"><span class="n">8</span>网络准入控制</h2>
+<p>课件第 19 页："Before a device can use the network at all, something has to decide whether to let it on."</p>
+<h3 id="s8-1"><span class="n">8.1</span>NAC：既认证用户，也检查设备</h3>
+<p><span class="term">网络准入控制</span><span class="en">（network access control，NAC）</span>是管理谁、用什么设备能接入网络哪一部分的统称："NAC authenticates the user, and also evaluates the DEVICE — its patch level, its antimalware state, its configuration — before granting access." 对设备安全状况的检查叫<span class="term">姿态评估</span><span class="en">（posture assessment）</span>。</p>
+<p>两个目的缺一不可：认证回答"你是谁"，姿态评估回答"你安全到可以放进来吗"。"A legitimate user on an infected laptop is exactly the case NAC exists to catch — and no amount of cryptography addresses it." 口令和证书都对，任何认证协议都会放行，只有姿态评估能拦住。姿态是设备<strong>自己报告</strong>的，被攻破的设备可能撒谎，所以它不能单独依赖，网络分段是另一道防线。</p>
+<h3 id="s8-2"><span class="n">8.2</span>三个组件与 802.1X 的三个角色</h3>
+<p><strong>IEEE 802.1X</strong> 是 <span class="term">IEEE</span>（Institute of Electrical and Electronics Engineers，电气电子工程师学会）制定的基于端口的接入控制标准（同系列的 802.11 是 Wi-Fi）。课件说它的三个角色就是"the NAC triple again, at the link layer"：</p>
+<div class="tw"><table>
+<thead><tr><th>NAC 组件</th><th>802.1X 角色</th><th>是什么</th></tr></thead>
+<tbody>
+<tr><td><span class="term">接入请求者</span><span class="en">（access requestor，AR）</span></td><td><span class="term">请求者</span><span class="en">（supplicant）</span></td><td>想接入的设备：笔记本、手机、打印机、物联网设备</td></tr>
+<tr><td><span class="term">网络接入服务器</span><span class="en">（network access server，NAS）</span></td><td><span class="term">认证者</span><span class="en">（authenticator）</span></td><td>执行点：控制端口的交换机或无线接入点，执行策略服务器的决定</td></tr>
+<tr><td><span class="term">策略服务器</span><span class="en">（policy server，PS）</span></td><td><span class="term">认证服务器</span><span class="en">（authentication server）</span></td><td>保存策略，按身份和姿态做决定</td></tr>
+</tbody></table></div>
+<p>准入流程：设备接入时 NAS 只放行认证流量 → 认证并评估姿态 → 合规的放进相应网段；不合规的（病毒库过期、缺补丁）放进<span class="term">隔离网段</span><span class="en">（quarantine segment）</span>，只能访问提供补丁和病毒库的<span class="term">补救服务器</span><span class="en">（remediation server）</span>，修好再申请。</p>
+<p>802.1X 在<span class="term">链路层</span><span class="en">（link layer：同一局域网内相邻设备之间传数据帧的那一层，比 IP 低一层）</span>设卡："Until a device authenticates, the switch port or wireless association carries nothing but authentication traffic. The device is physically connected and functionally outside the network." 设备连 IP 地址都拿不到。</p>
+<h3 id="s8-3"><span class="n">8.3</span>NAS 的四种执行手段</h3>
+<div class="tw"><table>
+<thead><tr><th>手段</th><th>做法</th></tr></thead>
+<tbody>
+<tr><td>IEEE 802.1X</td><td>认证通过之前不给任何网络访问</td></tr>
+<tr><td>VLAN 分配</td><td>放进某个<span class="term">虚拟局域网</span><span class="en">（virtual LAN，VLAN：在同一套交换机上从逻辑上划出、彼此隔离的网段）</span>：完全访问、访客或隔离</td></tr>
+<tr><td>防火墙规则</td><td>在执行点按设备放行或拒绝流量</td></tr>
+<tr><td>DHCP 管理</td><td>用分配 IP 地址的方式控制访问。<span class="term">DHCP</span><span class="en">（Dynamic Host Configuration Protocol，动态主机配置协议）</span>给新设备自动分配地址；单用很弱，攻击者可以手动给自己设一个地址</td></tr>
+</tbody></table></div>
+<h3 id="s8-4"><span class="n">8.4</span>EAP：是框架，不是认证方法</h3>
+<p><span class="term">EAP</span>（Extensible Authentication Protocol，可扩展认证协议，RFC 3748）"is NOT an authentication method. It is a generic transport for authentication exchanges — a container into which many different methods can be plugged." EAP 只规定信封：Request、Response、Success、Failure 四种报文怎么往返；里面用证书、口令还是 SIM 卡，由别的规范定义。认证者不需要懂里面的方法："It relays EAP messages between supplicant and authentication server and enforces the final verdict."</p>
+<p>为什么这样设计：公司笔记本、访客手机、工厂传感器、带 SIM 卡的设备需要的凭证完全不同，EAP 只定义信封、让每个部署自己选方法，<strong>加新方法不用改任何交换机或接入点</strong>。课件的类比："the same design instinct as modes of operation in Lecture 5: separate the framework from the choice that varies."——和 L6 的工作模式一样，把框架与会变的选择分开。</p>
+<h3 id="s8-5"><span class="n">8.5</span>跑在 EAP 上的方法与消息流</h3>
+<div class="tw"><table>
+<thead><tr><th>方法</th><th>做法</th><th>评价</th></tr></thead>
+<tbody>
+<tr><td>EAP-TLS</td><td>双方都出示证书，做一次双向认证的 TLS 握手</td><td>最强，也最难部署：每个客户端都要证书</td></tr>
+<tr><td>EAP-TTLS / PEAP</td><td>先与认证服务器建 TLS 隧道（只有服务器出示证书），再在隧道里用口令认证客户端</td><td>部署最广，"this is most university wireless"</td></tr>
+<tr><td>EAP-SIM / AKA</td><td>用手机 SIM 卡（subscriber identity module，用户身份模块）里已有的凭证</td><td>AKA 即 authentication and key agreement，3G/4G 的认证与密钥协商</td></tr>
+</tbody></table></div>
+<p>TTLS 是 Tunneled TLS，PEAP 是 Protected EAP。它们有个常被忽视的前提：<strong>客户端必须校验认证服务器的证书</strong>。否则攻击者架一个同名的伪热点（<strong>邪恶双胞胎</strong> evil twin）自任认证服务器，客户端会在"隧道"里把口令应答交给他——隧道加密了，却不知道对面是谁，和 <a href="#s6-1">6.1</a> 同理。</p>
+<p>课件只讲了角色，一次典型认证的消息流如下：</p>
+<figure>
+<div id="figEapW" class="only-wide"></div><div id="figEapN" class="only-narrow"></div>
+<figcaption>请求者与认证者之间用 EAPOL，认证者与认证服务器之间用 RADIUS，认证者只转发不解读</figcaption>
+</figure>
+<p>请求者与认证者之间走 <span class="term">EAPOL</span><span class="en">（EAP over LAN，局域网上的 EAP 封装）</span>，因为此时还没有 IP 地址；认证者与认证服务器之间走 <span class="term">RADIUS</span>（Remote Authentication Dial-In User Service，远程认证拨入用户服务，一种集中认证协议），两者预先共享一个秘密，用来保护这一段。真正的认证发生在方法的多轮交换里（RADIUS 这一段是 Access-Request 与 Access-Challenge 的往返）；成功后认证服务器在 Access-Accept 里下发密钥材料（无线场景下成为 PMK，<a href="#s9-3">9.3</a>），认证者发 EAP-Success、打开端口。</p>
+<h2 id="s9"><span class="n">9</span>无线安全</h2>
+<h3 id="s9-1"><span class="n">9.1</span>三代方案</h3>
+<p>"On a wired network an attacker must reach a socket; on wireless they only need to be within range, and nobody can tell they are listening." 所以无线网络必须在链路层自己加密和认证。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th>方案</th><th style="white-space:nowrap">年份</th><th>构成</th><th>课件评价</th></tr></thead>
+<tbody>
+<tr><td><span class="term">WEP</span><span class="en">（Wired Equivalent Privacy，有线等效保密）</span></td><td style="white-space:nowrap">1997</td><td>RC4 加 24 位 IV 加一把静态共享密钥</td><td>"Catastrophically broken"</td></tr>
+<tr><td><span class="term">WPA2</span><span class="en">（Wi-Fi Protected Access 2，Wi-Fi 保护接入第 2 版）</span></td><td style="white-space:nowrap">2004</td><td>AES-CCMP（AES 加密加完整性校验，<a href="#s9-3">9.3</a>）；四次握手派生新的会话密钥</td><td>密码学可靠；弱点在握手，可被离线字典攻击</td></tr>
+<tr><td><strong>WPA3</strong>（第 3 版）</td><td style="white-space:nowrap">2018</td><td>课件："Replaces the handshake with a password-authenticated key exchange"，加入前向保密</td><td>离线字典攻击不再可行</td></tr>
+</tbody></table></div>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>WPA3 并没有取代四次握手</div>
+<p style="margin-bottom:0">课件第 22 页说 WPA3 "Replaces the handshake with a password-authenticated key exchange"。WPA3 个人模式的 SAE 取代的是"由口令直接算出 PMK"这一步（<a href="#s9-4">9.4</a>）；SAE 产出 PMK 之后，<strong>仍然照常跑同一个四次握手</strong>派生会话密钥。照课件去理解，会推出"KRACK 与 WPA3 无关"之类的错误结论——KRACK 打的是四次握手的实现，修复靠打补丁，与代际无关。</p>
+</div>
+<h3 id="s9-2"><span class="n">9.2</span>WEP：好部件被用坏的标本</h3>
+<p>WEP 每个包的 RC4（<a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s2-1">流密码</a>，用密钥流与明文异或）密钥 = 24 位 <strong>IV</strong>（初始化向量，每包一个，明文附在包头）拼上 40 或 104 位的共享密钥 <span class="m">K</span>，全网共用同一把 <span class="m">K</span>。</p>
+<p><strong>IV 太短，密钥流必然重复。</strong> 同一个 IV 意味着同一条密钥流，两段密文异或就消掉密钥流，剩下两段明文的异或——即 <a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html#s8-5">密钥重用</a>（两次一密）。多快重复：沿用 L6 生日界的记号，<span class="m">q</span> 个随机的 <span class="m">n</span> 位值至少撞一次的概率</p>
+<div class="eq"><span class="m">p ≈ 1 − e<sup>−q(q − 1)/2<sup>n + 1</sup></sup></span></div>
+<p>（推导见 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>：逐个放入，用 <span class="m">1 − x ≈ e<sup>−x</sup></span> 把"一个都不撞"的连乘化成指数。）令 <span class="m">p = 1/2</span>，取 <span class="m">q(q − 1) ≈ q<sup>2</sup></span>，得 <span class="m">q ≈ √<span class="sqrt">2<sup>n + 1</sup><span class="up">ln</span> 2</span></span>。<span class="m">n = 24</span> 时约 4823 个包有一半把握撞上；按 11 Mb/s 标称速率、每包 1500 字节满载估算约 916.7 包/秒，<strong>约 5.3 秒</strong>。若 IV 从 0 顺序递增，单个发送方要用完整个空间才重复：<span class="m">2<sup>24</sup>/916.7 ≈ 18 302</span> s，约 5.08 小时，这就是课件"repeats within hours"的来历。但多台设备共用 <span class="m">K</span>、又各自上电从 0 计数时，小 IV 跨设备几乎立刻就撞。</p>
+<div class="tool" id="wpTool">
+  <h4>IV 多快重复</h4>
+  <p class="sub">按上面的近似式算「一半把握撞上」要多少个包、满载要多久，并和「顺序递增用完整个空间」比较。曲线是 <span class="m">p</span> 随包数的变化。</p>
+  <div class="row">
+    <span class="ctl"><label for="wpN">IV 位数 n</label><input type="text" id="wpN" value="24" class="num" oninput="wpGo()"></span>
+    <span class="ctl"><label for="wpR">速率 Mb/s</label><input type="text" id="wpR" value="11" class="num" oninput="wpGo()"></span>
+    <span class="ctl"><label for="wpB">每包字节</label><input type="text" id="wpB" value="1500" class="num" oninput="wpGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="wpSet(24,11,1500)">WEP：24 位、11 Mb/s</button>
+    <button class="btn" onclick="wpSet(24,54,1500)">24 位、54 Mb/s</button>
+    <button class="btn" onclick="wpSet(48,11,1500)">假如 IV 有 48 位</button>
+  </div>
+  <div class="steps" id="wpSteps"></div>
+  <div class="toolfig" id="wpPlot"></div>
+  <div class="result" id="wpOut"></div>
+</div>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>WEP 的失败不只是"IV 太短"，RC4 也谈不上"a sound cipher"</div>
+<p>课件说"a protocol failing because of how a sound cipher was used — the IV was simply too short"，又说"Keys are recoverable in minutes with passive capture"。完整的失败链：</p>
+<ol>
+  <li>IV 碰撞 → 密钥流重用，可解密流量，但<strong>不能</strong>恢复 <span class="m">K</span>；</li>
+  <li>几分钟恢复 <span class="m">K</span> 靠的是另一个弱点：每包密钥是"公开 IV 拼固定 <span class="m">K</span>"，形成一批只差已知部分的<strong>相关密钥</strong>，RC4 用密钥初始化内部状态的那一步（密钥编排）有缺陷，FMS（2001）和 PTW（2007，约 4 万个包）攻击据此直接算出 <span class="m">K</span>，与 IV 是否重复无关；</li>
+  <li>完整性校验用 CRC-32（循环冗余校验，一种不含密钥的检错码），它对异或是仿射的（线性再加一个常数），攻击者不用密钥就能精确改密文并同步修正校验值；</li>
+  <li>没有任何重放保护；</li>
+  <li>全网一把静态密钥，一人知道就等于所有人知道。</li>
+</ol>
+<p style="margin-bottom:0">RC4 本身的密钥流也有偏差，IETF 已禁止 TLS 使用它。</p>
+</div>
+<h3 id="s9-3"><span class="n">9.3</span>WPA2：四次握手与离线字典攻击</h3>
+<p>WPA2 基于 IEEE 802.11i-2004，数据加密用 <span class="term">AES-CCMP</span>（Counter Mode with CBC-MAC Protocol，计数器模式加 CBC-MAC 协议）：AES 以 CTR 模式加密，CBC-MAC 管完整性，两者都在 L6 讲过。</p>
+<p>密钥层级：</p>
+<ul>
+  <li><span class="term">PMK</span><span class="en">（pairwise master key，成对主密钥）</span>：客户端与接入点共有的顶层秘密。个人模式下 <span class="m"><span class="up">PMK</span> = <span class="up">PBKDF2</span>(<span class="tx">口令</span>, <span class="up">SSID</span>, 4096 <span class="tx">轮</span>)</span>：<span class="term">SSID</span><span class="en">（service set identifier）</span>是网络名；<span class="term">PBKDF2</span>（password-based key derivation function 2，基于口令的密钥派生函数）把口令和<span class="term">盐</span><span class="en">（salt：与口令一起输入的公开值，让同一口令在不同网络里算出不同结果，预先算好的口令表就用不上）</span>反复做 4096 轮 HMAC，故意让每算一次都慢一点。口令不变，PMK 就永远不变。企业模式的 PMK 来自 802.1X/EAP。</li>
+  <li><span class="term">PTK</span><span class="en">（pairwise transient key，成对临时密钥）</span>：每次关联新算，<span class="m"><span class="up">PTK</span> = <span class="up">PRF</span>(<span class="up">PMK</span>, <span class="tx">两端 MAC 地址</span>, <span class="up">ANonce</span>, <span class="up">SNonce</span>)</span>，PRF（pseudorandom function，伪随机函数）在这里是基于 HMAC 的密钥派生函数；<span class="term">MAC 地址</span><span class="en">（media access control address：网卡的硬件地址）</span>与消息认证码只是缩写相同。PTK 切出 <span class="term">KCK</span><span class="en">（key confirmation key，密钥确认密钥，给握手消息算完整性码）</span>、KEK（key encryption key，加密下发的组密钥）和 TK（temporal key，临时密钥，CCMP 加密数据用）。</li>
+</ul>
+<p>握手在客户端 <span class="term">STA</span><span class="en">（station，站点）</span>与 <span class="term">AP</span><span class="en">（access point，接入点）</span>之间进行，握手消息上的认证码 802.11 标准叫 <span class="term">MIC</span><span class="en">（message integrity code，消息完整性码）</span>：</p>
+<figure>
+<div id="figWpaW" class="only-wide"></div><div id="figWpaN" class="only-narrow"></div>
+<figcaption>双方各出一个 nonce，从同一个 PMK 派生出这一次的 PTK，再用 MIC 互相证明知道 PMK</figcaption>
+</figure>
+<ul>
+  <li><strong>① AP → STA：ANonce</strong>，明文。AP 一侧的新鲜性：PMK 多年不变，PTK 也每次都新。</li>
+  <li><strong>② STA → AP：SNonce、能力列表、MIC</strong>。STA 一侧的新鲜性；MIC 用 KCK 算，证明 <strong>STA 知道 PMK</strong>（不知道 PMK 算不出 KCK）。</li>
+  <li><strong>③ AP → STA：ANonce、能力列表、加密的组密钥、MIC</strong>。证明 <strong>AP 也知道 PMK</strong>，双向认证完成；STA 把能力列表与 AP 广播里的对比，不一致说明有人想降级。</li>
+  <li><strong>④ STA → AP：确认、MIC</strong>。双方安装 TK。</li>
+</ul>
+<p><strong>离线字典攻击</strong>（课件"an attacker can capture it and mount an offline dictionary attack against a weak passphrase"）：录下 ① ②，就有了两个 nonce、两个 MAC 地址和 ② 的 MIC。对每个候选口令算 PMK → PTK → KCK → MIC，与录到的比，相同即猜中。全程不和网络交互，不会被察觉、不受限速，PBKDF2 的 4096 轮只是拖慢。有的 AP 在 ① 里还附带一个由 PMK 算出的标识 PMKID（PMK identifier），攻击者连客户端都不用等。</p>
+<p>另外两个弱点：PTK 只由 PMK 与明文的 nonce、MAC 地址决定，个人模式下<strong>知道口令的人录到别人的握手就能解密别人的流量</strong>，没有前向保密。<span class="term">KRACK</span><span class="en">（key reinstallation attack，密钥重装攻击，2017）</span>：攻击者截住客户端的 ④，AP 以为 ③ 丢了而重传，攻击者把重传的 ③ 转给客户端；有缺陷的客户端每收到一次 ③ 就把同一个 PTK 重装一次，同时把数据帧的包编号（即 CCMP 的 nonce）和接收重放计数器重置，同一把密钥下 nonce 重复，密钥流重复。这是第 2 节的新鲜性教训在无线协议里的真实案例，修复是补丁：装过的密钥不再重装。</p>
+<h3 id="s9-4"><span class="n">9.4</span>WPA3 与 SAE</h3>
+<p>WPA3 个人模式用 <span class="term">SAE</span>（Simultaneous Authentication of Equals，对等实体同时认证，基于名为 Dragonfly 的密钥交换）取代"口令直接算 PMK"。SAE 是一种<span class="term">口令认证密钥交换</span><span class="en">（password-authenticated key exchange，PAKE）</span>：用口令认证双方、同时协商出强密钥，被动截获的数据不足以检验任何口令猜测。</p>
+<p>双方由口令算出一个"口令元素"，各选一个新的随机秘密与之结合成类似 DH 的值互换，再互相确认。交换的值掺着从不发送的随机秘密，旁观者拿一个候选口令没法验证；要验证只能亲自和网络跑一次交换："each guess requires a fresh interaction with the network, so guessing becomes detectable and rate-limited." PMK 来自这次新选的随机秘密，日后口令泄露也算不出过去的 PMK，这是前向保密。SAE 产出 PMK 之后，照常做四次握手。</p>
+<p>"Offline dictionary attacks no longer work"是协议层面的结论：2019 年公布的 Dragonblood 攻击表明，早期实现由口令算口令元素时的耗时会随口令变化，可据此离线缩小口令范围；兼容老设备的过渡模式还能被降级回 WPA2。</p>
+<h3 id="s9-5"><span class="n">9.5</span>个人模式与企业模式</h3>
+<p>"Personal mode uses a shared passphrase; enterprise mode uses 802.1X and EAP, so every user has their own credentials."</p>
+<div class="tw"><table>
+<thead><tr><th></th><th style="white-space:nowrap">个人模式</th><th>企业模式</th></tr></thead>
+<tbody>
+<tr><td>PMK 从哪来</td><td style="white-space:nowrap">全网共用的口令</td><td>每个用户各自经 802.1X/EAP 得到</td></tr>
+<tr><td>有人离职</td><td style="white-space:nowrap">只能全员换口令</td><td>单独吊销他的凭证</td></tr>
+<tr><td>追责</td><td style="white-space:nowrap">区分不出是谁</td><td>知道是哪个用户</td></tr>
+<tr><td>WPA2 下知道凭证能否解密别人的单播流量</td><td style="white-space:nowrap">能</td><td>不能（组密钥仍全网共用，组播、广播帧不在此列）</td></tr>
+</tbody></table></div>
+<h3 id="s9-6"><span class="n">9.6</span>课堂活动 4：评估四种接入设计</h3>
+<p>题目（第 23 页）：各指出最严重的弱点和首先改什么；再按"一台设备被攻破后能造成多大损害"排序。</p>
+<ul>
+  <li><strong>A</strong> 大学图书馆提供无密码的开放无线，用<span class="term">强制门户</span><span class="en">（captive portal：连上后先弹网页，要求点同意条款）</span>让用户接受条款。</li>
+  <li><strong>B</strong> 小公司用 WPA2 个人模式，全员共用一个口令，印在会议室的卡片上，四年没换。</li>
+  <li><strong>C</strong> 工厂用 802.1X 加 EAP-TLS，每个传感器的证书有效期十年，没有吊销机制。</li>
+  <li><strong>D</strong> 医院放行任何出示有效域凭证的设备，不做姿态评估，所有设备在一个<span class="term">扁平网络</span><span class="en">（flat network：全网不分段，任何设备都能直接访问其他所有设备）</span>里。</li>
+</ul>
+<details class="box">
+  <summary>课堂活动 4 解答</summary>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>最严重的弱点</th><th>先改什么</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">A</td><td>链路层没有加密和认证：同一热点上谁都能嗅探明文，谁都能架邪恶双胞胎；强制门户只是点同意的法律或计费关口</td><td>改用给每个客户端单独加密的开放网络（OWE，Opportunistic Wireless Encryption，机会性无线加密）或企业模式；开启<strong>客户端隔离</strong>（同一热点的客户端彼此不能直接通信）；访客网与内网分开</td></tr>
+<tr><td style="white-space:nowrap">B</td><td>口令早不是秘密；无逐人凭证，无法追责和单独吊销；知道口令者录到任何设备的握手就能解密它（<a href="#s9-3">9.3</a>）</td><td>立刻换强口令、收回卡片；根本办法是企业模式，至少改 WPA3</td></tr>
+<tr><td style="white-space:nowrap">C</td><td>认证方法最强，但没有吊销：传感器被盗、私钥被拆出或克隆后，证书十年有效、无法作废</td><td>在认证服务器上加吊销（吊销列表或证书序号黑名单，L8）；缩短有效期并自动续期；传感器放进专用 VLAN</td></tr>
+<tr><td style="white-space:nowrap">D</td><td>"认证了不等于安全"加上没有分段：中毒笔记本照样进来，进来后能直接访问医疗设备和病历服务器，<span class="term">勒索软件</span><span class="en">（ransomware：加密受害者数据、索要赎金的恶意软件）</span>能横向扩散到全院</td><td>先分段，把医疗设备隔离；再加姿态评估，不合规的进隔离网段</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0"><strong>排序</strong>（理由比名次重要）：D 最严重，扁平网让一台设备够得着全院，资产关乎生命，七条之七说的就是"limit what a compromise reaches"；B 次之，暴露的是全员共用的入网凭证加解密别人流量的能力；C 第三，攻击者能以合法传感器身份长期入网，但限于工厂网，也不泄露别的设备的凭证（若工厂网也扁平、连着控制系统，可升到第二）；A 最轻，开放网的设备本来就被当作不可信、与内网隔离。</p>
+</details>
+<h2 id="s10"><span class="n">10</span>协议管不到的地方</h2>
+<h3 id="s10-1"><span class="n">10.1</span>在防火墙后面就安全吗</h3>
+<p>课后 Task 3："A company deploys TLS 1.3 correctly on its public website, and runs its internal services over plain HTTP because "they are behind the firewall". Every laptop is on one flat network with valid domain credentials. Identify the assumption being made and explain why it fails."</p>
+<details class="box">
+  <summary>课后作业 Task 3 解答</summary>
+<p><strong>假设</strong>：网络边界就是信任边界，防火墙里面的人和设备都可信。</p>
+<p><strong>为什么不成立</strong>：扁平网里任何一台被入侵或心怀恶意的设备都能嗅探明文 HTTP，或伪造地址应答把自己插进别人的通信路径，拿到会话 cookie（网站用来记住登录状态的小段数据，拿到它就等于登录）和口令，这些流量根本不经过防火墙；域凭证只回答"你是谁"，不回答设备是否安全，也不限制它能访问多远（<a href="#s8-1">8.1</a>）；外部网站的 TLS 只保护外部那一段。这就是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s6-1">L1 6.1 的"边界是怎样消失的"</a>。</p>
+<p style="margin-bottom:0"><strong>应对</strong>：内部服务也上 TLS，网络分段，NAC 姿态评估——不因为在内网就默认信任的<span class="term">零信任</span><span class="en">（zero trust）</span>思路。</p>
+</details>
+<h3 id="s10-2"><span class="n">10.2</span>攻击者就在机器上</h3>
+<p>课后 Task 4（课件说它是下一讲的开场）："What if the attacker is already ON one of the machines — or is the person using it? List five things that could go wrong that no protocol we have studied would prevent." 本讲所有协议都在 <a href="#s1-2">标准模型</a>下设计：攻击者在网络上，两端诚实。端点本身失陷，协议再完美也无能为力。</p>
+<details class="box">
+  <summary>课后作业 Task 4 解答</summary>
+<ol>
+  <li>恶意软件在加密前读明文、在输入时偷口令（"Malware on your laptop reads the plaintext first"）；</li>
+  <li>钓鱼与社会工程：用户亲手交出凭证，协议忠实地认证了攻击者；</li>
+  <li>内部人员滥用合法权限；</li>
+  <li>应用层漏洞：SQL 注入（SQL 是数据库查询语言；把数据库命令混进输入让服务器执行）、跨站脚本（把恶意脚本注入网页让别人的浏览器执行）、缓冲区溢出、权限提升——TLS 只保证字节完好送达，不管内容是否恶意；</li>
+  <li><strong>软件供应链</strong>（从开发、依赖库到分发更新的整条链条）被投毒、勒索软件、本机私钥或票据被盗，以及拒绝服务。</li>
+</ol>
+<p style="margin-bottom:0">这些是 <a href="L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html">L10 网络安全：威胁、攻击与防御</a> 的主题。</p>
+</details>
+<h2 id="s11"><span class="n">11</span>七条结论</h2>
+<p>课件第 26 页的"Seven things to leave with"：</p>
+<ol>
+  <li>协议是排列，不是部件的堆砌；部件全对，协议仍可能坏。（<a href="#s1-1">1.1</a>、<a href="#s3-2">3.2</a>）</li>
+  <li>新鲜性是独立的属性：加密说明没人读过，MAC 说明没人改过，都说不出消息何时发出。（<a href="#s2-2">2.2</a>）</li>
+  <li>按信道选机制：能挑战用 nonce，有时钟用时间戳，否则用计数器。（<a href="#s2-3">2.3</a>）</li>
+  <li>课件说 Needham–Schroeder 的缺陷十七年才被发现（对称版实为 3 年，17 年是公钥版）；安全性只靠仔细阅读的协议都值得怀疑。（<a href="#s4-4">4.4</a>）</li>
+  <li>时间戳给重放划了窗口，没有关上它；Kerberos 天生带着这个弱点。（<a href="#s5-4">5.4</a>）</li>
+  <li>TLS 1.3 里没有没见过的原语（就概念而言）；CertificateVerify 是把身份绑到密钥交换上的那条消息。（<a href="#s6-4">6.4</a>）</li>
+  <li>认证回答"谁"，不回答设备是否安全，也不限制一次失陷能波及多远。（<a href="#s8-1">8.1</a>、<a href="#s9-6">9.6</a>）</li>
+</ol>
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+  <li>协议 = 敌手在场时的消息排列；Dolev–Yao：网络归攻击者，密码完美。四问：认证、新鲜性、完整性、机密性。</li>
+  <li>重放：原样重发合法消息，加密和 MAC 都挡不住。nonce（能挑战）/ 时间戳（有时钟，窗口即重放窗口，靠重放缓存关窗）/ 序列号（会话内，乱序用滑动窗口）。</li>
+  <li>反射：两个方向构造相同 → 另开会话让对方替你应答；修复：写身份或分方向密钥。</li>
+  <li>Needham–Schroeder：消息 ③ 对 Bob 无新鲜性 → Denning–Sacco 用旧 <span class="m">K<sub>s</sub></span> 重放；修复：时间戳封在 <span class="m">K<sub>b</sub></span> 票里，或 Bob 给出的值 <span class="m">T<sub>b</sub></span> 经 KDC 抄进票里。17 年是公钥版。</li>
+  <li>Kerberos：加时间戳、AS 与 TGS 分开；单点登录；挡旧会话密钥的是票里的时间戳；代价：时钟同步、KDC 单点、口令可离线猜。</li>
+  <li>TLS：三步加绑定；CertificateVerify = L8 第 8 项"持有私钥"，删掉它中间人复活，Finished 救不了。一个往返（客户端猜组）。前向保密靠临时 DH，纯 PSK 没有。记录 nonce = IV ⊕ 序号。失败在协商、校验、实现；1.3 靠删功能。</li>
+  <li>IPsec：AH 不加密、ESP 加密；传输模式主机到主机，隧道模式隐藏内部地址；与 TLS 同一套零件。</li>
+  <li>NAC：认证加姿态评估；AR/NAS/PS = 请求者/认证者/认证服务器；EAP 是框架。</li>
+  <li>WEP：IV 碰撞 + RC4 相关密钥 + 线性 CRC + 无重放保护。WPA2：录下握手即可离线字典攻击，KRACK。WPA3：SAE 取代口令算 PMK，四次握手仍在。</li>
+  <li>协议只防网络上的攻击者，端点问题归 L10。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <a href="L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html">L10 网络安全：威胁、攻击与防御</a>：攻击者已经在机器上或就是使用者本人时会发生什么，以及对付它们的控制措施。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L9 实用安全协议.md</code> 的阅读优化版，内容一致；页内交互件的数值全部由页面脚本现算（已与 Python 的计算逐项对照）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   common.js — L8/L9 学习页共用：SVG 绘图小工具、时序图渲染器、SHA-256 与 HMAC。
+   配色规则（同 L1/L4 模板）：中性线条 currentColor + stroke-opacity；强调色硬编码 #2F6F8F；
+   其余语义色开页时 getComputedStyle 从 CSS 变量读一次。文字一律 currentColor 或语义色，
+   不用 #2F6F8F 写字（暗色下对比太低）。
+   ==========================================================================*/
+var AC = '#2F6F8F';
+var MONO = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+var TC = (function(){
+  if (typeof document === 'undefined') return {};
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = (cs.getPropertyValue(n) || '').trim(); return v || fb; }
+  return { warn: g('--warn', '#B4534B'), ok: g('--ok', '#3F8A63'), exam: g('--exam', '#9A6B2F'),
+           muted: g('--muted', '#5C6673'), faint: g('--faint', '#8A929C') };
+})();
+function toneColor(t){ return t === 'warn' ? TC.warn : t === 'ok' ? TC.ok : t === 'exam' ? TC.exam : t === 'accent' ? AC : 'currentColor'; }
+function $(id){ return document.getElementById(id); }
+function escH(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function nm(v){ return String(v).replace(/-/g, '−'); }          /* 负号用 U+2212 */
+
+/* ---------------------------------------------------------------- SVG 基础 */
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  var e = document.createElementNS(SVGNS, tag);
+  if (attrs) for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgRoot(W, H, label){
+  var s = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': label });
+  s.style.display = 'block'; s.style.width = '100%'; s.style.height = 'auto';
+  return s;
+}
+var _mk = 0;
+function arrowHead(svg, color, op){
+  var id = 'ah' + (++_mk), defs = svgEl('defs'), m = svgEl('marker', { id: id, markerWidth: 10, markerHeight: 10, refX: 8.5, refY: 3.5, orient: 'auto', markerUnits: 'userSpaceOnUse' });
+  m.appendChild(svgEl('path', { d: 'M0,0 L9,3.5 L0,7 z', fill: color || 'currentColor', 'fill-opacity': op === undefined ? .75 : op }));
+  defs.appendChild(m); svg.appendChild(defs); return 'url(#' + id + ')';
+}
+function sRect(g, x, y, w, h, o){
+  o = o || {};
+  var e = svgEl('rect', { x: x, y: y, width: w, height: h, rx: o.rx === undefined ? 6 : o.rx,
+    fill: o.fill || 'currentColor', 'fill-opacity': o.fop === undefined ? .04 : o.fop,
+    stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .3 : o.sop, 'stroke-width': o.sw || 1.2 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  g.appendChild(e); return e;
+}
+function sLine(g, x1, y1, x2, y2, o){
+  o = o || {};
+  var e = svgEl('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .5 : o.sop, 'stroke-width': o.sw || 1.4 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  if (o.marker) e.setAttribute('marker-end', o.marker);
+  g.appendChild(e); return e;
+}
+function sPath(g, d, o){
+  o = o || {};
+  var e = svgEl('path', { d: d, fill: o.fill || 'none', stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .55 : o.sop, 'stroke-width': o.sw || 1.4 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  if (o.marker) e.setAttribute('marker-end', o.marker);
+  g.appendChild(e); return e;
+}
+
+/* ---------------------------------------------------------------- 带上下标的文字
+   记法：X_a、X_{abc} 下标；X^{abc} 上标；*…* 斜体。一行一个 <text>。 */
+function richTokens(str){
+  var out = [], i = 0, cur = '', italic = false;
+  function push(t, kind){ if (t) out.push({ t: t, k: kind, it: italic }); }
+  while (i < str.length){
+    var c = str[i];
+    if ((c === '_' || c === '^') && i + 1 < str.length){
+      push(cur, 'n'); cur = '';
+      var kind = c === '_' ? 'sub' : 'sup', t;
+      if (str[i + 1] === '{'){ var j = str.indexOf('}', i + 2); t = str.slice(i + 2, j); i = j + 1; }
+      else { t = str[i + 1]; i += 2; }
+      var it0 = italic;
+      if (/^\*.*\*$/.test(t)){ t = t.slice(1, -1); italic = true; }
+      push(t, kind); italic = it0; continue;
+    }
+    if (c === '*'){ push(cur, 'n'); cur = ''; italic = !italic; i++; continue; }
+    if (c === '\\' && '*_^'.indexOf(str[i + 1]) >= 0){ cur += str[i + 1]; i += 2; continue; }
+    cur += c; i++;
+  }
+  push(cur, 'n');
+  return out;
+}
+function plainOf(str){ return richTokens(str).map(function(x){ return x.t; }).join(''); }
+function estW(str, size){
+  var w = 0;
+  richTokens(str).forEach(function(tk){
+    var f = tk.k === 'n' ? 1 : .72;
+    for (var i = 0; i < tk.t.length; i++){
+      var ch = tk.t.charCodeAt(i);
+      w += size * f * ((ch >= 0x2E80 && ch <= 0xFFEF) || (ch >= 0x2460 && ch <= 0x24FF) ? 1 : (ch >= 0x2000 && ch <= 0x22FF ? .8 : .56));
+    }
+  });
+  return w;
+}
+function sRich(g, x, y, str, o){
+  o = o || {};
+  var size = o.size || 13;
+  var e = svgEl('text', { x: x, y: y, 'font-size': size, 'text-anchor': o.anchor || 'middle', fill: o.fill || 'currentColor' });
+  if (o.weight) e.setAttribute('font-weight', o.weight);
+  if (o.op !== undefined) e.setAttribute('fill-opacity', o.op);
+  if (o.mono) e.setAttribute('font-family', MONO);
+  var shift = 0;
+  richTokens(str).forEach(function(tk){
+    var ts = svgEl('tspan'), want = tk.k === 'sub' ? Math.round(size * .3) : tk.k === 'sup' ? -Math.round(size * .38) : 0;
+    if (want !== shift){ ts.setAttribute('dy', want - shift); shift = want; }
+    if (tk.k !== 'n') ts.setAttribute('font-size', Math.round(size * .72));
+    if (tk.it) ts.setAttribute('font-style', 'italic');
+    ts.textContent = tk.t; e.appendChild(ts);
+  });
+  if (shift){ var z = svgEl('tspan', { dy: -shift }); z.textContent = '​'; e.appendChild(z); }
+  g.appendChild(e); return e;
+}
+/* 按估计宽度折行：ASCII 词不拆，汉字逐字；显式 \n 强制换行 */
+function wrapText(str, maxW, size){
+  var lines = [];
+  String(str).split('\n').forEach(function(par){
+    var toks = par.match(/[\x21-\x7E′‖⊕→←·∣]+(?:_\{[^}]*\}|\^\{[^}]*\})*[\x21-\x7E′]*|\s+|[\s\S]/g) || [''];
+    var cur = '';
+    toks.forEach(function(t){
+      if (estW(cur + t, size) > maxW && cur.trim() !== ''){ lines.push(cur.replace(/\s+$/, '')); cur = t.replace(/^\s+/, ''); }
+      else cur += t;
+    });
+    lines.push(cur.replace(/\s+$/, ''));
+  });
+  return lines;
+}
+function sLines(g, x, y, lines, lh, o){ lines.forEach(function(l, k){ sRich(g, x, y + k * lh, l, o); }); }
+
+/* ---------------------------------------------------------------- 时序图
+   spec = { actors:[{id,label,tone}], notesHead, rows:[…] }
+   行：{msg:[from,to], text, tone, dash, note, aside, asideAt} | {box:actor, text, tone, note} | {band:text, tone, note} | {gap:px}
+   宽版：右侧一列说明；窄版：说明改成箭头下方的小字，全图收窄到 400。 */
+function seqDiagram(hostId, spec, narrow){
+  var host = $(hostId);
+  var W = narrow ? 400 : (spec.width || 880), M = narrow ? 10 : 16;
+  var notesW = narrow ? 0 : (spec.notesW === undefined ? 270 : spec.notesW), tagW = spec.tags ? (narrow ? 46 : 70) : 0;
+  var areaL = M + tagW, areaR = W - M - (notesW ? notesW + 18 : 0);
+  var n = spec.actors.length, pad = narrow ? 44 : 70;
+  var FS0 = narrow ? 12 : 13.5;
+  [spec.actors[0], spec.actors[n - 1]].forEach(function(a){ pad = Math.max(pad, (estW(a.label, FS0 + .5) + 20) / 2 + 2); });
+  var xs = {}, hw0 = Math.min(narrow ? 80 : 120, (areaR - areaL) / n - 8);
+  spec.actors.forEach(function(a, k){ xs[a.id] = n === 1 ? (areaL + areaR) / 2 : areaL + pad + k * (areaR - areaL - 2 * pad) / (n - 1); });
+  var FS = narrow ? 12 : 13.5, NS = narrow ? 11 : 12.5, LH = FS * 1.35, NLH = NS * 1.4;
+  var svg = svgRoot(W, 100, spec.label || '时序图'), g = svgEl('g'); svg.appendChild(g);
+  var heads = {};
+  function head(tone, dash){ var k = tone + (dash ? 'd' : ''); if (!heads[k]) heads[k] = arrowHead(svg, toneColor(tone === 'plain' ? '' : tone), .85); return heads[k]; }
+  var y = M;
+  /* 表头 */
+  var hh = narrow ? 34 : 40;
+  var cap = n === 1 ? areaR - areaL : (areaR - areaL - 2 * pad) / (n - 1) - 6;
+  spec.actors.forEach(function(a){
+    var col = toneColor(a.tone || 'accent'), hw = Math.max(hw0, Math.min(cap, estW(a.label, FS + .5) + 20));
+    sRect(g, xs[a.id] - hw / 2, y, hw, hh, { fill: col, fop: .14, stroke: col, sop: .75, rx: 7, sw: 1.4 });
+    sRich(g, xs[a.id], y + hh / 2 + FS * .36, a.label, { size: FS + .5, weight: 700 });
+  });
+  if (notesW && spec.notesHead) sRich(g, W - M - notesW, y + hh / 2 + 5, spec.notesHead, { size: NS, weight: 700, anchor: 'start', op: .75 });
+  y += hh + (narrow ? 12 : 16);
+  var top = y, bands = [];
+  spec.rows.forEach(function(r){
+    if (r.gap){ y += r.gap; return; }
+    var y0 = y, h;
+    var noteLines = r.note ? wrapText(r.note, narrow ? W - 2 * M - 8 : notesW, NS) : [];
+    if (r.msg){
+      var x1 = xs[r.msg[0]], x2 = xs[r.msg[1]], mid = (x1 + x2) / 2, span = Math.abs(x2 - x1);
+      var lines = String(r.text).split('\n'), wmax = 0;
+      lines.forEach(function(l){ wmax = Math.max(wmax, estW(l, FS)); });
+      var cx = Math.max(areaL + wmax / 2, Math.min(areaR - wmax / 2, mid));
+      var col = r.tone ? toneColor(r.tone) : 'currentColor';
+      sLines(g, cx, y + FS, lines, LH, { size: FS, fill: col });
+      var ay = y + FS + (lines.length - 1) * LH + (narrow ? 9 : 11);
+      var dir = x2 > x1 ? 1 : -1;
+      sLine(g, x1, ay, x2 - dir * 3, ay, { stroke: col, sop: r.tone ? .9 : .6, sw: 1.6, dash: r.dash ? '6 4' : null, marker: head(r.tone || 'plain', r.dash) });
+      h = ay - y + 8;
+      if (r.aside){ sRich(g, xs[r.asideAt] + 8, ay + NS + 4, r.aside, { size: NS, anchor: 'start', fill: toneColor(r.asideTone || 'warn') }); h += NS + 2; }
+      if (r.tag) sRich(g, M + 2, ay - 4, r.tag, { size: NS + .5, anchor: 'start', weight: 700, fill: TC.exam });
+    } else if (r.box){
+      var bl = String(r.text).split('\n'), bw = 0;
+      bl.forEach(function(l){ bw = Math.max(bw, estW(l, NS + .5)); });
+      bw += 22; var bh = bl.length * NLH + 12;
+      var bx = Math.max(M, Math.min(W - M - (notesW ? notesW + 18 : 0) - bw, xs[r.box] - bw / 2));
+      var tc = toneColor(r.tone || 'exam');
+      sRect(g, bx, y + 2, bw, bh, { fill: tc, fop: .1, stroke: tc, sop: .6, rx: 6 });
+      sLines(g, bx + bw / 2, y + 2 + 6 + NS + .5, bl, NLH, { size: NS + .5 });
+      h = bh + 10;
+    } else if (r.band){
+      var tl = wrapText(r.band, (narrow ? W - 2 * M : areaR - M) - 20, NS + .5);
+      var bh2 = tl.length * NLH + 12;
+      bands.push({ y: y + 2, h: bh2, tone: r.tone, lines: tl });
+      h = bh2 + 10;
+    }
+    if (noteLines.length){
+      if (narrow){
+        var ny = y0 + h - 2 + NS;
+        sLines(g, M + 4, ny, noteLines, NLH, { size: NS, anchor: 'start', op: .66 });
+        h += noteLines.length * NLH + 4;
+      } else {
+        sLines(g, W - M - notesW, y0 + NS + 2, noteLines, NLH, { size: NS, anchor: 'start', op: .72 });
+        h = Math.max(h, noteLines.length * NLH + 8);
+      }
+    }
+    y += h + (narrow ? 6 : 8);
+  });
+  var bottom = y + 4;
+  /* 生命线画在最底层 */
+  var life = svgEl('g'); g.insertBefore(life, g.firstChild);
+  spec.actors.forEach(function(a){ sLine(life, xs[a.id], top - 12, xs[a.id], bottom, { sop: .35, dash: '4 4', sw: 1.2 }); });
+  /* 横条压在生命线上 */
+  bands.forEach(function(b){
+    var bg = svgEl('g'); g.insertBefore(bg, life.nextSibling);
+    var tc = toneColor(b.tone || '');
+    sRect(bg, M, b.y, (narrow ? W - M : areaR) - M, b.h, { fill: b.tone ? tc : 'currentColor', fop: b.tone ? .12 : .07, stroke: b.tone ? tc : 'currentColor', sop: b.tone ? .35 : .12, rx: 6 });
+    sLines(bg, (M + (narrow ? W - M : areaR)) / 2, b.y + 6 + NS + .5, b.lines, NLH, { size: NS + .5 });
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(bottom + M));
+  host.innerHTML = ''; host.appendChild(svg);
+}
+
+/* ---------------------------------------------------------------- SHA-256 / HMAC-SHA256（FIPS 180-4） */
+var SHA_K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function utf8(str){ return new TextEncoder().encode(str); }
+function sha256(bytes){
+  var l = bytes.length, nb = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(nb);
+  m.set(bytes); m[l] = 0x80;
+  var bl = l * 8; for (var i = 0; i < 4; i++) m[nb - 1 - i] = (bl / Math.pow(2, 8 * i)) & 0xff;
+  m[nb - 5] = Math.floor(l / 0x20000000) & 0xff;
+  var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19], w = new Array(64);
+  function rr(x, n){ return (x >>> n) | (x << (32 - n)); }
+  for (var o = 0; o < nb; o += 64){
+    for (var t = 0; t < 16; t++) w[t] = (m[o+4*t] << 24) | (m[o+4*t+1] << 16) | (m[o+4*t+2] << 8) | m[o+4*t+3];
+    for (t = 16; t < 64; t++){
+      var s0 = rr(w[t-15], 7) ^ rr(w[t-15], 18) ^ (w[t-15] >>> 3), s1 = rr(w[t-2], 17) ^ rr(w[t-2], 19) ^ (w[t-2] >>> 10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (t = 0; t < 64; t++){
+      var S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & g), t1 = (h + S1 + ch + SHA_K[t] + w[t]) | 0;
+      var S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  var out = new Uint8Array(32);
+  for (i = 0; i < 8; i++){ out[4*i] = H[i] >>> 24; out[4*i+1] = (H[i] >>> 16) & 0xff; out[4*i+2] = (H[i] >>> 8) & 0xff; out[4*i+3] = H[i] & 0xff; }
+  return out;
+}
+function hmacSha256(key, msg){
+  if (key.length > 64) key = sha256(key);
+  var k = new Uint8Array(64); k.set(key);
+  var ip = new Uint8Array(64 + msg.length), op = new Uint8Array(96);
+  for (var i = 0; i < 64; i++){ ip[i] = k[i] ^ 0x36; op[i] = k[i] ^ 0x5c; }
+  ip.set(msg, 64); op.set(sha256(ip), 64);
+  return sha256(op);
+}
+function hex(bytes){ var s = ''; for (var i = 0; i < bytes.length; i++) s += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16); return s; }
+function bitDiff(a, b){ var n = 0; for (var i = 0; i < a.length; i++){ var x = a[i] ^ b[i]; while (x){ n += x & 1; x >>= 1; } } return n; }
+
+
+/* ============================================================================
+   core-l9.js — L9 交互件背后的纯计算（不碰 DOM，node 里可直接测）。
+   依赖 common.js 的 sha256 / hmacSha256 / hex（node 里用 require 取）。
+   ==========================================================================*/
+var _H = (typeof module !== 'undefined' && module.exports && typeof sha256 === 'undefined') ? require('./common.js') : null;
+function _hmac(k, m){ return _H ? _H.hmacSha256(k, m) : hmacSha256(k, m); }
+function _hex(b){ return _H ? _H.hex(b) : hex(b); }
+function _enc(s){ return typeof TextEncoder !== 'undefined' ? new TextEncoder().encode(s) : new Uint8Array(Buffer.from(s, 'utf8')); }
+/* 演示用的短 MAC：HMAC-SHA256 取前 4 字节（8 位十六进制） */
+function mac8(key, msg){ return _hex(_hmac(_enc(key), _enc(msg))).slice(0, 8); }
+
+/* ---------------------------------------------------------------- 滑动窗口（笔记 2.4 的四种情况） */
+function slidingWindow(W, seq){
+  var top = 0, seen = {}, steps = [];
+  seq.forEach(function(s){
+    var v, why;
+    if (s > top){ v = 'accept'; why = 's > top，窗口右移'; top = s; }
+    else if (s > top - W){
+      if (seen[s]){ v = 'replay'; why = '在窗口里且见过：重放'; }
+      else { v = 'late'; why = '在窗口里、没见过：乱序但新'; }
+    } else { v = 'old'; why = 's ≤ top − W：太旧'; }
+    if (v === 'accept' || v === 'late') seen[s] = true;
+    var win = []; for (var x = Math.max(1, top - W + 1); x <= top; x++) win.push({ n: x, got: !!seen[x] });
+    steps.push({ s: s, v: v, why: why, top: top, lo: top - W, win: win });
+  });
+  return steps;
+}
+
+/* ---------------------------------------------------------------- 反射攻击（3.2–3.3） */
+/* mode：plain 原协议；id 身份写进 MAC；dir 两个方向用不同密钥 */
+function reflectSim(mode, K, X, Na, Na2, Kab, Kba){
+  function aliceAnswer(ch){            /* Alice 作为应答方算出的值 */
+    return mode === 'plain' ? { msg: ch, key: K, v: mac8(K, ch) } : mode === 'id' ? { msg: ch + '‖Alice', key: K, v: mac8(K, ch + '‖Alice') } : { msg: ch, key: Kab, v: mac8(Kab, ch) };
+  }
+  function aliceExpects(ch){           /* Alice 期望 Bob 交回的值 */
+    return mode === 'plain' ? { msg: ch, key: K, v: mac8(K, ch) } : mode === 'id' ? { msg: ch + '‖Bob', key: K, v: mac8(K, ch + '‖Bob') } : { msg: ch, key: Kba, v: mac8(Kba, ch) };
+  }
+  var r1 = aliceAnswer(X), r2 = aliceAnswer(Na), exp = aliceExpects(Na);
+  return { s1: r1, s2: r2, reflected: r2.v, expected: exp, accepted: r2.v === exp.v, legit: exp.v };
+}
+
+/* ---------------------------------------------------------------- TLS 中间人与 CertificateVerify（6.1、6.4） */
+function powm(b, e, m){ var r = 1, x = b % m; while (e > 0){ if (e & 1) r = r * x % m; x = x * x % m; e >>= 1; } return r; }
+function isPrimeN(n){ if (n < 2) return false; for (var d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; }
+function transcript(Yc, Ys, cert){ return 'ClientHello(Y=' + Yc + ') · ServerHello(Y=' + Ys + ') · Certificate(' + cert + ')'; }
+function tlsSim(sc, q, a, XA, XB, XD1, XD2){
+  var YA = powm(a, XA, q), YB = powm(a, XB, q), YD1 = powm(a, XD1, q), YD2 = powm(a, XD2, q);
+  var R = { YA: YA, YB: YB, YD1: YD1, YD2: YD2, sc: sc };
+  if (sc === 'none'){
+    R.clientT = transcript(YA, YB, 'bank.com'); R.bankT = R.clientT;
+    R.Kc = powm(YB, XA, q); R.Kb = powm(YA, XB, q); R.Kdc = null; R.Kdb = null;
+    R.certName = 'bank.com'; R.cvPresent = true; R.cvSignedT = R.bankT; R.finKey = R.Kb; R.finSender = 'bank';
+  } else {
+    R.clientT = transcript(YA, YD2, sc === 'owncert' ? 'darth.example' : 'bank.com');
+    R.bankT = transcript(YD1, YB, 'bank.com');
+    R.Kc = powm(YD2, XA, q); R.Kdc = powm(YA, XD2, q); R.Kb = powm(YD1, XB, q); R.Kdb = powm(YB, XD1, q);
+    R.certName = sc === 'owncert' ? 'darth.example' : 'bank.com';
+    R.cvPresent = sc !== 'nocv';
+    R.cvSignedT = sc === 'owncert' ? R.clientT : R.bankT;    /* 自己的证书：Darth 用自己的私钥签得出客户端的 transcript */
+    R.finKey = R.Kdc; R.finSender = 'Darth';
+  }
+  R.hClient = _hex(_H ? _H.sha256(_enc(R.clientT)) : sha256(_enc(R.clientT))).slice(0, 8);
+  R.hSigned = _hex(_H ? _H.sha256(_enc(R.cvSignedT)) : sha256(_enc(R.cvSignedT))).slice(0, 8);
+  R.nameOK = R.certName === 'bank.com';
+  R.cvOK = !R.cvPresent ? null : R.hClient === R.hSigned;
+  R.finRecv = mac8('K=' + R.finKey, 'server finished|' + R.clientT);
+  R.finExp = mac8('K=' + R.Kc, 'server finished|' + R.clientT);
+  R.finOK = R.finRecv === R.finExp;
+  R.accept = R.nameOK && R.cvOK !== false && R.finOK;
+  R.mitm = sc !== 'none' && R.accept;
+  return R;
+}
+
+/* ---------------------------------------------------------------- 记录层：nonce = IV ⊕ 序号（6.6） */
+function xorNonce(ivHex, seq){
+  var s = seq.toString(16); while (s.length < 24) s = '0' + s;
+  var o = ''; for (var i = 0; i < 24; i++) o += (parseInt(ivHex[i], 16) ^ parseInt(s[i], 16)).toString(16);
+  return { seqHex: s, nonce: o };
+}
+function recordSim(ivHex, key, n, attack, k){
+  var sent = [];
+  for (var i = 0; i < n; i++){ var nn = xorNonce(ivHex, i).nonce, data = '记录 ' + i; sent.push({ seq: i, data: data, tag: mac8(key, nn + '|' + data) }); }
+  var arr = sent.slice();
+  if (attack === 'delete') arr.splice(k, 1);
+  else if (attack === 'swap' && k + 1 < arr.length){ var t = arr[k]; arr[k] = arr[k + 1]; arr[k + 1] = t; }
+  else if (attack === 'replay') arr.splice(k + 1, 0, sent[k]);
+  else if (attack === 'trunc') arr = arr.slice(0, Math.max(0, n - 2));
+  var cnt = 0, rows = [], broke = false;
+  arr.forEach(function(rec){
+    if (broke) return;
+    var nn = xorNonce(ivHex, cnt).nonce, exp = mac8(key, nn + '|' + rec.data), ok = exp === rec.tag;
+    rows.push({ cnt: cnt, sentSeq: rec.seq, data: rec.data, nonce: nn, ok: ok });
+    if (!ok) broke = true; else cnt++;
+  });
+  return { sent: sent, arrived: arr, rows: rows, broke: broke, closeNotify: attack !== 'trunc' };
+}
+
+/* ---------------------------------------------------------------- WEP 的 IV 碰撞（9.2） */
+function wepCalc(n, mbps, bytes){
+  var pps = mbps * 1e6 / (bytes * 8), q50 = Math.sqrt(Math.pow(2, n + 1) * Math.LN2), seqSec = Math.pow(2, n) / pps;
+  return { pps: pps, q50: q50, t50: q50 / pps, seqSec: seqSec, seqH: seqSec / 3600 };
+}
+function collideP(q, n){ return 1 - Math.exp(-q * (q - 1) / Math.pow(2, n + 1)); }
+
+
+/* ===================== L9 实用安全协议：图与交互件 =====================
+   时序图都由 common.js 的 seqDiagram 现画（宽版带说明列，窄版把说明放到箭头下）；
+   所有数由 core-l9.js 现算。 */
+
+/* ---------------------------------------------------------------- 时序图 */
+var SEQ = {};
+SEQ.replay = { label: '重放攻击：Darth 录下 Alice 发给服务器的转账请求，第二天原样重发，验证仍然通过', notesHead: '用什么密钥 · 结果',
+  actors: [{ id: 'A', label: 'Alice' }, { id: 'D', label: 'Darth（攻击者）', tone: 'warn' }, { id: 'S', label: 'Server' }],
+  rows: [
+    { msg: ['A', 'S'], text: '① "Alice", MAC(*K*, "转账 £100 给 Bob")', note: '*K*：Alice 与 Server 共享\nMAC 验证通过 → 转账' },
+    { box: 'D', text: '录下 ① 的全部字节' },
+    { band: '—— 第二天 ——' },
+    { msg: ['D', 'S'], text: '② 同一串字节，原样重发', tone: 'warn', dash: true, note: '不需要 *K*：MAC 不是伪造的，是抄的\n验证仍然通过 → 再转 £100' }
+  ] };
+SEQ.reflect = { label: '反射攻击：Darth 冒充 Bob，开两个会话，让 Alice 在会话 2 里替他算出会话 1 要的应答', notesHead: '说明', tags: true,
+  actors: [{ id: 'D', label: 'Darth（冒充 Bob）', tone: 'warn' }, { id: 'A', label: 'Alice' }],
+  rows: [
+    { msg: ['D', 'A'], text: '① 任意值 *X*', tone: 'warn', dash: true, tag: '会话 1', note: 'Darth 不知道 *K*，随便发一个挑战' },
+    { msg: ['A', 'D'], text: '② MAC(*K*, *X*), *N*_a', note: 'Alice 应答，并出自己的挑战 *N*_a\nDarth 需要 MAC(*K*, *N*_a)，但算不出' },
+    { msg: ['D', 'A'], text: '① *N*_a', tone: 'warn', dash: true, tag: '会话 2', note: '把 Alice 自己的挑战原样当作新挑战' },
+    { msg: ['A', 'D'], text: '② MAC(*K*, *N*_a), *N*′_a', note: 'Alice 老实地算出了 Darth 要的值' },
+    { msg: ['D', 'A'], text: '③ MAC(*K*, *N*_a)', tone: 'warn', dash: true, tag: '会话 1', note: '拿会话 2 的应答交差 → Alice 认定对方是 Bob' }
+  ] };
+SEQ.ns = { label: 'Needham–Schroeder 对称密钥协议的五条消息，消息 3 标红', notesHead: '用什么密钥 · 这一步做什么',
+  actors: [{ id: 'A', label: 'Alice' }, { id: 'K', label: 'KDC' }, { id: 'B', label: 'Bob' }],
+  rows: [
+    { msg: ['A', 'K'], text: '① *ID*_A, *ID*_B, *N*_1', note: '明文。*N*_1 让 Alice 日后能认出针对这次请求的回复' },
+    { msg: ['K', 'A'], text: '② *E*(*K*_a, [*K*_s, *ID*_B, *N*_1, *E*(*K*_b, [*K*_s, *ID*_A])])', note: '外层 *K*_a：只有 Alice 能读\n内层 *K*_b：封给 Bob 的票' },
+    { msg: ['A', 'B'], text: '③ *E*(*K*_b, [*K*_s, *ID*_A])', tone: 'warn', note: '*K*_b：只有 Bob 能读\n里面没有 Bob 能检验新鲜性的东西' },
+    { msg: ['B', 'A'], text: '④ *E*(*K*_s, *N*_2)', note: '会话密钥 *K*_s：Bob 发出挑战' },
+    { msg: ['A', 'B'], text: '⑤ *E*(*K*_s, *f*(*N*_2))', note: '*K*_s：证明对方持有 *K*_s\n*f* 防止把④原样弹回' }
+  ] };
+SEQ.ds = { label: 'Denning–Sacco 攻击：Darth 重放旧的消息 3，再用旧会话密钥答出 Bob 的挑战', notesHead: '说明',
+  actors: [{ id: 'D', label: 'Darth（冒充 Alice）', tone: 'warn' }, { id: 'B', label: 'Bob' }],
+  rows: [
+    { band: '前提：Darth 录下了很久以前某次会话的 ③，后来又拿到了那次的旧会话密钥 *K*_s', tone: 'warn' },
+    { msg: ['D', 'B'], text: '③′ *E*(*K*_b, [*K*_s, *ID*_A])（旧字节原样重发）', tone: 'warn', dash: true, note: 'Bob 用 *K*_b 解开，看到 *K*_s 与 *ID*_A\n无从判断这是今天的还是几年前的' },
+    { msg: ['B', 'D'], text: '④′ *E*(*K*_s, *N*′_2)', note: 'Bob 用这把旧 *K*_s 发出挑战' },
+    { box: 'D', text: '用旧 *K*_s 解出 *N*′_2\n算出 *f*(*N*′_2)' },
+    { msg: ['D', 'B'], text: '⑤′ *E*(*K*_s, *f*(*N*′_2))', tone: 'warn', dash: true, note: '验证通过：Bob 以为在和 Alice\n用一把新密钥通话' },
+    { band: '此后 Bob 用 *K*_s 加密发给"Alice"的一切，Darth 都能读，也都能冒充 Alice 回复', tone: 'warn' }
+  ] };
+SEQ.krb = { label: 'Kerberos 第 4 版的六条消息：认证服务交换、票据授予服务交换、客户端与服务器认证交换', notesHead: '用什么密钥 · 谁能读', notesW: 250,
+  actors: [{ id: 'C', label: 'Client' }, { id: 'AS', label: 'AS' }, { id: 'T', label: 'TGS' }, { id: 'V', label: '服务 V' }],
+  rows: [
+    { band: '每次登录一次：认证服务交换' },
+    { msg: ['C', 'AS'], text: '① *ID*_C‖*ID*_{tgs}‖*TS*_1', note: '明文' },
+    { msg: ['AS', 'C'], text: '② *E*(*K*_c, [*K*_{c,tgs}‖*ID*_{tgs}‖*TS*_2‖\n*Lifetime*_2‖*Ticket*_{tgs}])', note: '*K*_c 由用户口令派生\n只有真用户解得开，得到 *K*_{c,tgs}' },
+    { band: '每类服务一次：票据授予服务交换' },
+    { msg: ['C', 'T'], text: '③ *ID*_v‖*Ticket*_{tgs}‖*Authenticator*_c', tone: 'warn', note: '票由 *K*_{tgs} 封装，Client 改不了\n认证符用 *K*_{c,tgs} 加密，内含 *TS*_3' },
+    { msg: ['T', 'C'], text: '④ *E*(*K*_{c,tgs}, [*K*_{c,v}‖*ID*_v‖*TS*_4‖*Ticket*_v])', note: '*K*_{c,tgs}：只有持有它的 Client 能读' },
+    { band: '每次会话一次：客户端/服务器认证交换（服务器不联系 KDC）' },
+    { msg: ['C', 'V'], text: '⑤ *Ticket*_v‖*Authenticator*_c', note: '票由 *K*_v 封装；认证符用 *K*_{c,v}\n加密，内含 *TS*_5' },
+    { msg: ['V', 'C'], text: '⑥ *E*(*K*_{c,v}, *TS*_5 + 1)', note: '可选：服务器反向证明自己' }
+  ] };
+SEQ.tls = { label: 'RFC 8446 的 TLS 1.3 完整握手', notesHead: '用什么保护 · 这一步做什么',
+  actors: [{ id: 'C', label: 'Client' }, { id: 'S', label: 'Server' }],
+  rows: [
+    { msg: ['C', 'S'], text: 'ClientHello\nrandom · cipher\\_suites · supported\\_groups\nkey\\_share *Y*_C · signature\\_algorithms', note: '明文\nrandom 是这次握手的 nonce\n*Y*_C 是客户端的临时 DH 公开值' },
+    { msg: ['S', 'C'], text: 'ServerHello\nrandom · 选定的套件 · key\\_share *Y*_S\nsupported\\_versions', note: '明文' },
+    { band: '双方算出 DH 共享秘密 *K* → HKDF → 握手流量密钥（每个方向一把；上下文 = 到 ServerHello 为止的 transcript）', tone: 'exam' },
+    { msg: ['S', 'C'], text: '{EncryptedExtensions}', note: '服务器握手密钥；第一条加密消息' },
+    { msg: ['S', 'C'], text: '{CertificateRequest\\*}', dash: true, note: '只在要求客户端证书时才发' },
+    { msg: ['S', 'C'], text: '{Certificate}', note: '服务器证书链' },
+    { msg: ['S', 'C'], text: '{CertificateVerify}', tone: 'warn', note: '证书私钥对 transcript 签名\n把身份绑到这一次 DH 上' },
+    { msg: ['S', 'C'], text: '{Finished}', note: 'HMAC(finished\\_key, transcript)\n服务器的密钥确认' },
+    { msg: ['C', 'S'], text: '{Certificate\\*} {CertificateVerify\\*}', dash: true, note: '只在被要求时才发' },
+    { msg: ['C', 'S'], text: '{Finished}', note: '客户端握手密钥；客户端的密钥确认' },
+    { band: '[Application Data]：应用流量密钥 + AEAD，每条记录 nonce = 静态 IV ⊕ 64 位记录序号', tone: 'ok' }
+  ] };
+SEQ.eap = { label: '802.1X 与 EAP 的一次典型认证：请求者与认证者之间走 EAPOL，认证者与认证服务器之间走 RADIUS', notesHead: '说明',
+  actors: [{ id: 'R', label: '请求者（AR）' }, { id: 'N', label: '认证者（NAS）' }, { id: 'P', label: '认证服务器（PS）' }],
+  rows: [
+    { band: '链路层 EAPOL（左段） · RADIUS（右段）' },
+    { msg: ['R', 'N'], text: 'EAPOL-Start', dash: true, note: '可选：请求者主动开始' },
+    { msg: ['N', 'R'], text: 'EAP-Request/Identity', note: '端口此时只放行认证流量' },
+    { msg: ['R', 'N'], text: 'EAP-Response/Identity', note: '报上身份（如用户名）' },
+    { msg: ['N', 'P'], text: 'RADIUS Access-Request\n（内装 EAP 报文）', note: '认证者不解读，只转封装' },
+    { msg: ['R', 'P'], text: 'EAP 方法的多轮交换（经认证者转发）', tone: 'exam', note: 'EAP-TLS：一次完整的 TLS 握手\nPEAP/TTLS：先建 TLS 隧道，再在里面验口令' },
+    { msg: ['P', 'R'], text: '（右段为 RADIUS Access-Challenge）', tone: 'exam' },
+    { msg: ['P', 'N'], text: 'RADIUS Access-Accept\n（附带密钥材料）', note: '判决；无线场景下密钥材料成为 PMK' },
+    { msg: ['N', 'R'], text: 'EAP-Success', tone: 'ok', note: '受控端口转为"已授权"' },
+    { band: '业务流量开始通过；无线场景接着用 PMK 做四次握手', tone: 'ok' }
+  ] };
+SEQ.wpa2 = { label: 'WPA2 四次握手：双方各出一个 nonce，从同一个 PMK 派生 PTK，再用 MIC 互相证明知道 PMK', notesHead: '说明',
+  actors: [{ id: 'S', label: 'STA（客户端）' }, { id: 'A', label: 'AP（接入点）' }],
+  rows: [
+    { band: '前提：双方已有同一个 PMK（个人模式由口令和 SSID 算出；企业模式来自 802.1X/EAP）' },
+    { msg: ['A', 'S'], text: '① ANonce', note: '明文：AP 这次的新随机数' },
+    { box: 'S', text: 'PTK = PRF(PMK, MAC 地址,\nANonce, SNonce)\n→ KCK | KEK | TK' },
+    { msg: ['S', 'A'], text: '② SNonce, RSN IE, MIC', note: 'MIC 用 KCK：证明 STA 知道 PMK' },
+    { box: 'A', text: '算出同一个 PTK\n校验 MIC' },
+    { msg: ['A', 'S'], text: '③ ANonce, RSN IE, *E*(KEK, GTK), MIC', note: '证明 AP 也知道 PMK；送出组密钥\n回显 RSN IE 防降级；通知安装密钥' },
+    { msg: ['S', 'A'], text: '④ ACK, MIC', note: '确认' },
+    { band: '双方安装 TK：此后单播数据用 AES-CCMP 加密', tone: 'ok' }
+  ] };
+function drawSeq(key, w, n){ seqDiagram(w, SEQ[key], false); seqDiagram(n, SEQ[key], true); }
+
+/* ---------------------------------------------------------------- 图：课件第 16 页的 TLS 1.3 握手 */
+function drawTlsSlide(hostId, narrow){
+  var rows = [
+    ['1', 'Client → Server', 'ClientHello: supported ciphers + an ephemeral DH public value', ''],
+    ['2', 'Server → Client', 'ServerHello: chosen cipher + its own ephemeral DH public value', ''],
+    ['band', '— both sides now compute the shared secret and derive keys —', 'exam'],
+    ['3', 'Server → Client', '{ Certificate }  — encrypted from here onwards', 'warn'],
+    ['4', 'Server → Client', '{ CertificateVerify }: a SIGNATURE over the whole handshake so far', 'warn'],
+    ['5', 'Server → Client', '{ Finished }: a MAC over the entire transcript', ''],
+    ['6', 'Client → Server', '{ Finished }: the client’s MAC over the transcript', ''],
+    ['band', '— application data flows, encrypted with AES-GCM —', 'ok']
+  ];
+  var side = [
+    { t: 'Why only one round trip', tone: 'accent', body: 'The client sends its DH share in the first message, guessing which group the server will pick. If it guesses right — and it usually does — keys are ready after message 2, and everything after that is already encrypted.', tail: 'TLS 1.2 needed two round trips.' },
+    { t: 'Message 4 is the binding', tone: 'warn', body: 'CertificateVerify is the step almost everyone missed in the take-home task. The server signs the whole handshake transcript with the private key its certificate certifies.', tail: 'That is what ties the identity in the certificate to the key exchange actually performed — and it is what defeats the man in the middle.' }
+  ];
+  var foot = 'Messages 5 and 6 protect against downgrade: each side MACs the whole transcript, so any tampering with the earlier cipher negotiation is detected.';
+  var W = narrow ? 400 : 900, M = 10, LW = narrow ? W - 2 * M : 590, FS = narrow ? 11.5 : 13, svg = svgRoot(W, 10, '课件第 16 页的 TLS 1.3 握手：六条消息，3、4 号是证书与签名'), g = svgEl('g');
+  svg.appendChild(g);
+  var y = M;
+  rows.forEach(function(r){
+    if (r[0] === 'band'){
+      var c = toneColor(r[2]); sRect(g, M + 30, y, LW - 60, 28, { fill: c, fop: .13, stroke: c, sop: .3 });
+      sRich(g, M + LW / 2, y + 19, '*' + r[1] + '*', { size: FS, fill: c, weight: 600 }); y += 36; return;
+    }
+    var msgX = narrow ? M + 40 : M + 170, lines = wrapText(r[2], (M + LW - msgX - 12) * .86, FS)   /* 等宽字比估计的宽，留余量 */, h = narrow ? 26 + lines.length * FS * 1.35 : Math.max(40, lines.length * FS * 1.4 + 18);
+    sRect(g, M, y, LW, h, { fill: 'currentColor', fop: .045, sop: .1, rx: 8 });
+    var cc = r[3] ? toneColor(r[3]) : AC;
+    g.appendChild(svgEl('circle', { cx: M + 20, cy: y + (narrow ? 18 : h / 2), r: 13, fill: cc, 'fill-opacity': .85 }));
+    sRich(g, M + 20, y + (narrow ? 18 : h / 2) + 4.5, r[0], { size: 13, weight: 700, fill: '#fff' });
+    if (narrow){
+      sRich(g, msgX, y + 22, r[1], { size: FS, weight: 700, anchor: 'start' });
+      sLines(g, msgX, y + 22 + FS * 1.4, lines, FS * 1.35, { size: FS, anchor: 'start', mono: true });
+    } else {
+      sRich(g, M + 42, y + h / 2 + 4.5, r[1], { size: FS, weight: 700, anchor: 'start' });
+      sLines(g, msgX, y + h / 2 + 4.5 - (lines.length - 1) * FS * .7, lines, FS * 1.4, { size: FS, anchor: 'start', mono: true });
+    }
+    y += h + 6;
+  });
+  var fl = wrapText(foot, LW - 24, FS - .5), fh = fl.length * FS * 1.4 + 14;
+  sRect(g, M, y, LW, fh, { fill: 'currentColor', fop: .14, sop: .35, rx: 6 });
+  sLines(g, M + 12, y + 7 + FS, fl, FS * 1.4, { size: FS - .5, anchor: 'start' });
+  y += fh;
+  var sx = narrow ? M : M + LW + 16, sw = narrow ? W - 2 * M : W - M - sx, sy = narrow ? y + 14 : M;
+  side.forEach(function(b){
+    var bl = wrapText(b.body, sw - 28, FS), tl = wrapText(b.tail, sw - 28, FS), h = 34 + (bl.length + tl.length) * FS * 1.4 + 22, c = toneColor(b.tone);
+    sRect(g, sx, sy, sw, h, { fill: c, fop: .1, stroke: c, sop: .55, rx: 8 });
+    sRich(g, sx + 14, sy + 26, b.t, { size: FS + 3, weight: 700, anchor: 'start', fill: b.tone === 'accent' ? 'currentColor' : c });
+    sLines(g, sx + 14, sy + 34 + FS * 1.1, bl, FS * 1.4, { size: FS, anchor: 'start' });
+    sLines(g, sx + 14, sy + 34 + FS * 1.1 + bl.length * FS * 1.4 + 8, tl, FS * 1.4, { size: FS, anchor: 'start', weight: 700, fill: b.tone === 'warn' ? c : 'currentColor' });
+    sy += h + 12;
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(Math.max(y, sy) + M));
+  $(hostId).appendChild(svg);
+}
+
+/* ---------------------------------------------------------------- 图：IPsec ESP 两种模式的包结构 */
+function drawIpsec(hostId, narrow){
+  var SEG = { ip: ['IP 头', 'accent', 1], tcp: ['TCP 头 + 数据', 'ok', 2.3], esph: ['ESP 头', 'exam', .82], espt: ['ESP 尾', 'exam', .74], icv: ['ESP 认证\n(ICV)', '', .88], nip: ['新 IP 头', 'warn', 1], oip: ['原 IP 头', 'accent', .9] };
+  var W = narrow ? 400 : 880, M = 10, LX = narrow ? M : M + 110, BW = W - LX - M, FS = narrow ? 10.5 : 13.5, BH = narrow ? 36 : 40;
+  var total = 1 + .9 + .82 + 2.3 + .74 + .88, u = BW / total;
+  var svg = svgRoot(W, 10, 'ESP 的两种模式：传输模式只加密载荷，原 IP 头可见；隧道模式加密整个原始包，再套新 IP 头'), g = svgEl('g'); svg.appendChild(g);
+  var y = M;
+  function row(name, segs){
+    if (narrow){ sRich(g, M, y + 14, name, { size: 13, weight: 700, anchor: 'start' }); y += 22; }
+    else sRich(g, M, y + BH / 2 + 5, name, { size: 15, weight: 700, anchor: 'start' });
+    var x = LX, pos = {};
+    segs.forEach(function(k){
+      var s = SEG[k], w = s[2] * u, c = s[1] ? toneColor(s[1]) : 'currentColor';
+      sRect(g, x, y, w, BH, { fill: c, fop: s[1] ? .17 : .1, stroke: 'currentColor', sop: .45, rx: 0 });
+      var ls = s[0].split('\n'); sLines(g, x + w / 2, y + BH / 2 + FS * .35 - (ls.length - 1) * FS * .55, ls, FS * 1.1, { size: FS });
+      pos[k] = [x, x + w]; x += w;
+    });
+    y += BH; return pos;
+  }
+  function brace(x1, x2, text, tone, dy){
+    var c = toneColor(tone), yy = y + dy;
+    sPath(g, 'M' + x1 + ',' + (yy - 6) + ' V' + yy + ' H' + x2 + ' V' + (yy - 6), { stroke: c, sop: .9, sw: 1.6 });
+    sRich(g, (x1 + x2) / 2, yy + FS + 4, text, { size: FS, fill: c });
+  }
+  row('原始包', ['ip', 'tcp']); y += narrow ? 18 : 34;
+  var p = row('传输模式', ['ip', 'esph', 'tcp', 'espt', 'icv']);
+  sLines(g, (p.ip[0] + p.ip[1]) / 2, y + FS + 6, narrow ? ['原 IP 头', '仍可见'] : ['原 IP 头仍可见'], FS * 1.2, { size: FS - .5, op: .65 });
+  brace(p.tcp[0], p.espt[1], '加密范围', 'warn', 12); brace(p.esph[0], p.espt[1], '认证范围（ICV 覆盖）', 'ok', 48);
+  y += narrow ? 86 : 90;
+  var t = row('隧道模式', ['nip', 'esph', 'oip', 'tcp', 'espt', 'icv']);
+  sLines(g, (t.nip[0] + t.nip[1]) / 2, y + FS + 6, ['网关地址', '明文，供路由'], FS * 1.2, { size: FS - .5, op: .65 });
+  brace(t.oip[0], t.espt[1], narrow ? '加密范围（含原 IP 头：' : '加密范围（含原 IP 头：内部地址被隐藏）', 'warn', 12);
+  if (narrow) sRich(g, (t.oip[0] + t.espt[1]) / 2, y + 12 + FS + 4 + FS * 1.3, '内部地址被隐藏）', { size: FS, fill: TC.warn });
+  brace(t.esph[0], t.espt[1], '认证范围（ICV 覆盖）', 'ok', narrow ? 62 : 48);
+  y += narrow ? 100 : 86;
+  var fl = wrapText('ESP 头 = SPI（指明用哪个安全关联）+ 序列号；ESP 尾 = 填充 + 填充长度 + Next Header；ICV = 完整性校验值', W - 2 * M, FS);
+  sLines(g, M, y + FS, fl, FS * 1.4, { size: FS, anchor: 'start', op: .7 });
+  y += fl.length * FS * 1.4 + 6;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(y + M));
+  $(hostId).appendChild(svg);
+}
+
+/* ================================================================ 交互件 */
+function err(m){ return '<span class="bad">' + m + '</span>'; }
+function intList(s){ var a = String(s).split(/[\s,，、]+/).filter(Boolean); if (!a.length || a.some(function(x){ return !/^\d{1,9}$/.test(x); })) return null; return a.map(Number); }
+
+/* ---------------------------------------------------------------- 1 滑动窗口（2.4） */
+var swAt = -1;
+function swSet(W, seq){ $('swW').value = W; $('swSeq').value = seq; swAt = -1; swGo(); }
+function swStep(d){ swAt += d; swGo(); }
+function swGo(){
+  var W = intList($('swW').value), seq = intList($('swSeq').value), st = $('swSteps'), out = $('swOut');
+  if (!W || W.length !== 1 || W[0] < 1 || W[0] > 64){ st.innerHTML = err('窗口 W 填 1～64 的整数'); out.innerHTML = '—'; return; }
+  if (!seq || seq.some(function(x){ return x < 1; })){ st.innerHTML = err('到达序列填正整数，用空格或逗号隔开'); out.innerHTML = '—'; return; }
+  var S = slidingWindow(W[0], seq);
+  if (swAt < 0 || swAt >= S.length) swAt = S.length - 1;
+  var lab = { accept: '接受', late: '接受（乱序）', replay: '重放，拒收', old: '太旧，拒收' };
+  var h = '<div class="swseq">' + S.map(function(x, i){
+    return '<span class="' + (x.v === 'replay' || x.v === 'old' ? 'rej' : 'acc') + (i === swAt ? ' cur' : '') + '" onclick="swAt=' + i + ';swGo()">' + x.s + '<i>' + (x.v === 'replay' ? '重放' : x.v === 'old' ? '太旧' : x.v === 'late' ? '乱序' : '新') + '</i></span>';
+  }).join('') + '</div>';
+  var c = S[swAt];
+  h += '<div class="swnow">第 ' + (swAt + 1) + ' 个到达：<span class="m">s</span> = ' + c.s + ' → <strong class="' + (c.v === 'replay' || c.v === 'old' ? 'bad' : 'good') + '">' + lab[c.v] + '</strong>（' + c.why + '）；处理后 <span class="m">top</span> = ' + c.top + '，窗口覆盖 ' + Math.max(1, c.lo + 1) + '～' + c.top + '：</div>';
+  h += '<div class="swwin">' + c.win.map(function(w){ return '<span class="' + (w.got ? 'got' : '') + (w.n === c.s ? ' me' : '') + '">' + w.n + '</span>'; }).join('') + '</div>';
+  st.innerHTML = h;
+  var rej = S.map(function(x, i){ return x.v === 'replay' || x.v === 'old' ? '第 ' + (i + 1) + ' 个（' + x.s + '，' + (x.v === 'replay' ? '重放' : '太旧') + '）' : null; }).filter(Boolean);
+  out.innerHTML = '<span class="m">W</span> = ' + W[0] + '，共 ' + S.length + ' 个到达，拒收 ' + rej.length + ' 个' + (rej.length ? '：' + rej.join('、') : '') + '；其余接受。';
+}
+
+/* ---------------------------------------------------------------- 2 反射攻击（3.2–3.3） */
+var rfNonce = { X: '00000000', Na: '7f3a91c2', Na2: 'c04be615' };
+function rfRand(){ function r(){ var s = ''; for (var i = 0; i < 8; i++) s += '0123456789abcdef'[Math.floor(Math.random() * 16)]; return s; } rfNonce = { X: r(), Na: r(), Na2: r() }; rfGo(); }
+function rfMode(m){ document.querySelectorAll('#rfTool .mode .btn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); }); $('rfTool').setAttribute('data-mode', m); rfGo(); }
+function rfGo(){
+  var mode = $('rfTool').getAttribute('data-mode') || 'plain', K = $('rfK').value;
+  if (!K){ $('rfSteps').innerHTML = err('共享密钥不能为空'); $('rfOut').innerHTML = '—'; return; }
+  var R = reflectSim(mode, K, rfNonce.X, rfNonce.Na, rfNonce.Na2, K + '/A→B', K + '/B→A');
+  var keyName = function(k){ return k === K ? '<span class="m">K</span>' : k === K + '/A→B' ? '<span class="m">K<sub>AB</sub></span>' : '<span class="m">K<sub>BA</sub></span>'; };
+  var desc = function(o){ return 'MAC(' + keyName(o.key) + ', ' + escH(o.msg) + ') = <code>' + o.v + '</code>'; };
+  $('rfSteps').innerHTML =
+    '<div><span class="k">1</span>会话 1：Darth 发任意值 <code>' + rfNonce.X + '</code>；Alice 应答 ' + desc(R.s1) + '，并出挑战 <span class="m">N<sub>a</sub></span> = <code>' + rfNonce.Na + '</code>。</div>' +
+    '<div><span class="k">2</span>会话 2：Darth 把 <code>' + rfNonce.Na + '</code> 原样当挑战发给 Alice；Alice 应答 ' + desc(R.s2) + '（另出新挑战 <code>' + rfNonce.Na2 + '</code>）。</div>' +
+    '<div><span class="k">3</span>会话 1：Darth 交回 <code>' + R.reflected + '</code>。Alice 期望 Bob 交的是 ' + desc(R.expected) + '。</div>';
+  $('rfOut').innerHTML = R.accepted ? '<span class="bad">两值相同，Alice 认定对方是 Bob</span>——Darth 一个密钥都没有，靠 Alice 替他算出了答案。'
+    : '<span class="good">两值不同（' + R.reflected + ' ≠ ' + R.expected.v + '），反射失败</span>。真 Bob 持有密钥，算得出 <code>' + R.legit + '</code>，协议对他照常工作。';
+}
+
+/* ---------------------------------------------------------------- 3 TLS：删掉哪一条中间人复活（6.1、6.4） */
+function tmGo(){
+  var v = ['tmQ', 'tmA', 'tmXA', 'tmXB', 'tmXD1', 'tmXD2'].map(function(id){ return intList($(id).value); });
+  if (v.some(function(x){ return !x || x.length !== 1; })){ $('tmSteps').innerHTML = err('每格填一个正整数'); $('tmOut').innerHTML = '—'; return; }
+  v = v.map(function(x){ return x[0]; });
+  var q = v[0], a = v[1];
+  if (!isPrimeN(q) || q > 100000){ $('tmSteps').innerHTML = err('q 要是不超过 100000 的素数'); $('tmOut').innerHTML = '—'; return; }
+  if (a < 2 || a >= q){ $('tmSteps').innerHTML = err('α 要在 2 与 q − 1 之间'); $('tmOut').innerHTML = '—'; return; }
+  var sc = $('tmSc').value, R = tlsSim(sc, q, a, v[2], v[3], v[4], v[5]);
+  var Y = function(n){ return '<span class="m">Y<sub>' + n + '</sub></span>'; };
+  var h = '';
+  if (sc === 'none'){
+    h += '<div><span class="k">1</span>客户端 → bank：' + Y('A') + ' = ' + a + '<sup>' + v[2] + '</sup> mod ' + q + ' = ' + R.YA + '；bank → 客户端：' + Y('B') + ' = ' + R.YB + ' 与 bank 的证书。双方各算出 <span class="m">K</span> = ' + R.Kc + (R.Kc === R.Kb ? '（两边相同）' : '') + '。</div>';
+  } else {
+    h += '<div><span class="k">1</span>客户端 → Darth：' + Y('A') + ' = ' + R.YA + '；Darth → bank：' + Y('D1') + ' = ' + a + '<sup>' + v[4] + '</sup> mod ' + q + ' = ' + R.YD1 + '；bank → Darth：' + Y('B') + ' = ' + R.YB + ' 与 bank 的证书；Darth → 客户端：' + (sc === 'owncert' ? '<strong>Darth 自己的证书</strong>（darth.example）' : 'bank 的证书（原样）') + ' 与 ' + Y('D2') + ' = ' + R.YD2 + '。</div>';
+    h += '<div><span class="k">2</span>客户端算出 <span class="m">K</span> = ' + R.YD2 + '<sup>' + v[2] + '</sup> mod ' + q + ' = <strong>' + R.Kc + '</strong>，和 Darth 共享（Darth 算 ' + R.YA + '<sup>' + v[5] + '</sup> mod ' + q + ' = ' + R.Kdc + '）；bank 算出 ' + R.YD1 + '<sup>' + v[3] + '</sup> mod ' + q + ' = <strong>' + R.Kb + '</strong>，和 Darth 共享（Darth 算 ' + R.YB + '<sup>' + v[4] + '</sup> mod ' + q + ' = ' + R.Kdb + '）。</div>';
+  }
+  h += '<div><span class="k">3</span>客户端检查：</div><div class="ckl ' + (R.nameOK ? 'pass' : 'fail') + '"><span class="mk">' + (R.nameOK ? '✓' : '✗') + '</span>证书：链、名字、有效期' + (R.nameOK ? '全对（证书是 bank 的真证书）' : '——名字是 ' + R.certName + '，不是你要访问的 bank.com') + '</div>';
+  h += '<div class="ckl ' + (R.cvOK === null ? 'soft' : R.cvOK ? 'pass' : 'fail') + '"><span class="mk">' + (R.cvOK === null ? '–' : R.cvOK ? '✓' : '✗') + '</span>CertificateVerify：' +
+    (R.cvOK === null ? '这条消息被删掉了，没有任何东西把证书和这次 DH 连起来' :
+      '签名覆盖的 transcript 摘要 <code>' + R.hSigned + '</code>，客户端自己看到的 transcript 摘要 <code>' + R.hClient + '</code>' + (R.cvOK ? '，一致' : '——不一致：bank 签的是它看到的「' + escH(R.cvSignedT) + '」，Darth 没有 bank 的私钥，造不出覆盖 ' + Y('D2') + ' 的签名')) + '</div>';
+  h += '<div class="ckl ' + (R.finOK ? 'pass' : 'fail') + '"><span class="mk">' + (R.finOK ? '✓' : '✗') + '</span>Finished：收到 <code>' + R.finRecv + '</code>，客户端用自己的 <span class="m">K</span> = ' + R.Kc + ' 对 transcript 算得 <code>' + R.finExp + '</code>' + (R.finOK ? '，一致' + (R.finSender === 'Darth' ? '——Darth 本人就是这次 DH 的对端，算得出合法的 Finished' : '') : '') + '</div>';
+  $('tmSteps').innerHTML = h;
+  $('tmOut').innerHTML = R.mitm ? '<span class="bad">客户端接受了连接，密钥却和 Darth 共享：中间人攻击得逞</span>。证书全对、Finished 也对——缺的正是 CertificateVerify。'
+    : R.accept ? '<span class="good">客户端接受，密钥只和 bank 共享</span>。' : '<span class="good">客户端中止握手</span>，中间人被识破（失败的是' + (!R.nameOK ? '证书的名字检查' : 'CertificateVerify') + '）。';
+}
+
+/* ---------------------------------------------------------------- 4 记录层（6.6） */
+function rcGo(){
+  var iv = $('rcIV').value.trim().toLowerCase().replace(/\s+/g, ''), at = $('rcAt').value, k = parseInt($('rcK').value, 10);
+  if (!/^[0-9a-f]{24}$/.test(iv)){ $('rcSteps').innerHTML = err('IV 填 12 字节（24 位十六进制）'); $('rcOut').innerHTML = '—'; return; }
+  $('rcK').disabled = at === 'none' || at === 'trunc';
+  var R = recordSim(iv, 'traffic key', 6, at, k);
+  var h = '<div class="tw"><table class="compact"><thead><tr><th>到达顺序</th><th>发送方编号</th><th>接收方自己数的序号</th><th>由序号算出的 nonce = IV ⊕ 序号</th><th>标签</th></tr></thead><tbody>';
+  R.rows.forEach(function(r, i){
+    h += '<tr' + (r.ok ? '' : ' class="badrow"') + '><td>' + (i + 1) + '</td><td>' + r.sentSeq + '</td><td>' + r.cnt + '</td><td class="mono">' + r.nonce + '</td><td>' + (r.ok ? '<span class="good">通过</span>' : '<span class="bad">校验失败</span>') + '</td></tr>';
+  });
+  $('rcSteps').innerHTML = '<div>发送方发出编号 0～5 的六条记录（编号不随记录传输）；攻击者操作后，按到达顺序：</div>' + h + '</tbody></table></div>';
+  $('rcOut').innerHTML = R.broke ? '<span class="good">接收方算出的 nonce 对不上，认证标签校验失败，连接报错</span>——' + ({ delete: '删掉的那条让后面的序号全部错位', swap: '顺序一换，两条都对不上', replay: '重放的那条拿到的是下一个序号' })[at] + '。'
+    : at === 'trunc' ? '前四条全部通过；后两条被截掉，序号本身发现不了——靠的是没等到关闭告警 close_notify。' : '六条全部通过：序号递增，nonce 不重复。';
+}
+
+/* ---------------------------------------------------------------- 5 WEP 的 IV 碰撞（9.2） */
+function wpSet(n, r, b){ $('wpN').value = n; $('wpR').value = r; $('wpB').value = b; wpGo(); }
+function fmtT(s){ return s < 120 ? s.toFixed(1) + ' 秒' : s < 7200 ? (s / 60).toFixed(1) + ' 分钟' : s < 3 * 86400 ? (s / 3600).toFixed(2) + ' 小时' : (s / 86400).toFixed(1) + ' 天'; }
+function wpGo(){
+  var n = +$('wpN').value, r = +$('wpR').value, b = +$('wpB').value;
+  if (!(n >= 8 && n <= 64) || !(r > 0) || !(b > 0)){ $('wpSteps').innerHTML = err('IV 位数填 8～64，速率与包长填正数'); $('wpOut').innerHTML = '—'; $('wpPlot').innerHTML = '<p class="sub">—</p>'; return; }
+  var C = wepCalc(n, r, b);
+  $('wpSteps').innerHTML =
+    '<div><span class="k">1</span>满载包率：' + r + ' × 10<sup>6</sup> ÷ (' + b + ' × 8) = <strong>' + C.pps.toFixed(1) + '</strong> 包/秒</div>' +
+    '<div><span class="k">2</span>令 <span class="m">p</span> = 1/2：<span class="m">q</span> ≈ √(2<sup>' + (n + 1) + '</sup> · ln 2) = <strong>' + Math.round(C.q50) + '</strong> 个包，约 <strong>' + fmtT(C.t50) + '</strong></div>' +
+    '<div><span class="k">3</span>IV 从 0 顺序递增、单个发送方用完整个空间：2<sup>' + n + '</sup> ÷ ' + C.pps.toFixed(1) + ' = ' + Math.round(C.seqSec) + ' 秒，约 <strong>' + fmtT(C.seqSec) + '</strong></div>';
+  /* p(q) 曲线 */
+  var Wd = 560, Hd = 200, L = 46, B = 34, T = 12, Rr = 14, qmax = C.q50 * 3, svg = svgRoot(Wd, Hd, '至少撞上一次的概率随包数的变化'), g = svgEl('g'); svg.appendChild(g);
+  var X = function(q){ return L + (Wd - L - Rr) * q / qmax; }, Yp = function(p){ return Hd - B - (Hd - B - T) * p; };
+  sLine(g, L, Hd - B, Wd - Rr, Hd - B, { sop: .5 }); sLine(g, L, T, L, Hd - B, { sop: .5 });
+  [0, .5, 1].forEach(function(p){ sLine(g, L - 4, Yp(p), Wd - Rr, Yp(p), { sop: p === .5 ? .25 : .1, dash: '3 3' }); sRich(g, L - 8, Yp(p) + 4, String(p), { size: 11, anchor: 'end', op: .7 }); });
+  for (var i = 0; i <= 3; i++){ var qq = C.q50 * i; sRich(g, X(qq), Hd - B + 16, Math.round(qq) + '', { size: 11, op: .7, anchor: i === 3 ? 'end' : 'middle' }); }
+  sRich(g, (L + Wd) / 2, Hd - 4, '包数 q（满载时横轴全长约 ' + fmtT(qmax / C.pps) + '）', { size: 11, op: .7 });
+  var d = ''; for (var k = 0; k <= 120; k++){ var q = qmax * k / 120; d += (k ? ' L' : 'M') + X(q).toFixed(1) + ',' + Yp(collideP(q, n)).toFixed(1); }
+  sPath(g, d, { stroke: AC, sop: 1, sw: 2.2 });
+  g.appendChild(svgEl('circle', { cx: X(C.q50), cy: Yp(collideP(C.q50, n)), r: 5, fill: TC.warn }));
+  sRich(g, X(C.q50) + 9, Yp(.5) + 16, 'q ≈ ' + Math.round(C.q50) + '，p = ' + collideP(C.q50, n).toFixed(3), { size: 11.5, anchor: 'start', fill: TC.warn });
+  $('wpPlot').innerHTML = ''; $('wpPlot').appendChild(svg);
+  $('wpOut').innerHTML = n + ' 位 IV：随机取时约 <strong>' + fmtT(C.t50) + '</strong> 就有一半把握撞上；顺序递增也只撑 <strong>' + fmtT(C.seqSec) + '</strong>。多台设备共用 <span class="m">K</span> 又各自从 0 计数，小 IV 跨设备几乎立刻就撞。';
+}
+
+
+/* ---------- 交互件与图初始化 ---------- */
+drawSeq('replay','figReplayW','figReplayN');
+swGo();
+drawSeq('reflect','figReflW','figReflN');
+rfGo();
+drawSeq('ns','figNsW','figNsN');
+drawSeq('ds','figDsW','figDsN');
+drawSeq('krb','figKrbW','figKrbN');
+drawTlsSlide('figSlideW',false); drawTlsSlide('figSlideN',true);
+drawSeq('tls','figTlsW','figTlsN');
+tmGo();
+rcGo();
+drawIpsec('figIpsecW',false); drawIpsec('figIpsecN',true);
+drawSeq('eap','figEapW','figEapN');
+wpGo();
+drawSeq('wpa2','figWpaW','figWpaN');
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印时展开全部折叠块（Chromium 对关着的 details 不渲染内容，CSS 撑不开） ---------- */
+function openAllDetails(){ var d=document.querySelectorAll('details'); for(var i=0;i<d.length;i++) d[i].open=true; }
+window.onbeforeprint=openAllDetails;
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); mq.onchange=function(e){ if(e.matches) openAllDetails(); }; } })();
+
+</script>
+</body>
+</html>

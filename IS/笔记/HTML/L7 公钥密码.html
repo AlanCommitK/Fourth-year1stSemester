@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L7 公钥密码 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1–L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.ctl{max-width:100%; min-width:0}
+.ctl.grow{flex:1 1 20rem}
+.ctl.grow>input{flex:1 1 auto; min-width:0; width:auto !important}
+.op{font-family:"Times New Roman",Georgia,serif; font-style:normal}
+.tool select,.tool input[type=text]{max-width:100%}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+input.badin{outline:2px solid var(--warn)}
+/* ---------- 长的文件名、十六进制串在窄屏折行 ---------- */
+main code,.mono{overflow-wrap:anywhere}
+/* ---------- 链接、引文 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+blockquote.qt{margin:1.1rem 0; padding:.2rem 0 .2rem 1.1rem; border-left:3px solid var(--line2); color:var(--text); max-width:70ch}
+/* ---------- 公式（无外部库，同 L4 的写法） ---------- */
+.hx{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-style:normal; font-size:.86em}
+.m .rm{font-style:normal}
+.m .tx{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; font-size:.94em}
+.m .ss{display:inline-flex; flex-direction:column; vertical-align:middle; line-height:1.05; font-size:.68em; font-style:normal; margin-left:.05em; text-align:left}
+.m .ss sub,.m .ss sup{font-size:.85em}
+.m .bo{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1; margin:0 .2em; font-style:normal}
+.m .bo>span:first-child,.m .bo>span:last-child{font-size:.62em}
+.m .bo .sy{font-size:1.5em; line-height:1.05}
+.eq{overflow-x:auto; overflow-y:hidden; padding:.15rem 0}
+@media (max-width:600px){ .eq{font-size:1rem} .eq .lbl{float:none; display:block; text-align:right} }
+/* ---------- 表：列多的表在窄屏横向滚动，不把整页撑宽 ---------- */
+@media (max-width:640px){ .tw>table.wide{min-width:34rem} }
+/* ---------- 图：窄屏在框内横向滚动，字不缩到看不清 ---------- */
+figure>div{overflow-x:auto}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.toolfig{overflow-x:auto; margin:.6rem 0}
+.toolfig>svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+/* ---------- 字节格 ---------- */
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.bytes{display:flex; flex-wrap:wrap; gap:5px 12px; margin:.2rem 0 .5rem}
+.bytes .grp{display:flex; flex-wrap:wrap; gap:3px}
+.bytes{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px; line-height:1.3; margin:.2rem 0 .5rem}
+.bytes span{min-width:2.15em; text-align:center; padding:.15em .1em; border-radius:4px; background:var(--surface2); border:1px solid var(--line)}
+.bytes span i{display:block; font-style:normal; font-size:10px; color:var(--faint)}
+.bytes span.hot{background:var(--accent-bg); border-color:var(--accent); color:var(--accent); font-weight:700}
+.bytes span.chg{background:var(--exam-bg); border-color:var(--exam); color:var(--exam); font-weight:700}
+.bytes span.bad{background:var(--warn-bg); border-color:var(--warn); color:var(--warn); font-weight:700}
+.bytes span.ok{background:var(--ok-bg); border-color:var(--ok); color:var(--ok); font-weight:700}
+.bytes .sep{min-width:.4em; background:none; border:none; padding:0}
+.blk{display:inline-block; margin-right:.6rem}
+.cap{font-size:13px; color:var(--muted); margin:.35rem 0 .15rem}
+.cap.good{color:var(--ok)} .cap.bad{color:var(--warn)}
+.tool tr.hot td{background:var(--accent-bg)}
+.tool td.hot{color:var(--accent); font-weight:700}
+.tool td.warnc{color:var(--warn); font-weight:700}
+.tool td.okc{color:var(--ok); font-weight:700}
+.tool table.compact td,.tool table.compact th{padding:.3rem .55rem}
+.tool td.mono,.tool th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:nowrap; overflow-wrap:normal}
+.tool th{white-space:nowrap}
+.three span.lab,.three span.val{display:block}
+.three .val sub,.three .val sup{font-size:.6em}
+.verdict{font-weight:700}
+.verdict.good{color:var(--ok)} .verdict.bad{color:var(--warn)}
+/* ---------- 打印：骨架的 details 子元素 display:block 在 Chromium 里打不开已关闭的 details，这里补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important}
+  figure>div{overflow:visible} .eq{overflow:visible} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 7</div>
+  <div class="tt">公钥密码</div>
+  <div class="toc">
+<a href="#s1">1 · 对称密码解决不了的两件事</a>
+<a href="#s1-1" class="sub">1.1 密钥分发：建安全信道之前先得有安全信道</a>
+<a href="#s1-2" class="sub">1.2 签名：共享密钥分不清是谁写的</a>
+<a href="#s1-3" class="sub">1.3 1976 年的转折</a>
+<a href="#s2">2 · 公钥的思想：一对钥匙</a>
+<a href="#s2-1" class="sub">2.1 公钥公开，私钥永不离手</a>
+<a href="#s2-2" class="sub">2.2 单向函数与陷门</a>
+<a href="#s2-3" class="sub">2.3 公钥密码不是什么</a>
+<a href="#s3">3 · 两种用法</a>
+<a href="#s3-1" class="sub">3.1 机密性模式：用接收方的公钥加密</a>
+<a href="#s3-2" class="sub">3.2 认证模式：用发送方的私钥加密</a>
+<a href="#s3-3" class="sub">3.3 一条规则判定所有情形</a>
+<a href="#s4">4 · 手算工具箱：模运算</a>
+<a href="#s4-1" class="sub">4.1 取模，以及随时可以取模</a>
+<a href="#s4-2" class="sub">4.2 模幂：平方-乘</a>
+<a href="#s4-3" class="sub">4.3 模逆与扩展欧几里得</a>
+<a href="#s4-4" class="sub">4.4 欧拉函数 φ(n)</a>
+<a href="#s4-5" class="sub">4.5 欧拉定理</a>
+<a href="#s5">5 · RSA</a>
+<a href="#s5-1" class="sub">5.1 生成密钥对：五步</a>
+<a href="#s5-2" class="sub">5.2 加密与解密</a>
+<a href="#s5-3" class="sub">5.3 为什么解得回来</a>
+<a href="#s5-4" class="sub">5.4 完整手算：课堂活动 3</a>
+<a href="#s5-5" class="sub">5.5 安全性建立在大数分解上</a>
+<a href="#s5-6" class="sub">5.6 教科书 RSA 的三个问题</a>
+<a href="#s5-7" class="sub">5.7 考场答法：公钥解密的基本步骤</a>
+<a href="#s6">6 · Diffie–Hellman 密钥交换</a>
+<a href="#s6-1" class="sub">6.1 在公开信道上约定一个秘密</a>
+<a href="#s6-2" class="sub">6.2 协议只有四行</a>
+<a href="#s6-3" class="sub">6.3 手算一遍：课堂活动 4</a>
+<a href="#s6-4" class="sub">6.4 窃听者要解什么：离散对数</a>
+<a href="#s6-5" class="sub">6.5 中间人攻击</a>
+<a href="#s6-6" class="sub">6.6 修复：认证交换的值</a>
+<a href="#s7">7 · 真实系统里的公钥密码</a>
+<a href="#s7-1" class="sub">7.1 混合加密：公钥管钥匙，对称管数据</a>
+<a href="#s7-2" class="sub">7.2 椭圆曲线：同样的思想，更短的密钥</a>
+<a href="#s7-3" class="sub">7.3 量子计算</a>
+<a href="#s7-4" class="sub">7.4 这把公钥真是银行的吗</a>
+<a href="#s8">8 · 六条结论</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 7 — Public-Key Cryptography</div>
+  <h1>公钥密码</h1>
+  <p>两个素不相识的人，能不能在全世界都看得见的信道上建立保密通信，并且证明"这句话是我说的"？</p>
+</header>
+<div class="box def">
+<div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>到上一讲为止的密码都是<strong>对称密码</strong>（symmetric cryptography：加密和解密用同一把密钥，L3 的 DES（data encryption standard，数据加密标准）、L4 的 AES（advanced encryption standard，高级加密标准）都是），它们有一个绕不开的前提：通信双方事先已经共享了一把密钥。这一讲回答 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 结尾课后作业 4 留下的问题：<strong>两个素不相识的人，能不能在全世界都看得见的信道上建立保密通信，并且证明"这句话是我说的"？</strong></p>
+<p>答案是公钥密码：每个人一对数学上相连的钥匙，一把公开、一把自己留着。主线是一条因果链：</p>
+<ol><li>对称密码解决不了两件事——密钥分发、无法抵赖的签名 → 需要"一把公开、一把私有"的钥匙对；</li><li>钥匙对靠<strong>陷门单向函数</strong>（trapdoor one-way function：人人能正着算，只有握有"陷门"这条秘密的人能倒着算）造出来；它有两种用法：用对方的公钥加密是保密，用自己的私钥加密是证明出处；</li><li>要在纸上算它，先备一套小数模运算工具：取模、平方-乘（square-and-multiply）求模幂、扩展欧几里得算法（extended Euclidean algorithm）求模逆、欧拉函数（Euler's totient function）、欧拉定理（Euler's theorem），各自的含义在第 4 节逐个讲；</li><li><strong>RSA</strong>（以三位发明者 Rivest、Shamir、Adleman 命名）：靠"大数分解难"实现钥匙对——手算密钥生成、加密、解密，看清它为什么解得回来、为什么安全、裸用会出什么事；</li><li><strong>Diffie–Hellman</strong>：靠"离散对数（discrete logarithm：已知乘方的结果，反求指数）难"在公开信道上约定一个共同的秘密；它不认证任何人，所以挡不住中间人（man-in-the-middle：截下双方的消息、换成自己的再转发的攻击者）；</li><li>真实系统：公钥只用来传钥匙、证明身份，数据交给 AES；椭圆曲线密码（elliptic curve cryptography，ECC）用更短的钥匙做同样的事。</li></ol>
+<p>课件的五个部分本来就按这条链排，本笔记沿用，只做四处调整：课件第 2 页对上周课后题的讲评（能否在公开信道上约定秘密）挪到 Diffie–Hellman 一节开头，因为它的答案就是 Diffie–Hellman；手算工具补上课件只点名不讲的扩展欧几里得算法，平方-乘讲成两种可直接套用的格式；RSA 正确性证明单列一节，补上课件漏掉的情形；课件第 17 页的三个问题拆开，"慢"并入混合加密一节讲，混合加密也提到椭圆曲线之前，紧接着 RSA 与 Diffie–Hellman 讲。</p>
+<p>角色约定：全篇统一用课件的写法——<strong>Alice 发给 Bob</strong>，所以机密性模式里用的是 Bob 的公钥和 Bob 的私钥。模拟卷参考答案（教材原图）的写法是 Bob 发给 Alice，两种写法得分相同，见 <a href="#s5-7">5.7</a>。</p>
+<p>对应课件 <code>Lecture7_PublicKeyCryptography_26_TUL</code>，28 页。<strong>本笔记的"课件第 N 页"一律指 PDF 第 N 页</strong>；从第 9 页起，幻灯片右下角印的编号比它大 1–5（如第 17 页印 20、第 22 页印 26），原因见下面的版本说明。</p>
+<p>教材 Stallings 第 8 版第 9 章（公钥原理与 RSA）、第 10 章（Diffie–Hellman 与椭圆曲线），模运算基础在第 2 章；课件推荐的两篇原始论文是 Diffie 与 Hellman 1976 年的 "New Directions in Cryptography"（课件说 "Free and readable"）和 Rivest、Shamir、Adleman 1978 年的 RSA 论文（课件说其中的例子数字和本讲一样小）。课程总览与考情见 《00 课程信息与考情》。</p>
+<details class="box">
+<summary>课件版本说明：讲次编号、隐藏页、页码</summary>
+<ul style="margin-bottom:0"><li>封面写 Lecture 7，每页页脚和文件元数据却写 Lecture 6——这套课件原本是第 6 讲，正文里的交叉引用全用旧编号："Lecture 5" 指 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>，"Lecture 7" 指 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>，"Lecture 2""Lecture 3" 就是 L2、L3。反过来，L2、L3 笔记里说的"Lecture 6 解决密钥分发""Lecture 6 讲公钥密码"，指的都是本讲。</li><li>原幻灯片共 33 张，其中 5 张设成了隐藏页（PowerPoint 放映和导出 PDF 时都会跳过），所以 PDF 只有 28 页，从第 9 页起页码和幻灯片角标错开。被隐藏的 5 张里有 4 张紧跟在课堂活动之后，几乎可以肯定是活动答案页；本笔记的活动解答都是自己算的，数值全部用程序核对过。</li><li>Part 4 封面预告的"扮演中间人破解它"和 Part 5 封面预告的"该用什么"在导出的页里找不到，可能也在隐藏页上。</li></ul>
+</details>
+</div>
+
+<div class="box exam">
+<div class="h"><span class="tag">考点</span></div>
+<p>课件里直接点到考试的话：</p>
+<ul><li>第 3 页 "A warning about the mathematics"："You will not be asked to prove anything. You will be asked to <strong>compute with small numbers by hand</strong>, which is what "apply the algorithms" means in ILO 1 — and it is what the exam asks for."（ILO 是 intended learning outcome，预期学习成果；"ILO 1" 是课程级的第一条，本讲课件没有列出原文）——<strong>小数手算 RSA 和 Diffie–Hellman 会考</strong>，工具见 <a href="#s4">第 4 节</a>，RSA 见 <a href="#s5-4">5.4</a>，Diffie–Hellman 见 <a href="#s6-3">6.3</a>；</li><li>第 11 页："You will not be asked to prove the theorem — only to use it."——欧拉定理只要会用，见 <a href="#s4-5">4.5</a>；</li><li>第 28 页：Stallings 第 9、10 章章末习题 "RSA key generation and Diffie–Hellman by hand. These are the closest thing to exam practice available."；</li><li>第 16 页："Part (e) is the one that takes care."——用平方-乘做 RSA 解密是最容易丢分的一步，见 <a href="#s4-2">4.2</a>；</li><li>第 26 页："Task 2 is the one that matters."——教科书 RSA 是确定性的、为什么必须填充，见 <a href="#s5-6">5.6</a>；</li><li>第 24 页："The curve arithmetic itself is beyond this course."——椭圆曲线只考概念，见 <a href="#s7-2">7.2</a>；</li><li>第 10 页：模逆 "for the small numbers in this lecture you can find it by trial"，试算法与扩展欧几里得都在 <a href="#s4-3">4.3</a>；</li><li>第 12 页："Answer (f) is the one you will need again in Activity 3. Keep it."——活动 2(f) 的模逆就是活动 3 的私钥，见 <a href="#s5-4">5.4</a>。</li></ul>
+<p>本讲的四条学习目标就是可考能力的边界："Say which key is used for which purpose, and why"（<a href="#s3-3">3.3</a>）；"Generate an RSA key pair and encrypt and decrypt by hand"（第 5 节）；"Perform a Diffie–Hellman exchange by hand and state what the eavesdropper must solve"（<a href="#s6-4">6.4</a>）；"Explain why an unauthenticated key exchange is defeated by a man in the middle"（<a href="#s6-5">6.5</a>）。</p>
+<p>模拟卷（去年版）对应题：</p>
+<ul><li><strong>Q2(d)，10 分</strong>："What are the essential steps for proper functioning of public key decryption algorithm? Explain with the aid of a diagram." 参考答案的图出自教材 Fig. 9.1(a)，本讲课件里没有这张图。图与规范答法见 <a href="#s3-1">3.1</a> 和 <a href="#s5-7">5.7</a>。</li><li>Q1(c)，7 分："Explain active attack with the aid of a diagram. Give some examples of active attacks." 主体在 L1；本讲的中间人攻击是主动攻击（截获加替换）的典型例子，可作为举例，见 <a href="#s6-5">6.5</a>。</li></ul>
+<p style="margin-bottom:0">去年这道题只考概念加画图，没有计算；今年课件第 3 页明说手算"is what the exam asks for"，多出一道 RSA 或 Diffie–Hellman 小数手算的可能性很大，规模参照课堂活动 3、4 与课后任务 1。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>对称密码解决不了的两件事</h2>
+
+<p>课件第 5 页把公钥密码的动机归结为两个问题，二者都是对称密码在结构上就做不到的。</p>
+
+<h3 id="s1-1"><span class="n">1.1</span>密钥分发：建安全信道之前先得有安全信道</h3>
+
+<p><strong>密钥分发</strong>（key distribution）：让通信双方拿到同一把密钥。课件原话："Two parties who want to communicate securely must already share a key. Delivering that key requires a secure channel — which is the thing we were trying to build."</p>
+
+<p><strong>安全信道</strong>（secure channel）指窃听者读不到、也改不了的通道。对称密码要建立这样一条信道，前提却是先有一条这样的信道把密钥送过去——这是循环论证。L2 讲<a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html#s1-1">对称密码的模型</a>时就指出，密钥要靠安全信道事先送达，而有了安全信道又何必加密——这就是<strong>密钥分发问题</strong>，当时放下了；一次一密把它放大成"密钥和消息一样长"（<a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html#s8-4">L2 8.4</a>）；<a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>的<strong>密钥层级</strong>（key hierarchy：用上层密钥加密保护下层密钥，最顶上是主密钥）把问题往上推了一层，但最顶上那把密钥仍然得靠某种方式送到双方手里，问题没有消失。</p>
+
+<p>规模也是问题（课件外）：<span class="m">N</span> 个人两两之间都要能保密通信，就要 <span class="m">N(N − 1)/2</span> 把不同的密钥，1000 人就是约 50 万把。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>签名：共享密钥分不清是谁写的</h3>
+
+<p><a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>讲过 <strong>MAC</strong>（message authentication code，消息认证码：发送方用共享密钥给消息算出一个短标签，接收方用同一把密钥重算，对得上就说明消息没被改过、而且出自持钥人）。它提供两样东西：</p>
+
+<ul><li><strong>完整性</strong>（integrity）：消息在路上没被改过；</li><li><strong>真实性</strong>（authenticity，L6 叫数据源认证）：消息确实来自持有这把密钥的人。</li></ul>
+
+<p>它提供不了第三样：<strong>不可否认性</strong>（non-repudiation：发送方事后无法抵赖自己发过这条消息）。真实性和不可否认性都在 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s4-2">L1 4.2</a> 定义过；L1 的不可否认性是"发送方和接收方事后都不能否认发过或收过"，这里用到的是其中"发送方不能抵赖"那一半。原因只有一句：密钥双方都有。Bob 收到一条带正确标签的消息，他能确定不是外人写的；但如果双方闹上法庭，Bob 说"这是 Alice 发的"，Alice 说"是 Bob 自己用同一把钥匙造的"，第三方无从判断。课件原话："A shared secret can never settle a dispute between the two people sharing it."</p>
+
+<p>所以<strong>数字签名</strong>（digital signature：只有签名者能产生、任何人都能验证的一段数据）需要一样只有发送方一个人拥有的东西——对称密码给不出来。</p>
+
+<h3 id="s1-3"><span class="n">1.3</span>1976 年的转折</h3>
+
+<p>1976 年 Whitfield Diffie 和 Martin Hellman 发表论文 "New Directions in Cryptography"。课件说，四千年来保密通信一直默认"必须事先送达一个共享秘密"，这个假设在这一篇论文里终结了。一年后，Rivest、Shamir、Adleman 发明了 RSA（1977 年完成，1978 年正式发表）。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>课件第 5 页的史实说反了一半</div>
+<p>课件原话："Diffie and Hellman set out to solve both, and did not know how to build either. They published the requirements and challenged the world to meet them — and two years later Rivest, Shamir and Adleman did."</p>
+<p>误：1976 年的论文两个问题都没解决。</p>
+<p>正：<strong>1976 年的论文给出了 Diffie–Hellman 密钥交换，第一个问题（密钥分发）当场就解决了</strong>；他们没给出的是一个能用的公钥<strong>加密与签名</strong>方案，只提出了概念和要求，这一半由 RSA 补上。课件自己在第 2 页（"That assumption ended in one paper"）和第 20 页（Diffie–Hellman "is also the answer to last week's take-home task"）都承认了这一点，与第 5 页矛盾。</p>
+<p style="margin-bottom:0">"two years later" 按 RSA 正式发表（1978）算是对的，按发明（1977）算是一年后；课件第 13 页写的就是 "1977"。</p>
+</div>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>公开史之外（背景，不考）</div>
+<p style="margin-bottom:0">英国政府通信总部（Government Communications Headquarters，GCHQ）内部更早就有了同样的想法：James Ellis 1970 年提出"非秘密加密"的概念，Clifford Cocks 1973 年给出了等价于 RSA 的方案，Malcolm Williamson 1974 年给出了等价于 Diffie–Hellman 的方案，1997 年才解密公开。课件"四千年"的说法按公开学术史成立。</p>
+</div>
+
+<h2 id="s2"><span class="n">2</span>公钥的思想：一对钥匙</h2>
+
+<p>课件第 4 页的一句话概括："Two keys instead of one. Publish one of them. Everything follows from that."</p>
+
+<h3 id="s2-1"><span class="n">2.1</span>公钥公开，私钥永不离手</h3>
+
+<p><strong>公钥密码</strong>（public-key cryptography，也叫非对称密码 asymmetric cryptography：加密和解密用两把不同的钥匙）让每个人生成一个<strong>钥匙对</strong>（key pair）：</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>公钥（public key）</th><th>私钥（private key）</th></tr></thead>
+<tbody>
+<tr><td>谁有</td><td>公开发布：放在网站、目录或证书里，任何人都可以拿，包括攻击者</td><td>只有主人自己知道，从不在网络上传送</td></tr>
+<tr><td>怎样得到</td><td>和私钥作为一对，由主人同时生成（RSA 见 5.1，DH 见 6.2）</td><td>只知道公钥，在计算上推不出私钥</td></tr>
+<tr><td>用来做什么</td><td><strong>给主人加密</strong>；<strong>验证主人的签名</strong></td><td><strong>解密发给主人的消息</strong>；<strong>以主人的身份签名</strong></td></tr>
+</tbody></table></div>
+
+<p>（"证书"是把公钥和主人身份绑在一起的文件，<a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>的内容。）</p>
+
+<p>两把钥匙的关系，课件一句话："What one key does, only the other can undo."——一把钥匙做的事，只有另一把能撤销。</p>
+
+<p>整个体系只靠一句话撑着，课件叫它 "The key requirement"：</p>
+
+<blockquote class="qt"><p style="margin-bottom:0">"It must be computationally infeasible to determine the private key given only the public key. Everything rests on that one sentence."</p></blockquote>
+
+<p><strong>计算上不可行</strong>（computationally infeasible）：理论上算得出来，但已知最好的方法也要花远超信息有效期的时间。这和 L2 的<a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html#s2-2">计算安全</a>是同一种思路：不是"不可能"，而是代价远超值得付出的程度。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>单向函数与陷门</h3>
+
+<p>钥匙对靠什么造出来？靠一类特殊的函数。</p>
+
+<p><strong>单向函数</strong>（one-way function）：正着算容易，倒着算在计算上不可行。课件的两个例子：</p>
+
+<ul><li>两个大<strong>素数</strong>（prime：只有 1 和自身两个因数的数）相乘很容易；从乘积分解回两个素数很难（<strong>大数分解</strong>，factoring）。</li><li>一个数的若干次方对一个素数取模很容易；从结果反求指数很难（<strong>离散对数</strong>，discrete logarithm，第 6 节讲）。</li></ul>
+
+<p>单向函数对公钥加密还不够：公钥加密要求"任何人都能加密"（正向容易），同时"主人自己能解密"（主人能倒着算）。所以需要<strong>陷门单向函数</strong>（trapdoor one-way function）：对所有人都是单向的，<strong>唯独掌握一条额外信息——陷门（trapdoor）——的人能轻松倒着算</strong>。陷门就是私钥。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>课件把两种函数混为一谈</div>
+<p>课件第 6 页的标题是 "a one-way function with a trapdoor"，随后举的两个例子都当作陷门函数。</p>
+<p>误：素数相乘、模幂都是"带陷门的单向函数"。</p>
+<p>正：<strong>在 DH 使用的设定下（公开的大素数模），离散对数没有已知的陷门</strong>——没有哪条可以交给主人保管的额外信息能让他从结果轻松反求指数。Diffie–Hellman 根本不需要陷门，它靠的是指数运算的交换律（<a href="#s6-2">6.2</a>）。素数相乘同样只是单向函数本身。RSA 真正的陷门函数是"把消息做一个公开次数的乘方再取模"，陷门是私钥（等价地，是模数的两个素因子），见 <a href="#s5-5">5.5</a>。教材第 9.1 节把这两个概念分开定义。</p>
+<p style="margin-bottom:0">考试被问"公钥密码靠什么"，答"陷门单向函数：公开方向容易，没有陷门（私钥）就无法逆转"即可。</p>
+</div>
+
+<h3 id="s2-3"><span class="n">2.3</span>公钥密码不是什么</h3>
+
+<p>课件第 6 页底部专门有一框 "Note what it is NOT"："Public-key cryptography is not more secure than symmetric cryptography, and it does not replace it. It solves different problems, and it is far slower."</p>
+
+<p>教材第 9.1 节把这归纳为三个常见误解：</p>
+
+<ol><li><strong>误：公钥密码比对称密码更安全。</strong> 安全性取决于密钥长度和破解所需的计算量，与"对称还是公钥"无关。</li><li><strong>误：公钥密码让对称密码过时了。</strong> 公钥运算比对称慢得多（课件说约一千倍，这是经验量级，随硬件与密钥长度变化很大），实际系统只用它处理几百字节，数据全交给 AES（<a href="#s7-1">7.1</a>）。</li><li><strong>误：有了公钥密码，密钥分发就轻而易举了。</strong> 公钥虽然可以公开，但"这把公钥真是 Bob 的吗"仍要解决，否则就会遭到中间人攻击（<a href="#s6-5">6.5</a>）。课件没有列这一条，但第 22、25 页讲的正是它。</li></ol>
+
+<h2 id="s3"><span class="n">3</span>两种用法</h2>
+
+<p>记号：<span class="m"><span class="rm">E</span>(K, X)</span> 表示用钥匙 <span class="m">K</span> 对 <span class="m">X</span> 做加密运算，<span class="m"><span class="rm">D</span>(K, Y)</span> 表示用 <span class="m">K</span> 对 <span class="m">Y</span> 做解密运算；<span class="m">PU<sub>a</sub></span>、<span class="m">PR<sub>a</sub></span> 是 Alice 的公钥、私钥，<span class="m">PU<sub>b</sub></span>、<span class="m">PR<sub>b</sub></span> 是 Bob 的。</p>
+
+<h3 id="s3-1"><span class="n">3.1</span>机密性模式：用接收方的公钥加密</h3>
+
+<p>课件第 7 页左栏："Alice encrypts with BOB'S PUBLIC key. Bob decrypts with BOB'S PRIVATE key."</p>
+
+<p>课件只有这两句文字，教材 Fig. 9.1(a) 把它画成了图，模拟卷 Q2(d) 的参考答案用的就是那张图。按课件的角色重画如下：</p>
+
+<figure>
+<div id="figConf"></div>
+<figcaption>机密性模式。红圈 ①–⑤ 是模拟卷参考答案在原图上标出的五个得分点：公钥环、接收方私钥、加密算法、传输的密文、明文输出。</figcaption>
+</figure>
+
+<p>从左上角读起：</p>
+
+<ol><li><strong>公钥环</strong>（public-key ring）：每个用户都收集着别人的公钥，像一串钥匙。Alice 要给 Bob 发保密消息，就从自己的公钥环里取出 Bob 的公钥 <span class="m">PU<sub>b</sub></span>。</li><li>明文 <span class="m">X</span> 和 <span class="m">PU<sub>b</sub></span> 一起进入<strong>加密算法</strong>（例如 RSA），得到密文 <span class="m">Y = <span class="rm">E</span>(PU<sub>b</sub>, X)</span>。</li><li><span class="m">Y</span> 在公开信道上传给 Bob。窃听者看得到 <span class="m">Y</span>，也看得到所有公钥，唯一缺的是 Bob 的私钥。</li><li>Bob 用自己的私钥 <span class="m">PR<sub>b</sub></span> 运行<strong>解密算法</strong>，恢复明文 <span class="m">X = <span class="rm">D</span>(PR<sub>b</sub>, Y)</span>。</li></ol>
+
+<p>为什么成立，课件原话："Anyone can encrypt to Bob, because his public key is published. Only Bob can read it, because only he holds the matching private key."</p>
+
+<p>代价："Gives: confidentiality. Bob has no idea who sent it."——这里得到的是<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s4-1">机密性</a>（confidentiality：只有授权的人能读），但 Bob 的公钥人人都有，<strong>谁都可能是发件人</strong>，所以没有任何认证。</p>
+
+<p>考场上这道题怎么答、图怎么画，在讲完 RSA 之后的 <a href="#s5-7">5.7</a> 汇总，那里还给了一张英文标注的考场版图。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>认证模式：用发送方的私钥加密</h3>
+
+<p>课件第 7 页右栏："Alice encrypts with ALICE'S PRIVATE key. Anyone decrypts with ALICE'S PUBLIC key."（教材 Fig. 9.1(b)）</p>
+
+<figure>
+<div id="figAuth"></div>
+<figcaption>认证模式：只有 Alice 造得出这个 <span class="m">Y</span>，任何人都能用她的公钥解开验证。</figcaption>
+</figure>
+
+<ul><li><strong>为什么能证明出处</strong>："Only Alice could have produced it, because only she holds her private key."</li><li><strong>为什么人人能验证</strong>："Everyone can check it, because her public key is published."</li><li><strong>代价</strong>："Gives: authenticity and non-repudiation. No secrecy at all."——Alice 的公钥是公开的，谁都能解开，内容毫无保密性可言。</li></ul>
+
+<p>这就是第 1.2 节要的签名：不可否认性来自"私钥只有一个人有"，这是共享密钥给不了的。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>"用私钥加密 = 签名"只是 RSA 上的简化说法</div>
+<p>课件（和教材 Fig. 9.1(b)）把签名说成"用私钥加密"，第 6 页还说"一把钥匙做的事，只有另一把能撤销"。</p>
+<p>误：任何公钥算法都能"用私钥加密"，签名就是对消息做私钥加密。</p>
+<p>正：这只在 RSA 上成立，因为 RSA 的加密和解密是同一种运算（<a href="#s5-2">5.2</a>）。DSA（digital signature algorithm，美国标准数字签名算法）及其椭圆曲线版本 ECDSA（elliptic curve DSA）这类签名算法的私钥根本不能用来"加密"，Diffie–Hellman 的钥匙对也没有"撤销"这回事。即使是 RSA，实际签名也不是直接对消息运算，而是先对消息求哈希（hash：把任意长的消息压成固定长度摘要的函数）、加填充，再用私钥运算，填充方案如 <code>PKCS#1 v1.5</code>（公钥密码标准 PKCS 第 1 号里较早的确定性签名填充，public-key cryptography standards，5.1 还会提到这份标准）或 RSA-PSS（PSS 是 probabilistic signature scheme，概率签名方案）。签名的细节是 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a> 的内容。</p>
+<p style="margin-bottom:0">按课件和教材的说法答题不会扣分。</p>
+</div>
+
+<h3 id="s3-3"><span class="n">3.3</span>一条规则判定所有情形</h3>
+
+<p>课件把两种模式压成一条规则（"The rule that decides every case"）：</p>
+
+<blockquote class="qt"><p style="margin-bottom:0">"If you want only ONE person to be able to read it, use THEIR public key — because only they hold the matching private one. If you want EVERYONE to be able to verify that it came from you, use YOUR private key — because only you hold it."</p></blockquote>
+
+<p>课件第 27 页的说法更短："The public key is for talking TO someone. The private key is for proving you ARE someone."</p>
+
+<p>判断时先问"我要的是保密还是证明出处"，再看"这件事只有谁做得到"：</p>
+
+<div class="tw"><table>
+<thead><tr><th>目标</th><th>用谁的哪把钥匙</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td>只让某一个人能读</td><td><strong>接收方的公钥</strong>加密</td><td>只有接收方有配对的私钥</td></tr>
+<tr><td>让所有人能验证出自我</td><td><strong>我自己的私钥</strong>加密（签名）</td><td>只有我有这把私钥</td></tr>
+</tbody></table></div>
+
+<p><strong>两者合用</strong>（课件 "And both together"）：Alice 先用自己的私钥签名，再用 Bob 的公钥把结果加密；Bob 先用自己的私钥解密，再用 Alice 的公钥验签。</p>
+
+<div class="eq"><span class="m">Z = <span class="rm">E</span>(PU<sub>b</sub>, <span class="rm">E</span>(PR<sub>a</sub>, X)),&emsp;&emsp;X = <span class="rm">D</span>(PU<sub>a</sub>, <span class="rm">D</span>(PR<sub>b</sub>, Z))</span></div>
+
+<p>四次钥匙运算，消息同时具备机密性、真实性和不可否认性。外层用 Bob 的公钥，所以只有 Bob 能剥开；内层用 Alice 的私钥，所以剥开后能确认出自 Alice。课件说这是下一讲 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a> 的起点。</p>
+
+<details class="box">
+<summary>课堂活动 1 解答：哪把钥匙做哪件事</summary>
+<p>题目：对每种情形说出用哪把钥匙，四个候选：Alice 的公钥、Alice 的私钥、Bob 的公钥、Bob 的私钥。</p>
+<div class="tw"><table>
+<thead><tr><th>题</th><th>情形</th><th>答案</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Alice 要发一条只有 Bob 能读的消息，用哪把加密</td><td><strong>Bob 的公钥</strong></td><td>只让一个人读，用他的公钥</td></tr>
+<tr><td>2</td><td>Bob 收到后用哪把解密</td><td><strong>Bob 的私钥</strong></td><td>只有和 Bob 公钥配对的私钥能解</td></tr>
+<tr><td>3</td><td>Alice 要让所有人确认一份公开声明出自她</td><td><strong>Alice 的私钥</strong></td><td>要人人能验证出自我，用我的私钥</td></tr>
+<tr><td>4</td><td>陌生人要核对声明真是 Alice 发的</td><td><strong>Alice 的公钥</strong></td><td>用 Alice 公开的公钥验证</td></tr>
+<tr><td>5</td><td>Bob 要回一条只有 Alice 能读的消息</td><td><strong>Alice 的公钥</strong></td><td>只让 Alice 读，用她的公钥</td></tr>
+<tr><td>6</td><td>哪把钥匙绝不能离开主人的电脑</td><td><strong>Alice 的私钥和 Bob 的私钥</strong></td><td>题面像是只要一把，其实两把私钥都不能离开；两把公钥本来就公开</td></tr>
+</tbody></table></div>
+<p>追问："在第 3 题里，读这份声明需要 Alice 的许可吗？为什么这一点重要？"</p>
+<p style="margin-bottom:0">答：不需要。任何人用 Alice 公开的公钥都能解开、读到这份声明。这说明用私钥加密只证明出处，<strong>不提供任何保密性</strong>；签名不等于加密，要保密还得再用接收方的公钥加一层（上面的"两者合用"）。</p>
+</details>
+
+<h2 id="s4"><span class="n">4</span>手算工具箱：模运算</h2>
+
+<p>课件第 9 页说要用到的数学只有三样："arithmetic on a clock face, one counting function, and one theorem"——取模运算、欧拉函数、欧拉定理。要在考场上真正算出来，还得补两样课件只点了名的技能：平方-乘的具体格式，和求模逆的扩展欧几里得算法。本节把这五样讲到能直接套用。</p>
+
+<h3 id="s4-1"><span class="n">4.1</span>取模，以及随时可以取模</h3>
+
+<p><span class="m">a <span class="rm">mod</span> n</span> 是 <span class="m">a</span> 除以 <span class="m">n</span> 的余数，取值在 <span class="m">0</span> 到 <span class="m">n − 1</span> 之间。RSA 的一切运算都在这 <span class="m">n</span> 个数里进行，超出范围就"绕回来"，像钟面一样。</p>
+
+<div class="tw"><table>
+<thead><tr><th>式子</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td><span class="m">17 <span class="rm">mod</span> 5 = 2</span></td><td><span class="m">17 = 3 × 5 + 2</span></td></tr>
+<tr><td><span class="m">23 <span class="rm">mod</span> 12 = 11</span></td><td>钟面上的 23 点是 11 点</td></tr>
+<tr><td><span class="m">−3 <span class="rm">mod</span> 7 = 4</span></td><td>加 7 直到变成非负：<span class="m">−3 + 7 = 4</span></td></tr>
+</tbody></table></div>
+
+<p><strong>同余</strong>（congruence）：<span class="m">a ≡ b&ensp;(<span class="rm">mod</span> n)</span> 读作"<span class="m">a</span> 与 <span class="m">b</span> 模 <span class="m">n</span> 同余"，意思是两者除以 <span class="m">n</span> 的余数相同，等价于 <span class="m">n</span> 整除 <span class="m">a − b</span>。例如 <span class="m">81 ≡ 1&ensp;(<span class="rm">mod</span> 40)</span>。两种写法的分工：<span class="m"><span class="rm">mod</span></span> 写在算式里当运算（"取余数"），<span class="m">≡ &ensp;(<span class="rm">mod</span> n)</span> 写在两个数之间当关系。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>负数取模</div>
+<p style="margin-bottom:0">数学上的 <span class="m">a <span class="rm">mod</span> n</span> 永远落在 <span class="m">0 ～ n − 1</span>：<span class="m">−3 <span class="rm">mod</span> 7 = 4</span>，不是 <span class="m">−3</span>。C、Java 的 <code>%</code> 对负数会给出 <span class="m">−3</span>，那是编程语言的约定。扩展欧几里得算出负的逆元时也要这样加 <span class="m">n</span> 化正（<a href="#s4-3">4.3</a>）。</p>
+</div>
+
+<p>手算能进行下去全靠两条规则：</p>
+
+<div class="eq"><span class="m">(a × b) <span class="rm">mod</span> n = ((a <span class="rm">mod</span> n) × (b <span class="rm">mod</span> n)) <span class="rm">mod</span> n</span></div>
+
+<div class="eq"><span class="m">(a + b) <span class="rm">mod</span> n = ((a <span class="rm">mod</span> n) + (b <span class="rm">mod</span> n)) <span class="rm">mod</span> n</span></div>
+
+<p>为什么成立：把 <span class="m">a</span>、<span class="m">b</span> 写成 <span class="m">a = k<sub>1</sub>n + r<sub>a</sub></span>、<span class="m">b = k<sub>2</sub>n + r<sub>b</sub></span>，则 <span class="m">ab = n(k<sub>1</sub>k<sub>2</sub>n + k<sub>1</sub>r<sub>b</sub> + k<sub>2</sub>r<sub>a</sub>) + r<sub>a</sub>r<sub>b</sub></span>，前一项是 <span class="m">n</span> 的倍数，取余时整个消失，余数只由 <span class="m">r<sub>a</sub>r<sub>b</sub></span> 决定。加法同理。</p>
+
+<p>用法就是课件那句："You may reduce at every step — which is what keeps the numbers small." 每做一次乘法就立刻取模，参与运算的数永远小于 <span class="m">n</span>，乘积永远小于 <span class="m">n<sup>2</sup></span>。</p>
+
+<p><strong>考场上怎么取模</strong>（不依赖计算器的存储功能）：每一步写成"乘积 → 商 → 余数"三栏，商是乘积除以 <span class="m">n</span> 的整数部分，余数 = 乘积 − 商 × <span class="m">n</span>。普通计算器上就是"乘积 ÷ <span class="m">n</span>，读整数部分"；不用计算器就先估商，再修正。例：<span class="m">5808 <span class="rm">mod</span> 187</span>，先估 <span class="m">187 × 30 = 5610</span>，<span class="m">5808 − 5610 = 198</span>，比 187 大，再减一次得 <span class="m">11</span>，所以商 31、余数 11。最后检查余数在 <span class="m">0 ～ n − 1</span> 之间。</p>
+
+<p>一个可选的省力技巧：余数接近 <span class="m">n</span> 时改用负数代表。例如模 187 时 <span class="m">154 ≡ −33</span>，算 <span class="m">88 × 154</span> 可以改算 <span class="m">88 × (−33) = −2904</span>；<span class="m">2904 = 15 × 187 + 99</span>，所以 <span class="m">−2904 ≡ −99 ≡ 88</span>。与直接算 <span class="m">13552 = 72 × 187 + 88</span> 结果一样，但乘积小了很多。</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>模幂：平方-乘</h3>
+
+<p><strong>模幂</strong>（modular exponentiation）：计算 <span class="m">b<sup>e</sup> <span class="rm">mod</span> n</span>。RSA 的加密、解密和 Diffie–Hellman 的每一步都是它。</p>
+
+<p>直接算行不通：课件第 15 页的例子里 <span class="m">88<sup>7</sup></span> 有 14 位、<span class="m">11<sup>23</sup></span> 有 24 位，真实 RSA 的指数有 2048 位，连写下来都不可能。办法是课件第 10 页的<strong>平方-乘</strong>（square-and-multiply）：只做"平方"和"乘底数"两种乘法，每做一次就取模。课件的最小例子 <span class="m">7<sup>4</sup> <span class="rm">mod</span> 11</span>："do not calculate 2401 first"——<span class="m">7<sup>2</sup> = 49 ≡ 5</span>，<span class="m">5<sup>2</sup> = 25 ≡ 3</span>，所以 <span class="m">7<sup>4</sup> <span class="rm">mod</span> 11 = 3</span>。</p>
+
+<p>指数不是 2 的幂时，有两种等价的格式。<strong>两种都要会</strong>：课件第 16 页的提示 "write d in binary first" 指的是第二种；第一种每一项都能单独复核，更不容易出错。下面都用课件第 15 页的加密 <span class="m">88<sup>7</sup> <span class="rm">mod</span> 187</span> 演示。</p>
+
+<p><strong>格式一：逐次平方表。</strong></p>
+
+<ol><li>把底数反复平方、每次取模，列出 <span class="m">b<sup>1</sup>, b<sup>2</sup>, b<sup>4</sup>, b<sup>8</sup>, …</span>，列到不超过指数的最大的 2 的幂为止；</li><li>把指数拆成 2 的幂之和（就是写成二进制）：<span class="m">7 = 4 + 2 + 1</span>；</li><li>把对应的几项连乘，每乘一次取模。依据是 <span class="m">b<sup>4+2+1</sup> = b<sup>4</sup> · b<sup>2</sup> · b<sup>1</sup></span>。</li></ol>
+
+<div class="tw"><table>
+<thead><tr><th>项</th><th>计算</th><th>商</th><th>余数</th></tr></thead>
+<tbody>
+<tr><td><span class="m">88<sup>1</sup></span></td><td>—</td><td>—</td><td>88</td></tr>
+<tr><td><span class="m">88<sup>2</sup></span></td><td><span class="m">88 × 88 = 7744</span></td><td>41</td><td><span class="m">7744 − 7667 = 77</span></td></tr>
+<tr><td><span class="m">88<sup>4</sup></span></td><td><span class="m">77 × 77 = 5929</span></td><td>31</td><td><span class="m">5929 − 5797 = 132</span></td></tr>
+<tr><td><span class="m">88<sup>1+2</sup></span></td><td><span class="m">88 × 77 = 6776</span></td><td>36</td><td><span class="m">6776 − 6732 = 44</span></td></tr>
+<tr><td><span class="m">88<sup>1+2+4</sup></span></td><td><span class="m">44 × 132 = 5808</span></td><td>31</td><td><span class="m">5808 − 5797 = 11</span></td></tr>
+</tbody></table></div>
+
+<p>结果 <span class="m">88<sup>7</sup> <span class="rm">mod</span> 187 = 11</span>，与课件一致。</p>
+
+<p><strong>格式二：从左到右二进制法。</strong></p>
+
+<ol><li>把指数写成二进制：<span class="m">7 = 111<sub>2</sub></span>；</li><li>从 <span class="m">r = 1</span> 开始，从最高位往最低位逐位读：每读一位先把 <span class="m">r</span> 平方；如果这一位是 1，再乘一次底数。每步都取模。</li></ol>
+
+<div class="tw"><table>
+<thead><tr><th>读到的位</th><th>平方</th><th>是 1 则乘 88</th><th>当前值 <span class="m">r</span></th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="m">1<sup>2</sup> = 1</span></td><td><span class="m">1 × 88 = 88</span></td><td>88</td></tr>
+<tr><td>1</td><td><span class="m">88<sup>2</sup> = 7744 ≡ 77</span></td><td><span class="m">77 × 88 = 6776 ≡ 44</span></td><td>44</td></tr>
+<tr><td>1</td><td><span class="m">44<sup>2</sup> = 1936 ≡ 66</span></td><td><span class="m">66 × 88 = 5808 ≡ 11</span></td><td><strong>11</strong></td></tr>
+</tbody></table></div>
+
+<p>为什么这样做对：从左往右读二进制，每多读一位，已读部分代表的数就"乘 2，再加上这一位"。例如 <span class="m">23 = 10111<sub>2</sub></span> 的已读部分依次是 <span class="m">1 → 10<sub>2</sub> = 2 → 101<sub>2</sub> = 5 → 1011<sub>2</sub> = 11 → 10111<sub>2</sub> = 23</span>。指数乘 2 对应把当前结果平方，指数加 1 对应再乘一次底数，所以 <span class="m">r</span> 始终等于"底数的已读部分次方"。</p>
+
+<p>两种格式的取舍：格式一的平方链和连乘分开，每一项都能单独复核，适合考场；格式二不用存一张表，是课件提示的做法，也是真实实现的做法。指数是 <span class="m">k</span> 位二进制时，两种格式都最多做约 <span class="m">2k</span> 次模乘，所以 2048 位的指数也只要几千次乘法——这就是课件说"how real implementations exponentiate numbers thousands of bits long"的原因。（课件外：实际 RSA 常取 <span class="m">e = 65537 = 2<sup>16</sup> + 1</span>，二进制只有两个 1，加密只要 16 次平方加 1 次乘法。）</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>平方-乘的四个常见错</div>
+<ul style="margin-bottom:0"><li><strong>忘了取模</strong>：一步不取，后面的数就失控，手算必错。</li><li><strong>二进制写错</strong>：先把指数的二进制写出来、再反过来加一遍核对（<span class="m">27 = 11011<sub>2</sub> = 16 + 8 + 2 + 1</span>）。</li><li><strong>格式一里把指数相乘</strong>：<span class="m">b<sup>4</sup> · b<sup>2</sup> = b<sup>6</sup></span>，指数相<strong>加</strong>；只有平方那一列才是指数翻倍。</li><li><strong>格式二里顺序颠倒</strong>：每一位都是先平方、后（视该位）乘底数；最高位那个 1 也照样"先平方再乘"，只是 <span class="m">1<sup>2</sup> = 1</span> 看不出来。</li></ul>
+</div>
+
+<p>自查办法：两种格式各算一遍；模数是素数时还可以用费马小定理先把指数约小（<a href="#s4-5">4.5</a>）；平方链里一旦出现 1，此后的平方全是 1。</p>
+
+<div class="tool" id="mxTool">
+  <h4>平方-乘计算器：两种格式同时排出来</h4>
+  <p class="sub">填底数、指数、模数，页面按上面两种格式逐行写出「乘积 → 商 → 余数」，可以拿来对自己的手算。</p>
+  <div class="row">
+    <span class="ctl"><label for="mxB">底数 b</label><input type="text" id="mxB" value="88" style="width:6.2rem" inputmode="numeric" oninput="mxGo()"></span>
+    <span class="ctl"><label for="mxE">指数 e</label><input type="text" id="mxE" value="7" style="width:6.2rem" inputmode="numeric" oninput="mxGo()"></span>
+    <span class="ctl"><label for="mxN">模数 n</label><input type="text" id="mxN" value="187" style="width:6.2rem" inputmode="numeric" oninput="mxGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="mxSet(88,7,187)">88⁷ mod 187</button>
+    <button class="btn" onclick="mxSet(11,23,187)">11²³ mod 187</button>
+    <button class="btn" onclick="mxSet(13,27,55)">13²⁷ mod 55</button>
+    <button class="btn" onclick="mxSet(3,5,7)">3⁵ mod 7</button>
+    <button class="btn" onclick="mxSet(26,37,77)">26³⁷ mod 77</button>
+    <button class="btn" onclick="mxSet(7,10,11)">7¹⁰ mod 11</button>
+  </div>
+  <div id="mxView"></div>
+  <div class="result" id="mxOut"></div>
+</div>
+
+<details class="box">
+<summary>课堂活动 2(e)：<span class="m">3<sup>5</sup> <span class="rm">mod</span> 7</span></summary>
+<p>格式一：<span class="m">3<sup>1</sup> = 3</span>，<span class="m">3<sup>2</sup> = 9 ≡ 2</span>，<span class="m">3<sup>4</sup> = 2<sup>2</sup> = 4</span>；<span class="m">5 = 4 + 1</span>，所以 <span class="m">4 × 3 = 12 ≡</span> <strong>5</strong>。</p>
+<p>格式二：<span class="m">5 = 101<sub>2</sub></span>。读 1：<span class="m">1 · 3 = 3</span>；读 0：<span class="m">3<sup>2</sup> = 9 ≡ 2</span>；读 1：<span class="m">2<sup>2</sup> = 4</span>，<span class="m">4 × 3 = 12 ≡ 5</span>。</p>
+<p style="margin-bottom:0">核对：<span class="m">243 = 34 × 7 + 5</span>。题面提示 "Do not compute 243 first if you can avoid it"，这里 243 只用来核对。</p>
+</details>
+
+<h3 id="s4-3"><span class="n">4.3</span>模逆与扩展欧几里得</h3>
+
+<p><strong>模逆</strong>（modular inverse）：<span class="m">a</span> 模 <span class="m">n</span> 的逆元是满足 <span class="m">a × b ≡ 1&ensp;(<span class="rm">mod</span> n)</span> 的数 <span class="m">b</span>，记作 <span class="m">a<sup>−1</sup> <span class="rm">mod</span> n</span>。它扮演"除以 <span class="m">a</span>"的角色——模运算里没有直接的除法，要除以 <span class="m">a</span> 就乘它的逆元。课件的例子：<span class="m">3 × 27 = 81 = 2 × 40 + 1</span>，所以 <span class="m">3<sup>−1</sup> <span class="rm">mod</span> 40 = 27</span>。</p>
+
+<p>RSA 生成私钥那一步就是求一个模逆（<a href="#s5-1">5.1</a>）。</p>
+
+<p><strong>什么时候存在。</strong> <strong>最大公因数</strong>（greatest common divisor，gcd）是两个数共有的最大因数；gcd 为 1 叫两数<strong>互素</strong>（coprime）。结论：</p>
+
+<div class="eq"><span class="m">a<sup>−1</sup> <span class="rm">mod</span> n<span class="tx"> 存在</span> ⟺ <span class="rm">gcd</span>(a, n) = 1</span></div>
+
+<p>必要性：若 <span class="m">a</span> 与 <span class="m">n</span> 有公因数 <span class="m">g &gt; 1</span>，则 <span class="m">ab − kn</span> 对任何整数 <span class="m">b, k</span> 都是 <span class="m">g</span> 的倍数，不可能等于 1，所以找不到 <span class="m">b</span> 使 <span class="m">ab ≡ 1</span>。充分性由下面的扩展欧几里得算法给出：它在 gcd 为 1 时直接把 <span class="m">b</span> 构造出来。</p>
+
+<p><strong>方法一：试算。</strong> 课件说小数可以试。高效的试法是利用"<span class="m">ab = 1 + kn</span>"：</p>
+
+<div class="eq"><span class="m">b = <span class="frac"><span>1 + kn</span><span>a</span></span>,&emsp;&emsp;k = 1, 2, 3, …<span class="tx"> 直到整除为止</span></span></div>
+
+<p>因为 <span class="m">b &lt; n</span>，所以 <span class="m">1 + kn = ab &lt; an</span>，<span class="m">k</span> 一定小于 <span class="m">a</span>，最多试 <span class="m">a − 1</span> 次。例：</p>
+
+<ul><li><span class="m">7<sup>−1</sup> <span class="rm">mod</span> 160</span>：<span class="m">k = 1</span>，<span class="m">161/7 = 23</span>，整除，所以是 <strong>23</strong>。</li><li><span class="m">3<sup>−1</sup> <span class="rm">mod</span> 40</span>：<span class="m">k = 1</span>，<span class="m">41/3</span> 不整除；<span class="m">k = 2</span>，<span class="m">81/3 = 27</span>，所以是 <strong>27</strong>。</li><li><span class="m">13<sup>−1</sup> <span class="rm">mod</span> 60</span>：<span class="m">1 + 60k</span> 依次为 61、121、181、241、301、361、421、481，到 <span class="m">k = 8</span> 才有 <span class="m">481 = 13 × 37</span>，所以是 <strong>37</strong>。</li></ul>
+
+<p>RSA 里求逆的数是公开指数 <span class="m">e</span>，考试题的 <span class="m">e</span> 一般很小（3、7、13），这个试法几步就出结果。</p>
+
+<p><strong>方法二：扩展欧几里得算法</strong>（extended Euclidean algorithm）。<span class="m">a</span> 稍大、试算太慢时用它，它也是程序里的标准做法。</p>
+
+<p>先看普通的<strong>欧几里得算法</strong>（Euclidean algorithm，辗转相除法）：用大数除以小数取余数，再用小数除以余数，反复进行，最后一个非零余数就是 gcd。依据是 <span class="m"><span class="rm">gcd</span>(n, a) = <span class="rm">gcd</span>(a, n <span class="rm">mod</span> a)</span>。</p>
+
+<p>扩展版在辗转相除的同时，多记一列 <span class="m">t</span>，保证每一行都满足</p>
+
+<div class="eq"><span class="m">r<sub>i</sub> ≡ t<sub>i</sub> · a&ensp;(<span class="rm">mod</span> n)</span><span class="lbl">(A)</span></div>
+
+<p>做法：</p>
+
+<ol><li>第一行写 <span class="m">r = n, t = 0</span>；第二行写 <span class="m">r = a, t = 1</span>。这两行显然满足 (A)：<span class="m">n ≡ 0 · a</span>，<span class="m">a ≡ 1 · a</span>。</li><li>往下每一行：用上上行的 <span class="m">r</span> 除以上一行的 <span class="m">r</span>，取商的整数部分（下文就叫"商"，不另用字母，免得和 RSA、DH 里的素数 <span class="m">q</span> 混淆）；新的 <span class="m">r</span> = 上上行 <span class="m">r</span> − 商 × 上一行 <span class="m">r</span>（就是余数），新的 <span class="m">t</span> = 上上行 <span class="m">t</span> − 商 × 上一行 <span class="m">t</span>。</li><li>当 <span class="m">r = 1</span> 时，这一行的 <span class="m">t</span> 就是 <span class="m">a<sup>−1</sup></span>（若为负，加 <span class="m">n</span>）。若 <span class="m">r</span> 先变成 0、最后的非零余数不是 1，说明 <span class="m"><span class="rm">gcd</span> ≠ 1</span>，逆元不存在。</li></ol>
+
+<p>为什么第 2 步保持 (A)：新行的 <span class="m">r</span> 和 <span class="m">t</span> 用的是同一组"上上行减商倍上一行"，两行都满足 (A)，相减后仍满足。所以走到 <span class="m">r = 1</span> 时有 <span class="m">1 ≡ t · a</span>，<span class="m">t</span> 正是逆元。</p>
+
+<p>例：<span class="m">13<sup>−1</sup> <span class="rm">mod</span> 60</span>（课后任务 1 要用）。</p>
+
+<div class="tw"><table>
+<thead><tr><th><span class="m">r</span></th><th>商</th><th><span class="m">t</span></th><th>检查 (A)</th></tr></thead>
+<tbody>
+<tr><td>60</td><td>—</td><td>0</td><td></td></tr>
+<tr><td>13</td><td>—</td><td>1</td><td></td></tr>
+<tr><td>8</td><td><span class="m">60 ÷ 13</span> 商 4</td><td><span class="m">0 − 4 × 1 = −4</span></td><td><span class="m">−4 × 13 = −52 ≡ 8</span></td></tr>
+<tr><td>5</td><td><span class="m">13 ÷ 8</span> 商 1</td><td><span class="m">1 − 1 × (−4) = 5</span></td><td><span class="m">5 × 13 = 65 ≡ 5</span></td></tr>
+<tr><td>3</td><td><span class="m">8 ÷ 5</span> 商 1</td><td><span class="m">−4 − 1 × 5 = −9</span></td><td><span class="m">−117 ≡ 3</span></td></tr>
+<tr><td>2</td><td><span class="m">5 ÷ 3</span> 商 1</td><td><span class="m">5 − 1 × (−9) = 14</span></td><td><span class="m">182 ≡ 2</span></td></tr>
+<tr><td>1</td><td><span class="m">3 ÷ 2</span> 商 1</td><td><span class="m">−9 − 1 × 14 = −23</span></td><td></td></tr>
+</tbody></table></div>
+
+<p><span class="m">t = −23</span>，加 60 得 <strong>37</strong>。验算 <span class="m">13 × 37 = 481 = 8 × 60 + 1</span>。与试算结果一致。</p>
+
+<p>再看课件第 14 页的 <span class="m">7<sup>−1</sup> <span class="rm">mod</span> 160</span>，两步就到：<span class="m">160 = 22 × 7 + 6</span>，<span class="m">t = 0 − 22 × 1 = −22</span>；<span class="m">7 = 1 × 6 + 1</span>，<span class="m">t = 1 − 1 × (−22) = 23</span>。所以 <span class="m">d = 23</span>，验算 <span class="m">7 × 23 = 161 = 160 + 1</span>。</p>
+
+<details class="box">
+<summary>另一种常见写法：先辗转相除，再回代</summary>
+<p>教材和很多参考书用"回代"：先把辗转相除写完，再从倒数第二个等式往回代入，把 1 表示成 <span class="m">s · n + t · a</span> 的形式（这个等式叫<strong>裴蜀等式</strong>，Bézout's identity）。以 <span class="m">7<sup>−1</sup> <span class="rm">mod</span> 160</span> 为例：</p>
+<ol><li>辗转相除：<span class="m">160 = 22 × 7 + 6</span>；<span class="m">7 = 1 × 6 + 1</span>。</li><li>回代：<span class="m">1 = 7 − 1 × 6 = 7 − (160 − 22 × 7) = 23 × 7 − 1 × 160</span>。</li><li>两边模 160：<span class="m">1 ≡ 23 × 7</span>，所以 <span class="m">7<sup>−1</sup> ≡ 23</span>。</li></ol>
+<p style="margin-bottom:0">结果和上面的表格法完全相同。回代步数一多就容易抄错系数，考场上推荐表格法：每行只依赖上两行，可以逐行检查 (A)。</p>
+</details>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>求逆的两个常见错</div>
+<ul style="margin-bottom:0"><li><strong>模数用错</strong>：RSA 求私钥时是 <span class="m">e<sup>−1</sup> <span class="rm">mod</span> φ(n)</span>，模的是 <span class="m">φ(n)</span>，不是 <span class="m">n</span>。（<span class="m">φ</span> 见下一小节。）</li><li><strong>负数不化正</strong>：表格最后的 <span class="m">t</span> 常是负数，要加上模数。最后一定用 <span class="m">a × b <span class="rm">mod</span> n = 1</span> 验一次。</li></ul>
+</div>
+
+<div class="tool" id="ivTool">
+  <h4>模逆计算器：扩展欧几里得表与试算</h4>
+  <p class="sub">表格每一行都满足 (A)，最后一列就是逐行核对；<span class="m">a</span> 不大时同时列出试算法。</p>
+  <div class="row">
+    <span class="ctl"><label for="ivA">a</label><input type="text" id="ivA" value="13" style="width:6.2rem" inputmode="numeric" oninput="ivGo()"></span>
+    <span class="ctl"><label for="ivN">模数 n</label><input type="text" id="ivN" value="60" style="width:6.2rem" inputmode="numeric" oninput="ivGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="ivSet(13,60)">13⁻¹ mod 60</button>
+    <button class="btn" onclick="ivSet(7,160)">7⁻¹ mod 160</button>
+    <button class="btn" onclick="ivSet(3,40)">3⁻¹ mod 40</button>
+    <button class="btn" onclick="ivSet(5,160)">5⁻¹ mod 160</button>
+  </div>
+  <div id="ivView"></div>
+  <div class="result" id="ivOut"></div>
+</div>
+
+<h3 id="s4-4"><span class="n">4.4</span>欧拉函数 φ(n)</h3>
+
+<p><strong>欧拉函数</strong>（Euler's totient function）<span class="m">φ(n)</span>：<span class="m">1</span> 到 <span class="m">n − 1</span> 中与 <span class="m">n</span> 互素的整数个数。</p>
+
+<ul><li><span class="m">φ(11) = 10</span>：11 是素数，1 到 10 全都与它互素。</li><li><span class="m">φ(15) = 8</span>：与 15 互素的是 1, 2, 4, 7, 8, 11, 13, 14，3 和 5 的倍数被去掉了。</li></ul>
+
+<p>一般地，素数 <span class="m">p</span> 满足 <span class="m">φ(p) = p − 1</span>。</p>
+
+<p>RSA 只需要一种情形：<span class="m">n</span> 是两个<strong>不同</strong>素数 <span class="m">p</span>、<span class="m">q</span> 的乘积，</p>
+
+<div class="eq"><span class="m">φ(n) = (p − 1)(q − 1)</span></div>
+
+<p>计数理由：在 <span class="m">1</span> 到 <span class="m">pq</span> 这 <span class="m">pq</span> 个数里，与 <span class="m">pq</span> 不互素的数一定是 <span class="m">p</span> 的倍数或 <span class="m">q</span> 的倍数（因为 <span class="m">pq</span> 的因数只有 1、<span class="m">p</span>、<span class="m">q</span>、<span class="m">pq</span>）。<span class="m">p</span> 的倍数有 <span class="m">p, 2p, …, qp</span> 共 <span class="m">q</span> 个；<span class="m">q</span> 的倍数有 <span class="m">p</span> 个；<span class="m">pq</span> 本身被数了两次。所以不互素的有 <span class="m">p + q − 1</span> 个，</p>
+
+<div class="eq"><span class="m">φ(pq) = pq − (p + q − 1) = pq − p − q + 1 = (p − 1)(q − 1)</span></div>
+
+<p>（这里数到了 <span class="m">pq</span> 本身，但 <span class="m">pq</span> 与自己不互素，不影响个数，和定义里"小于 <span class="m">n</span>"一致。）</p>
+
+<p>课件的例子：<span class="m">n = 17 × 11 = 187</span>，<span class="m">φ(187) = 16 × 10 = 160</span>；不互素的数有 <span class="m">17 + 11 − 1 = 27</span> 个，<span class="m">187 − 27 = 160</span>。</p>
+
+<p>课件强调的一点："Anyone who knows p and q can compute φ(n) instantly. Anyone who knows only n must factor it first — and that is the whole security of RSA." 反过来也成立：知道 <span class="m">φ(n)</span> 就能分解 <span class="m">n</span>，见 <a href="#s5-5">5.5</a>。</p>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>定义的措辞</div>
+<p style="margin-bottom:0">课件写 "share no common factor with n"，严格说是"除 1 以外没有公因数"，即 <span class="m"><span class="rm">gcd</span>(k, n) = 1</span>（任何两个数都有公因数 1）。另外约定 <span class="m">φ(1) = 1</span>，这时"小于 <span class="m">n</span>"的写法不适用。对 RSA 没有影响。</p>
+</div>
+
+<h3 id="s4-5"><span class="n">4.5</span>欧拉定理</h3>
+
+<p><strong>欧拉定理</strong>（Euler's theorem）：</p>
+
+<div class="eq"><span class="m">a<sup>φ(n)</sup> ≡ 1&ensp;(<span class="rm">mod</span> n)&emsp;&emsp;<span class="tx">前提：</span><span class="rm">gcd</span>(a, n) = 1</span></div>
+
+<p><strong>前提不能丢</strong>：<span class="m">a</span> 必须与 <span class="m">n</span> 互素。课件原文也写了 "for any a sharing no factor with n"，下一节会看到，课件自己的 RSA 例题恰好违反了它。</p>
+
+<p><span class="m">n</span> 是素数 <span class="m">p</span> 时，<span class="m">φ(p) = p − 1</span>，定理变成<strong>费马小定理</strong>（Fermat's little theorem）：<span class="m">p</span> 不整除 <span class="m">a</span> 时，<span class="m">a<sup>p−1</sup> ≡ 1&ensp;(<span class="rm">mod</span> p)</span>。</p>
+
+<p>课件的验证：<span class="m">7<sup>10</sup> <span class="rm">mod</span> 11 = 1</span>，而 <span class="m">φ(11) = 10</span>。用格式一手算：<span class="m">7<sup>2</sup> ≡ 5</span>，<span class="m">7<sup>4</sup> ≡ 3</span>，<span class="m">7<sup>8</sup> ≡ 9</span>，<span class="m">7<sup>10</sup> = 7<sup>8</sup> · 7<sup>2</sup> ≡ 9 × 5 = 45 ≡ 1</span>。</p>
+
+<p>它在本讲有两个用处：</p>
+
+<ol><li><strong>保证 RSA 解得回来</strong>：若 <span class="m">ed = 1 + kφ(n)</span>，则 <span class="m">M<sup>ed</sup> = M · (M<sup>φ(n)</sup>)<sup>k</sup> ≡ M</span>。课件说的就是这个，<a href="#s5-3">5.3</a> 展开。</li><li><strong>约小指数，用来验算</strong>：<span class="m"><span class="rm">gcd</span>(a, n) = 1</span> 时，指数可以先对 <span class="m">φ(n)</span> 取模，<span class="m">a<sup>x</sup> ≡ a<sup>x<span class="rm">mod</span>φ(n)</sup></span>。模数是素数 <span class="m">q</span> 时就是对 <span class="m">q − 1</span> 取模。例：<span class="m">5<sup>90</sup> <span class="rm">mod</span> 23</span>，<span class="m">90 = 4 × 22 + 2</span>，所以等于 <span class="m">5<sup>2</sup> <span class="rm">mod</span> 23 = 2</span>。Diffie–Hellman 验算时会用到（<a href="#s6-3">6.3</a>）。</li></ol>
+
+<details class="box">
+<summary>欧拉定理为什么成立（选读，课件说不要求证明）</summary>
+<p>设与 <span class="m">n</span> 互素的 <span class="m">φ(n)</span> 个余数是 <span class="m">x<sub>1</sub>, …, x<sub>φ(n)</sub></span>。把它们每个都乘上 <span class="m">a</span>（<span class="m">a</span> 与 <span class="m">n</span> 互素）再取模：</p>
+<ul><li>结果仍与 <span class="m">n</span> 互素（两个都与 <span class="m">n</span> 互素的数相乘，仍与 <span class="m">n</span> 互素）；</li><li>两两不同：若 <span class="m">ax<sub>i</sub> ≡ ax<sub>j</sub></span>，两边乘 <span class="m">a<sup>−1</sup></span>（<a href="#s4-3">存在</a>，因为 <span class="m"><span class="rm">gcd</span>(a, n) = 1</span>）得 <span class="m">x<sub>i</sub> ≡ x<sub>j</sub></span>。</li></ul>
+<p>所以 <span class="m">ax<sub>1</sub>, …, ax<sub>φ(n)</sub></span> 只是原来那组数换了个顺序，两组的乘积相同：<span class="m">a<sup>φ(n)</sup><span class="bo"><span></span><span class="sy">∏</span><span></span></span>x<sub>i</sub> ≡ <span class="bo"><span></span><span class="sy">∏</span><span></span></span>x<sub>i</sub></span>。每个 <span class="m">x<sub>i</sub></span> 都可逆，两边消去 <span class="m"><span class="bo"><span></span><span class="sy">∏</span><span></span></span>x<sub>i</sub></span>，得 <span class="m">a<sup>φ(n)</sup> ≡ 1</span>。</p>
+<p style="margin-bottom:0">证明里"乘 <span class="m">a<sup>−1</sup></span>"这一步正是前提 <span class="m"><span class="rm">gcd</span>(a, n) = 1</span> 发挥作用的地方。</p>
+</details>
+
+<details class="box">
+<summary>课堂活动 2 解答：模运算练习</summary>
+<div class="tw"><table>
+<thead><tr><th>题</th><th>题目</th><th>答案</th><th>过程</th></tr></thead>
+<tbody>
+<tr><td>a</td><td><span class="m">17 <span class="rm">mod</span> 5</span></td><td><strong>2</strong></td><td><span class="m">17 = 3 × 5 + 2</span></td></tr>
+<tr><td>b</td><td><span class="m">−3 <span class="rm">mod</span> 7</span></td><td><strong>4</strong></td><td><span class="m">−3 + 7 = 4</span></td></tr>
+<tr><td>c</td><td><span class="m">φ(11)</span></td><td><strong>10</strong></td><td>11 是素数</td></tr>
+<tr><td>d</td><td><span class="m">φ(15)</span></td><td><strong>8</strong></td><td>列出 1, 2, 4, 7, 8, 11, 13, 14；或 <span class="m">(3 − 1)(5 − 1) = 8</span></td></tr>
+<tr><td>e</td><td><span class="m">3<sup>5</sup> <span class="rm">mod</span> 7</span></td><td><strong>5</strong></td><td>见 <a href="#s4-2">4.2</a> 末尾</td></tr>
+<tr><td>f</td><td><span class="m">3</span> 模 <span class="m">40</span> 的逆元</td><td><strong>27</strong></td><td><span class="m">3 × 27 = 81 = 2 × 40 + 1</span>；扩展欧几里得：<span class="m">40 = 13 × 3 + 1</span>，<span class="m">t = 0 − 13 × 1 = −13 ≡ 27</span></td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">课件说 (f) 的答案在活动 3 还要用：那里 <span class="m">φ(n) = 40</span>、<span class="m">e = 3</span>，私钥 <span class="m">d</span> 正是 27。</p>
+</details>
+
+<h2 id="s5"><span class="n">5</span>RSA</h2>
+
+<p><strong>RSA</strong> 以三位发明者 Rivest、Shamir、Adleman 的姓氏首字母命名，课件第 13 页称它 "Still the most widely deployed public-key algorithm in the world"。它把第 2.2 节的陷门单向函数落成了具体算式：加密是 <span class="m">e</span> 次方取模，解密是 <span class="m">d</span> 次方取模，陷门是 <span class="m">d</span>。</p>
+
+<h3 id="s5-1"><span class="n">5.1</span>生成密钥对：五步</h3>
+
+<p>课件第 14 页（例题与教材 Fig. 9.6 完全相同）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>步</th><th>做什么</th><th>公开还是保密</th><th>例</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>选两个大素数 <span class="m">p</span>、<span class="m">q</span></td><td><strong>保密</strong></td><td><span class="m">p = 17, q = 11</span></td></tr>
+<tr><td>2</td><td>算<strong>模数</strong>（modulus）<span class="m">n = pq</span></td><td>公开</td><td><span class="m">n = 187</span></td></tr>
+<tr><td>3</td><td>算 <span class="m">φ(n) = (p − 1)(q − 1)</span></td><td><strong>保密</strong></td><td><span class="m">φ(187) = 16 × 10 = 160</span></td></tr>
+<tr><td>4</td><td>选<strong>公开指数</strong>（public exponent）<span class="m">e</span>：<span class="m">1 &lt; e &lt; φ(n)</span>，且 <span class="m"><span class="rm">gcd</span>(e, φ(n)) = 1</span></td><td>公开</td><td><span class="m">e = 7</span></td></tr>
+<tr><td>5</td><td>算<strong>私有指数</strong>（private exponent）<span class="m">d = e<sup>−1</sup> <span class="rm">mod</span> φ(n)</span>，即 <span class="m">ed ≡ 1&ensp;(<span class="rm">mod</span> φ(n))</span></td><td><strong>保密</strong></td><td><span class="m">d = 23</span>，因为 <span class="m">7 × 23 = 161 = 160 + 1</span></td></tr>
+</tbody></table></div>
+
+<div class="eq"><span class="m"><span class="tx">公钥 </span>PU = {e, n} = {7, 187},&emsp;&emsp;<span class="tx">私钥 </span>PR = {d, n} = {23, 187}</span></div>
+
+<p>每一步为什么这样：</p>
+
+<ul><li>第 3 步的 <span class="m">φ(n)</span> 只用来算 <span class="m">d</span>，它必须保密：知道 <span class="m">φ(n)</span> 就能分解 <span class="m">n</span>（<a href="#s5-5">5.5</a>）。</li><li>第 4 步要求 <span class="m">e</span> 与 <span class="m">φ(n)</span> 互素，是为了第 5 步的逆元<a href="#s4-3">存在</a>。例：<span class="m">φ = 160</span> 时不能选 <span class="m">e = 5</span>，因为 <span class="m"><span class="rm">gcd</span>(5, 160) = 5</span>。</li><li>第 5 步用 <a href="#s4-3">4.3</a> 的试算或扩展欧几里得：<span class="m">7<sup>−1</sup> <span class="rm">mod</span> 160</span>，<span class="m">k = 1</span> 时 <span class="m">161/7 = 23</span> 就整除了。</li><li><span class="m">n</span> 同时出现在公钥和私钥里，公开。私钥里真正的秘密是 <span class="m">d</span>。</li></ul>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>p、q 用完并不丢弃</div>
+<p>课件第 14 页说 <span class="m">p</span>、<span class="m">q</span> "kept secret and eventually discarded"。</p>
+<p>误：生成密钥后 <span class="m">p</span>、<span class="m">q</span> 就没用了，可以扔掉。</p>
+<p style="margin-bottom:0">正：在最简的教科书模型里确实只需要 <span class="m">d</span> 和 <span class="m">n</span>；但实际实现用的私钥表示并非如此：RFC 8017（RFC 是 request for comments，互联网标准文档系列；这一篇即公钥密码标准 PKCS 的第 1 号，public-key cryptography standards）允许两种私钥表示，而它的私钥文件格式（附录 A.1.2 的 RSAPrivateKey，即开源密码库 OpenSSL 生成的那种文件）<strong>含</strong> <span class="m">p</span>、<span class="m">q</span> 以及由它们算出的三个值，实际实现都用这种表示，把一次解密拆成模 <span class="m">p</span> 和模 <span class="m">q</span> 的两次小运算、再把结果合成，快约 4 倍（合成的依据是 <a href="#s5-3">5.3</a> 介绍的中国剩余定理）。所以 <span class="m">p</span>、<span class="m">q</span> 必须和 <span class="m">d</span> 一样严格保密。课件第 28 页建议"Generate an RSA key pair on your own machine and look at what is inside it"，打开就能看到名为 prime1、prime2 的两项。</p>
+</div>
+
+<h3 id="s5-2"><span class="n">5.2</span>加密与解密</h3>
+
+<div class="eq"><span class="m"><span class="tx">加密：</span>C = M<sup>e</sup> <span class="rm">mod</span> n&emsp;&emsp;<span class="tx">用接收方的公钥 </span>{e, n}</span></div>
+
+<div class="eq"><span class="m"><span class="tx">解密：</span>M = C<sup>d</sup> <span class="rm">mod</span> n&emsp;&emsp;<span class="tx">用接收方的私钥 </span>{d, n}</span></div>
+
+<p><span class="m">M</span> 是表示成整数的明文，<span class="m">C</span> 是密文。要求 <span class="m">0 ≤ M &lt; n</span>：运算全在模 <span class="m">n</span> 下进行，<span class="m">M</span> 和 <span class="m">M + n</span> 加密出的是同一个密文，解密只能还原出小于 <span class="m">n</span> 的那个。更长的消息要切成块，课件提醒这就回到了 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 的<strong>工作模式</strong>（mode of operation：规定怎样把一个只能处理定长分组的算法反复用在任意长度的数据上）问题。</p>
+
+<p><strong>课件例题</strong>：公钥 <span class="m">{7, 187}</span>，<span class="m">M = 88</span>。</p>
+
+<ul><li>加密 <span class="m">C = 88<sup>7</sup> <span class="rm">mod</span> 187 =</span> <strong>11</strong>，平方-乘过程见 <a href="#s4-2">4.2</a> 的两张表。</li><li>解密 <span class="m">M = 11<sup>23</sup> <span class="rm">mod</span> 187</span>。<span class="m">23 = 10111<sub>2</sub> = 16 + 4 + 2 + 1</span>，按格式一：</li></ul>
+
+<div class="tw"><table>
+<thead><tr><th>项</th><th>计算</th><th>商</th><th>余数</th></tr></thead>
+<tbody>
+<tr><td><span class="m">11<sup>1</sup></span></td><td>—</td><td>—</td><td>11</td></tr>
+<tr><td><span class="m">11<sup>2</sup></span></td><td><span class="m">11 × 11 = 121</span></td><td>0</td><td>121</td></tr>
+<tr><td><span class="m">11<sup>4</sup></span></td><td><span class="m">121 × 121 = 14641</span></td><td>78</td><td><span class="m">14641 − 14586 = 55</span></td></tr>
+<tr><td><span class="m">11<sup>8</sup></span></td><td><span class="m">55 × 55 = 3025</span></td><td>16</td><td><span class="m">3025 − 2992 = 33</span></td></tr>
+<tr><td><span class="m">11<sup>16</sup></span></td><td><span class="m">33 × 33 = 1089</span></td><td>5</td><td><span class="m">1089 − 935 = 154</span></td></tr>
+<tr><td><span class="m">11<sup>1+2</sup></span></td><td><span class="m">11 × 121 = 1331</span></td><td>7</td><td><span class="m">1331 − 1309 = 22</span></td></tr>
+<tr><td><span class="m">11<sup>1+2+4</sup></span></td><td><span class="m">22 × 55 = 1210</span></td><td>6</td><td><span class="m">1210 − 1122 = 88</span></td></tr>
+<tr><td><span class="m">11<sup>1+2+4+16</sup></span></td><td><span class="m">88 × 154 = 13552</span></td><td>72</td><td><span class="m">13552 − 13464 = 88</span></td></tr>
+</tbody></table></div>
+
+<p>结果 <span class="m">M = 88</span>，解回了原文。</p>
+
+<p>课件第 15 页的话："Neither number is ever computed in full — 88⁷ has fourteen digits and 11²³ has twenty-four."（核对：<span class="m">88<sup>7</sup> = 40&thinsp;867&thinsp;559&thinsp;636&thinsp;992</span>，<span class="m">11<sup>23</sup></span> 是 24 位数。）</p>
+
+<p><strong>加解密是同一种运算</strong>，只是指数不同。所以 RSA 也能反过来用：用 <span class="m">d</span> 运算是签名，用 <span class="m">e</span> 运算是验证——这就是 <a href="#s3-2">认证模式</a>在 RSA 上的实现。</p>
+
+<h3 id="s5-3"><span class="n">5.3</span>为什么解得回来</h3>
+
+<p>课件第 15 页的"一行证明"：</p>
+
+<div class="eq"><span class="m">(M<sup>e</sup>)<sup>d</sup> = M<sup>ed</sup> = M<sup>1+kφ(n)</sup> = M × (M<sup>φ(n)</sup>)<sup>k</sup> ≡ M × 1<sup>k</sup> ≡ M&ensp;(<span class="rm">mod</span> n)</span></div>
+
+<p>逐步看：</p>
+
+<ol><li><span class="m">(M<sup>e</sup>)<sup>d</sup> = M<sup>ed</sup></span>：解密就是对密文再做 <span class="m">d</span> 次方。</li><li><span class="m">ed = 1 + kφ(n)</span>：第 5 步取 <span class="m">d = e<sup>−1</sup> <span class="rm">mod</span> φ(n)</span>，意思就是 <span class="m">ed</span> 除以 <span class="m">φ(n)</span> 余 1，<span class="m">k</span> 是某个正整数。例题里 <span class="m">7 × 23 = 161 = 1 + 1 × 160</span>，<span class="m">k = 1</span>。</li><li><span class="m">M<sup>1+kφ(n)</sup> = M · (M<sup>φ(n)</sup>)<sup>k</sup></span>：指数相加拆成乘积。</li><li><span class="m">M<sup>φ(n)</sup> ≡ 1</span>：<a href="#s4-5">欧拉定理</a>。</li><li>所以 <span class="m">M<sup>ed</sup> ≡ M</span>。</li></ol>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>课件的"一行证明"漏了一种情形，而且课件自己的例题就落在这种情形里</div>
+<p>课件原话："Euler's theorem gives M^φ(n) ≡ 1. That is the whole proof."</p>
+<p>误：这一行证明对所有明文 <span class="m">M</span> 都成立。</p>
+<p>正：第 4 步用欧拉定理，前提是 <span class="m"><span class="rm">gcd</span>(M, n) = 1</span>。<strong>例题的 <span class="m">M = 88 = 8 × 11</span> 与 <span class="m">n = 187 = 17 × 11</span> 有公因数 11</strong>，欧拉定理不适用：实际算出 <span class="m">88<sup>160</sup> <span class="rm">mod</span> 187 = 154 ≠ 1</span>。可 <span class="m">88</span> 仍然正确解回了——结论对，证明不全。对<strong>所有</strong> <span class="m">0 ≤ M &lt; n</span> 都成立的证明要对 <span class="m">p</span>、<span class="m">q</span> 分开讨论，再合起来，见下面。</p>
+<p style="margin-bottom:0">顺带一个缺陷：这个例题的密文 <span class="m">C = 11</span> 恰好就是素因子 <span class="m">q</span>，任何人算一下 <span class="m"><span class="rm">gcd</span>(11, 187) = 11</span> 就把 <span class="m">n</span> 分解了。课堂演示无妨，真实系统里这类明文出现的概率可以忽略（见下）。</p>
+</div>
+
+<p><strong>完整证明。</strong> 目标：对任意 <span class="m">0 ≤ M &lt; n</span>，<span class="m">M<sup>ed</sup> ≡ M&ensp;(<span class="rm">mod</span> n)</span>。思路是先证模 <span class="m">p</span> 成立、再证模 <span class="m">q</span> 成立，最后合成模 <span class="m">n</span>。</p>
+
+<p>① <strong>模 <span class="m">p</span> 成立。</strong> 由 <span class="m">ed = 1 + k(p − 1)(q − 1)</span>，分两种情况：</p>
+
+<ul><li><span class="m">p</span> 不整除 <span class="m">M</span>：<a href="#s4-5">费马小定理</a>给出 <span class="m">M<sup>p−1</sup> ≡ 1&ensp;(<span class="rm">mod</span> p)</span>，于是 <span class="m">M<sup>ed</sup> = M · (M<sup>p−1</sup>)<sup>k(q−1)</sup> ≡ M · 1 = M&ensp;(<span class="rm">mod</span> p)</span>。</li><li><span class="m">p</span> 整除 <span class="m">M</span>：两边都是 <span class="m">p</span> 的倍数，<span class="m">M<sup>ed</sup> ≡ 0 ≡ M&ensp;(<span class="rm">mod</span> p)</span>。</li></ul>
+
+<p>两种情况都得到 <span class="m">M<sup>ed</sup> ≡ M&ensp;(<span class="rm">mod</span> p)</span>。</p>
+
+<p>② <strong>模 <span class="m">q</span> 成立。</strong> 把 ① 中的 <span class="m">p</span>、<span class="m">q</span> 互换，同样得到 <span class="m">M<sup>ed</sup> ≡ M&ensp;(<span class="rm">mod</span> q)</span>。</p>
+
+<p>③ <strong>合成。</strong> ① 说 <span class="m">p</span> 整除 <span class="m">M<sup>ed</sup> − M</span>，② 说 <span class="m">q</span> 整除 <span class="m">M<sup>ed</sup> − M</span>；<span class="m">p</span>、<span class="m">q</span> 是不同的素数，所以它们的乘积 <span class="m">n</span> 也整除 <span class="m">M<sup>ed</sup> − M</span>，即 <span class="m">M<sup>ed</sup> ≡ M&ensp;(<span class="rm">mod</span> n)</span>。证毕。</p>
+
+<p>第 ③ 步就是<strong>中国剩余定理</strong>（Chinese remainder theorem，CRT）的最简单形式：<span class="m">p</span>、<span class="m">q</span> 互素时，一个数模 <span class="m">p</span> 的余数和模 <span class="m">q</span> 的余数一旦确定，它模 <span class="m">pq</span> 的余数就唯一确定。</p>
+
+<p>用例题看清楚欧拉定理失效在哪、完整证明又怎样补上：</p>
+
+<ul><li><span class="m">88 <span class="rm">mod</span> 17 = 3</span>，<span class="m">88 <span class="rm">mod</span> 11 = 0</span>。</li><li><span class="m">88<sup>160</sup> <span class="rm">mod</span> 187 = 154</span>，而 <span class="m">154 <span class="rm">mod</span> 17 = 1</span>、<span class="m">154 <span class="rm">mod</span> 11 = 0</span>：<strong>模 17 那一半</strong>符合费马小定理（17 不整除 88），<strong>模 11 那一半</strong>是 0 而不是 1（11 整除 88）。欧拉定理"得 1"的结论只在模 17 的那一半成立。</li><li><span class="m">88<sup>161</sup></span>：模 17 时 <span class="m">88<sup>161</sup> ≡ 3<sup>161</sup> = (3<sup>16</sup>)<sup>10</sup> · 3 ≡ 3</span>（费马小定理，<span class="m">161 = 10 × 16 + 1</span>）；模 11 时是 0。<span class="m">0 ～ 186</span> 里模 17 余 3、模 11 余 0 的数只有 88，所以 <span class="m">88<sup>161</sup> ≡ 88&ensp;(<span class="rm">mod</span> 187)</span>。</li></ul>
+
+<p>这种"坏"明文有多少：与 <span class="m">n</span> 不互素的 <span class="m">M</span> 恰有 <span class="m">n − φ(n) = p + q − 1</span> 个，例题里是 27 个（占 187 个的约 14%）；真实的 2048 位 <span class="m">n</span> 里占比约为 <span class="m">2<sup>−1023</sup></span>，随机碰上的可能性可以忽略。而且真碰上了，算 <span class="m"><span class="rm">gcd</span>(M, n)</span> 就分解了 <span class="m">n</span>，问题出在"碰上"本身，不在解密。</p>
+
+<p>课件第 3 页说不会让证明。如果被问"为什么 RSA 解密能还原明文"，写出上面那行式子，注明"<span class="m">ed ≡ 1&ensp;(<span class="rm">mod</span> φ(n))</span>，且 <span class="m"><span class="rm">gcd</span>(M, n) = 1</span> 时由欧拉定理；一般情形对 <span class="m">p</span>、<span class="m">q</span> 分别用费马小定理，再由中国剩余定理合成"即可。</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>完整手算：课堂活动 3</h3>
+
+<p>这是 ILO "Generate an RSA key pair and encrypt and decrypt by hand" 的标准题型。题目：<span class="m">p = 5</span>，<span class="m">q = 11</span>，公开指数 <span class="m">e = 3</span>。</p>
+
+<p><strong>(a) 求 <span class="m">n</span> 与 <span class="m">φ(n)</span>。</strong> <span class="m">n = 5 × 11 =</span> <strong>55</strong>；<span class="m">φ(n) = 4 × 10 =</span> <strong>40</strong>。</p>
+
+<p><strong>(b) 求私有指数 <span class="m">d</span>。</strong> <span class="m">d = 3<sup>−1</sup> <span class="rm">mod</span> 40</span>。先查 <span class="m"><span class="rm">gcd</span>(3, 40) = 1</span>，逆元存在。试算：<span class="m">k = 1</span> 时 <span class="m">41/3</span> 不整除，<span class="m">k = 2</span> 时 <span class="m">81/3 = 27</span>，所以 <span class="m">d =</span> <strong>27</strong>（就是活动 2(f) 的答案）。验算 <span class="m">3 × 27 = 81 = 2 × 40 + 1</span>。</p>
+
+<p><strong>(c) 写出公钥与私钥。</strong> 公钥 <span class="m">{e, n} =</span> <strong>{3, 55}</strong>；私钥 <span class="m">{d, n} =</span> <strong>{27, 55}</strong>。</p>
+
+<p><strong>(d) 加密 <span class="m">M = 7</span>。</strong> <span class="m">C = 7<sup>3</sup> <span class="rm">mod</span> 55 = 343 <span class="rm">mod</span> 55</span>；<span class="m">343 = 6 × 55 + 13</span>，所以 <span class="m">C =</span> <strong>13</strong>。</p>
+
+<p><strong>(e) 验证解密还原 7。</strong> <span class="m">M = 13<sup>27</sup> <span class="rm">mod</span> 55</span>。课件说这一问"is the one that takes care"。<span class="m">27 = 11011<sub>2</sub> = 16 + 8 + 2 + 1</span>。</p>
+
+<p>格式一（逐次平方表）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>项</th><th>计算</th><th>商</th><th>余数</th></tr></thead>
+<tbody>
+<tr><td><span class="m">13<sup>1</sup></span></td><td>—</td><td>—</td><td>13</td></tr>
+<tr><td><span class="m">13<sup>2</sup></span></td><td><span class="m">169</span></td><td>3</td><td><span class="m">169 − 165 = 4</span></td></tr>
+<tr><td><span class="m">13<sup>4</sup></span></td><td><span class="m">4 × 4 = 16</span></td><td>0</td><td>16</td></tr>
+<tr><td><span class="m">13<sup>8</sup></span></td><td><span class="m">16 × 16 = 256</span></td><td>4</td><td><span class="m">256 − 220 = 36</span></td></tr>
+<tr><td><span class="m">13<sup>16</sup></span></td><td><span class="m">36 × 36 = 1296</span></td><td>23</td><td><span class="m">1296 − 1265 = 31</span></td></tr>
+<tr><td><span class="m">13<sup>1+2</sup></span></td><td><span class="m">13 × 4 = 52</span></td><td>0</td><td>52</td></tr>
+<tr><td><span class="m">13<sup>1+2+8</sup></span></td><td><span class="m">52 × 36 = 1872</span></td><td>34</td><td><span class="m">1872 − 1870 = 2</span></td></tr>
+<tr><td><span class="m">13<sup>1+2+8+16</sup></span></td><td><span class="m">2 × 31 = 62</span></td><td>1</td><td><span class="m">62 − 55 = 7</span></td></tr>
+</tbody></table></div>
+
+<p>格式二（从左到右二进制法，课件提示的做法）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>读到的位</th><th>平方</th><th>是 1 则乘 13</th><th>当前值</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="m">1<sup>2</sup> = 1</span></td><td><span class="m">1 × 13 = 13</span></td><td>13</td></tr>
+<tr><td>1</td><td><span class="m">13<sup>2</sup> = 169 ≡ 4</span></td><td><span class="m">4 × 13 = 52</span></td><td>52</td></tr>
+<tr><td>0</td><td><span class="m">52<sup>2</sup> = 2704 ≡ 9</span></td><td>—</td><td>9</td></tr>
+<tr><td>1</td><td><span class="m">9<sup>2</sup> = 81 ≡ 26</span></td><td><span class="m">26 × 13 = 338 ≡ 8</span></td><td>8</td></tr>
+<tr><td>1</td><td><span class="m">8<sup>2</sup> = 64 ≡ 9</span></td><td><span class="m">9 × 13 = 117 ≡ 7</span></td><td><strong>7</strong></td></tr>
+</tbody></table></div>
+
+<p>两种格式都得 7，解密正确。</p>
+
+<div class="tool" id="rsTool">
+  <h4>RSA 小数演算：密钥生成、加密、解密</h4>
+  <p class="sub">换成任意两个小素数和一个 <span class="m">e</span>，页面按五步生成密钥，再加密、解密核对。明文与 <span class="m">n</span> 不互素时（如课件例题），会单独指出来。</p>
+  <div class="row">
+    <span class="ctl"><label for="rsP">p</label><input type="text" id="rsP" value="5" style="width:6.2rem" inputmode="numeric" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsQ">q</label><input type="text" id="rsQ" value="11" style="width:6.2rem" inputmode="numeric" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsE">e</label><input type="text" id="rsE" value="3" style="width:6.2rem" inputmode="numeric" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsM">明文 M</label><input type="text" id="rsM" value="7" style="width:6.2rem" inputmode="numeric" oninput="rsGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="rsSet(5,11,3,7)">课堂活动 3</button>
+    <button class="btn" onclick="rsSet(17,11,7,88)">课件例题</button>
+    <button class="btn" onclick="rsSet(7,11,13,5)">课后任务 1</button>
+  </div>
+  <div id="rsSteps"></div>
+  <div class="result" id="rsOut"></div>
+</div>
+
+<details class="box">
+<summary>课后任务 1 解答：p = 7，q = 11，e = 13，M = 5</summary>
+<p>题目要求求 <span class="m">n</span>、<span class="m">φ(n)</span>、<span class="m">d</span>，加密 <span class="m">M = 5</span> 并验证解密，写出平方-乘过程。</p>
+<ul><li><span class="m">n = 77</span>，<span class="m">φ(n) = 6 × 10 = 60</span>；<span class="m"><span class="rm">gcd</span>(13, 60) = 1</span>，<span class="m">e</span> 合法。</li><li><span class="m">d = 13<sup>−1</sup> <span class="rm">mod</span> 60 =</span> <strong>37</strong>（扩展欧几里得表见 <a href="#s4-3">4.3</a>，试算到 <span class="m">k = 8</span>：<span class="m">481 = 13 × 37</span>）。公钥 <span class="m">{13, 77}</span>，私钥 <span class="m">{37, 77}</span>。</li><li>加密 <span class="m">C = 5<sup>13</sup> <span class="rm">mod</span> 77</span>，<span class="m">13 = 1101<sub>2</sub> = 8 + 4 + 1</span>：<span class="m">5<sup>2</sup> = 25</span>，<span class="m">5<sup>4</sup> = 625 ≡ 9</span>（<span class="m">625 − 616</span>），<span class="m">5<sup>8</sup> = 81 ≡ 4</span>；连乘 <span class="m">5 × 9 = 45</span>，<span class="m">45 × 4 = 180 ≡</span> <strong>26</strong>（<span class="m">180 − 154</span>）。</li><li>解密 <span class="m">26<sup>37</sup> <span class="rm">mod</span> 77</span>，<span class="m">37 = 100101<sub>2</sub> = 32 + 4 + 1</span>：</li></ul>
+<div class="tw"><table>
+<thead><tr><th>项</th><th>计算</th><th>商</th><th>余数</th></tr></thead>
+<tbody>
+<tr><td><span class="m">26<sup>2</sup></span></td><td><span class="m">676</span></td><td>8</td><td>60</td></tr>
+<tr><td><span class="m">26<sup>4</sup></span></td><td><span class="m">60 × 60 = 3600</span></td><td>46</td><td>58</td></tr>
+<tr><td><span class="m">26<sup>8</sup></span></td><td><span class="m">58 × 58 = 3364</span></td><td>43</td><td>53</td></tr>
+<tr><td><span class="m">26<sup>16</sup></span></td><td><span class="m">53 × 53 = 2809</span></td><td>36</td><td>37</td></tr>
+<tr><td><span class="m">26<sup>32</sup></span></td><td><span class="m">37 × 37 = 1369</span></td><td>17</td><td>60</td></tr>
+<tr><td><span class="m">26<sup>1+4</sup></span></td><td><span class="m">26 × 58 = 1508</span></td><td>19</td><td>45</td></tr>
+<tr><td><span class="m">26<sup>1+4+32</sup></span></td><td><span class="m">45 × 60 = 2700</span></td><td>35</td><td><strong>5</strong></td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">解回 5。格式二：位 1→26；位 0→<span class="m">26<sup>2</sup> ≡ 60</span>；位 0→<span class="m">60<sup>2</sup> ≡ 58</span>；位 1→<span class="m">58<sup>2</sup> ≡ 53</span>，<span class="m">× 26 = 1378 ≡ 69</span>；位 0→<span class="m">69<sup>2</sup> = 4761 ≡ 64</span>；位 1→<span class="m">64<sup>2</sup> = 4096 ≡ 15</span>，<span class="m">× 26 = 390 ≡ 5</span>。</p>
+</details>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>另一种私钥（课件外，选读）</div>
+<p style="margin-bottom:0">标准文档（美国联邦信息处理标准 FIPS 186-5，FIPS 即 federal information processing standards；以及 RFC 8017）里 <span class="m">d</span> 常按 <span class="m">λ(n) = <span class="rm">lcm</span>(p − 1, q − 1)</span> 求（卡迈克尔函数 Carmichael function，lcm 是最小公倍数），可能比按 <span class="m">φ(n)</span> 求出的更小，同样能正确解密。活动 3 里 <span class="m">λ(55) = <span class="rm">lcm</span>(4, 10) = 20</span>，<span class="m">3<sup>−1</sup> <span class="rm">mod</span> 20 = 7</span>，<span class="m">13<sup>7</sup> <span class="rm">mod</span> 55 = 7</span> 也解回了 7。课程按 <span class="m">φ(n)</span> 算，考试写 27。</p>
+</div>
+
+<h3 id="s5-5"><span class="n">5.5</span>安全性建立在大数分解上</h3>
+
+<p>课件第 17 页："Multiplying two 1024-bit primes takes microseconds. Recovering them from the 2048-bit product has never been done and no efficient method is known."（课件外：公开的最大分解纪录是 2020 年分解的 RSA-250，一个 829 位的公开挑战数。）</p>
+
+<p>为什么分解 <span class="m">n</span> 就破了 RSA：分解出 <span class="m">p</span>、<span class="m">q</span> → 算出 <span class="m">φ(n) = (p − 1)(q − 1)</span> → 用扩展欧几里得算出 <span class="m">d = e<sup>−1</sup> <span class="rm">mod</span> φ(n)</span>，和合法主人走的是同一条路。</p>
+
+<p>反过来，<strong>知道 <span class="m">φ(n)</span> 就等于分解了 <span class="m">n</span></strong>，这是第 5.1 节第 3 步要求 <span class="m">φ(n)</span> 保密的原因。推导：</p>
+
+<div class="eq"><span class="m">φ(n) = (p − 1)(q − 1) = pq − (p + q) + 1 = n − (p + q) + 1 ⇒ p + q = n − φ(n) + 1</span></div>
+
+<p>知道了 <span class="m">p + q</span> 和 <span class="m">pq = n</span>，<span class="m">p</span>、<span class="m">q</span> 就是一元二次方程 <span class="m">x<sup>2</sup> − (p + q)x + n = 0</span> 的两个根。例：<span class="m">n = 187</span>，<span class="m">φ = 160</span>，<span class="m">p + q = 28</span>，方程 <span class="m">x<sup>2</sup> − 28x + 187 = 0</span>，判别式 <span class="m">28<sup>2</sup> − 4 × 187 = 36</span>，<span class="m">x = (28 ± 6)/2 = 17</span> 或 <span class="m">11</span>。（课件外：知道 <span class="m">d</span> 也能高效地分解 <span class="m">n</span>，所以 <span class="m">p, q</span>、<span class="m">φ(n)</span>、<span class="m">d</span> 三者知道任何一个都等价于破解。）</p>
+
+<p>这也就是 <a href="#s2-2">2.2</a> 说的陷门：<span class="m">x ↦ x<sup>e</sup> <span class="rm">mod</span> n</span> 人人能算，没有 <span class="m">d</span>（或 <span class="m">p</span>、<span class="m">q</span>）就无法倒回去。</p>
+
+<p>课件用红字提醒："<strong>Note carefully: nobody has PROVED that factoring is hard.</strong> RSA is computationally secure in exactly the sense of Lecture 2 — unbroken, not unbreakable." 即 L2 的<a href="L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html#s2-2">计算安全</a>：至今没人破，不等于证明了破不了。（课件外：破 RSA 是否一定要先分解 <span class="m">n</span>，也没有证明。）</p>
+
+<p><strong>密钥长度</strong>（课件第 17 页）：</p>
+
+<ul><li>1024 位：已不再被认为足够；</li><li>2048 位：目前常用的最低要求；</li><li>3072 位或更长：用于长期保护。</li></ul>
+
+<p>课件："a 128-bit symmetric key is roughly as strong as a 3072-bit RSA key. Public-key algorithms need far longer keys for the same security." 对称密钥只能穷举，每多一位难度翻倍；RSA 的模数有比穷举快得多的分解算法可用，所以要长得多才达到同样的强度。完整对照表见 <a href="#s7-2">7.2</a>。课件第 27 页的总结："Its security is the size of the numbers, not the structure of the algorithm."</p>
+
+<h3 id="s5-6"><span class="n">5.6</span>教科书 RSA 的三个问题</h3>
+
+<p><strong>教科书 RSA</strong>（textbook RSA）：直接按 <span class="m">C = M<sup>e</sup> <span class="rm">mod</span> n</span> 加密、不做任何额外处理的 RSA，就是上面学的版本。课件第 17 页列了它的三个问题和修复办法：</p>
+
+<div class="tw"><table>
+<thead><tr><th>问题</th><th>怎么回事</th><th>修复</th></tr></thead>
+<tbody>
+<tr><td>确定性</td><td>同一明文在同一公钥下永远得到同一密文</td><td>随机化<strong>填充</strong>（padding：加密前给消息混入新鲜随机数据再编码，如 OAEP，optimal asymmetric encryption padding，最优非对称加密填充）："Never encrypt a raw message with RSA."</td></tr>
+<tr><td>慢</td><td>同样的数据量约比 AES 慢一千倍</td><td>混合加密：RSA 只保护一把新生成的 AES 密钥，数据用 AES（<a href="#s7-1">7.1</a>）</td></tr>
+<tr><td>侧信道（side channel：从实现的耗时、功耗等物理表现里偷信息）</td><td>求幂的耗时随私钥 <span class="m">d</span> 的各位变化，测时间能推出 <span class="m">d</span></td><td>常数时间实现与盲化："Never write your own."</td></tr>
+</tbody></table></div>
+
+<p><strong>问题一：确定性。</strong> 这正是课后任务 2（"the one that matters"）。</p>
+
+<blockquote class="qt"><p style="margin-bottom:0">题目："Alice sends Bob one of only four possible instructions, encrypted with textbook RSA using Bob's public key. Explain how an eavesdropper reads the message without factoring anything. Which Lecture 5 failure is this?"</p></blockquote>
+
+<p>答：教科书 RSA 是<strong>确定性</strong>（deterministic）的，同一个 <span class="m">M</span> 在同一把公钥下永远加密成同一个 <span class="m">C</span>。Bob 的公钥是公开的，窃听者把四条可能的指令各自用它加密一遍，得到四个密文，再和截获的密文比对，相同的那条就是明文。全程不需要分解 <span class="m">n</span>，也不需要 <span class="m">d</span>。</p>
+
+<p>数值演示：用课件的公钥 <span class="m">{7, 187}</span>，设四条指令编码为 2、3、4、5，</p>
+
+<div class="eq"><span class="m">2<sup>7</sup> ≡ 128,&emsp;3<sup>7</sup> ≡ 130,&emsp;4<sup>7</sup> ≡ 115,&emsp;5<sup>7</sup> ≡ 146&ensp;(<span class="rm">mod</span> 187)</span></div>
+
+<p>截获 <span class="m">C = 130</span>，立刻知道指令是 3。</p>
+
+<div class="tool" id="tbTool">
+  <h4>可能报文攻击：把每个候选都用公钥加密一遍</h4>
+  <p class="sub">默认就是上面的四条指令（编码 2、3、4、5）和公钥 {7, 187}。改候选、改截获的密文都行。</p>
+  <div class="row">
+    <span class="ctl"><label for="tbE">e</label><input type="text" id="tbE" value="7" style="width:6.2rem" inputmode="numeric" oninput="tbGo()"></span>
+    <span class="ctl"><label for="tbN">n</label><input type="text" id="tbN" value="187" style="width:6.2rem" inputmode="numeric" oninput="tbGo()"></span>
+    <span class="ctl"><label for="tbC">截获的 C</label><input type="text" id="tbC" value="130" style="width:6.2rem" inputmode="numeric" oninput="tbGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl grow"><label for="tbList">候选明文</label><input type="text" id="tbList" value="2 3 4 5" oninput="tbGo()"></span>
+  </div>
+  <div id="tbView"></div>
+  <div class="result" id="tbOut"></div>
+</div>
+
+<p>这是 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 里 <strong>ECB 模式</strong>（electronic codebook，电子密码本：每个分组用同一把密钥独立加密）的同一个病：相同明文 → 相同密文。课件原话 "That is the ECB problem from Lecture 5, in a different algorithm"。明文空间越小，这一招越致命。教材把这类攻击叫<strong>可能报文攻击</strong>（probable-message attack）。</p>
+
+<p>修复：<strong>OAEP</strong>（optimal asymmetric encryption padding，最优非对称加密填充：加密前把消息和一串新鲜的随机数混合编码，再做 RSA 运算），同一条消息每次加密的结果都不同，窃听者的"逐条试加密再比对"就失效了。</p>
+
+<details class="box">
+<summary>教科书 RSA 的另外两个毛病（课件外，选读）</summary>
+<ul><li><strong>小指数、小明文</strong>：公钥 <span class="m">{3, 55}</span> 下加密 <span class="m">M = 3</span>，<span class="m">M<sup>3</sup> = 27 &lt; 55</span>，根本没有发生取模，<span class="m">C = 27</span>；攻击者对 27 开立方就得到 3。</li><li><strong>可乘性</strong>（malleability）：同一公钥下 <span class="m">C(2) = 8</span>，<span class="m">C(3) = 27</span>，<span class="m">8 × 27 <span class="rm">mod</span> 55 = 51 = C(6)</span>。不知道明文，也能把两个密文相乘，造出"明文乘积"的合法密文，原因是 <span class="m">(M<sub>1</sub>M<sub>2</sub>)<sup>e</sup> = M<span class="ss"><span>e</span><span>1</span></span>M<span class="ss"><span>e</span><span>2</span></span></span>。</li></ul>
+<p style="margin-bottom:0">OAEP 同时消除这两个问题：填充后的明文是一个随机的大数，既不会小到不取模，乘起来也不再是合法的填充格式。</p>
+</details>
+
+<p><strong>问题二：慢。</strong> 2048 位的模幂很贵。修复办法"混合加密"放到 <a href="#s7-1">7.1</a> 讲，那里还要纠正课件 "This is what TLS does" 的过时说法。<strong>TLS</strong>（transport layer security，传输层安全协议）是 HTTPS（HTTP over TLS，加密的网页访问）底下负责加密的那一层协议，<a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a> 会讲。</p>
+
+<p><strong>问题三：侧信道。</strong> 平方-乘里"这一位是 1 就多乘一次"，所以求幂的耗时取决于 <span class="m">d</span> 有多少个 1、分布在哪里；攻击者测量大量解密的耗时，就能逐位推出 <span class="m">d</span>。这是 L3 讲过的<a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s8-3">计时攻击</a>（timing attack），课件说 "the attack we met in Lecture 3"。修复：</p>
+
+<ul><li><strong>常数时间实现</strong>（constant-time：运行时间与密钥、数据都无关），例如每一位都做一次乘法、把不需要的结果丢掉（丢弃本身也要用不带分支的选择来实现，否则分支和缓存仍会泄露；常见的做法叫 Montgomery 阶梯）；</li><li><strong>盲化</strong>（blinding）：解密前先选一个随机数 <span class="m">r</span>，把密文换成 <span class="m">C′ = C · r<sup>e</sup> <span class="rm">mod</span> n</span> 再解密，得到 <span class="m">M · r</span>，最后乘 <span class="m">r<sup>−1</sup></span> 还原。真正参与求幂的是攻击者不知道的 <span class="m">C′</span>，耗时和他选的密文对不上。</li></ul>
+
+<p>课件的建议是 "Never write your own"：密码学代码用现成的、经过审查的库。</p>
+
+<h3 id="s5-7"><span class="n">5.7</span>考场答法：公钥解密的基本步骤</h3>
+
+<p>模拟卷 Q2(d)，10 分：</p>
+
+<blockquote class="qt"><p style="margin-bottom:0">"What are the essential steps for proper functioning of public key decryption algorithm? Explain with the aid of a diagram."</p></blockquote>
+
+<p><strong>参考答案的结构</strong>：先一句话说公钥解密做什么——"This public key cryptography algorithm accepts the ciphertext and the matching key and produces the original plaintext."；再附教材 Fig. 9.1(a)；再列四步（教材第 9.1 节原文，角色是 Bob 发给 Alice）：</p>
+
+<ol><li>"Each user generates a pair of keys to be used for the encryption and decryption of messages."</li><li>"Each user places one of the two keys in a public register or other accessible file. This is the public key. The companion key is kept private. As Figure A2 suggests, each user maintains a collection of public keys obtained from others."</li><li>"If Bob wishes to send a confidential message to Alice, Bob encrypts the message using Alice's public key."</li><li>"When Alice receives the message, she decrypts it using her private key. No other recipient can decrypt the message because only Alice knows Alice's private key."</li></ol>
+
+<p>参考答案的图上用红笔标了五个得分点：公钥环、接收方私钥、加密算法、传输的密文、明文输出。模拟卷没有公布分值分配；按图上 5 个标记推断，大约是图 5 分、文字步骤 5 分。（参考答案正文写 "As Figure A2 suggests"，而附的是 Fig. 9.1(a)，是模拟卷自己的图号笔误。）</p>
+
+<p><strong>规范答法</strong>（按本笔记的角色 Alice → Bob，补上 RSA 实例和安全前提）：</p>
+
+<div class="box exam">
+<div class="h"><span class="tag">答法</span>考场作答（可直接照写）</div>
+<p>Public-key decryption takes the ciphertext and the receiver's private key — the key that matches the public key used for encryption — and produces the original plaintext.</p>
+<figure>
+<div id="figConfEn"></div>
+
+</figure>
+<p>Essential steps (Alice sends a confidential message to Bob):</p>
+<ol style="margin-bottom:0"><li><strong>Key generation.</strong> Each user generates a pair of mathematically related keys, a public key and a private key. It must be computationally infeasible to derive the private key from the public key.</li><li><strong>Publication.</strong> Each user places the public key in a public register or other accessible file and keeps the companion private key secret. Each user maintains a collection of public keys obtained from others (a public-key ring).</li><li><strong>Encryption.</strong> To send a confidential message <span class="m">X</span> to Bob, Alice takes Bob's public key <span class="m">PU<sub>b</sub></span> from her ring and computes <span class="m">Y = <span class="rm">E</span>(PU<sub>b</sub>, X)</span>. With RSA, <span class="m">PU<sub>b</sub> = {e, n}</span> and <span class="m">Y = X<sup>e</sup> <span class="rm">mod</span> n</span>.</li><li><strong>Decryption.</strong> Bob decrypts with his own private key: <span class="m">X = <span class="rm">D</span>(PR<sub>b</sub>, Y)</span>. With RSA, <span class="m">PR<sub>b</sub> = {d, n}</span> and <span class="m">X = Y<sup>d</sup> <span class="rm">mod</span> n</span>, which recovers <span class="m">X</span> because <span class="m">ed ≡ 1&ensp;(<span class="rm">mod</span> φ(n))</span>. No other recipient can decrypt, because only Bob knows <span class="m">PR<sub>b</sub></span>; it must also be computationally infeasible to recover <span class="m">X</span> from <span class="m">PU<sub>b</sub></span> and <span class="m">Y</span>.</li></ol>
+</div>
+
+<p>考场版图不带编号；①–⑤ 是 3.1 那张图上标出得分点用的，考场上不画红圈。画图要点（五个得分点一个都不能少）：① 发送方的公钥环，并标出从中取出的是接收方的公钥；② 接收方的私钥，标明只有接收方持有；③ 加密算法框（写 e.g., RSA）；④ 中间的传输箭头，标 "Transmitted ciphertext" 和 <span class="m">Y = <span class="rm">E</span>(PU<sub>b</sub>, X)</span>；⑤ 解密算法之后的明文输出，标 <span class="m">X = <span class="rm">D</span>(PR<sub>b</sub>, Y)</span>。两侧用大括号标出发送方、接收方。</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">易错</span>角色写法要前后一致</div>
+<p style="margin-bottom:0">教材原图和参考答案是 "Bob encrypts using Alice's public key"，图上写 <span class="m">PU<sub>a</sub></span>、<span class="m">PR<sub>a</sub></span>；课件和本笔记是 Alice 用 Bob 的公钥，写 <span class="m">PU<sub>b</sub></span>、<span class="m">PR<sub>b</sub></span>。两种写法都对。容易丢分的是混用：文字写"Bob 发给 Alice"，图上却画 Bob 的公钥。动笔前先定下"谁发给谁"，图上的下标跟着接收方走——<strong>加密用的是接收方的公钥，解密用的是接收方的私钥</strong>。</p>
+</div>
+
+<h2 id="s6"><span class="n">6</span>Diffie–Hellman 密钥交换</h2>
+
+<p>课件第 18 页的定位："Not encryption at all. A way for two strangers to agree on a number that nobody watching can compute."</p>
+
+<h3 id="s6-1"><span class="n">6.1</span>在公开信道上约定一个秘密</h3>
+
+<p>课件第 2 页讲评上一讲的课后题（<a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 结尾的课后作业 4，可以回去对照自己当时的答案）：两个陌生人能否在公开信道上约定一个秘密？</p>
+
+<p>直觉说不能："Everything Alice sends, the attacker sees. Everything Bob sends, the attacker sees. The attacker has exactly the same information as Bob does." 课件说大多数人都得出了"不可能"的结论，"That is a reasonable conclusion, and it is wrong."</p>
+
+<p>漏掉的那一点："Bob and the attacker do NOT have the same information. Bob has one extra thing: a secret number he chose himself and never sent." 只要消息构造得让 Bob 的秘密能和 Alice 发来的东西结合、而攻击者又无法从线路上的内容反推出任何一方的秘密，Alice 和 Bob 就会得到同一个值，攻击者得不到。</p>
+
+<p><strong>Diffie–Hellman</strong>（以两位作者命名，下文简称 DH）就是这样一个<strong>密钥协商</strong>（key agreement）协议：双方各出一个秘密，共同算出同一个数，没有一方生成后传给另一方。课件第 19 页强调："It encrypts nothing. At the end, both parties hold the same number and an eavesdropper who saw every message does not."</p>
+
+<p>课件的<strong>调色类比</strong>（原图只有文字）：</p>
+
+<ol><li>Alice 和 Bob 公开约定一种起始颜色，所有人包括攻击者都看得到；</li><li>两人各自秘密选一种颜色，与公共颜色混合，然后公开交换混合后的颜料；</li><li>各自把自己的秘密颜色加进收到的混合颜料里，两人手里都得到同样的三色混合；</li><li>攻击者有公共颜色和两份双色混合，但把混合颜料分离回原来的成分很难。</li></ol>
+
+<p>对应到数学上："Mixing is raising a number to a power modulo a prime. Separating a mixture is recovering the exponent — the discrete logarithm problem." 加颜料的先后不影响最终颜色，对应的是指数运算的交换律，下一小节的关键。</p>
+
+<h3 id="s6-2"><span class="n">6.2</span>协议只有四行</h3>
+
+<p>事先公开约定两个数：一个大素数 <span class="m">q</span>，以及 <span class="m">q</span> 的一个<strong>本原根</strong>（primitive root）<span class="m">α</span>。本原根的意思是：<span class="m">α<sup>1</sup>, α<sup>2</sup>, …, α<sup>q−1</sup></span> 模 <span class="m">q</span> 恰好把 <span class="m">1, 2, …, q − 1</span> 每个数各取到一次。这保证公开值 <span class="m">Y</span> 可能是 <span class="m">1 ～ q − 1</span> 中的任何一个，秘密指数有 <span class="m">q − 1</span> 种可能，不会因为 <span class="m">α</span> 的各次方只落在一小部分数里而变少。（课件外：实际系统还要求 <span class="m">q − 1</span> 有大素因子，否则 <span class="m">Y</span> 会泄露 <span class="m">X</span> 的一部分信息。例如本讲的 <span class="m">q = 23</span>，<span class="m">q − 1 = 22 = 2 × 11</span>，算 <span class="m">Y<sup>11</sup> <span class="rm">mod</span> 23</span> 是 1 还是 22 就知道 <span class="m">X</span> 的奇偶：<span class="m">8<sup>11</sup> ≡ 1</span> 对应 <span class="m">X<sub>A</sub> = 6</span> 为偶数，<span class="m">19<sup>11</sup> ≡ 22</span> 对应 <span class="m">X<sub>B</sub> = 15</span> 为奇数。所以实际用 <span class="m">q = 2p′ + 1</span> 这类"安全素数"，<span class="m">p′</span> 也是大素数。）</p>
+
+<figure>
+<div id="figDh"></div>
+<figcaption>Diffie–Hellman 密钥交换，括号里是课堂活动 4 的数值。</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>谁</th><th>做什么</th><th>算什么</th><th>发送</th></tr></thead>
+<tbody>
+<tr><td>Alice</td><td>秘密选 <span class="m">X<sub>A</sub> &lt; q</span></td><td><span class="m">Y<sub>A</sub> = α<sup>X<sub>A</sub></sup> <span class="rm">mod</span> q</span></td><td><span class="m">Y<sub>A</sub></span> 发给 Bob</td></tr>
+<tr><td>Bob</td><td>秘密选 <span class="m">X<sub>B</sub> &lt; q</span></td><td><span class="m">Y<sub>B</sub> = α<sup>X<sub>B</sub></sup> <span class="rm">mod</span> q</span></td><td><span class="m">Y<sub>B</sub></span> 发给 Alice</td></tr>
+<tr><td>Alice</td><td>收到 <span class="m">Y<sub>B</sub></span></td><td><span class="m">K = Y<span class="ss"><span>X<sub>A</sub></span><span>B</span></span> <span class="rm">mod</span> q</span></td><td>—</td></tr>
+<tr><td>Bob</td><td>收到 <span class="m">Y<sub>A</sub></span></td><td><span class="m">K = Y<span class="ss"><span>X<sub>B</sub></span><span>A</span></span> <span class="rm">mod</span> q</span></td><td>—</td></tr>
+</tbody></table></div>
+
+<p>（记号与教材第 10.1 节完全相同。<span class="m">X</span> 是各自的私钥，<span class="m">Y</span> 是各自的公开值。）</p>
+
+<p><strong>为什么两边算出的 <span class="m">K</span> 相同</strong>：</p>
+
+<div class="eq"><span class="m">Y<span class="ss"><span>X<sub>A</sub></span><span>B</span></span> = (α<sup>X<sub>B</sub></sup>)<sup>X<sub>A</sub></sup> = α<sup>X<sub>A</sub>X<sub>B</sub></sup> = (α<sup>X<sub>A</sub></sup>)<sup>X<sub>B</sub></sup> = Y<span class="ss"><span>X<sub>B</sub></span><span>A</span></span>&ensp;(<span class="rm">mod</span> q)</span></div>
+
+<p>中间一步只用到指数法则 <span class="m">(α<sup>x</sup>)<sup>y</sup> = α<sup>xy</sup> = (α<sup>y</sup>)<sup>x</sup></span>；每一步都在模 <span class="m">q</span> 下成立，因为<a href="#s4-1">乘法可以随时取模</a>。课件："Alice and Bob apply their secrets in opposite orders and arrive at the same value. That commutativity is the entire trick."</p>
+
+<p>课件第 20 页的另一句重点："<span class="m">X<sub>A</sub></span> and <span class="m">X<sub>B</sub></span> never cross the wire. That is the whole point, and it is what the attacker cannot obtain."</p>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>K 不直接当 AES 密钥（课件前后口径不一）</div>
+<p style="margin-bottom:0">课件第 20 页说 <span class="m">K</span> "is then used as a symmetric key — for AES"；第 25 页又说共享秘密要先 "expanded into the keys actually used"。以第 25 页为准：<span class="m">K</span> 是 <span class="m">1 ～ q − 1</span> 里的一个数，它的二进制位并不均匀随机，实际系统先把它送进<strong>密钥派生函数</strong>（key derivation function，KDF：把一个共享秘密压缩、扩展成若干把均匀随机的密钥；L6 讲密钥层级时见过），再拿派生出的密钥给 AES 用，见 <a href="#s7-1">7.1</a>。</p>
+</div>
+
+<h3 id="s6-3"><span class="n">6.3</span>手算一遍：课堂活动 4</h3>
+
+<p>公开参数 <span class="m">q = 23</span>，<span class="m">α = 5</span>；Alice 的秘密 <span class="m">X<sub>A</sub> = 6</span>，Bob 的秘密 <span class="m">X<sub>B</sub> = 15</span>。课件提示："Reduce modulo 23 at every step. None of these numbers needs to get large."</p>
+
+<p><strong>(a) <span class="m">Y<sub>A</sub> = 5<sup>6</sup> <span class="rm">mod</span> 23</span>。</strong> <span class="m">5<sup>2</sup> = 25 ≡ 2</span>，<span class="m">5<sup>4</sup> = 2<sup>2</sup> = 4</span>；<span class="m">6 = 4 + 2</span>，所以 <span class="m">Y<sub>A</sub> = 4 × 2 =</span> <strong>8</strong>。</p>
+
+<p><strong>(b) <span class="m">Y<sub>B</sub> = 5<sup>15</sup> <span class="rm">mod</span> 23</span>。</strong> 题面提示 <span class="m">15 = 1111<sub>2</sub> = 8 + 4 + 2 + 1</span>。平方链：<span class="m">5<sup>1</sup> = 5</span>，<span class="m">5<sup>2</sup> ≡ 2</span>，<span class="m">5<sup>4</sup> ≡ 4</span>，<span class="m">5<sup>8</sup> = 16</span>；连乘 <span class="m">5 × 2 = 10</span>，<span class="m">10 × 4 = 40 ≡ 17</span>，<span class="m">17 × 16 = 272 ≡</span> <strong>19</strong>（<span class="m">272 − 253</span>）。</p>
+
+<p><strong>(c) 双方各算 <span class="m">K</span>。</strong></p>
+
+<ul><li>Alice：<span class="m">K = 19<sup>6</sup> <span class="rm">mod</span> 23</span>。<span class="m">19<sup>2</sup> = 361 ≡ 16</span>（<span class="m">361 − 345</span>），<span class="m">19<sup>4</sup> = 16<sup>2</sup> = 256 ≡ 3</span>（<span class="m">256 − 253</span>）；<span class="m">K = 19<sup>4</sup> · 19<sup>2</sup> ≡ 3 × 16 = 48 ≡</span> <strong>2</strong>。</li><li>Bob：<span class="m">K = 8<sup>15</sup> <span class="rm">mod</span> 23</span>。<span class="m">8<sup>2</sup> = 64 ≡ 18</span>，<span class="m">8<sup>4</sup> = 18<sup>2</sup> = 324 ≡ 2</span>（<span class="m">324 − 322</span>），<span class="m">8<sup>8</sup> = 4</span>；<span class="m">8 × 18 = 144 ≡ 6</span>，<span class="m">6 × 2 = 12</span>，<span class="m">12 × 4 = 48 ≡</span> <strong>2</strong>。</li></ul>
+
+<p>两边一致。用<a href="#s4-5">费马小定理</a>再验一次：<span class="m">K = 5<sup>6×15</sup> = 5<sup>90</sup></span>，指数对 <span class="m">q − 1 = 22</span> 取模得 <span class="m">90 <span class="rm">mod</span> 22 = 2</span>，<span class="m">5<sup>2</sup> <span class="rm">mod</span> 23 = 2</span>。课件说两人算得不一样就是有人算错了，这个验算能快速判断谁错。</p>
+
+<p><strong>(d) 窃听者看到了什么、要算什么。</strong> 线路上出现过的只有 <span class="m">q = 23</span>、<span class="m">α = 5</span>、<span class="m">Y<sub>A</sub> = 8</span>、<span class="m">Y<sub>B</sub> = 19</span>；<span class="m">X<sub>A</sub></span>、<span class="m">X<sub>B</sub></span>、<span class="m">K</span> 都没有上过线路。要得到 <span class="m">K</span>，他得从 <span class="m">5<sup>X<sub>A</sub></sup> ≡ 8&ensp;(<span class="rm">mod</span> 23)</span> 解出 <span class="m">X<sub>A</sub></span>（或从 <span class="m">5<sup>X<sub>B</sub></sup> ≡ 19</span> 解出 <span class="m">X<sub>B</sub></span>），再算 <span class="m">K = Y<span class="ss"><span>X<sub>A</sub></span><span>B</span></span></span>。这就是离散对数问题，下一小节讲。</p>
+
+<details class="box">
+<summary>5 确实是 23 的本原根（协议前提，课件没要求验证）</summary>
+<p>判别法（课件外）：对 <span class="m">q − 1</span> 的每个素因子 <span class="m">r</span>，检查 <span class="m">α<sup>(q−1)/r</sup> ≢ 1</span>；全都不等于 1，<span class="m">α</span> 就是本原根。</p>
+<p><span class="m">q − 1 = 22 = 2 × 11</span>：<span class="m">5<sup>22/2</sup> = 5<sup>11</sup> = 5<sup>8</sup> · 5<sup>2</sup> · 5<sup>1</sup> ≡ 16 × 2 × 5 = 160 ≡ 22 ≠ 1</span>；<span class="m">5<sup>22/11</sup> = 5<sup>2</sup> ≡ 2 ≠ 1</span>。所以 5 是本原根。</p>
+<p style="margin-bottom:0">模 23 的本原根共 10 个：5, 7, 10, 11, 14, 15, 17, 19, 20, 21。</p>
+</details>
+
+<div class="tool" id="dhTool">
+  <h4>Diffie–Hellman 演算与窃听者的离散对数表</h4>
+  <p class="sub">默认是课堂活动 4 的参数。页面先检查 <span class="m">α</span> 是不是本原根，再走协议四行；<span class="m">q</span> 不大时把窃听者要列的 <span class="m">α<sup>k</sup></span> 表整张画出来，命中的两格标蓝。</p>
+  <div class="row">
+    <span class="ctl"><label for="dhQ">q</label><input type="text" id="dhQ" value="23" style="width:6.2rem" inputmode="numeric" oninput="dhGo()"></span>
+    <span class="ctl"><label for="dhA">α</label><input type="text" id="dhA" value="5" style="width:6.2rem" inputmode="numeric" oninput="dhGo()"></span>
+    <span class="ctl"><label for="dhXA">X<sub>A</sub></label><input type="text" id="dhXA" value="6" style="width:6.2rem" inputmode="numeric" oninput="dhGo()"></span>
+    <span class="ctl"><label for="dhXB">X<sub>B</sub></label><input type="text" id="dhXB" value="15" style="width:6.2rem" inputmode="numeric" oninput="dhGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="dhSet(23,5,6,15)">课堂活动 4</button>
+    <button class="btn" onclick="dhSet(23,2,6,15)">α = 2（不是本原根）</button>
+    <button class="btn" onclick="dhSet(10007,5,1234,5678)">q = 10007</button>
+  </div>
+  <div id="dhSteps"></div>
+  <div class="result" id="dhOut"></div>
+</div>
+
+<h3 id="s6-4"><span class="n">6.4</span>窃听者要解什么：离散对数</h3>
+
+<p><strong>离散对数问题</strong>（discrete logarithm problem，DLP）：已知素数 <span class="m">q</span>、底数 <span class="m">α</span> 和 <span class="m">Y = α<sup>X</sup> <span class="rm">mod</span> q</span>，求指数 <span class="m">X</span>。"对数"是因为它是求幂的逆运算，"离散"是因为一切都在整数模 <span class="m">q</span> 下进行，没有连续函数可以利用。</p>
+
+<p>在 <span class="m">q = 23</span> 这样的小数上，逐个列出 <span class="m">5<sup>k</sup> <span class="rm">mod</span> 23</span> 就破了：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th><span class="m">k</span></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th></tr></thead>
+<tbody>
+<tr><td><span class="m">5<sup>k</sup> <span class="rm">mod</span> 23</span></td><td>5</td><td>2</td><td>10</td><td>4</td><td>20</td><td><strong>8</strong></td><td>17</td><td>16</td><td>11</td><td>9</td><td>22</td><td>18</td><td>21</td><td>13</td><td><strong>19</strong></td></tr>
+</tbody></table></div>
+
+<p>查到 8 在 <span class="m">k = 6</span>、19 在 <span class="m">k = 15</span>，<span class="m">X<sub>A</sub></span>、<span class="m">X<sub>B</sub></span> 都暴露了。安全性完全来自 <span class="m">q</span> 的大小：课件说对 2048 位的素数 "nobody knows how"——列表要列约 <span class="m">2<sup>2048</sup></span> 项，已知的更好算法也远不实用。</p>
+
+<p>DH 用到的单向函数是"<span class="m">X ↦ α<sup>X</sup> <span class="rm">mod</span> q</span>"：正着算是 <a href="#s4-2">平方-乘</a>，倒着算是离散对数。它没有陷门，DH 也不需要陷门（<a href="#s2-2">2.2</a>）。</p>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>严格说攻击者要解的是另一个问题</div>
+<p style="margin-bottom:0">课件第 19 页："To compute the shared secret they need <span class="m">X<sub>A</sub></span> or <span class="m">X<sub>B</sub></span>"。攻击者真正的目标是从 <span class="m">α<sup>X<sub>A</sub></sup></span> 和 <span class="m">α<sup>X<sub>B</sub></sup></span> 算出 <span class="m">α<sup>X<sub>A</sub>X<sub>B</sub></sup></span>，这叫<strong>计算 Diffie–Hellman 问题</strong>（computational Diffie–Hellman problem，CDH）。解出离散对数足以解决它，但"必须先求出 <span class="m">X<sub>A</sub></span> 或 <span class="m">X<sub>B</sub></span>"并没有被证明，二者在一般情况下是否等价仍是开放问题。考试按课件和教材答"窃听者必须解离散对数问题"即可。</p>
+</div>
+
+<h3 id="s6-5"><span class="n">6.5</span>中间人攻击</h3>
+
+<p><strong>中间人攻击</strong>（man-in-the-middle attack，MITM）：攻击者坐在通信双方之间，截下每一条消息，换成自己的再转发，双方都以为在直接对话。它是<strong>主动攻击</strong>（active attack：攻击者不只是旁听，还修改、伪造或替换消息，<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-2">L1 5.2</a> 讲过）的典型。缩写 MITM 和 L3 的<a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s10-1">中间相遇攻击</a>（meet-in-the-middle，攻击双重 DES）相同，两者毫无关系，不要混。课件第 22 页："Unauthenticated Diffie–Hellman is defeated completely by an attacker who can intercept and replace messages."</p>
+
+<p>攻击者叫 Darth，就是 L1 讲主动攻击时的那个攻击者（教材的叫法）。课后任务 3 要求"画出中间人攻击的消息序列，标出每一个值"，下图用课堂活动 4 的参数，Darth 按教材的做法自选两个秘密 <span class="m">X<sub>D1</sub> = 3</span>、<span class="m">X<sub>D2</sub> = 7</span>：</p>
+
+<figure>
+<div id="figMitm"></div>
+<figcaption>中间人攻击：蓝色箭头是真实的值，红色箭头是 Darth 替换上去的值。</figcaption>
+</figure>
+
+<p>按图中编号：</p>
+
+<ol><li>Alice 发出 <span class="m">Y<sub>A</sub> = 8</span>，被 Darth 截下；</li><li>Darth 把自己的 <span class="m">Y<sub>D1</sub> = 5<sup>3</sup> <span class="rm">mod</span> 23 = 10</span> 冒充 Alice 发给 Bob；</li><li>Bob 回复 <span class="m">Y<sub>B</sub> = 19</span>，被 Darth 截下；</li><li>Darth 把 <span class="m">Y<sub>D2</sub> = 5<sup>7</sup> <span class="rm">mod</span> 23 = 17</span> 冒充 Bob 发给 Alice。</li></ol>
+
+<p>各方算出的密钥：</p>
+
+<ul><li>Alice：<span class="m">K<sub>2</sub> = Y<span class="ss"><span>X<sub>A</sub></span><span>D2</span></span> = 17<sup>6</sup> <span class="rm">mod</span> 23 = 12</span>（<span class="m">17<sup>2</sup> = 289 ≡ 13</span>，<span class="m">17<sup>4</sup> ≡ 13<sup>2</sup> = 169 ≡ 8</span>，<span class="m">8 × 13 = 104 ≡ 12</span>）；Darth 用 <span class="m">Y<span class="ss"><span>X<sub>D2</sub></span><span>A</span></span> = 8<sup>7</sup> <span class="rm">mod</span> 23 = 12</span> 得到同一把（<span class="m">8<sup>2</sup> = 64 ≡ 18</span>，<span class="m">8<sup>4</sup> ≡ 18<sup>2</sup> = 324 ≡ 2</span>；<span class="m">8 × 18 = 144 ≡ 6</span>，<span class="m">6 × 2 = 12</span>）。</li><li>Bob：<span class="m">K<sub>1</sub> = Y<span class="ss"><span>X<sub>B</sub></span><span>D1</span></span> = 10<sup>15</sup> <span class="rm">mod</span> 23 = 5</span>（<span class="m">10<sup>2</sup> = 100 ≡ 8</span>，<span class="m">10<sup>4</sup> ≡ 64 ≡ 18</span>，<span class="m">10<sup>8</sup> ≡ 324 ≡ 2</span>；<span class="m">15 = 8 + 4 + 2 + 1</span>，<span class="m">10 × 8 = 80 ≡ 11</span>，<span class="m">11 × 18 = 198 ≡ 14</span>，<span class="m">14 × 2 = 28 ≡ 5</span>）；Darth 用 <span class="m">Y<span class="ss"><span>X<sub>D1</sub></span><span>B</span></span> = 19<sup>3</sup> <span class="rm">mod</span> 23 = 5</span> 得到同一把（<span class="m">19<sup>2</sup> = 361 ≡ 16</span>，<span class="m">16 × 19 = 304 ≡ 5</span>）。</li></ul>
+
+<p>（Darth 的两个公开值：<span class="m">5<sup>3</sup> = 125 ≡ 10</span>；<span class="m">5<sup>7</sup> = 5<sup>4</sup> · 5<sup>2</sup> · 5 ≡ 4 × 2 × 5 = 40 ≡ 17</span>。）</p>
+
+<p>结果（课件 "The result"）："Alice shares a key with Darth and believes it is Bob. Bob shares a different key with Darth and believes it is Alice. Darth decrypts, reads, re-encrypts and forwards. Neither sees anything wrong." 本该有的 <span class="m">K = 2</span> 谁也没有。</p>
+
+<p>为什么能成功（课件 "Why it works"）："The protocol authenticates nothing. A received value is just a number, and one number looks exactly like another. Alice has no way to tell Bob's Y from Darth's." 课件第 27 页的总结："it authenticates nobody"。</p>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>Darth 用一个值还是两个</div>
+<p style="margin-bottom:0">课件的图里 Darth 发给双方的是同一个 <span class="m">Y<sub>D</sub></span>，教材用两个。两种都行：只用 <span class="m">X<sub>D</sub> = 3</span>、<span class="m">Y<sub>D</sub> = 10</span> 时，Alice 得 <span class="m">10<sup>6</sup> <span class="rm">mod</span> 23 = 6</span>（<span class="m">10<sup>4</sup> · 10<sup>2</sup> ≡ 18 × 8 = 144 ≡ 6</span>），Bob 得 <span class="m">10<sup>15</sup> <span class="rm">mod</span> 23 = 5</span>，两把密钥照样不同，和课件 "a different key" 一致。画图时用两个值，每条箭头标得更清楚。</p>
+</div>
+
+<div class="tool" id="mmTool">
+  <h4>中间人演算：改 Darth 的两个秘密，看两边各得到哪把密钥</h4>
+  <p class="sub">下面的消息序列图按输入现画。把 <span class="m">X<sub>D1</sub></span>、<span class="m">X<sub>D2</sub></span> 设成同一个值，就是课件里 Darth 只发一个 <span class="m">Y<sub>D</sub></span> 的画法。</p>
+  <div class="row">
+    <span class="ctl"><label for="mmQ">q</label><input type="text" id="mmQ" value="23" style="width:4.6rem" oninput="mmGo()"></span>
+    <span class="ctl"><label for="mmA">α</label><input type="text" id="mmA" value="5" style="width:4.6rem" oninput="mmGo()"></span>
+    <span class="ctl"><label for="mmXA">X<sub>A</sub></label><input type="text" id="mmXA" value="6" style="width:4.6rem" oninput="mmGo()"></span>
+    <span class="ctl"><label for="mmXB">X<sub>B</sub></label><input type="text" id="mmXB" value="15" style="width:4.6rem" oninput="mmGo()"></span>
+    <span class="ctl"><label for="mmD1">X<sub>D1</sub></label><input type="text" id="mmD1" value="3" style="width:4.6rem" oninput="mmGo()"></span>
+    <span class="ctl"><label for="mmD2">X<sub>D2</sub></label><input type="text" id="mmD2" value="7" style="width:4.6rem" oninput="mmGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="mmSet(3,7)">教材：两个值 3、7</button>
+    <button class="btn" onclick="mmSet(3,3)">课件：一个值 3</button>
+  </div>
+  <div class="toolfig" id="mmFig"></div>
+  <div class="result" id="mmOut"></div>
+</div>
+
+<h3 id="s6-6"><span class="n">6.6</span>修复：认证交换的值</h3>
+
+<p>课件第 22 页底部："The fix is to authenticate the exchange — sign the exchanged values with a private key, and verify with a public key you can trust."</p>
+
+<p>即：Alice 用自己的私钥对 <span class="m">Y<sub>A</sub></span> 签名（<a href="#s3-2">认证模式</a>）一并发出，Bob 用 Alice 的公钥验签；Bob 对 <span class="m">Y<sub>B</sub></span> 同样处理。Darth 换掉 <span class="m">Y<sub>A</sub></span> 后造不出 Alice 对 <span class="m">Y<sub>D</sub></span> 的签名，替换立刻被发现。课后任务 3 问"能防住它的那一件事"，答的就是这个。</p>
+
+<p>但这又引出新问题，课件原话："Which raises the question: how do you know whose public key it is?" 如果 Darth 能让 Bob 相信"Darth 的公钥就是 Alice 的公钥"，签名也挡不住他。L1 讲网络安全模型时预告过同一件事：Diffie–Hellman 能让两个陌生人在公开信道上协商出共享秘密，做不到的是确认对方到底是谁（<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s8-1">L1 8.1</a>）。这个问题由证书和 <strong>PKI</strong>（public key infrastructure，公钥基础设施：由可信机构签发证书、把公钥和身份绑定起来的一整套体系）解决，见 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>。</p>
+
+<h2 id="s7"><span class="n">7</span>真实系统里的公钥密码</h2>
+
+<p>课件第 23 页："Where public-key cryptography actually sits in a real system — and why it is never used alone."</p>
+
+<h3 id="s7-1"><span class="n">7.1</span>混合加密：公钥管钥匙，对称管数据</h3>
+
+<p>课件第 25 页的标题就是结论："Nobody encrypts data with a public key."——公钥运算约比对称慢一千倍，没有真实系统用它加密大量数据。<strong>混合加密</strong>（hybrid encryption）分三步：</p>
+
+<ol><li><strong>约定或传送一把密钥</strong>：用 DH 约定一个共享秘密，或者用 RSA 加密一把新生成的随机密钥发给对方。不论哪种，只做一次公钥运算。</li><li><strong>派生对称密钥</strong>：把共享秘密送进密钥派生函数，扩展成实际使用的几把密钥——每个方向一把加密密钥，外加认证用的密钥。</li><li><strong>用 AES 加密一切</strong>：全部流量用 AES 的<strong>认证加密</strong>（authenticated encryption：一步同时完成加密和完整性认证）模式加密，例如 GCM（Galois/counter mode，伽罗瓦/计数器模式，<a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 的内容），快，而且有硬件加速（L4 讲的 <a href="L4%20AES.html#s11-2">AES-NI</a>，处理器里的 AES 专用指令）。</li></ol>
+
+<p>课件说每次打开 HTTPS 连接发生的就是这件事："An elliptic-curve Diffie–Hellman exchange, authenticated by a signature, producing a shared secret that becomes an AES-GCM key. Public-key cryptography is used once, for a few hundred bytes. Everything after that is symmetric." 这里说的是 TLS，椭圆曲线上的 Diffie–Hellman 见下一小节。</p>
+
+<p>分工（课件 "The division of labour"）："Public-key cryptography solves key distribution and identity. Symmetric cryptography does the actual work. Neither replaces the other."</p>
+
+<div class="box warn">
+<div class="h"><span class="tag">勘误</span>课件第 17 页说的 TLS 做法已经过时</div>
+<p>课件第 17 页在"RSA 慢"的修复里写："Use RSA to protect a freshly generated AES key, then use AES for the data. This is what TLS does."</p>
+<p>误：今天的 TLS 用 RSA 加密会话密钥。</p>
+<p>正：那是 <strong>TLS 1.2 及更早版本</strong>的做法之一（严格说 RSA 加密的是预主密钥 pre-master secret，会话密钥再由它派生，见 <a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a>）。<strong>TLS 1.3（2018 年，RFC 8446）删除了 RSA 密钥传输和静态 DH</strong>，基于公钥的密钥交换只剩每次连接临时生成的（椭圆曲线上的）Diffie–Hellman，RSA 只用来签名认证。（另有会话恢复用的预共享密钥模式 PSK，pre-shared key，与本讲无关。）课件第 25 页的 HTTPS 描述本身就是 TLS 1.3 的做法，和第 17 页不一致。</p>
+<p>删掉它的原因（课件外）：用 RSA 传会话密钥时，服务器的 RSA 私钥一旦日后泄露，攻击者就能解开此前录下的所有会话；每次连接临时生成、用完即弃的 DH 秘密没有这个问题，这叫<strong>前向保密</strong>（forward secrecy）。</p>
+<p style="margin-bottom:0">考场上写"混合加密：公钥运算只用来传送或协商对称密钥"不会错；要举 TLS 的例子，写"TLS 1.3：临时（椭圆曲线）Diffie–Hellman 协商 + 签名认证 + AES-GCM"。</p>
+</div>
+
+<p>课件留了一个悬而未决的地方（"The unresolved piece"）："'authenticated by a signature' is doing a great deal of work in that sentence — and it assumes you already know whose public key you hold." 和 <a href="#s6-6">6.6</a> 是同一个问题，交给 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>。</p>
+
+<h3 id="s7-2"><span class="n">7.2</span>椭圆曲线：同样的思想，更短的密钥</h3>
+
+<p><strong>椭圆曲线密码</strong>（elliptic curve cryptography，ECC）：课件第 24 页，"Same ideas, different arithmetic. Instead of exponentiating numbers modulo a prime, ECC adds points on a curve. The structure of the problem is identical; the difficulty per bit is far higher." 对应的难题叫椭圆曲线离散对数问题（elliptic curve discrete logarithm problem，ECDLP）；在曲线上做的 DH 叫 ECDH（elliptic-curve Diffie–Hellman）。TLS 1.3 每次连接临时生成一对 ECDH 钥匙、用完即弃，这种用法记作 ECDHE（末尾的 E 是 ephemeral，临时），HTTPS 用的就是它。</p>
+
+<p><strong>安全强度</strong>（security strength）<span class="m">k</span> 位，指已知最好的攻击约需 <span class="m">2<sup>k</sup></span> 次运算；对称密钥 <span class="m">k</span> 位的安全强度就是 <span class="m">k</span> 位。同等安全强度所需的密钥长度（课件第 24 页，"Approximate equivalences. The exact figures vary between guidance documents, but the shape does not."）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>安全等级</th><th>对称密钥</th><th>RSA / Diffie–Hellman</th><th>椭圆曲线</th></tr></thead>
+<tbody>
+<tr><td>当前够用（Adequate today）</td><td>128 位</td><td>3072 位</td><td>256 位</td></tr>
+<tr><td>长期（Long term）</td><td>256 位</td><td>15360 位</td><td>512 位</td></tr>
+</tbody></table></div>
+
+<p>读表的要点：椭圆曲线的密钥长度大约是对称密钥的两倍，RSA/DH 则要长出一个数量级以上，而且对称密钥翻倍时 RSA 要涨到五倍。原因（课件外）：分解大数和普通的离散对数都有比穷举快得多的专门算法（数域筛法，number field sieve），模数要很长才扛得住；椭圆曲线上目前只有通用的攻击，约需 <span class="m">2<sup>k/2</sup></span> 次运算破解 <span class="m">k</span> 位密钥，所以 256 位对应 128 位的安全强度。</p>
+
+<p>为什么短钥匙重要（课件）："Less computation, less bandwidth, less storage, less battery. On a phone or a sensor those differences are decisive, which is why ECC now dominates new deployments."</p>
+
+<p>考试要求，课件原话："That ECC exists, that it achieves the same functions — key agreement and signatures — with much shorter keys, and why that matters. The curve arithmetic itself is beyond this course."</p>
+
+<p>公钥算法各能做什么（教材第 9 章 "Applications for Public-Key Cryptosystems" 的表，适合出简答题）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>算法</th><th>加密 / 解密</th><th>数字签名</th><th>密钥交换</th></tr></thead>
+<tbody>
+<tr><td>RSA</td><td>能</td><td>能</td><td>能</td></tr>
+<tr><td>椭圆曲线</td><td>能</td><td>能</td><td>能</td></tr>
+<tr><td>Diffie–Hellman</td><td>不能</td><td>不能</td><td>能</td></tr>
+<tr><td>DSS（digital signature standard，美国数字签名标准，算法即 DSA）</td><td>不能</td><td>能</td><td>不能</td></tr>
+</tbody></table></div>
+
+<p>这张表把几处结论放在了一起：DH 只做密钥协商（<a href="#s6-1">6.1</a>），DSA 的私钥不能"加密"（<a href="#s3-2">3.2</a>），RSA 因为加解密是同一种运算，三样都能做。</p>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>表的行名</div>
+<p style="margin-bottom:0">美国国家标准与技术研究院（National Institute of Standards and Technology，NIST）的密钥管理指南（SP 800-57，SP 是 special publication，特别出版物系列）按"安全强度"（112、128、192、256 位）分级，"Long term = 256 位"是课件的简化叫法；数字本身与 NIST 的对照表一致（128 位强度 ↔ RSA 3072、ECC 256 以上；256 位强度 ↔ RSA 15360、ECC 512 以上）。</p>
+</div>
+
+<h3 id="s7-3"><span class="n">7.3</span>量子计算</h3>
+
+<p>课件第 24 页的提醒："A sufficiently large quantum computer would break RSA, Diffie–Hellman and elliptic curves alike — all three rest on problems a quantum algorithm solves efficiently. Symmetric ciphers like AES are far less affected."</p>
+
+<ul><li>打破三者的是 <strong>Shor 算法</strong>（1994）：在足够大的量子计算机上，能在多项式时间（运算量随密钥位数按多项式增长，例如位数的三次方，对比穷举的 <span class="m">2<sup>k</sup></span> 就算"高效"）内完成大数分解和离散对数（包括椭圆曲线上的）。</li><li>对称密码只受 <strong>Grover 算法</strong>影响：穷举的工作量从 <span class="m">2<sup>k</sup></span> 降到约 <span class="m">2<sup>k/2</sup></span>，把密钥长度加倍就能补回来，所以长期保护用 AES-256。</li><li>"data that must stay secret for decades is a live concern today"：攻击者现在就可以录下加密流量，等量子计算机造出来再解密（"先收集、后解密"，harvest now, decrypt later）。所以需要现在就换成<strong>后量子</strong>（post-quantum）算法——在量子计算机面前仍然安全的公钥算法。（课件外：主流浏览器和内容分发网络（content delivery network，CDN：替网站就近分发内容的服务器网络）的 TLS 1.3 已默认采用 X25519 椭圆曲线 DH 与后量子算法 ML-KEM-768 的混合密钥交换，两者都被攻破才会泄密。）</li></ul>
+
+<div class="box">
+<div class="h"><span class="tag">补充</span>后量子标准已经发布</div>
+<p style="margin-bottom:0">课件说 "post-quantum algorithms are being standardised now"。NIST 已于 2024 年 8 月发布首批三项后量子标准：FIPS 203（ML-KEM，密钥封装 key encapsulation mechanism：用公钥把一把随机对称密钥"封"给对方）、FIPS 204（ML-DSA，签名）、FIPS 205（SLH-DSA，签名），后续标准仍在进行。说"正在标准化"不算错，只是首批已经落地。</p>
+</div>
+
+<h3 id="s7-4"><span class="n">7.4</span>这把公钥真是银行的吗</h3>
+
+<p>课后任务 4："Alice receives a public key claiming to belong to her bank. How can she tell whether it really does? Write down every mechanism you can think of, and the weakness of each." 课件说这题没有标准答案，用来引出下一讲。可以想到的机制：</p>
+
+<div class="tw"><table>
+<thead><tr><th>机制</th><th>弱点</th></tr></thead>
+<tbody>
+<tr><td>带外（out-of-band：走另一条独立的渠道）核对：打电话、去柜台、对照纸质信件上的公钥指纹（fingerprint：公钥的哈希摘要，短到可以念出来核对）</td><td>麻烦、难以大规模使用；带外渠道本身也可能被冒充</td></tr>
+<tr><td>由可信第三方（<strong>证书颁发机构</strong> certificate authority，CA）签发证书</td><td>要信任 CA；CA 可能被攻破或误签；证书吊销（revocation：证书到期前宣布作废，L8 讲）检查不可靠</td></tr>
+<tr><td>把银行公钥预装在 App 里（公钥固定，pinning）</td><td>换钥困难；首次安装本身必须可信</td></tr>
+<tr><td>首次使用即信任（TOFU，trust on first use；远程登录协议 SSH 的做法）</td><td>第一次连接如果已被中间人攻击，就会一直信任错误的公钥</td></tr>
+<tr><td>信任网（web of trust：熟人之间互相签名担保；邮件加密软件 PGP 的做法）</td><td>信任传递不可靠，覆盖面小</td></tr>
+<tr><td>从官网下载</td><td>网站或域名解析被劫持时没用；访问官网本身就需要认证，循环了</td></tr>
+</tbody></table></div>
+
+<p>每一种都把问题变成了"信任另一样东西"。PKI 是目前规模化的答案，见 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>。</p>
+
+<h2 id="s8"><span class="n">8</span>六条结论</h2>
+
+<p>课件第 27 页的总结：</p>
+
+<ol><li>公钥密码用两把数学上相连的钥匙：公钥发布，私钥从不离开主人。（<a href="#s2-1">2.1</a>）</li><li>公钥用来"对某人说话"，私钥用来"证明你是某人"。（<a href="#s3-3">3.3</a>）</li><li>RSA 依赖大数分解的困难；它的安全来自数的大小，不来自算法结构。（<a href="#s5-5">5.5</a>）</li><li>Diffie–Hellman 在公开信道上约定一个共享秘密，不加密任何东西；双方从不同方向算出同一个值。（<a href="#s6-2">6.2</a>）</li><li>不经认证的 Diffie–Hellman 会被中间人完全攻破——它不认证任何人。（<a href="#s6-5">6.5</a>）</li><li>公钥密码慢，从不用于大量数据；它负责分发密钥，真正干活的是对称密码。（<a href="#s7-1">7.1</a>）</li></ol>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul><li>对称密码解决不了：<strong>密钥分发</strong>（要先有安全信道才能送密钥，循环）；<strong>不可否认的签名</strong>（MAC 的密钥双方都有，只给完整性和真实性）。1976 年 Diffie–Hellman 论文解决了密钥分发并提出公钥概念（课件第 5 页说"两个都没解决"是错的），RSA（1977/78）给出加密与签名。</li><li>钥匙对：公钥公开，用来给主人加密、验证主人签名；私钥只有主人有，用来解密、签名。核心要求：只知公钥，在计算上推不出私钥。</li><li>单向函数：正算易、逆算难。陷门单向函数：有陷门（私钥）的人能逆算。RSA 是陷门函数（陷门 <span class="m">d</span>）；离散对数没有陷门，DH 不需要陷门。</li><li>三个误解：公钥不比对称更安全；不取代对称（慢约千倍）；也没让密钥分发变简单（还要确认公钥归属）。</li><li><strong>机密性模式</strong>：用<strong>接收方的公钥</strong>加密，接收方用自己的私钥解密，<span class="m">Y = <span class="rm">E</span>(PU<sub>b</sub>, X)</span>，<span class="m">X = <span class="rm">D</span>(PR<sub>b</sub>, Y)</span>；保密，但不知道谁发的。<strong>认证模式</strong>：用<strong>自己的私钥</strong>加密，任何人用发送方公钥解密；证明出处与不可否认，毫无保密（"私钥加密 = 签名"只对 RSA 成立）。规则：只让一个人读用他的公钥，要人人能验证用我的私钥。合用：<span class="m">Z = <span class="rm">E</span>(PU<sub>b</sub>, <span class="rm">E</span>(PR<sub>a</sub>, X))</span>。</li><li>取模：结果在 <span class="m">0 ～ n − 1</span>，<span class="m">−3 <span class="rm">mod</span> 7 = 4</span>；乘法、加法随时取模；手算每步写"乘积 → 商 → 余数"。</li><li><strong>平方-乘</strong>：格式一，列 <span class="m">b<sup>1</sup>, b<sup>2</sup>, b<sup>4</sup>, …</span>，按二进制挑项连乘；格式二，二进制从高位读，每位先平方、是 1 再乘底数。例 <span class="m">88<sup>7</sup> <span class="rm">mod</span> 187 = 11</span>，<span class="m">11<sup>23</sup> <span class="rm">mod</span> 187 = 88</span>，<span class="m">13<sup>27</sup> <span class="rm">mod</span> 55 = 7</span>。</li><li><strong>模逆</strong>：存在 ⇔ <span class="m"><span class="rm">gcd</span>(a, n) = 1</span>。试算 <span class="m">b = (1 + kn)/a</span>，<span class="m">k &lt; a</span>；扩展欧几里得表 <span class="m">r<sub>i</sub> ≡ t<sub>i</sub>a</span>，新 <span class="m">t</span> = 上上 <span class="m">t</span> − 商 × 上 <span class="m">t</span>，到 <span class="m">r = 1</span> 读 <span class="m">t</span>，负则加 <span class="m">n</span>。例 <span class="m">7<sup>−1</sup> <span class="rm">mod</span> 160 = 23</span>，<span class="m">3<sup>−1</sup> <span class="rm">mod</span> 40 = 27</span>，<span class="m">13<sup>−1</sup> <span class="rm">mod</span> 60 = 37</span>。</li><li><span class="m">φ(n)</span>：<span class="m">1 ～ n − 1</span> 中与 <span class="m">n</span> 互素的个数；<span class="m">φ(p) = p − 1</span>；<span class="m">φ(pq) = (p − 1)(q − 1)</span>（去掉 <span class="m">p + q − 1</span> 个倍数）。<span class="m">φ(187) = 160</span>，<span class="m">φ(15) = 8</span>。</li><li>欧拉定理 <span class="m">a<sup>φ(n)</sup> ≡ 1&ensp;(<span class="rm">mod</span> n)</span>，<strong>前提 <span class="m"><span class="rm">gcd</span>(a, n) = 1</span></strong>；费马小定理 <span class="m">a<sup>p−1</sup> ≡ 1&ensp;(<span class="rm">mod</span> p)</span>。互素时指数可对 <span class="m">φ(n)</span> 取模，用来验算。</li><li><strong>RSA 密钥生成</strong>：选素数 <span class="m">p, q</span>（秘）→ <span class="m">n = pq</span>（公）→ <span class="m">φ(n) = (p − 1)(q − 1)</span>（秘）→ 选 <span class="m">e</span>，<span class="m"><span class="rm">gcd</span>(e, φ) = 1</span>（公）→ <span class="m">d = e<sup>−1</sup> <span class="rm">mod</span> φ(n)</span>（秘）。公钥 <span class="m">{e, n}</span>，私钥 <span class="m">{d, n}</span>。例 <span class="m">{7, 187}</span>、<span class="m">{23, 187}</span>；活动 3：<span class="m">n = 55</span>，<span class="m">φ = 40</span>，<span class="m">d = 27</span>，<span class="m">7 → 13 → 7</span>。实际实现保留 <span class="m">p, q</span> 用中国剩余定理加速。</li><li><strong>加解密</strong>：<span class="m">C = M<sup>e</sup> <span class="rm">mod</span> n</span>（接收方公钥），<span class="m">M = C<sup>d</sup> <span class="rm">mod</span> n</span>（接收方私钥），<span class="m">M &lt; n</span>。同一种运算，所以 RSA 也能签名（<span class="m">d</span>）、验签（<span class="m">e</span>）。</li><li><strong>正确性</strong>：<span class="m">ed = 1 + kφ(n)</span>，<span class="m"><span class="rm">gcd</span>(M, n) = 1</span> 时由欧拉定理 <span class="m">M<sup>ed</sup> ≡ M</span>；课件例题 <span class="m">M = 88</span> 与 <span class="m">n</span> 有公因子 11（<span class="m">88<sup>160</sup> ≡ 154 ≠ 1</span>），一般情形要对 <span class="m">p</span>、<span class="m">q</span> 分别用费马小定理再用中国剩余定理合成。</li><li><strong>RSA 安全</strong>：分解 <span class="m">n</span> → <span class="m">φ</span> → <span class="m">d</span>；知道 <span class="m">φ</span> 即可分解（<span class="m">p + q = n − φ + 1</span>，解二次方程）。分解困难未被证明（计算安全）。1024 位不够，2048 位最低，3072 位长期；AES-128 ≈ RSA-3072。</li><li><strong>教科书 RSA 三问题</strong>：确定性（四条指令逐条试加密即可读出，同 ECB 之病，修复 OAEP）；慢（混合加密）；侧信道（计时泄露 <span class="m">d</span>，修复常数时间 + 盲化，别自己写）。</li><li><strong>模拟卷 Q2(d)</strong>：一句话定义 + 机密性模式图（五个得分点：公钥环、接收方私钥、加密算法、传输密文、明文输出）+ 四步（生成钥匙对、公布公钥并保管私钥、用接收方公钥加密、接收方用私钥解密，只有他能解）。角色前后一致。</li><li><strong>DH</strong>：公开 <span class="m">q</span> 与本原根 <span class="m">α</span>；<span class="m">Y<sub>A</sub> = α<sup>X<sub>A</sub></sup></span>，<span class="m">Y<sub>B</sub> = α<sup>X<sub>B</sub></sup></span>；<span class="m">K = Y<span class="ss"><span>X<sub>A</sub></span><span>B</span></span> = Y<span class="ss"><span>X<sub>B</sub></span><span>A</span></span> = α<sup>X<sub>A</sub>X<sub>B</sub></sup> <span class="rm">mod</span> q</span>。密钥协商，不加密任何东西；<span class="m">X<sub>A</sub>, X<sub>B</sub></span> 不上线路。活动 4：<span class="m">q = 23, α = 5, X<sub>A</sub> = 6, X<sub>B</sub> = 15</span> → <span class="m">Y<sub>A</sub> = 8</span>，<span class="m">Y<sub>B</sub> = 19</span>，<span class="m">K = 2</span>（验算 <span class="m">5<sup>90<span class="rm">mod</span>22</sup> = 5<sup>2</sup> = 2</span>）。</li><li>窃听者看到 <span class="m">q, α, Y<sub>A</sub>, Y<sub>B</sub></span>，要解<strong>离散对数</strong>（严格说是 CDH）；小 <span class="m">q</span> 列表即破，2048 位素数无人能解。</li><li><strong>中间人</strong>：Darth 截下 <span class="m">Y<sub>A</sub></span>、<span class="m">Y<sub>B</sub></span>，换成自己的 <span class="m">Y<sub>D</sub></span>，分别与两边建立不同的密钥（活动 4 参数、<span class="m">X<sub>D1</sub> = 3, X<sub>D2</sub> = 7</span>：Alice–Darth 12，Darth–Bob 5），解密、阅读、重新加密转发。原因：协议不认证任何人。修复：对交换的值签名，用可信公钥验签 → 公钥归属问题 → L8 PKI。</li><li><strong>混合加密</strong>：DH 协商或 RSA 传送一把密钥 → 派生对称密钥（KDF）→ AES-GCM 加密全部数据。TLS 1.3 删除了 RSA 密钥传输和静态 DH，基于公钥的密钥交换只剩临时 ECDH，加签名认证（课件"RSA 包 AES 密钥是 TLS 的做法"已过时）。</li><li><strong>ECC</strong>：同样的思想，在曲线上做点加法；128 位安全 ↔ ECC 256 ↔ RSA 3072，256 位安全 ↔ ECC 512 ↔ RSA 15360；短钥匙省算力、带宽、电量。只考概念。能力表：RSA 与 ECC 加解密、签名、密钥交换都能做，DH 只能密钥交换，DSS 只能签名。</li><li><strong>量子</strong>：Shor 算法破 RSA、DH、ECC；Grover 只把对称密钥强度减半；先收集后解密；NIST 2024 年发布 FIPS 203/204/205。</li></ul></div>
+
+<footer>
+<p>下一讲 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>：签名的正式做法（先哈希再签），以及这一讲留下的问题——怎么知道一把公钥属于谁：证书、证书颁发机构与 PKI。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L7 公钥密码.md</code> 的阅读优化版，内容一致；页内交互件的数值都由页面脚本现算。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   nt-core.js — L7 交互件用的小数数论内核（纯函数，可在 node 里单测）
+   只服务「考场规模」的小数：模数不超过 10^7，乘积不超过 10^14，Number 精确。
+   每个函数除了结果，还返回手算时要写的每一行（乘积、商、余数）。
+   ==========================================================================*/
+var NT_MAX = 10000000;
+function mod(a,n){ return ((a%n)+n)%n; }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=a%b; a=b; b=t; } return a; }
+function isPrime(n){ if(n<2) return false; if(n%2===0) return n===2; for(var d=3;d*d<=n;d+=2) if(n%d===0) return false; return true; }
+function factorize(n){ var f=[], d=2; while(d*d<=n){ while(n%d===0){ f.push(d); n/=d; } d++; } if(n>1) f.push(n); return f; }
+function phi(n){ var ps=factorize(n).filter(function(p,i,a){ return a.indexOf(p)===i; }); var r=n; ps.forEach(function(p){ r=r/p*(p-1); }); return r; }
+function bin(e){ return e.toString(2); }
+/** 一次「乘积 → 商 → 余数」 */
+function mulRow(a,b,n){ var prod=a*b; return {a:a, b:b, prod:prod, q:Math.floor(prod/n), r:prod%n}; }
+
+/** 格式一：逐次平方表 + 按二进制挑项连乘 */
+function powTable(b,e,n){
+  b=mod(b,n);
+  var sq=[{k:1, row:null, val:b}], k=1, v=b;
+  while(k*2<=e){ var r=mulRow(v,v,n); k*=2; v=r.r; sq.push({k:k, row:r, val:v}); }
+  var picks=sq.filter(function(s){ return (e & s.k) !== 0; });   /* e < 2^31 */
+  var acc=null, accK=[], mul=[];
+  picks.forEach(function(s){
+    if(acc===null){ acc=s.val; accK=[s.k]; return; }
+    var r=mulRow(acc,s.val,n); accK=accK.concat([s.k]); acc=r.r; mul.push({ks:accK.slice(), row:r, val:acc});
+  });
+  if(e===0) acc=1%n;
+  return {sq:sq, picks:picks.map(function(s){ return s.k; }), mul:mul, result:acc};
+}
+/** 格式二：从左到右二进制法 */
+function powLR(b,e,n){
+  b=mod(b,n); var bits=bin(e), r=1%n, rows=[];
+  for(var i=0;i<bits.length;i++){
+    var s=mulRow(r,r,n), row={bit:bits[i], sq:s, mul:null};
+    r=s.r;
+    if(bits[i]==='1'){ var m=mulRow(r,b,n); row.mul=m; r=m.r; }
+    row.val=r; rows.push(row);
+  }
+  return {bits:bits, rows:rows, result:r};
+}
+function modpow(b,e,n){ b=mod(b,n); var r=1%n; while(e>0){ if(e&1) r=(r*b)%n; b=(b*b)%n; e=Math.floor(e/2); } return r; }
+
+/** 扩展欧几里得表：每行 r ≡ t·a (mod n)；到 r = 1 读 t */
+function egcdTable(a,n){
+  var rows=[{r:n, q:null, t:0}, {r:mod(a,n), q:null, t:1}];
+  while(rows[rows.length-1].r>1){
+    var p2=rows[rows.length-2], p1=rows[rows.length-1];
+    if(p1.r===0) break;
+    var q=Math.floor(p2.r/p1.r);
+    rows.push({r:p2.r-q*p1.r, q:q, t:p2.t-q*p1.t, from:[p2.r,p1.r]});
+  }
+  var last=rows[rows.length-1];
+  var g = last.r===1 ? 1 : (last.r===0 ? rows[rows.length-2].r : gcd(a,n));
+  var inv = (last.r===1) ? mod(last.t,n) : null;
+  return {rows:rows, gcd:g, inv:inv, tRaw:last.r===1?last.t:null};
+}
+/** 试算法：b = (1 + k·n)/a，k = 1, 2, … */
+function trialInverse(a,n){
+  var tries=[]; a=mod(a,n);
+  if(gcd(a,n)!==1) return {tries:tries, inv:null};
+  for(var k=1;k<=a;k++){ var v=1+k*n, ok=(v%a===0); tries.push({k:k, v:v, ok:ok, b:ok?v/a:null}); if(ok) return {tries:tries, inv:v/a}; }
+  if(a===1) return {tries:[], inv:1};
+  return {tries:tries, inv:null};
+}
+/** 本原根判别：对 q−1 的每个素因子 r 检查 α^((q−1)/r) ≠ 1 */
+function primitiveCheck(alpha,q){
+  var ps=factorize(q-1).filter(function(p,i,a){ return a.indexOf(p)===i; });
+  var checks=ps.map(function(r){ var v=modpow(alpha,(q-1)/r,q); return {r:r, e:(q-1)/r, v:v, ok:v!==1}; });
+  return {factors:ps, checks:checks, ok:checks.every(function(c){ return c.ok; })};
+}
+function primitiveRoots(q){ var o=[]; for(var a=2;a<q;a++) if(primitiveCheck(a,q).ok) o.push(a); return o; }
+/** 离散对数：列 α^k mod q，k = 1 … q−1 */
+function dlogTable(alpha,q){ var t=[], v=1; for(var k=1;k<q;k++){ v=(v*alpha)%q; t.push(v); } return t; }
+
+
+/* ============================================================================
+   figlib.js — L6/L7 学习页的 SVG 画图层（无外部库）
+   配色照 L1–L4 的约定：中性线条与文字用 currentColor + 不透明度（随明暗主题），
+   强调色硬编码 #2F6F8F，其余语义色（警示、通过、考点）开页时从 CSS 变量读一次。
+   文字里用 $…$ 包住的部分按公式排（衬线斜体），其中 _x、_{..}、^x、^{..} 是下标、上标。
+   ==========================================================================*/
+var SVGNS = 'http://www.w3.org/2000/svg';
+var ACC = '#2F6F8F';
+var THEME = (function(){
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  return { warn: g('--warn','#B4534B'), ok: g('--ok','#3F8A63'), exam: g('--exam','#9A6B2F'),
+           muted: g('--muted','#5C6673'), faint: g('--faint','#8A929C') };
+})();
+var SERIF = "'Times New Roman',Georgia,'DejaVu Serif',serif";
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+/** 颜色名 → 实际颜色 */
+function colorOf(k){
+  if(!k || k==='ink') return 'currentColor';
+  if(k==='acc') return ACC;
+  return THEME[k] || k;
+}
+
+/** 把「普通文字 $公式$ 普通文字」拆成 [{t, lvl, math}]；lvl 为上下标层级序列（+1 上标，−1 下标） */
+function parseRich(str){
+  var runs = [], i = 0, math = false;
+  function push(t, lv){ if(t) runs.push({t:t, lv:lv.slice(), math:math}); }
+  function readGroup(){ // 从 i 读一个 {..} 或一个字符
+    if(str[i]==='{'){ var d=1, j=i+1; while(j<str.length && d){ if(str[j]==='{') d++; else if(str[j]==='}') d--; j++; }
+      var g=str.slice(i+1,j-1); i=j; return g; }
+    var c=str[i]; i++; return c;
+  }
+  function walk(s, lv){
+    var save=str, si=i; str=s; i=0; var buf='';
+    while(i<str.length){
+      var c=str[i];
+      if(c==='$'){ push(buf,lv); buf=''; math=!math; i++; continue; }
+      if(math && (c==='_'||c==='^')){ push(buf,lv); buf=''; i++; var g=readGroup(); walk(g, lv.concat([c==='^'?1:-1])); continue; }
+      buf+=c; i++;
+    }
+    push(buf,lv); str=save; i=si;
+  }
+  walk(str, []);
+  return runs;
+}
+
+function Fig(id, w, h, label){
+  this.id = id; this.w = w; this.h = h;
+  this.svg = svgEl('svg', {viewBox:'0 0 '+w+' '+h, role:'img', 'aria-label':label||'图'});
+  this.svg.style.display='block'; this.svg.style.width='100%'; this.svg.style.height='auto';
+  this.defs = svgEl('defs'); this.svg.appendChild(this.defs);
+  this.g = svgEl('g', {'font-family':'inherit','font-size':'13','text-anchor':'middle'});
+  this.svg.appendChild(this.g);
+  this.markers = {};
+}
+Fig.prototype.add = function(e, parent){ (parent||this.g).appendChild(e); return e; };
+Fig.prototype.marker = function(color){
+  var key = color.replace(/[^a-zA-Z0-9]/g,'');
+  if(this.markers[key]) return this.markers[key];
+  var mid = this.id+'-mk-'+key;
+  var m = svgEl('marker',{id:mid, markerWidth:9, markerHeight:9, refX:8, refY:3, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path',{d:'M0,0 L8,3 L0,6 z', fill:colorOf(color), 'fill-opacity': color==='ink'?0.7:1}));
+  this.defs.appendChild(m);
+  this.markers[key] = 'url(#'+mid+')';
+  return this.markers[key];
+};
+/** 带箭头的折线。o: {c:颜色名, w:线宽, dash} */
+Fig.prototype.arrow = function(d, o){
+  o=o||{}; var c=o.c||'ink';
+  return this.add(svgEl('path',{d:d, fill:'none', stroke:colorOf(c), 'stroke-opacity':c==='ink'?0.6:0.9,
+    'stroke-width':o.w||1.4, 'stroke-dasharray':o.dash||null, 'marker-end':this.marker(c)}));
+};
+Fig.prototype.line = function(d, o){
+  o=o||{}; var c=o.c||'ink';
+  return this.add(svgEl('path',{d:d, fill:'none', stroke:colorOf(c), 'stroke-opacity':o.op!==undefined?o.op:(c==='ink'?0.6:0.9),
+    'stroke-width':o.w||1.4, 'stroke-dasharray':o.dash||null}));
+};
+Fig.prototype.dot = function(x, y, c){ return this.add(svgEl('circle',{cx:x, cy:y, r:2.8, fill:colorOf(c||'ink'), 'fill-opacity':c?1:0.7})); };
+/** 异或圈 */
+Fig.prototype.xor = function(cx, cy, r, c){
+  r=r||11; var col=colorOf(c||'acc');
+  this.add(svgEl('circle',{cx:cx, cy:cy, r:r, fill:'none', stroke:col, 'stroke-width':1.5}));
+  this.add(svgEl('path',{d:'M'+(cx-r)+','+cy+' H'+(cx+r)+' M'+cx+','+(cy-r)+' V'+(cy+r), stroke:col, 'stroke-width':1.5}));
+};
+/** 富文本。o: {size, c, anchor, w(粗细), op, italic} */
+Fig.prototype.text = function(x, y, str, o, parent){
+  o=o||{}; var fs=o.size||13;
+  var t = svgEl('text',{x:x, y:y, fill:colorOf(o.c), 'font-size':fs, 'text-anchor':o.anchor||'middle',
+    'font-weight':o.w||null, 'fill-opacity':o.op!==undefined?o.op:null, 'font-style':o.italic?'italic':null});
+  var runs = parseRich(String(str)), cur = 0;
+  runs.forEach(function(r){
+    var off = 0, scale = 1;
+    r.lv.forEach(function(l){ off += (l>0 ? -0.36 : 0.26)*fs*scale; scale *= 0.72; });
+    var ts = svgEl('tspan',{});
+    if(off!==cur){ ts.setAttribute('dy', (off-cur).toFixed(2)); cur = off; }
+    if(scale!==1) ts.setAttribute('font-size', (fs*scale).toFixed(1));
+    if(r.math){ ts.setAttribute('font-family', SERIF); ts.setAttribute('font-style','italic'); }
+    ts.textContent = r.t;
+    t.appendChild(ts);
+  });
+  return this.add(t, parent);
+};
+/** 方框。o: {t:主文字, t2:第二行, k:'plain'|'acc'|'solid'|'warn'|'ok'|'exam'|'faint', size, rx, w(字重)} */
+Fig.prototype.box = function(x, y, w, h, o){
+  o=o||{}; var k=o.k||'plain';
+  var stroke='currentColor', so=0.42, fill='none', fo=0, tc='ink', tw=o.w||null;
+  if(k==='acc'){ stroke=ACC; so=0.75; fill=ACC; fo=0.08; tc='acc'; }
+  else if(k==='solid'){ stroke=ACC; so=0.9; fill=ACC; fo=0.16; tc='acc'; tw=tw||'600'; }
+  else if(k==='warn'||k==='ok'||k==='exam'){ stroke=colorOf(k); so=0.85; fill=colorOf(k); fo=0.09; tc=k; }
+  else if(k==='faint'){ so=0.25; fill='currentColor'; fo=0.04; }
+  this.add(svgEl('rect',{x:x, y:y, width:w, height:h, rx:o.rx!==undefined?o.rx:7, fill:fill, 'fill-opacity':fo,
+    stroke:stroke, 'stroke-opacity':so, 'stroke-width':o.sw||1.4, 'stroke-dasharray':o.dash||null}));
+  var cx=x+w/2, fs=o.size||13;
+  if(o.t!==undefined && o.t2===undefined) this.text(cx, y+h/2+fs*0.36, o.t, {size:fs, c:tc, w:tw});
+  else if(o.t!==undefined){
+    this.text(cx, y+h/2-fs*0.3, o.t, {size:fs, c:tc, w:tw});
+    this.text(cx, y+h/2+fs*0.95, o.t2, {size:o.size2||fs-1.5, c:o.c2||(k==='plain'?'ink':tc), op:o.c2?null:0.78});
+  }
+};
+/** 圆圈编号 */
+Fig.prototype.badge = function(cx, cy, n, c){
+  var col=colorOf(c||'warn');
+  this.add(svgEl('circle',{cx:cx, cy:cy, r:11, fill:'none', stroke:col, 'stroke-width':1.6}));
+  this.text(cx, cy+4.5, String(n), {size:12.5, c:c||'warn', w:'700'});
+};
+/** 横向大括号（开口向上），用来标「发送方」「接收方」 */
+Fig.prototype.brace = function(x1, x2, y, label){
+  this.line('M'+x1+','+(y-8)+' V'+y+' H'+x2+' V'+(y-8), {op:0.45});
+  if(label) this.text((x1+x2)/2, y+20, label, {size:13, op:0.75});
+};
+Fig.prototype.mount = function(host){
+  var el = typeof host==='string' ? document.getElementById(host) : host;
+  if(!el) return this;
+  el.innerHTML=''; el.appendChild(this.svg);
+  if(this.minW) this.svg.style.minWidth = this.minW+'px';
+  return this;
+};
+
+/* ============================================================================
+   figs-l7.js — L7 的五张示意图，按笔记附图用 SVG 重画；DH 与中间人两张的数值由 nt-core 现算
+   ==========================================================================*/
+
+/* ---------- 3.1 / 3.2 / 5.7 两种用法（中文机密性、中文认证、考场英文版） ---------- */
+function drawPkFig(id, variant){
+  var conf = variant!=='auth', en = variant==='en';
+  var f=new Fig(id,820,400,en?'Encryption with public key (confidentiality mode)':(conf?'机密性模式':'认证模式')); f.minW=640;
+  var T = en ? {
+      title:'Encryption with public key (confidentiality mode)',
+      ring:["Alice's public-key ring",'Joy','Mike','Bob  $PU_b$','Ted'], take:"$PU_b$  Bob's public key",
+      key:["Bob's private key  $PR_b$",'(kept secret, never sent)'],
+      inp:['Plaintext','input $X$'], enc:['Encryption algorithm','(e.g., RSA)'], dec:['Decryption algorithm','(e.g., RSA)'],
+      chan:'Transmitted ciphertext', y:'$Y = $E$(PU_b, X)$', out:['Plaintext','output'], x:'$X = $D$(PR_b, Y)$',
+      left:'Alice (sender)', right:'Bob (receiver)' }
+    : conf ? {
+      title:'机密性模式：用接收方的公钥加密，接收方用自己的私钥解密',
+      ring:['Alice 的公钥环','Joy 的公钥','Mike 的公钥','Bob 的公钥 $PU_b$','Ted 的公钥'], take:'取出 $PU_b$',
+      key:['Bob 的私钥 $PR_b$','只有 Bob 持有，从不发送'],
+      inp:['明文输入','$X$'], enc:['加密算法','（如 RSA）'], dec:['解密算法','（如 RSA）'],
+      chan:'在公开信道上传输的密文', y:'$Y = $E$(PU_b, X)$', note:'窃听者看得到 $Y$ 和所有公钥，缺的只有 $PR_b$',
+      out:['明文输出'], x:'$X = $D$(PR_b, Y)$', left:'Alice（发送方）', right:'Bob（接收方）' }
+    : {
+      title:'认证模式：发送方用自己的私钥加密，任何人用发送方的公钥解密',
+      ring:['Bob 的公钥环','Joy 的公钥','Mike 的公钥','Alice 的公钥 $PU_a$','Ted 的公钥'], take:'取出 $PU_a$',
+      key:['Alice 的私钥 $PR_a$','只有 Alice 持有，从不发送'],
+      inp:['明文输入','$X$'], enc:['加密算法','（如 RSA）'], dec:['解密算法','（如 RSA）'],
+      chan:'在公开信道上传输的密文', y:'$Y = $E$(PR_a, X)$', note:'窃听者也能用 $PU_a$ 解开 $Y$：内容不保密',
+      mid:['谁都能解开，所以没有保密性；','只有 Alice 造得出 $Y$，所以能证明出处'],
+      out:['明文输出'], x:'$X = $D$(PU_a, Y)$', left:'Alice（发送方）', right:'Bob 或任何人（验证方）' };
+  f.text(410,26,T.title,{c:'acc', w:'700', size:15.5});
+  /* 公钥环在接收一侧还是发送一侧 */
+  var ringX = conf ? 100 : 520, keyX = conf ? 520 : 100;
+  f.box(ringX,46,190,140,{k:'ok', rx:9});
+  f.text(ringX+95,70,T.ring[0],{c:'ok', w:'700', size:14});
+  [1,2,3,4].forEach(function(i){ f.text(ringX+95,70+24*i,T.ring[i],{size:13, c:i===3?'ok':null, w:i===3?'700':null, op:i===3?null:.75}); });
+  f.box(keyX,70,190,70,{t:T.key[0], t2:T.key[1], k:'warn', size:13.5, c2:'warn'});
+  var encX=118, decX=525, bw=152;
+  f.arrow('M'+(ringX+95)+',186 V228',{c:'ok'});
+  f.text(ringX+105,212,T.take,{anchor:'start', c:'ok', size:12.5});
+  f.arrow('M'+(keyX+95)+',140 V228',{c:'warn'});
+  f.box(10,240,84,50,{t:T.inp[0], t2:T.inp[1], size:12.5, c2:'ink'});
+  f.arrow('M94,265 H'+(encX-2),{w:1.8});
+  f.box(encX,230,bw,70,{t:T.enc[0], t2:T.enc[1], k:'acc', size:en?12.5:14, w:'700'});
+  f.arrow('M'+(encX+bw)+',265 H'+(decX-2),{c:'acc', w:2.2});
+  f.text((encX+bw+decX)/2,252,T.chan,{size:13});
+  f.text((encX+bw+decX)/2,290,T.y,{size:15});
+  if(T.note) f.text((encX+bw+decX)/2,318,T.note,{size:11.5, op:.7});
+  f.box(decX,230,bw,70,{t:T.dec[0], t2:T.dec[1], k:'acc', size:en?12.5:14, w:'700'});
+  f.arrow('M'+(decX+bw)+',265 H'+(712-2),{w:1.8});
+  if(T.out.length>1) f.box(712,240,90,50,{t:T.out[0], t2:T.out[1], size:12.5, c2:'ink'});
+  else f.box(712,240,90,50,{t:T.out[0], size:13});
+  f.text(757,314,T.x,{size:14});
+  if(T.mid){ f.text(408,112,T.mid[0],{size:12.5, op:.72}); f.text(408,132,T.mid[1],{size:12.5, op:.72}); }
+  if(variant==='conf'){
+    f.badge(306,70,'1'); f.badge(724,88,'2'); f.badge(288,222,'3'); f.badge(408,210,'4'); f.badge(757,222,'5');
+    f.text(408,118,'红圈 ①–⑤：模拟卷 Q2(d) 参考答案',{c:'warn', size:12.5});
+    f.text(408,136,'图上的五个得分点',{c:'warn', size:12.5});
+  }
+  f.brace(12,288,350,T.left); f.brace(512,805,350,T.right);
+  f.mount(id);
+}
+
+/* ---------- 6.2 Diffie–Hellman ---------- */
+function drawDhFig(id){
+  var q=23, a=5, XA=6, XB=15, YA=modpow(a,XA,q), YB=modpow(a,XB,q), KA=modpow(YB,XA,q), KB=modpow(YA,XB,q);
+  var f=new Fig(id,820,500,'Diffie–Hellman 密钥交换，括号里是课堂活动 4 的数值'); f.minW=640;
+  f.box(30,12,760,48,{k:'acc', rx:9});
+  f.text(410,42,'公开参数（事先约定，人人可见）：大素数 $q$，以及 $q$ 的本原根 $α$　　例：$q = '+q+'$，$α = '+a+'$',{size:14, c:'acc'});
+  [[90,'Alice'],[570,'Bob']].forEach(function(p){ f.box(p[0],78,160,38,{t:p[1], k:'solid', size:15}); });
+  [170,650].forEach(function(x){ ['116 V132','198 V330','396 V470'].forEach(function(seg){ f.line('M'+x+','+seg,{dash:'4 4', op:.45}); }); });
+  f.box(20,132,300,66,{k:'warn', rx:9});
+  f.text(170,158,'秘密选 $X_A < q$　（例 $X_A = '+XA+'$）',{size:13.5});
+  f.text(170,184,'$Y_A = α^{X_A}$ mod $q$　（= '+YA+'）',{size:13.5});
+  f.box(500,132,300,66,{k:'warn', rx:9});
+  f.text(650,158,'秘密选 $X_B < q$　（例 $X_B = '+XB+'$）',{size:13.5});
+  f.text(650,184,'$Y_B = α^{X_B}$ mod $q$　（= '+YB+'）',{size:13.5});
+  f.arrow('M170,250 H646',{c:'acc', w:2});
+  f.text(410,240,'$Y_A$（= '+YA+'）',{size:14, c:'acc'});
+  f.arrow('M650,300 H174',{c:'acc', w:2});
+  f.text(410,290,'$Y_B$（= '+YB+'）',{size:14, c:'acc'});
+  f.box(20,330,300,66,{k:'ok', rx:9});
+  f.text(170,356,'$K = Y_B^{X_A}$ mod $q$',{size:14});
+  f.text(170,382,'$'+YB+'^{'+XA+'}$ mod '+q+' = '+KA,{size:14});
+  f.box(500,330,300,66,{k:'ok', rx:9});
+  f.text(650,356,'$K = Y_A^{X_B}$ mod $q$',{size:14});
+  f.text(650,382,'$'+YA+'^{'+XB+'}$ mod '+q+' = '+KB,{size:14});
+  f.text(410,354,'两边算出同一个数',{size:14, c:'ok', w:'600'});
+  f.text(410,380,'$K = α^{X_AX_B}$ mod $q$',{size:14, c:'ok'});
+  f.text(410,436,'线路上只出现过 $q, α, Y_A, Y_B$；$X_A$、$X_B$、$K$ 从不上线路',{size:13, op:.75});
+  f.text(14,488,'红框 = 用自己的秘密做的计算（$Y$ 算完会公开发出）',{anchor:'start', size:11.5, c:'warn'});
+  f.text(806,488,'绿框 = 共享密钥',{anchor:'end', size:11.5, c:'ok'});
+  f.mount(id);
+}
+
+/* ---------- 6.5 中间人攻击（图与交互件共用） ---------- */
+function mitmCalc(P){
+  var r={};
+  r.YA=modpow(P.a,P.XA,P.q); r.YB=modpow(P.a,P.XB,P.q);
+  r.YD1=modpow(P.a,P.XD1,P.q); r.YD2=modpow(P.a,P.XD2,P.q);
+  r.KAlice=modpow(r.YD2,P.XA,P.q); r.KDarthA=modpow(r.YA,P.XD2,P.q);
+  r.KBob=modpow(r.YD1,P.XB,P.q);   r.KDarthB=modpow(r.YB,P.XD1,P.q);
+  r.Kreal=modpow(r.YB,P.XA,P.q);
+  return r;
+}
+function drawMitm(id, P){
+  var r=mitmCalc(P), q=P.q;
+  var f=new Fig(id,820,540,'中间人攻击：Darth 截下并替换双方的公开值'); f.minW=640;
+  f.text(410,22,'公开参数 $q = '+q+', α = '+P.a+'$；Alice 的秘密 $X_A = '+P.XA+'$，Bob 的秘密 $X_B = '+P.XB+'$；Darth 自选两个秘密 $X_{D1} = '+P.XD1+', X_{D2} = '+P.XD2+'$',{size:12.5, op:.8});
+  f.box(40,40,140,38,{t:'Alice', k:'solid', size:15});
+  f.box(330,40,160,38,{t:'Darth（攻击者）', k:'warn', size:14.5, w:'700'});
+  f.box(640,40,140,38,{t:'Bob', k:'solid', size:15});
+  f.line('M110,78 V370',{dash:'4 4', op:.45}); f.line('M410,78 V370',{dash:'4 4', c:'warn', op:.6}); f.line('M710,78 V370',{dash:'4 4', op:.45});
+  f.text(418,100,'$Y_{D1} = '+P.a+'^{'+P.XD1+'}$ mod '+q+' = '+r.YD1,{anchor:'start', size:12.5, c:'warn'});
+  f.text(418,118,'$Y_{D2} = '+P.a+'^{'+P.XD2+'}$ mod '+q+' = '+r.YD2,{anchor:'start', size:12.5, c:'warn'});
+  function msg(y,x1,x2,c,lab,sub){ f.arrow('M'+x1+','+y+' H'+(x2+(x2>x1?-4:4)),{c:c, w:2}); f.text((x1+x2)/2,y-10,lab,{size:13.5, c:c}); f.text((x1+x2)/2,y+18,sub,{size:12, op:.72}); }
+  msg(160,110,410,'acc','① $Y_A = '+P.a+'^{'+P.XA+'}$ mod '+q+' = '+r.YA,'Alice 以为发给了 Bob，被 Darth 截下');
+  msg(220,410,710,'warn','② $Y_{D1} = '+r.YD1+'$','Darth 冒充 Alice 发给 Bob');
+  msg(280,710,410,'acc','③ $Y_B = '+P.a+'^{'+P.XB+'}$ mod '+q+' = '+r.YB,'Bob 以为发给了 Alice，被 Darth 截下');
+  msg(340,410,110,'warn','④ $Y_{D2} = '+r.YD2+'$','Darth 冒充 Bob 发给 Alice');
+  var bx=[[10,'Alice 算：','$K_2 = Y_{D2}^{X_A} = '+r.YD2+'^{'+P.XA+'}$ mod '+q+' = '+r.KAlice,'以为是和 Bob 的密钥'],
+          [280,'Darth 算：','$K_2 = Y_A^{X_{D2}} = '+r.YA+'^{'+P.XD2+'}$ mod '+q+' = '+r.KDarthA,'$K_1 = Y_B^{X_{D1}} = '+r.YB+'^{'+P.XD1+'}$ mod '+q+' = '+r.KDarthB],
+          [550,'Bob 算：','$K_1 = Y_{D1}^{X_B} = '+r.YD1+'^{'+P.XB+'}$ mod '+q+' = '+r.KBob,'以为是和 Alice 的密钥']];
+  bx.forEach(function(b){ f.box(b[0],388,260,86,{k:'warn', rx:9});
+    f.text(b[0]+130,412,b[1],{size:13, w:'600'}); f.text(b[0]+130,438,b[2],{size:13}); f.text(b[0]+130,462,b[3],{size:13}); });
+  f.text(410,502,'Alice–Darth 共用 '+r.KAlice+'，Darth–Bob 共用 '+r.KBob+'；本该有的 $K = '+r.Kreal+'$ 谁也没有。',{size:13});
+  f.text(410,526,'Darth 用 '+r.KAlice+' 解开 Alice 的消息，读完（或改掉）再用 '+r.KBob+' 加密转给 Bob',{size:13});
+  f.mount(id);
+  return r;
+}
+function drawMitmFig(id){ drawMitm(id,{q:23,a:5,XA:6,XB:15,XD1:3,XD2:7}); }
+
+/* ============================================================================
+   widgets-l7.js — L7 的交互件。所有数值由 nt-core.js 现算，表格照笔记的手算格式排。
+   ==========================================================================*/
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function m(s){ return '<span class="m">'+s+'</span>'; }
+function minus(v){ return String(v).replace(/-/g,'−'); }
+function num(id){ var s=$(id).value.trim(); if(!/^-?\d+$/.test(s)) return NaN; return parseInt(s,10); }
+function bad(el,msg){ el.innerHTML='<span class="bad">'+msg+'</span>'; }
+function sumLabel(ks){ return ks.join('+'); }
+
+/* =====================================================================
+   1  平方-乘：两种格式
+   ===================================================================*/
+function mxSet(b,e,n){ $('mxB').value=b; $('mxE').value=e; $('mxN').value=n; mxGo(); }
+function mxGo(){
+  var b=num('mxB'), e=num('mxE'), n=num('mxN'), v=$('mxView'), out=$('mxOut');
+  if(!(n>=2 && n<=NT_MAX) || !(b>=0) || !(e>=1 && e<=1000000)){ v.innerHTML=''; bad(out,'模数 n 取 2–'+NT_MAX+'，底数非负，指数取 1–1000000。'); return; }
+  var T=powTable(b,e,n), L=powLR(b,e,n), bb=mod(b,n);
+  var h='<div class="cap">指数写成二进制：'+m(e+' = '+L.bits+'<sub>2</sub> = '+T.picks.slice().reverse().join(' + '))+(bb!==b?'；底数先取模 '+m(b+' <span class="rm">mod</span> '+n+' = '+bb):'')+'</div>';
+  h+='<div class="cap">格式一：逐次平方表，再按二进制挑项连乘</div><div class="tw"><table class="compact"><thead><tr><th>项</th><th>计算</th><th>商</th><th>余数</th></tr></thead><tbody>';
+  T.sq.forEach(function(s){
+    var pick=T.picks.indexOf(s.k)>=0;
+    h+='<tr'+(pick?' class="hot"':'')+'><td>'+m(bb+'<sup>'+s.k+'</sup>')+'</td>'+(s.row?'<td class="mono">'+s.row.a+' × '+s.row.b+' = '+s.row.prod+'</td><td class="mono">'+s.row.q+'</td><td class="mono">'+s.row.prod+' − '+(s.row.q*n)+' = <strong>'+s.row.r+'</strong></td>':'<td>—</td><td>—</td><td class="mono"><strong>'+s.val+'</strong></td>')+'</tr>';
+  });
+  T.mul.forEach(function(x){
+    h+='<tr><td>'+m(bb+'<sup>'+sumLabel(x.ks)+'</sup>')+'</td><td class="mono">'+x.row.a+' × '+x.row.b+' = '+x.row.prod+'</td><td class="mono">'+x.row.q+'</td><td class="mono">'+x.row.prod+' − '+(x.row.q*n)+' = <strong>'+x.row.r+'</strong></td></tr>';
+  });
+  h+='</tbody></table></div><div class="cap">蓝底的行是二进制里为 1 的那几位，连乘它们（指数相加）。</div>';
+  h+='<div class="cap">格式二：从左到右，每位先平方，是 1 再乘 '+bb+'</div><div class="tw"><table class="compact"><thead><tr><th>读到的位</th><th>平方</th><th>是 1 则乘 '+bb+'</th><th>当前值</th></tr></thead><tbody>';
+  L.rows.forEach(function(r){
+    h+='<tr><td class="mono">'+r.bit+'</td><td class="mono">'+r.sq.a+'<sup>2</sup> = '+r.sq.prod+(r.sq.prod!==r.sq.r?' ≡ '+r.sq.r:'')+'</td><td class="mono">'+(r.mul?r.mul.a+' × '+r.mul.b+' = '+r.mul.prod+(r.mul.prod!==r.mul.r?' ≡ '+r.mul.r:''):'—')+'</td><td class="mono"><strong>'+r.val+'</strong></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  v.innerHTML=h;
+  var same=T.result===L.result && T.result===modpow(b,e,n);
+  out.innerHTML='<div>'+m(b+'<sup>'+e+'</sup> <span class="rm">mod</span> '+n)+' = <strong>'+T.result+'</strong>'+(same?'；<span class="good">两种格式结果一致 ✓</span>':'<span class="bad">两种格式不一致</span>')+'。共做了 '+(T.sq.length-1+T.mul.length)+'（格式一）/ '+(2*L.rows.length-L.rows.filter(function(r){ return !r.mul; }).length)+'（格式二，含 1² 与 1 × 底数这两步）次模乘。</div>';
+}
+
+/* =====================================================================
+   2  模逆：试算与扩展欧几里得
+   ===================================================================*/
+function ivSet(a,n){ $('ivA').value=a; $('ivN').value=n; ivGo(); }
+function ivGo(){
+  var a=num('ivA'), n=num('ivN'), v=$('ivView'), out=$('ivOut');
+  if(!(n>=2 && n<=NT_MAX) || !(a>=1 && a<n)){ v.innerHTML=''; bad(out,'模数 n 取 2–'+NT_MAX+'，a 取 1 到 n−1。'); return; }
+  var G=egcdTable(a,n), g=gcd(a,n), h='';
+  h+='<div class="cap">扩展欧几里得：每行保持 '+m('r ≡ t · '+a+' (<span class="rm">mod</span> '+n+')')+'；新行 = 上上行 − 商 × 上一行</div>';
+  h+='<div class="tw"><table class="compact"><thead><tr><th>'+m('r')+'</th><th>商</th><th>'+m('t')+'</th><th>检查 '+m('t × '+a+' <span class="rm">mod</span> '+n)+'</th></tr></thead><tbody>';
+  G.rows.forEach(function(r,i){
+    h+='<tr'+(r.r===1&&i>1?' class="hot"':'')+'><td class="mono">'+r.r+'</td><td class="mono">'+(r.q===null?'—':r.from[0]+' ÷ '+r.from[1]+' 商 '+r.q)+'</td><td class="mono">'+(r.q===null?r.t:minus(G.rows[i-2].t)+' − '+r.q+' × '+minus(G.rows[i-1].t).replace(/^−.*/,'('+minus(G.rows[i-1].t)+')')+' = '+minus(r.t))+'</td><td class="mono">'+(i<2?'':minus(r.t*a)+' ≡ '+mod(r.t*a,n))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(g===1 && a<=400){
+    var T=trialInverse(a,n);
+    h+='<div class="cap">试算：'+m('b = (1 + k · '+n+') / '+a)+'，'+m('k')+' = 1, 2, … 直到整除（最多试 '+(a-1)+' 次）</div><div class="steps">'+
+      T.tries.map(function(t){ return '<div class="mono">k = '+t.k+'：'+t.v+' / '+a+(t.ok?' = <strong>'+t.b+'</strong> 整除':' 不整除')+'</div>'; }).join('')+'</div>';
+  }
+  v.innerHTML=h;
+  if(g!==1){ out.innerHTML='<div>'+m('<span class="rm">gcd</span>('+a+', '+n+') = '+g)+'，不互素：'+m(a+'<sup>−1</sup> <span class="rm">mod</span> '+n)+' <span class="bad">不存在</span>（辗转相除最后的非零余数是 '+g+'，不是 1）。</div>'; return; }
+  out.innerHTML='<div>'+m('<span class="rm">gcd</span>('+a+', '+n+') = 1')+'；表里 '+m('r = 1')+' 那一行的 '+m('t = '+minus(G.tRaw))+(G.tRaw<0?'，加 '+n+' 得':'，即')+' '+m(a+'<sup>−1</sup> <span class="rm">mod</span> '+n+' = ')+'<strong>'+G.inv+'</strong>。验算 '+m(a+' × '+G.inv+' = '+(a*G.inv)+' = '+Math.floor(a*G.inv/n)+' × '+n+' + '+mod(a*G.inv,n))+' <span class="good">✓</span></div>';
+}
+
+/* =====================================================================
+   3  RSA：生成密钥对、加密、解密
+   ===================================================================*/
+function rsSet(p,q,e,M){ $('rsP').value=p; $('rsQ').value=q; $('rsE').value=e; $('rsM').value=M; rsGo(); }
+function rsGo(){
+  var p=num('rsP'), q=num('rsQ'), e=num('rsE'), M=num('rsM'), st=$('rsSteps'), out=$('rsOut');
+  if(!isPrime(p) || !isPrime(q) || p===q){ st.innerHTML=''; bad(out,'p、q 要是两个不同的素数。'); return; }
+  var n=p*q; if(n>NT_MAX){ st.innerHTML=''; bad(out,'n = pq 不超过 '+NT_MAX+'（考场规模的小数）。'); return; }
+  var ph=(p-1)*(q-1);
+  if(!(e>1 && e<ph)){ st.innerHTML=''; bad(out,'e 要满足 1 < e < φ(n) = '+ph+'。'); return; }
+  if(!(M>=0 && M<n)){ st.innerHTML=''; bad(out,'明文 M 要满足 0 ≤ M < n = '+n+'。'); return; }
+  var g=gcd(e,ph), h='<div class="steps">';
+  h+='<div><span class="k">1</span>'+m('n = pq = '+p+' × '+q+' = <strong>'+n+'</strong>')+'（公开）</div>';
+  h+='<div><span class="k">2</span>'+m('φ(n) = (p − 1)(q − 1) = '+(p-1)+' × '+(q-1)+' = <strong>'+ph+'</strong>')+'（保密）</div>';
+  if(g!==1){ h+='<div><span class="k">3</span>'+m('<span class="rm">gcd</span>('+e+', '+ph+') = '+g)+' <span class="bad">≠ 1，这个 e 不能用：第 5 步的逆元不存在</span></div></div>'; st.innerHTML=h; out.innerHTML='<div class="bad">换一个与 '+ph+' 互素的 e。</div>'; return; }
+  var G=egcdTable(e,ph), d=G.inv;
+  h+='<div><span class="k">3</span>'+m('<span class="rm">gcd</span>('+e+', '+ph+') = 1')+'，'+m('e = '+e)+' 可用（公开）</div>';
+  h+='<div><span class="k">4</span>'+m('d = '+e+'<sup>−1</sup> <span class="rm">mod</span> '+ph+' = <strong>'+d+'</strong>')+'：'+m(e+' × '+d+' = '+(e*d)+' = 1 + '+((e*d-1)/ph)+' × '+ph)+'（保密；过程可在上面的模逆计算器里看）</div>';
+  h+='<div><span class="k">5</span>公钥 '+m('{e, n} = {'+e+', '+n+'}')+'，私钥 '+m('{d, n} = {'+d+', '+n+'}')+'</div>';
+  var C=modpow(M,e,n), M2=modpow(C,d,n);
+  h+='<div><span class="k">6</span>加密 '+m('C = '+M+'<sup>'+e+'</sup> <span class="rm">mod</span> '+n+' = <strong>'+C+'</strong>')+'</div>';
+  h+='<div><span class="k">7</span>解密 '+m(C+'<sup>'+d+'</sup> <span class="rm">mod</span> '+n+' = <strong>'+M2+'</strong>')+' '+(M2===M?'<span class="good">还原了 M ✓</span>':'<span class="bad">没还原</span>')+'</div></div>';
+  st.innerHTML=h;
+  var gm=gcd(M,n), o='';
+  if(gm!==1 && M!==0){
+    var eu=modpow(M,ph,n);
+    o+='<div><span class="bad">'+m('<span class="rm">gcd</span>('+M+', '+n+') = '+gm)+'：M 与 n 不互素，欧拉定理不适用</span>——'+m(M+'<sup>'+ph+'</sup> <span class="rm">mod</span> '+n+' = '+eu)+(eu!==1?' ≠ 1':'')+'；拆开看，'+m(eu+' <span class="rm">mod</span> '+p+' = '+mod(eu,p))+'，'+m(eu+' <span class="rm">mod</span> '+q+' = '+mod(eu,q))+'。解密照样正确，靠的是对 p、q 分别用费马小定理再合成。'+(C===p||C===q?'而且密文 '+C+' 恰好就是素因子，'+m('<span class="rm">gcd</span>('+C+', '+n+') = '+gcd(C,n))+' 直接分解了 n。':'')+'</div>';
+  }
+  o+='<div>与 n 不互素的明文共 '+m('n − φ(n) = p + q − 1 = '+(p+q-1))+' 个，占 '+n+' 个的 '+(100*(p+q-1)/n).toFixed(1)+'%。</div>';
+  var lam=(p-1)*(q-1)/gcd(p-1,q-1), dl=egcdTable(e,lam).inv;
+  if(dl!==null) o+='<div style="color:var(--muted);font-size:14px">按 '+m('λ(n) = <span class="rm">lcm</span>('+(p-1)+', '+(q-1)+') = '+lam)+' 求的私钥 '+m('d′ = '+dl)+'：'+m(C+'<sup>'+dl+'</sup> <span class="rm">mod</span> '+n+' = '+modpow(C,dl,n))+'（课程按 φ(n) 算）。</div>';
+  out.innerHTML=o;
+}
+
+/* =====================================================================
+   4  教科书 RSA 是确定性的
+   ===================================================================*/
+function tbGo(){
+  var e=num('tbE'), n=num('tbN'), C=num('tbC'), raw=$('tbList').value.split(/[\s,，、]+/).filter(Boolean), v=$('tbView'), out=$('tbOut');
+  var cand=raw.map(function(x){ return /^\d+$/.test(x)?parseInt(x,10):NaN; });
+  if(!(n>=2&&n<=NT_MAX) || !(e>=1) || !(C>=0&&C<n) || !cand.length || cand.some(function(x){ return !(x>=0&&x<n); })){ v.innerHTML=''; bad(out,'填公钥 e、n，截获的 C（小于 n），以及若干个候选明文（都小于 n）。'); return; }
+  var rows=cand.map(function(x){ return {M:x, C:modpow(x,e,n)}; }), hit=rows.filter(function(r){ return r.C===C; });
+  v.innerHTML='<div class="tw"><table class="compact"><thead><tr><th>候选明文 '+m('M')+'</th><th>窃听者用公钥算 '+m('M<sup>'+e+'</sup> <span class="rm">mod</span> '+n)+'</th><th>与截获的 '+C+' 比</th></tr></thead><tbody>'+
+    rows.map(function(r){ return '<tr'+(r.C===C?' class="hot"':'')+'><td class="mono">'+r.M+'</td><td class="mono">'+r.C+'</td><td>'+(r.C===C?'<strong>相同</strong>':'不同')+'</td></tr>'; }).join('')+'</tbody></table></div>';
+  out.innerHTML=hit.length?'<div>截获的密文 '+C+' 对应的明文是 <strong>'+hit.map(function(r){ return r.M; }).join('、')+'</strong>。窃听者只用了公开的 '+m('{'+e+', '+n+'}')+'，没有分解 '+n+'，也没碰私钥。</div>'
+                          :'<div>没有一个候选加密后等于 '+C+'：明文不在候选里。</div>';
+}
+
+/* =====================================================================
+   5  Diffie–Hellman 与离散对数
+   ===================================================================*/
+function dhSet(q,a,xa,xb){ $('dhQ').value=q; $('dhA').value=a; $('dhXA').value=xa; $('dhXB').value=xb; dhGo(); }
+function dhGo(){
+  var q=num('dhQ'), a=num('dhA'), XA=num('dhXA'), XB=num('dhXB'), st=$('dhSteps'), out=$('dhOut');
+  if(!isPrime(q) || q<5 || q>100003){ st.innerHTML=''; bad(out,'q 要是 5 到 100003 之间的素数。'); return; }
+  if(!(a>=2 && a<q) || !(XA>=1 && XA<q) || !(XB>=1 && XB<q)){ st.innerHTML=''; bad(out,'α 取 2 到 q−1，两个秘密取 1 到 q−1。'); return; }
+  var YA=modpow(a,XA,q), YB=modpow(a,XB,q), KA=modpow(YB,XA,q), KB=modpow(YA,XB,q), pc=primitiveCheck(a,q), ex=(XA*XB)%(q-1);
+  var h='<div class="steps">';
+  h+='<div><span class="k">0</span>'+m('α = '+a)+(pc.ok?' 是 ':' <span class="bad">不是</span> ')+m(q)+' 的本原根：'+m('q − 1 = '+(q-1)+' = '+factorize(q-1).join(' × '))+'，'+pc.checks.map(function(c){ return m(a+'<sup>'+c.e+'</sup> ≡ '+c.v)+(c.ok?' ≠ 1':' = 1'); }).join('，')+'</div>';
+  h+='<div><span class="k">1</span>Alice：'+m('Y<sub>A</sub> = '+a+'<sup>'+XA+'</sup> <span class="rm">mod</span> '+q+' = <strong>'+YA+'</strong>')+'，发给 Bob</div>';
+  h+='<div><span class="k">2</span>Bob：'+m('Y<sub>B</sub> = '+a+'<sup>'+XB+'</sup> <span class="rm">mod</span> '+q+' = <strong>'+YB+'</strong>')+'，发给 Alice</div>';
+  h+='<div><span class="k">3</span>Alice 算 '+m('K = '+YB+'<sup>'+XA+'</sup> <span class="rm">mod</span> '+q+' = <strong>'+KA+'</strong>')+'；Bob 算 '+m('K = '+YA+'<sup>'+XB+'</sup> <span class="rm">mod</span> '+q+' = <strong>'+KB+'</strong>')+'</div>';
+  h+='<div><span class="k">4</span>费马小定理验算：'+m('K = '+a+'<sup>'+XA+' × '+XB+'</sup>')+'，指数对 '+m('q − 1 = '+(q-1))+' 取模得 '+m((XA*XB)+' <span class="rm">mod</span> '+(q-1)+' = '+ex)+'，'+m(a+'<sup>'+ex+'</sup> <span class="rm">mod</span> '+q+' = '+modpow(a,ex,q))+'</div></div>';
+  /* 窃听者：逐个列 α^k */
+  var kA=null, kB=null, v=1, tries=0;
+  for(var k=1;k<q && (kA===null||kB===null);k++){ v=(v*a)%q; tries=k; if(kA===null && v===YA) kA=k; if(kB===null && v===YB) kB=k; }
+  if(q<=60){
+    var t=dlogTable(a,q);
+    h+='<div class="cap">窃听者手里只有 '+m('q, α, Y<sub>A</sub>, Y<sub>B</sub>')+'，于是逐个列 '+m(a+'<sup>k</sup> <span class="rm">mod</span> '+q)+'：</div><div class="tw"><table class="compact wide"><tbody><tr><th>'+m('k')+'</th>'+t.map(function(x,i){ return '<td class="mono">'+(i+1)+'</td>'; }).join('')+'</tr><tr><th>值</th>'+
+      t.map(function(x,i){ return '<td class="mono'+((i+1===kA||i+1===kB)?' hot':'')+'">'+x+'</td>'; }).join('')+'</tr></tbody></table></div>';
+  }
+  st.innerHTML=h;
+  out.innerHTML='<div>'+(KA===KB?'<span class="good">两边一致 ✓</span>':'<span class="bad">两边不一致</span>')+'。线路上只出现过 '+m('q = '+q+'，α = '+a+'，Y<sub>A</sub> = '+YA+'，Y<sub>B</sub> = '+YB)+'。</div>'+
+    '<div>窃听者从 '+m('k = 1')+' 列到 '+m('k = '+tries)+'：'+m(a+'<sup>'+kA+'</sup> ≡ '+YA)+'、'+m(a+'<sup>'+kB+'</sup> ≡ '+YB)+'，得到 '+m('X<sub>A</sub> = '+kA)+(kA!==XA?'（与真实的 '+XA+' 模 '+(q-1)+' 同余，一样好用）':'')+'，再算 '+m(YB+'<sup>'+kA+'</sup> <span class="rm">mod</span> '+q+' = '+modpow(YB,kA,q))+'。'+(pc.ok?'':'α 不是本原根时，'+m('α<sup>k</sup>')+' 只取到一部分值，要试的就更少。')+'这样的列表要列 '+m('q − 1')+' 项，'+m('q')+' 有 2048 位时没有人做得到。</div>';
+}
+
+/* =====================================================================
+   6  中间人
+   ===================================================================*/
+function mmSet(d1,d2){ $('mmD1').value=d1; $('mmD2').value=d2; mmGo(); }
+function mmGo(){
+  var P={q:num('mmQ'), a:num('mmA'), XA:num('mmXA'), XB:num('mmXB'), XD1:num('mmD1'), XD2:num('mmD2')}, out=$('mmOut');
+  if(!isPrime(P.q) || P.q<5 || P.q>100003 || !(P.a>=2&&P.a<P.q) || [P.XA,P.XB,P.XD1,P.XD2].some(function(x){ return !(x>=1&&x<P.q); })){
+    $('mmFig').innerHTML='<p class="bad">q 要是 5 到 100003 之间的素数；α 和四个秘密都取 1 到 q−1。</p>'; out.innerHTML='<span class="bad">参数不合法。</span>'; return; }
+  var r=drawMitm('mmFig',P);
+  out.innerHTML='<div>Alice 以为在和 Bob 共用 <strong>'+r.KAlice+'</strong>，其实对面是 Darth（Darth 算得 '+r.KDarthA+'）；Bob 以为在和 Alice 共用 <strong>'+r.KBob+'</strong>，其实对面也是 Darth（Darth 算得 '+r.KDarthB+'）。没有攻击时双方本该共用 '+r.Kreal+'。'+
+    (r.KAlice!==r.KBob?'两把密钥不同，Darth 解密、阅读、再加密转发，双方都看不出异样。':'这组参数下两把密钥恰好相同，但都是 Darth 也知道的值。')+'</div>';
+}
+
+
+/* ---------- 交互件与图的初始化 ---------- */
+drawPkFig('figConf','conf');
+drawPkFig('figAuth','auth');
+drawPkFig('figConfEn','en');
+drawDhFig('figDh');
+drawMitmFig('figMitm');
+mxGo();
+ivGo();
+rsGo();
+tbGo();
+dhGo();
+mmGo();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（同 L4） ---------- */
+function openAllDetails(){ var d=document.querySelectorAll('details'); for(var i=0;i<d.length;i++) d[i].open=true; }
+window.onbeforeprint=openAllDetails;
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); if(mq.addEventListener) mq.addEventListener('change',function(e){ if(e.matches) openAllDetails(); }); } })();
+
+</script>
+</body>
+</html>

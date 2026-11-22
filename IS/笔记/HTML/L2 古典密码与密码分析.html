@@ -310,7 +310,7 @@ main code{overflow-wrap:anywhere}
 
 <p>信道上的窃听者——<span class="term">密码分析者</span><span class="en">（cryptanalyst）</span>——能看到 <span class="m">Y</span>。他最想拿到的不是这一条明文，而是<strong>密钥</strong> <span class="m">K</span>：拿到密钥，用这把密钥发过的每一条消息就都暴露了。</p>
 
-<p>这张图里藏着一个回避不掉的问题：<span class="m">K</span> 要事先通过一条<strong>安全信道</strong>送到双方手里。可如果真有一条安全信道，为什么不直接用它传消息？这就是<span class="term">密钥分发问题</span><span class="en">（key distribution problem）</span>，课件说要到 Lecture 6 才解决。</p>
+<p>这张图里藏着一个回避不掉的问题：<span class="m">K</span> 要事先通过一条<strong>安全信道</strong>送到双方手里。可如果真有一条安全信道，为什么不直接用它传消息？这就是<span class="term">密钥分发问题</span><span class="en">（key distribution problem）</span>，课件说要到 Lecture 6 才解决（即 L7 公钥密码）。</p>
 
 <p>对称加密也叫传统加密<span class="en">（conventional encryption）</span>或单钥加密<span class="en">（single-key encryption）</span>。在 1970 年代公钥密码出现之前，它是唯一的加密方式；今天它仍然是用得最多的一种。</p>
 
@@ -607,7 +607,7 @@ main code{overflow-wrap:anywhere}
 <li><strong>B. 用多张代换表</strong>：仍然一个字母一个字母地换，但换着用不同的代换表，于是同一个明文字母在不同位置变成不同的密文字母。例子：Vigenère、自动密钥、Vernam。决定每个位置用哪张表（或加上哪个数）的那一串值，叫<span class="term">密钥流</span><span class="en">（keystream）</span>。</li>
 </ul>
 
-<p>这两条路都活到了今天：A 是分组密码的思路（AES 一次处理 128 位的一整块），B 是流密码的思路（每个位置用一个新的密钥流值）。课件说 Lecture 3 走 A，Lecture 5 走 B。</p>
+<p>这两条路都活到了今天：A 是分组密码的思路（AES 一次处理 128 位的一整块），B 是流密码的思路（每个位置用一个新的密钥流值）。课件说 Lecture 3 走 A（L3 分组密码与 DES），Lecture 5 走 B（L6 对称密码的安全使用的 CTR 模式）。</p>
 
 <div class="box def">
   <div class="h">Hill 密码只点了名</div>
@@ -1122,7 +1122,7 @@ main code{overflow-wrap:anywhere}
 <h2 id="recap">本讲速记</h2>
 <div class="recap"><ul>
 <li>对称密码五要素：明文、加密算法、密钥、密文、解密算法；<strong>只有密钥需要保密</strong>（柯克霍夫原则）。<span class="m">Y = E(K, X)</span>，<span class="m">X = D(K, Y)</span>。</li>
-<li>密钥要靠安全信道预先送达 → <strong>密钥分发问题</strong>，Lecture 6 解决。</li>
+<li>密钥要靠安全信道预先送达 → <strong>密钥分发问题</strong>，Lecture 6（L7 公钥密码）解决。</li>
 <li>三维分类：代换/置换；对称/非对称；分组/流。所有运算必须可逆。</li>
 <li>攻击模型由弱到强：唯密文 → 已知明文 → 选择明文 → 选择密文（教材另有 chosen text）。现代密码要扛住选择密文攻击。</li>
 <li>无条件安全：信息论意义上不可破，<strong>只有一次一密</strong>；计算安全：破解成本超过信息价值，或破解时间超过信息有效期。</li>

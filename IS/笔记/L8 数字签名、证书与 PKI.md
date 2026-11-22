@@ -830,3 +830,5 @@ CT 的**只能追加的日志**（append-only log）只能往后加记录、不�
 ---
 
 下一讲 [[L9 实用安全协议]]：TLS 1.3 握手从头到尾——证书、密钥交换、认证与会话密钥怎样拼成一个协议；另有 Kerberos（靠可信第三方发放票据的网络认证协议）和无线网络认证。课件说："Everything from Lectures 2 to 7 comes together in Lecture 8."（课件编号，即本课 L2–L8 的内容在 L9 汇合。）再往后是 [[L10 网络安全：威胁、攻击与防御]]，以及课件预告、目前还没有课件的 capstone。
+
+浏览器版（带RSA 签名与验签、SHA-256 雪崩、教科书 RSA 两种伪造、同一 k 复用恢复私钥、证书链校验判定）：[HTML/L8 数字签名、证书与 PKI.html](HTML/L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html)

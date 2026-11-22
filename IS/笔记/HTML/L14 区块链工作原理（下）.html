@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L14 区块链工作原理（下） · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1–L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:200px; max-width:100%; vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:3.2rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.45rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.ctl{flex-wrap:wrap; max-width:100%}
+.tool select,.tool input[type=text]{max-width:100%}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+/* ---------- 链接、引用、交叉引用 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+.xref{color:var(--muted)}
+main p code,main li code,main td code{overflow-wrap:anywhere}
+blockquote{margin:1rem 0 1.2rem; padding:.2rem 0 .2rem 1rem; border-left:3px solid var(--line2); color:var(--muted); max-width:70ch}
+blockquote p:last-child{margin-bottom:0}
+hr{border:none; border-top:1px solid var(--line); margin:2.5rem 0}
+.box blockquote{margin:.6rem 0}
+.box pre{max-width:100%}
+/* ---------- 公式（沿用 L4 的手写 HTML 公式） ---------- */
+.m .up{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; font-size:.92em}
+.m .up.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85em}
+.m .sp1{display:inline-block; width:.17em} .m .sp4{display:inline-block; width:1em} .m .sp8{display:inline-block; width:2em}
+.m .bg1{font-size:1.15em; font-style:normal} .m .bg2{font-size:1.45em; font-style:normal; vertical-align:-.08em} .m .bg3{font-size:1.8em; font-style:normal}
+.m .opi{font-style:normal}
+.frac.sm{font-size:.72em}
+.bigop{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1; margin:0 .15em}
+.bigop .op{font-size:1.6em; font-style:normal; line-height:1.05}
+.bigop .lim{font-size:.62em; min-height:.6em}
+.ubr{display:inline-flex; flex-direction:column; align-items:center; vertical-align:top}
+.ubr .ubb{border-bottom:1.3px solid currentColor; border-radius:0 0 .5em .5em; padding:0 .3em .2em}
+.ubr .ubl{font-size:.68em; margin-top:.15em}
+.ovs{display:inline-flex; flex-direction:column; align-items:center; vertical-align:bottom; line-height:1}
+.ovs .ovt{font-size:.62em}
+.cbrace{font-family:"Times New Roman",Georgia,serif; font-size:2.4em; font-weight:200; vertical-align:middle; line-height:1; margin:0 .08em 0 .05em; font-style:normal}
+.cases{display:inline-grid; grid-template-columns:auto auto; gap:.1em 1.1em; vertical-align:middle; text-align:left; font-size:.9em}
+.eq{overflow-x:auto; overflow-y:hidden; padding:.15rem 0}
+.m{white-space:nowrap}
+@media (max-width:600px){ .eq{font-size:1rem} .eq .lbl{float:none; display:block; text-align:right} }
+/* ---------- 宽表：窄屏横向滚动，不挤成一字一行 ---------- */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* ---------- 宽窄两版图；复杂图在窄屏横向滚动 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+.hscroll{overflow-x:auto}
+@media (max-width:640px){ .hscroll>svg{min-width:var(--minw,620px)} }
+/* ---------- 打印：骨架里 details 子元素 display:block 在 Chromium 里撑不开已关闭的 details，补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} .hscroll>svg{min-width:0 !important} }
+/* ---------- 交互件通用件 ---------- */
+.tool input.num{width:6.2rem; font-size:14px; padding:.25rem .4rem}
+.tool input.wide{width:min(100%,34rem)}
+.tool textarea{font:inherit; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px; width:min(100%,30rem);
+  padding:.35rem .55rem; background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+.hx{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.86em; word-break:break-all}
+.tag2{display:inline-block; font-size:12px; border-radius:4px; padding:0 .4rem; border:1px solid currentColor; margin-left:.35rem; line-height:1.5}
+.tag2.good{color:var(--ok)} .tag2.bad{color:var(--warn)} .tag2.mid{color:var(--exam)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.kv{display:grid; grid-template-columns:max-content 1fr; gap:.25rem 1rem; font-size:14.5px; align-items:baseline}
+.kv>span:nth-child(odd){color:var(--muted)}
+.bar{height:.7rem; border-radius:3px; background:var(--accent); opacity:.75; min-width:1px}
+.hot{color:var(--warn); font-weight:700}
+.sub2{font-size:13px; color:var(--muted)}
+svg text,input,textarea,select,option,.tool{font-feature-settings:"calt" 0, "liga" 0}
+@media (max-width:640px){ .tool .kv{grid-template-columns:1fr; gap:.05rem} .tool .kv>span:nth-child(even){margin-bottom:.35rem} }
+input.badin{outline:2px solid var(--warn); outline-offset:0}
+
+table.hdt th{white-space:nowrap}
+table.hdt td:first-child{white-space:nowrap}
+table.hdt td:nth-child(3){min-width:12rem}
+@media (max-width:640px){ table.hdt th:nth-child(2),table.hdt td:nth-child(2){display:none} table.hdt td:nth-child(3){min-width:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 14</div>
+  <div class="tt">区块链工作原理（下）</div>
+  <div class="toc">
+<a href="#s1">1 · 复习：L13 的节点、六层与 13 步</a>
+<a href="#s2">2 · 区块里装了什么</a>
+<a href="#s2-1" class="sub">2.1 三部分：外层头、区块头、区块体</a>
+<a href="#s2-2" class="sub">2.2 区块头的 6 个字段，正好 80 字节</a>
+<a href="#s2-3" class="sub">2.3 哈希指针：后一块存前一块区块头的哈希</a>
+<a href="#s2-4" class="sub">2.4 Merkle 树：一个根概括全部交易</a>
+<a href="#s2-5" class="sub">2.5 Merkle 证明：轻节点为什么只存头就够</a>
+<a href="#s3">3 · 治理：谁拥有、谁能写、保不保密</a>
+<a href="#s3-1" class="sub">3.1 谁拥有区块链</a>
+<a href="#s3-2" class="sub">3.2 谁能修改账本</a>
+<a href="#s3-3" class="sub">3.3 机密性</a>
+<a href="#s3-4" class="sub">3.4 三类链的治理对照</a>
+<a href="#s4">4 · 平台</a>
+<a href="#s4-1" class="sub">4.1 应用与系统对照</a>
+<a href="#s4-2" class="sub">4.2 三类平台</a>
+<a href="#s4-3" class="sub">4.3 比特币</a>
+<a href="#s4-4" class="sub">4.4 以太坊与它的两类账户</a>
+<a href="#s5">5 · 智能合约：确定性与非确定性</a>
+<a href="#s6">6 · 可扩展性与交易容量</a>
+<a href="#s6-1" class="sub">6.1 可扩展性的三个维度</a>
+<a href="#s6-2" class="sub">6.2 存储：账本只增不减</a>
+<a href="#s6-3" class="sub">6.3 吞吐量受什么限制</a>
+<a href="#s6-4" class="sub">6.4 侧链与链下交易</a>
+<a href="#s6-5" class="sub">6.5 分片</a>
+<a href="#s7">7 · 互操作性</a>
+<a href="#s7-1" class="sub">7.1 为什么需要互操作</a>
+<a href="#s7-2" class="sub">7.2 影响互操作的因素</a>
+<a href="#s7-3" class="sub">7.3 实现互操作的六种途径</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 14 — Working Principles of Blockchain II</div>
+  <h1>区块链工作原理（下）</h1>
+  <p>区块里到底装了什么，凭什么改一笔交易就会被发现？谁拥有链、谁能往上写、数据保不保密？真实的平台怎么做？它能扛多大规模，怎样扩容，怎样和别的链互通？</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a> 走完了一笔交易从创建到被全网接受的 13 步，但“区块”一直是个黑盒。这一讲打开它，再往外看一圈，回答四个问题：</p>
+<ol><li><strong>区块里到底装了什么，凭什么改一笔交易就会被发现？</strong>——区块分三部分，区块头固定 80 字节；哈希指针把头串成链，Merkle 树把一个块里的全部交易压成头里的一个 32 字节值。</li><li><strong>谁拥有链、谁能往上写、数据保不保密？</strong>——三类链在治理上的差别。</li><li><strong>真实的平台怎么做？</strong>——比特币只管转账，以太坊加上了可编程的智能合约。</li><li><strong>它能扛多大规模，怎样扩容，怎样和别的链互通？</strong>——可扩展性、吞吐量的限制因素、侧链与链下、分片、互操作。</li></ol>
+<p>课件 p3–p14 几乎逐字重复 L13（节点、六层、13 步、路线图），本笔记不再重写，只在第 1 节列出对应关系、链回 L13。和课件顺序的主要不同：课件把区块组成（p16–p19）放在“Governance”一节、把比特币区块的三部分（p32–p33）放在“Platforms”一节，本笔记把两处合并成第 2 节，先用 p33 和比特币创世块的实算立起“区块头 80 字节”，再讲哈希指针和 Merkle 树——p16 的图有两处字段错误，要靠 p33 来纠正。其余顺序与课件相同。</p>
+<p style="margin-bottom:0">对应课件 <code>Lecture 4 - Working Principles II.pdf</code>，51 页（文件名与课件内的大纲页写 Lecture 3、4，是去年的编号）。主讲 Dr. Yao Sun。课件没有学习目标页、课堂活动和数值例题；本笔记的所有哈希值和数字都用程序实算过。课程总览与考情见《00 课程信息与考情》。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+<p>本讲课件没有“exam”一类原话。可以依据的信号：</p>
+<ul><li><strong>期末总复习课件（L20 Summary）原样保留的本讲页</strong>：p16（区块组成图）、p17（哈希指针）、p18–p19（Merkle 树）、p25–p27（三类平台）、p37–p38（确定性与非确定性智能合约）、p39–p40（可扩展性）、p43–p45（侧链、链下、分片）。没有被保留的：p20–p22（治理）、p24（应用与系统表）、p28–p35（比特币与以太坊细节）、p41–p42（吞吐量的限制因素）、p46–p49（互操作）。</li><li><strong>课件的红字与高亮</strong>：p16 粉色的“Previous Hash”；p19 五处红字（Merkle 树的构造过程）；p22“the identity of the nodes should be known”；p40“do not have high storage capacity”；p43–p45 侧链、链下、分片的关键词。</li><li><strong>模拟卷</strong>（去年版）：</li></ul>
+<div class="tw"><table class="wide">
+<thead><tr><th>题号</th><th>分值</th><th>内容</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td>Q3(b)(v)</td><td>2</td><td>“Explain the advantages of sharing.”（sharing 是 sharding 的笔误）</td><td><a href="#s6-5">6.5</a></td></tr>
+<tr><td>Q3(b)(iii)</td><td>3</td><td>平均确认时间与吞吐量</td><td>限制因素在 <a href="#s6-3">6.3</a>，公式属于 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>；参考答案 37.5 Tx/s 错，应为 375 Tx/s</td></tr>
+<tr><td>Q3(a)(i)</td><td>4</td><td>三类节点，谁能产生新交易</td><td>本讲 p3 重复 L13，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-5">L13 的节点职能表</a></td></tr>
+<tr><td>Q4(c)(iii)</td><td>2</td><td>区块链用于认知无线电网络的挑战（任选两项）</td><td>“High memory overhead”见 <a href="#s6-2">6.2</a>，“The ownership of the ledger”见 <a href="#s3-1">3.1</a>；完整答案在 <a href="L18%20%E5%8C%BA%E5%9D%97%E9%93%BE%E8%B5%8B%E8%83%BD%E7%9A%84%E8%AE%A4%E7%9F%A5%E6%97%A0%E7%BA%BF%E7%94%B5%E7%BD%91%E7%BB%9C.html">L18 区块链赋能的认知无线电网络</a></td></tr>
+<tr><td>Q4(c)(iv)</td><td>2</td><td>再列两个区块链应用</td><td><a href="#s4-1">4.1</a> 的四类应用可作依据</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">本讲最可能出的题：列出区块头字段；解释哈希指针与 Merkle 树怎样保证完整性；确定性与非确定性智能合约的区别；提高交易容量的几种途径；分片的思想、优点与挑战；以太坊的两类账户（按正确定义答，课件 p35 有错）。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>复习：L13 的节点、六层与 13 步</h2>
+
+<p>课件 p2“Review of Lecture 3”列的三项（节点、分层、一般流程）就是 L13 的小结；p3–p14 与 L13 对应页几乎逐像素相同，只差页码：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>本讲页</th><th>L13 页</th><th>内容</th><th>详见</th></tr></thead>
+<tbody>
+<tr><td>p3</td><td>p12</td><td>节点职能表</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-5">节点职能表与表中错误</a></td></tr>
+<tr><td>p4</td><td>p13</td><td>三套节点分类</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-1">三套分类</a></td></tr>
+<tr><td>p5–p7</td><td>p14–p16</td><td>全节点、轻节点、矿工节点</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-2">全节点</a>、<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-3">轻节点</a>、<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-4">矿工</a></td></tr>
+<tr><td>p8–p9</td><td>p17–p18</td><td>领导者/验证者、发送方/接收方</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-6">领导者与验证者</a>、<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-7">发送方与接收方</a></td></tr>
+<tr><td>p10–p11</td><td>p20–p21</td><td>六层架构</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s6-1">六层与例子</a></td></tr>
+<tr><td>p12–p13</td><td>p30–p31</td><td>13 步工作流程</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s5">13 步</a></td></tr>
+<tr><td>p14</td><td>p9</td><td>路线图</td><td><a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s1-3">课程位置</a></td></tr>
+</tbody></table></div>
+
+<p>本讲要反复用到的三件 L13 内容，先在这里写出来：</p>
+
+<ul><li><strong>哈希指针</strong>：每个块存着前一块的哈希；改任何一块，它的哈希就变，下一块的链接随之断开（<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s4-3">篡改的两种情形</a>）。</li><li><strong>轻节点只存区块头</strong>，需要时向全节点要证明（SPV，Simplified Payment Verification，简化支付验证）。</li><li><strong>全节点独立验证每一笔交易</strong>；p3 表中全节点“Transaction validation”为“–”是错的。</li></ul>
+
+<p>p15 起是本讲新内容，大纲四项里第一项（General Process）已在 L13 讲完，显示为灰色。</p>
+
+<h2 id="s2"><span class="n">2</span>区块里装了什么</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>三部分：外层头、区块头、区块体</h3>
+
+<p>p32：“A block in a blockchain is composed of three main components: Outer header, Block header, Block body.” 蓝字补了一句：“The first block created in a blockchain is known as ”Genesis block“.”（创世块，L13 讲过。）</p>
+
+<p>p33 逐一说明：</p>
+
+<ul><li><span class=“term”>外层头</span><span class=“en”>（outer header）</span>：“consists of block size and block identification information.”——块有多大、怎样标识这个块。“outer header”不是比特币文档里的术语，课件所据的出处不明。可以看作一种对应的是比特币的区块文件（<code>blk*.dat</code>）：每个块前面存 4 字节的<strong>网络标识</strong>（magic number，主网是 <code>f9beb4d9</code>，用来区分主网和测试网）和 4 字节的块大小；在 P2P 网络上传块时，前面则是 24 字节的消息头（magic、命令名、长度、校验和）。考试照 p33 原话写“block size and block identification information”。</li><li><span class=“term”>区块头</span><span class=“en”>（block header）</span>：“consists of information such as block version, time stamp, hashing target, nonce, parent block hash, and Merkle Tree root.”——6 个字段，下一小节逐个拆。</li><li><span class=“term”>区块体</span><span class=“en”>（block body）</span>：“All the transactions are assembled in the block body along with transaction counter.”——一个交易计数，后面跟着全部交易。第一笔总是 coinbase 交易（区块里第一笔、凭空给出块矿工发奖励的交易，L13 讲过）。</li></ul>
+
+<figure>
+<div class="hscroll" id="figBlock" style="--minw:660px"></div>
+</figure>
+
+<p><em>比特币区块的三部分。区块 N 的整个区块头做两次 SHA-256（L13 讲过的哈希函数，输出 256 位），得到区块 N 的哈希，存进区块 N+1 的“前一块哈希”字段；区块体里的全部交易经 Merkle 树算出 Merkle 根，存进本块区块头。</em></p>
+
+<p>这张图是本节的地图，先看两条箭头：红色箭头是块与块之间的链接（<a href="#s2-3">2.3</a>），绿色虚线是块内交易与区块头之间的链接（<a href="#s2-4">2.4</a>）。两条链接合起来，任何一笔交易都被“拴”进了之后所有块的哈希里。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>区块头的 6 个字段，正好 80 字节</h3>
+
+<p>p33 列的 6 项与比特币协议一一对应：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>课件的叫法</th><th>比特币字段</th><th>字节</th><th>是什么</th></tr></thead>
+<tbody>
+<tr><td>block version</td><td>version</td><td>4</td><td>区块格式的版本号，协议升级时用</td></tr>
+<tr><td>parent block hash</td><td>previous block hash</td><td>32</td><td>前一块区块头的哈希，即哈希指针</td></tr>
+<tr><td>Merkle Tree root</td><td>merkle root</td><td>32</td><td>本块全部交易的摘要，见 <a href="#s2-4">2.4</a></td></tr>
+<tr><td>time stamp</td><td>time</td><td>4</td><td>出块时间，从 1970-01-01 起算的秒数</td></tr>
+<tr><td>hashing target</td><td>bits</td><td>4</td><td>挖矿的难度目标，用 4 字节压缩表示</td></tr>
+<tr><td>nonce</td><td>nonce</td><td>4</td><td><strong>临时数</strong>（nonce，number used once：常被译作“随机数”，但实际是矿工从 0 起逐个递增去试的计数器）：用来“碰”出合格哈希的那个数；实验里叫 <code>proof</code></td></tr>
+</tbody></table></div>
+
+<p>两个哈希字段是 32 字节，因为 SHA-256 的输出是 256 位 = 32 字节。合计</p>
+
+<div class="eq"><span class="m">4 + 32 + 32 + 4 + 4 + 4 = 80 <span class="up">字节</span></span></div>
+
+<p><strong>用比特币创世块实算核对。</strong> 2009 年 1 月 3 日的创世块，6 个字段是：</p>
+
+<div class="tw"><table>
+<thead><tr><th>字段</th><th>创世块的值</th></tr></thead>
+<tbody>
+<tr><td>version</td><td>1</td></tr>
+<tr><td>previous block hash</td><td>全 0（前面没有块）</td></tr>
+<tr><td>merkle root</td><td><code>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</code></td></tr>
+<tr><td>time</td><td>1231006505，即 2009-01-03 18:15:05 UTC</td></tr>
+<tr><td>bits</td><td><code>1d00ffff</code></td></tr>
+<tr><td>nonce</td><td>2083236893</td></tr>
+</tbody></table></div>
+
+<p>按协议规定的格式把它们依次拼成一串字节。格式里有三处字节序要注意，任何一处不照做都算不出正确结果：</p>
+
+<ol><li><span class=“term”>4 个整数字段</span><span class=“en”>（version、time、bits、nonce）</span>按<strong>小端序</strong>（little-endian：低位字节在前）各写成 4 字节，例如 version 1 写成 <code>01 00 00 00</code>，不是 <code>00 00 00 01</code>。</li><li><span class=“term”>两个哈希字段</span><span class=“en”>（previous block hash、merkle root）</span>按比特币的“内部字节序”存，即把上表里显示的十六进制<strong>按字节整体反过来</strong>再写进去（比特币显示哈希时习惯反序，存的时候是正序）。</li><li><strong>算出的块哈希同样要反过来显示</strong>。两次 SHA-256 的原始输出是 <code>6fe28c0ab6f1b372…19d6000000000000</code>（零在右边），按字节反序才是公认的写法。</li></ol>
+
+<p>照此拼出的字节串长度正好 80；做两次 SHA-256，反序显示，得到</p>
+
+<p><code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code></p>
+
+<p>与公认的比特币创世块哈希完全一致。</p>
+
+<div class="tool" id="hdTool">
+  <h4>区块头拼装器</h4>
+  <p class="sub">默认是比特币创世块的 6 个字段。页面按协议格式把它们拼成 80 字节（整数小端、哈希字段按字节反序），做两次 SHA-256，再反序显示，并和 bits 给出的目标值比较。把 nonce 加 1 看看哈希还合不合格；勾上两个「错误口径」之一，看字节序错一处会怎样。</p>
+  <div class="row">
+    <span class="ctl"><label for="hdVer">version</label><input class="num" type="text" inputmode="numeric" id="hdVer" oninput="hdGo()" style="width:4rem"></span>
+    <span class="ctl"><label for="hdTime">time</label><input class="num" type="text" inputmode="numeric" id="hdTime" oninput="hdGo()" style="width:7.5rem"></span>
+    <span class="ctl"><label for="hdBits">bits</label><input class="num" type="text" id="hdBits" oninput="hdGo()" style="width:6rem"></span>
+    <span class="ctl"><label for="hdNonce">nonce</label><input class="num" type="text" inputmode="numeric" id="hdNonce" oninput="hdGo()" style="width:8rem"></span>
+  </div>
+  <div class="row"><span class="ctl" style="flex:1 1 100%"><label for="hdPrev">previous block hash</label><input class="wide" type="text" id="hdPrev" oninput="hdGo()"></span></div>
+  <div class="row"><span class="ctl" style="flex:1 1 100%"><label for="hdMr">merkle root</label><input class="wide" type="text" id="hdMr" oninput="hdGo()"></span></div>
+  <div class="row">
+    <button class="btn" onclick="hdLoad()">创世块</button>
+    <button class="btn" onclick="hdNonce(-1)">nonce − 1</button>
+    <button class="btn" onclick="hdNonce(1)">nonce + 1</button>
+    <label><input type="checkbox" id="hdBE" onchange="hdGo()"> 整数按大端写（错误口径）</label>
+    <label><input type="checkbox" id="hdNR" onchange="hdGo()"> 哈希字段不反序（错误口径）</label>
+  </div>
+  <div id="hdBytes"></div>
+  <div class="result" id="hdOut"></div>
+</div>
+
+<details class="box">
+  <summary>可以直接运行的验算代码</summary>
+<pre><code>import hashlib, struct
+merkle_hex = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
+header = (struct.pack("&lt;I", 1)                   # version，小端
+          + bytes(32)                            # previous block hash，全 0
+          + bytes.fromhex(merkle_hex)[::-1]      # merkle root，按字节反序
+          + struct.pack("&lt;III", 1231006505, 0x1d00ffff, 2083236893))  # time、bits、nonce，小端
+assert len(header) == 80
+raw = hashlib.sha256(hashlib.sha256(header).digest()).digest()
+print(raw[::-1].hex())   # 反序显示：000000000019d6…8ce26f</code></pre>
+</details>
+
+<p>从这次实算能读出三件事：</p>
+
+<ol><li>p33 的字段清单准确且完整：只用这 6 个字段就复现了真实的块哈希。</li><li><strong>块自己的哈希不在块里</strong>，是由区块头算出来的。L13 p32 图里把“Hash”画进区块头的大括号，是示意，不是存储结构。</li><li>哈希开头的那串 0 来自挖矿：矿工要找一个 nonce，使区块头的哈希（反序显示后当作一个 256 位整数）<strong>小于或等于</strong>目标值。创世块的目标值保证开头至少有 8 个十六进制 0（见下面的选读框）；实际出现 10 个，多出的 2 个是运气（满足目标的前提下，再多两个 0 的概率约 <span class="m">1/256</span>）。把 nonce 加 1 改成 2083236894 再算，哈希变成 <code>9b227a4a…</code>，开头一个 0 都没有，不合格。找 nonce 只能一个个试——这和实验里从 0 起逐个试 <code>proof</code> 是同一回事。4 字节的 nonce 只有 <span class="m">2<sup>32</sup> ≈ 4.3 × 10<sup>9</sup></span> 种取值，在今天的难度下几分之一秒就试完了，所以矿工还会改 coinbase 交易里一个叫 extraNonce 的字段（这会改变 Merkle 根）或改时间戳，再从 0 重试 nonce。这种只能逐个去试的计算，就是<strong>工作量证明</strong>（Proof of Work，PoW：用大量计算换取出块权的共识机制）的“工作量”，<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a> 详讲。</li></ol>
+
+<details class="box">
+  <summary>bits 怎样表示目标值，难度 1 要试多少次（选读）</summary>
+<p>bits 的 4 个字节拆成 1 字节指数 <span class="m">e</span> 和 3 字节尾数 <span class="m">m</span>，目标值</p>
+<div class="eq"><span class="m">T = m × 256<sup><span class="sp1"></span>e − 3</sup></span></div>
+<p>创世块 bits = <code>1d00ffff</code>：<span class="m">e = <span class="up mono">0x1d</span> = 29</span>，<span class="m">m = <span class="up mono">0x00ffff</span></span>，所以 <span class="m">T = <span class="up mono">0xffff</span> × 256<sup>26</sup></span>，写成 64 位十六进制是 <code>00000000ffff0000…0000</code>（前 8 位是 0）。</p>
+<p>一次尝试成功（哈希 <span class="m">≤ T</span>）的概率约是 <span class="m">p = T/2<sup>256</sup> ≈ 2.328 × 10<sup>−10</sup></span>，平均要试 <span class="m">1/p ≈ 4.295 × 10<sup>9</sup> ≈ 2<sup>32</sup></span> 次。这就是比特币“难度 1”的含义。</p>
+<p style="margin-bottom:0">对照实验《Lab3-4 区块链与 PoW 的 Python 实现》：那里要求哈希的十六进制开头有 <span class="m">d</span> 个 0（题面 <span class="m">d = 4</span>，平均试 <span class="m">16<sup>4</sup> = 65,536</span> 次）。“开头有 <span class="m">d</span> 个 0”就是“小于目标值 <span class="m">16<sup>64 − d</sup></span>”，是比特币规则的特例。难度 1 的目标值前 8 位十六进制是 0，正相当于实验的 <span class="m">d = 8</span>：<span class="m">16<sup>8</sup> = 2<sup>32</sup> = 4,294,967,296</span>，与上面的 <span class="m">4.295 × 10<sup>9</sup></span> 对得上（<span class="m">T</span> 比 <span class="m">16<sup>56</sup></span> 略小一点点，所以多出约 <span class="m">6.6 × 10<sup>4</sup></span> 次）。</p>
+</details>
+
+<h3 id="s2-3"><span class="n">2.3</span>哈希指针：后一块存前一块区块头的哈希</h3>
+
+<p>p16 标题“Composition of a Block”，一张两块的立体图：每块从上到下 9 格——“Previous Hash”（粉色高亮）、“Height”、“Nonce”、“Confirmations”、“Merkle Root”、“Time Stamp”、“Block Version”、“TX”、“……”。一条深红箭头从图外射入左块的 Previous Hash（指向更早的块），另一条从左块引出、指向右块的 Previous Hash。</p>
+
+<p>（L11 p22 也用过这张教材图，那一版少了 Time Stamp 和 Block Version 两格。）</p>
+
+<p>p17 两句：“Hash pointer is responsible for pointing out the previous hash.”；“hash pointer can also be used to verify the integrity of the blockchain.”</p>
+
+<p><span class=“term”>哈希指针</span><span class=“en”>（hash pointer）</span>是 L13 讲过的概念：一个字段既指明前一块是哪一块，又带着前一块内容的指纹。在比特币里，“前一块的哈希”就是<strong>前一块区块头的哈希</strong>（<a href="#s2-2">2.2</a> 那两次 SHA-256 的结果）。它为什么能“verify the integrity”（验证完整性，即确认数据没被改过）：</p>
+
+<ol><li>区块头里有 Merkle 根，Merkle 根由块里的全部交易算出（下一小节）→ 改任何一笔交易，Merkle 根变；</li><li>Merkle 根变 → 区块头变 → 这个块的哈希变；</li><li>下一块存的还是旧哈希 → 链接断开，任何人复算就能发现。要接上，就得改后面每一块，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s4-3">L13 的实算</a>。</li></ol>
+
+<p>只对 80 字节的区块头算哈希、而不是对整块算，有两个好处：轻节点只存区块头就能核对整条链的链接；矿工每试一个 nonce 只需对 80 字节做哈希，与块里有多少交易无关。实验《Lab3-4 区块链与 PoW 的 Python 实现》的区块没有区分头和体，是对整个字典（含 <code>data</code>）做 SHA-256，原理相同，只是少了 Merkle 树这一层。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>p16 图里的两个字段不在区块里</div>
+<p><strong>“Confirmations”不可能存在块里。</strong> 确认数是“这个块后面已经接了多少块”，等于当前链的高度减去这个块的高度再加 1，区块浏览器显示的是现算的值。块写进链的那一刻，以后会有多少块接在后面还不知道，自然存不进去。（按这个计法块本身算第 1 个确认；课件和模拟卷算确认时间时直接用“等待块数 × 出块时间”，不细究本块算不算一个。）</p>
+<p><strong>“Height”（块高，从创世块的 0 起数的编号）也不在比特币的区块头里。</strong> 比特币从 2013 年生效的 BIP34（Bitcoin Improvement Proposal 34，第 34 号比特币改进提案）起把高度写在 coinbase 交易里；作为一般区块链的字段（美国国家标准与技术研究院 NIST 的区块链概述报告 IR 8202 列有 block height）可以接受。</p>
+<p style="margin-bottom:0">图里还把“TX”和头部字段画在同一列，看不出头和体的分界。p16 与 p33 冲突时<strong>以 p33 为准</strong>：区块头只有 version、previous block hash、merkle root、time stamp、hashing target、nonce 六项。</p>
+</div>
+
+<h3 id="s2-4"><span class="n">2.4</span>Merkle 树：一个根概括全部交易</h3>
+
+<p>p18 两句：“Using Merkle tree can verify the set of all transactions quickly within a block.”；“Merkle Tree is a binary tree used to represent transactions in a block.”</p>
+
+<p>p19 是定义（课件原文，粗体是课件的红字）：</p>
+
+<blockquote><p>“For each transaction, a <strong>separate hash value</strong> is calculated. Then, the two hash values are combined to generate <strong>a new hash going upward</strong> toward the root. <strong>Then at the root, all the hash values are combined to create a new hash value</strong>. This hash value is then used for integrity and verification purpose. Now, if <strong>this hash value has been modified</strong>, it means, <strong>some transactions</strong> within the block have been modified.”</p><p>“Merkle Tree is a binary tree used to represent transactions in a block. Merkle root is known as the root of the Merkle Tree wherein each leaf is labeled as hash code of the transaction. The hash code of two children is combined together as label of the non-leaf node.”</p></blockquote>
+
+<p>整理成构造规则。<strong>Merkle 树</strong>（Merkle tree，以密码学家 Ralph Merkle 命名，他 1979 年提出这种哈希树，常被引用的是他 1987 年的论文）是一棵<strong>二叉树</strong>（binary tree：每个上层节点恰好有两个子节点）：</p>
+
+<ol><li><strong>叶子</strong>：每笔交易各算一个哈希。</li><li><strong>向上合并</strong>：相邻两个哈希<strong>首尾拼接后再哈希</strong>一次，得到上一层的一个节点。</li><li>一层层往上，直到只剩一个，叫 <span class=“term”>Merkle 根</span><span class=“en”>（Merkle root）</span>，写进区块头。</li></ol>
+
+<p>比特币的块哈希、交易标识和 Merkle 树都用两次 SHA-256，下面记 <span class="m">H(x) = <span class="up">SHA-256</span>(<span class="up">SHA-256</span>(x))</span>，<span class="m">‖</span> 是字节拼接。取 4 笔示意交易实算：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>层</th><th>节点</th><th>怎么算</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>叶</td><td><span class="m">h<sub>0</sub></span></td><td><span class="m">H(T<sub>0</sub>)</span>，<span class="m">T<sub>0</sub></span> = <code>Alice-&gt;Bob:5</code></td><td><code>af5776d147c1fd84…</code></td></tr>
+<tr><td>叶</td><td><span class="m">h<sub>1</sub></span></td><td><span class="m">H(T<sub>1</sub>)</span>，<span class="m">T<sub>1</sub></span> = <code>Bob-&gt;Carol:2</code></td><td><code>0bcd6c394e21b6a9…</code></td></tr>
+<tr><td>叶</td><td><span class="m">h<sub>2</sub></span></td><td><span class="m">H(T<sub>2</sub>)</span>，<span class="m">T<sub>2</sub></span> = <code>Carol-&gt;Dave:1</code></td><td><code>0e2c654dc8fef9a4…</code></td></tr>
+<tr><td>叶</td><td><span class="m">h<sub>3</sub></span></td><td><span class="m">H(T<sub>3</sub>)</span>，<span class="m">T<sub>3</sub></span> = <code>Dave-&gt;Eve:3</code></td><td><code>e0a60060b17b5a21…</code></td></tr>
+<tr><td>中</td><td><span class="m">h<sub>01</sub></span></td><td><span class="m">H(h<sub>0</sub>‖h<sub>1</sub>)</span></td><td><code>635ac9cd45227b2c…</code></td></tr>
+<tr><td>中</td><td><span class="m">h<sub>23</sub></span></td><td><span class="m">H(h<sub>2</sub>‖h<sub>3</sub>)</span></td><td><code>4ea48438f6104040…</code></td></tr>
+<tr><td>根</td><td><span class="m">R</span></td><td><span class="m">H(h<sub>01</sub>‖h<sub>23</sub>)</span></td><td><code>97b4c43f10c7e4e3…</code></td></tr>
+</tbody></table></div>
+
+<p>（表中示意值按 SHA-256 输出的原始字节顺序显示，与区块浏览器的反序显示相反，不要拿去和 <a href="#s2-2">2.2</a> 的创世块 merkle root 对比。）</p>
+
+<figure>
+<div class="hscroll" id="figMerkle" style="--minw:640px"></div>
+</figure>
+
+<p><em>四笔交易的 Merkle 树。红色是 <span class="m">T<sub>2</sub></span> 到根的路径，绿色是验证 <span class="m">T<sub>2</sub></span> 时需要别人提供的兄弟节点（<a href="#s2-5">2.5</a> 用到）。</em></p>
+
+<p><strong>篡改检测</strong>（p19 最后一句“if this hash value has been modified, it means, some transactions within the block have been modified”）：把 <span class="m">T<sub>2</sub></span> 改成 <code>Carol-&gt;Dave:9</code>，重算：</p>
+
+<ul><li><span class="m">h<sub>2</sub></span> 变成 <code>26b1c136…</code>；</li><li><span class="m">h<sub>23</sub> = H(h<sub>2</sub>‖h<sub>3</sub>)</span> 变成 <code>afbdab29…</code>；</li><li><span class="m">R = H(h<sub>01</sub>‖h<sub>23</sub>)</span> 变成 <code>d1aa7414…</code>，与原来的 <code>97b4c43f…</code> 不同。</li></ul>
+
+<p>变化只沿图里红色路径往上传，<span class="m">h<sub>0</sub></span>、<span class="m">h<sub>1</sub></span>、<span class="m">h<sub>01</sub></span>、<span class="m">h<sub>3</sub></span> 都不变；但根一定变。根在区块头里，于是接上 <a href="#s2-3">2.3</a> 的因果链：区块头变 → 块哈希变 → 下一块的链接断。</p>
+
+<div class="box def">
+  <div class="h"><span class="tag">补充</span>p19“at the root, all the hash values are combined”说得不准</div>
+<p style="margin-bottom:0">根并不是把所有哈希一起合并，而是只把它的两个子节点拼接后再哈希，和其他非叶节点的算法一样。课件也没说用哪种哈希函数（比特币是两次 SHA-256）、交易个数为奇数时怎么办。</p>
+</div>
+
+<details class="box">
+  <summary>交易数为奇数时：复制最后一个凑成对（课件外）</summary>
+<p>比特币的规则：某一层的节点数是奇数时，把这一层最后一个哈希复制一份，与自己配对。取上表前 3 笔交易：</p>
+<ul style="margin-bottom:0"><li>第一层：<span class="m">h<sub>0</sub>,h<sub>1</sub>,h<sub>2</sub></span> 三个，<span class="m">h<sub>2</sub></span> 落单，于是 <span class="m">h<sub>22</sub> = H(h<sub>2</sub>‖h<sub>2</sub>) =</span> <code>92795826…</code>；</li><li>根 <span class="m">= H(h<sub>01</sub>‖h<sub>22</sub>) =</span> <code>6b53aaec…</code>。</li></ul>
+</details>
+
+<h3 id="s2-5"><span class="n">2.5</span>Merkle 证明：轻节点为什么只存头就够</h3>
+
+<p>p18 说 Merkle 树能“quickly”验证交易。快在哪里，要分清两件事：</p>
+
+<ul><li>只想检测“这个块里有没有任何一笔交易被改过”，根本用不着树：把全部交易拼起来算一个哈希，也能做到。</li><li>Merkle 树真正的本事是：<strong>不拿到其他交易，也能证明某一笔交易在这个块里。</strong></li></ul>
+
+<p>例：一个轻节点只存了区块头（因而知道 <span class="m">R</span>），想确认 <span class="m">T<sub>2</sub></span> 确实被打包进了这个块。它向全节点要两个兄弟哈希——<span class="m">T<sub>2</sub></span> 的兄弟 <span class="m">h<sub>3</sub></span>、<span class="m">h<sub>23</sub></span> 的兄弟 <span class="m">h<sub>01</sub></span>（图中绿色）——以及每个兄弟在左还是在右（因为 <span class="m">H(a‖b) ≠ H(b‖a)</span>，拼接顺序错了就算不对）。左右位置等价于 <span class="m">T<sub>2</sub></span> 在块里的序号：2 写成二进制是 10，从低位读起，第一层 <span class="m">T<sub>2</sub></span> 在左、兄弟在右，第二层 <span class="m">h<sub>23</sub></span> 在右、兄弟在左。然后自己沿红色路径算：</p>
+
+<div class="eq"><span class="m">R <span class="ovs"><span class="ovt">?</span><span> = </span></span> H<span class="bg1">(</span>h<sub>01</sub> ‖ H(H(T<sub>2</sub>) ‖ h<sub>3</sub>)<span class="bg1">)</span></span></div>
+
+<p>实算等式成立。若全节点给的是假值，或 <span class="m">T<sub>2</sub></span> 根本不在块里，算出来的根就对不上区块头里的 <span class="m">R</span>——由于哈希抗第二原像与抗碰撞，造不出能凑出正确根的假兄弟。</p>
+
+<p>证明要几个哈希：树每高一层，路径上多一个兄弟，<span class="m">n</span> 笔交易的树高 <span class="m">⌈<span class="up">log</span><sub>2</sub>n⌉</span>（<span class="m">⌈x⌉</span> 表示上取整：不小于 <span class="m">x</span> 的最小整数），所以只要 <span class="m">⌈<span class="up">log</span><sub>2</sub>n⌉</span> 个 32 字节的哈希，外加同样多位的左右位置信息：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>块内交易数 <span class="m">n</span></th><th>证明所需哈希数</th><th>证明大小</th><th>对比：全部叶哈希 <span class="m">32n</span> 字节</th></tr></thead>
+<tbody>
+<tr><td>4</td><td>2</td><td>64 B</td><td>128 B</td></tr>
+<tr><td>1,000</td><td>10</td><td>320 B</td><td>32,000 B</td></tr>
+<tr><td>4,000</td><td>12</td><td>384 B</td><td>128,000 B</td></tr>
+<tr><td>75,000</td><td>17</td><td>544 B</td><td>2,400,000 B</td></tr>
+<tr><td>1,000,000</td><td>20</td><td>640 B</td><td>32,000,000 B</td></tr>
+</tbody></table></div>
+
+<p>（75,000 是 <a href="#s6-3">6.3</a> 模拟卷那条链每块的交易数。）交易数涨到一百万，证明也只有 640 字节。这就是 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-3">轻节点</a>只存 80 字节的区块头也能工作的原因（比特币白皮书第 8 节的 SPV）。</p>
+
+<div class="tool" id="mkTool">
+  <h4>Merkle 证明演示</h4>
+  <p class="sub">每行一笔交易（1 到 8 笔）。「打包」把当前交易的 Merkle 根写进区块头；之后选一笔交易，看轻节点要向全节点要哪几个兄弟哈希、怎样一路算回根。打包之后再改一笔交易，根就对不上区块头了；交易数为奇数时，落单的那个复制自己凑对。</p>
+  <div class="row"><textarea id="mkTx" rows="4" oninput="mkGo()">Alice-&gt;Bob:5
+Bob-&gt;Carol:2
+Carol-&gt;Dave:1
+Dave-&gt;Eve:3</textarea></div>
+  <div class="row">
+    <button class="btn" onclick="mkPack()">打包（把当前交易的根写进区块头）</button>
+    <button class="btn" onclick="mkPreset('4')">4 笔示例</button>
+    <button class="btn" onclick="mkPreset('3')">3 笔（奇数）</button>
+    <button class="btn" onclick="mkPreset('8')">8 笔</button>
+    <button class="btn" onclick="mkTamper()">把 T₂ 改成 Carol-&gt;Dave:9</button>
+  </div>
+  <div class="row"><span class="ctl"><label for="mkSel">证明哪一笔</label><select id="mkSel" onchange="mkPick()"></select></span></div>
+  <div class="toolfig hscroll" id="mkTree" style="--minw:600px"></div>
+  <div class="steps" id="mkSteps"></div>
+  <div class="result" id="mkOut"></div>
+  <div class="row" style="margin-top:1rem"><span class="ctl"><label for="mkN">块内交易数 n</label><input class="num" type="text" inputmode="numeric" id="mkN" value="75000" oninput="mkSize()"></span>
+    <button class="btn" onclick="$('mkN').value='1000000';mkSize()">100 万</button><button class="btn" onclick="$('mkN').value='4000';mkSize()">4,000</button></div>
+  <div class="result" id="mkSizeOut"></div>
+</div>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>Merkle 证明证的是“在块里”，不是“合法”</div>
+<p>误：轻节点用 Merkle 证明验证了交易，所以它和全节点一样安全。</p>
+<p style="margin-bottom:0">正：Merkle 证明只说明“这笔交易被写进了这个块”。这笔交易花的钱以前有没有花过、签名对不对，轻节点没法自己查，只能相信“被多数算力接上了后续块的块里不会有非法交易”。独立验证合法性的仍然只有全节点。</p>
+</div>
+
+<h2 id="s3"><span class="n">3</span>治理：谁拥有、谁能写、保不保密</h2>
+
+<p>课件把 p16–p22 都放在“Blockchain Governance System”标题下。<span class=“term”>治理</span><span class=“en”>（governance）</span>在这里指：链归谁、谁有权往上写、谁能看到数据。区块组成已在第 2 节讲完，本节是 p20–p22。</p>
+
+<h3 id="s3-1"><span class="n">3.1</span>谁拥有区块链</h3>
+
+<p>p20：“In terms of deployment and involvement of companies, different companies can operate in a consortium blockchain.” “However, if there is only a single organization involved, then it can be considered as a private blockchain.”</p>
+
+<p>多家公司共同运营的是联盟链，只有一家的是私有链。p20 没说公有链，按 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s1-1">三类链的定义</a>，公有链没有所有者，谁都能参与。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>谁能修改账本</h3>
+
+<p>p21：“In terms of ledger modification, blockchain can be classified as permissionless and permissioned.” “In permissionless blockchain, anyone can modify the ledger.” “In permissioned blockchain, restricted number of nodes can make modification in the ledger.”</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>p21 的“modify”应理解为写入新块</div>
+<p>误：无许可链上“任何人都能修改账本”。</p>
+<p style="margin-bottom:0">正：正常途径只能往后<strong>追加</strong>新块。已有的记录不能被悄悄修改：一改就会被发现（篡改可检测，tamper-evident，<a href="#s2-3">2.3</a>），PoW 链上还要重做其后所有块的工作量（篡改代价高，tamper-resistant，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s4-3">L13 的篡改两种情形</a>）。p21 的“modify”指的是<strong>写入</strong>：无许可链上任何人都能提交交易、参与竞争出块，新块要经共识被接受；许可链上只有被授权的节点能出块。</p>
+</div>
+
+<h3 id="s3-3"><span class="n">3.3</span>机密性</h3>
+
+<p>p22：</p>
+
+<ul><li>“Public blockchain systems do not provide confidentiality except the blockchain user and their actual identities are not disclosed to the general public using pseudonymity.”</li><li>“Consortium and private blockchain provide more confidentiality to the blockchain users, however, blockchain nodes need more trust in such an environment, and <strong>the identity of the nodes should be known</strong> within the network.”（粗体为课件红字）</li></ul>
+
+<p>两个词要分开：</p>
+
+<ul><li><span class=“term”>机密性</span><span class=“en”>（confidentiality）</span>：信息只让被授权的人看到，信息安全三目标之一（<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html">L1 信息安全基础</a>）。公有链上每一笔交易的金额、收付地址对全世界公开，谈不上机密性。</li><li><span class=“term”>假名性</span><span class=“en”>（pseudonymity）</span>：用一个不直接写真名的地址代替身份。它保护的只是“这个地址是谁”，而且并不牢靠——同一个人的多个地址常在交易里一起出现，研究者靠这种关联做<strong>地址聚类</strong>（address clustering：把可能属于同一人的多个地址归成一组）就能把大量比特币地址和真实身份对上（Meiklejohn 等，2013）。</li></ul>
+
+<p>许可链的取舍是：节点身份已知（比如 Hyperledger Fabric——Linux 基金会主导的许可链平台，常用于联盟场景——给每个成员发 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a> 里讲的数字证书），可以只让授权方看到数据，机密性更好；代价是参与者必须信任发证的机构与彼此——“need more trust”。</p>
+
+<h3 id="s3-4"><span class="n">3.4</span>三类链的治理对照</h3>
+
+<div class="tw"><table class="wide">
+<thead><tr><th></th><th>公有链</th><th>联盟链</th><th>私有链</th></tr></thead>
+<tbody>
+<tr><td>谁拥有（p20）</td><td>无单一所有者</td><td>多家公司共同运营</td><td>单一组织</td></tr>
+<tr><td>谁能写入（p21）</td><td>任何人（permissionless）</td><td>受限的节点（permissioned）</td><td>受限的节点（permissioned）</td></tr>
+<tr><td>机密性（p22）</td><td>不提供，只有假名性</td><td>更高，节点身份须已知</td><td>更高，节点身份须已知</td></tr>
+</tbody></table></div>
+
+<h2 id="s4"><span class="n">4</span>平台</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>应用与系统对照</h3>
+
+<p>p23 是大纲过渡页，高亮第三项“Blockchain Platforms”。</p>
+
+<p>p24“The Applications and Systems of Blockchain”把十个系统归到四类应用下：</p>
+
+<div class="tw"><table>
+<thead><tr><th>应用</th><th>系统</th><th>一句话</th></tr></thead>
+<tbody>
+<tr><td>Asset Management and Tracking（资产管理与追踪）</td><td>Corda</td><td>R3 公司为金融机构做的分布式账本</td></tr>
+<tr><td></td><td>BigchainDB</td><td>把区块链特性加到分布式数据库上</td></tr>
+<tr><td></td><td>MultiChain</td><td>从比特币改出来、用于搭私有链的平台</td></tr>
+<tr><td>Own assets in terms of Token（以代币持有资产）</td><td>Stellar</td><td>跨境支付与发行代币的网络</td></tr>
+<tr><td></td><td>IOTA</td><td>面向物联网的账本，结构是 DAG（有向无环图：每条记录可同时指向多条更早的记录），叫 Tangle，不是一条链</td></tr>
+<tr><td>Cryptocurrency（加密货币）</td><td>Bitcoin</td><td>第一个加密货币</td></tr>
+<tr><td></td><td>Litecoin</td><td>由比特币代码改出、2011 年另起创世块的独立链，出块间隔 2.5 分钟</td></tr>
+<tr><td>Smart Contract-based new Business Logic（基于智能合约的新业务逻辑）</td><td>Parity</td><td>以太坊的一个客户端软件，不是独立的链</td></tr>
+<tr><td></td><td>Ethereum</td><td>通用智能合约平台</td></tr>
+<tr><td></td><td>Quorum</td><td>为企业改造的许可版以太坊</td></tr>
+</tbody></table></div>
+
+<p><span class=“term”>代币</span><span class=“en”>（token）</span>指在某条链上发行、代表某种资产或权益的数字凭证。表格的分类比较粗：Parity 是软件而非系统，IOTA 严格说不是区块链；原图“IOTA”中间还残留一个文本光标。</p>
+
+<p>模拟卷 Q4(c)(iv)“List any other two potential blockchain-enabled applications [2 marks]”，参考答案接受“any distributed systems requiring trusted data exchange”，如 smart grid、autonomous driving、cryptocurrency、food supply chain system；这张表和 L13 应用层的例子（IoT 物联网、5G、Record Management 记录管理）都可以拿来答。</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>三类平台</h3>
+
+<p>p25–p27 按“平台能干什么”分三类，三页都被 L20 Summary 保留。</p>
+
+<p><span class=“term”>只适合做加密货币的平台</span><span class=“en”>（p25）</span>：“Several blockchain platforms are available online that provide the basis to build our own cryptocurrency on top of it or to get insights about the working of these existing blockchain networks.”——拿它们可以发自己的币，或研究现有网络怎样运作。</p>
+
+<p><span class=“term”>支持智能合约（业务逻辑）的平台</span><span class=“en”>（p26）</span>：“Business logic can also be integrated to the blockchain with the help of smart contracts.” <span class=“term”>业务逻辑</span><span class=“en”>（business logic）</span>指一项业务的规则，例如“货到才付款”“超过 30 天自动退款”；把它写成链上的<strong>智能合约</strong>（<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s6-2">L13 定义过</a>：部署在链上、由交易触发、每个节点都执行一遍的程序），规则就由全网强制执行，不必信任某一方。p26 接着列了四个平台，小标题虽是“支持智能合约”，其实是一张 2×2 的表：</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>只支持交易</th><th>支持智能合约</th></tr></thead>
+<tbody>
+<tr><td>无许可链</td><td>Bitcoin</td><td>Ethereum</td></tr>
+<tr><td>许可链（联盟）</td><td>Chain Core</td><td>Hyperledger Fabric</td></tr>
+</tbody></table></div>
+
+<p>Chain Core 是 Chain 公司做的面向金融机构的许可链平台。原文：Bitcoin“supports transactions only and it operates in permissionless environment”；Chain Core“supports transactions only, however, it is basically a consortium blockchain”；Ethereum“a permissionless blockchain that supports smart contracts”；Hyperledger Fabric“a permissioned blockchain that supports smart contracts”。</p>
+
+<p><span class=“term”>云上的平台</span><span class=“en”>（p27）</span>：“Several companies have offered Blockchain as a Service (BaaS) by allowing users to develop their own blockchain infrastructure using cloud. For instance, Microsoft Azure is one such”（句子没写完）。<strong>BaaS</strong>（Blockchain as a Service，区块链即服务）：云服务商替你搭好、运维区块链节点，你只管在上面开发，和“云服务器”是同一个思路。课件的例子已过时：微软的 Azure Blockchain Service 在 2021 年 9 月 10 日停止服务。考试写“e.g. Microsoft Azure”照课件即可。</p>
+
+<h3 id="s4-3"><span class="n">4.3</span>比特币</h3>
+
+<p><span class=“term”>要点</span><span class=“en”>（p28）</span>：“Bitcoin is one of the famous first publicly available cryptocurrency platforms that use the concept of blockchain.”</p>
+
+<ul><li>“Consensus mechanism uses Proof-of-Work (PoW)”——对。</li><li>“Partially supports smart contracts using UTXO”——说法不准。<strong>UTXO</strong>（Unspent Transaction Output，未花费交易输出）是比特币的记账方式：每笔交易消耗掉以前交易的若干个“输出”，再产生新的输出；一个人的“余额”就是所有能被他的私钥解锁、还没被花掉的输出之和。比特币有限的可编程性来自附在每个输出上的一小段 <strong>Bitcoin Script</strong>（比特币脚本：规定“满足什么条件才能花这笔钱”的简单语言，故意设计成不能写循环），不是来自 UTXO 本身。</li><li>“Operates over P2P network architecture”——对，即 L13 讲的对等网络。</li><li>“Some nodes can keep the copy of the ledger.”——含糊；准确说法是全节点存完整账本，轻节点只存区块头。</li><li>“Provides a hard code list of Domain Name Server (DNS) – resist DoS attacks.”——客户端里硬编码的是 <strong>DNS 种子</strong>（<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s2-2">L13 讲过</a>：查询后能拿到一批在线节点地址的域名），用途是新节点启动时找到第一批邻居，不是“Domain Name Server”；“抵抗 DoS 攻击”（denial of service，拒绝服务攻击：用海量请求把服务压垮）一说找不到依据。</li><li>“Virtual crypto coins BTC are used”——对。</li></ul>
+
+<p><strong>靠什么在没有中心机构的情况下建立信任</strong>（p29，八项）：</p>
+
+<div class="tw"><table>
+<thead><tr><th>特征</th><th>在比特币里起什么作用</th></tr></thead>
+<tbody>
+<tr><td>Cryptography（密码学）</td><td>哈希与签名是下面几项的基础</td></tr>
+<tr><td>P2P Network Architecture</td><td>没有中心服务器，无单点可攻</td></tr>
+<tr><td>Hashing Algorithms</td><td>串链、Merkle 根、挖矿</td></tr>
+<tr><td>Public/Private Key Encryption</td><td>课件写 encryption 不准：比特币<strong>不加密</strong>任何交易，公私钥用于<strong>签名</strong>（ECDSA，Elliptic Curve Digital Signature Algorithm，椭圆曲线数字签名算法；2021 年 Taproot 升级（比特币的一次协议升级）后另可用 Schnorr 签名，也是一种基于椭圆曲线的签名算法）</td></tr>
+<tr><td>Distributed Storage</td><td>每个全节点存一份完整账本</td></tr>
+<tr><td>Logically Centralized</td><td>物理上分散在成千上万台机器上，逻辑上只有一本账：诚实节点最终都收敛到同一条链</td></tr>
+<tr><td>Consensus Algorithm</td><td>PoW 决定谁出下一块</td></tr>
+<tr><td>Time Stamping of Transactions</td><td>每个区块头带时间戳，交易先后有据可查</td></tr>
+</tbody></table></div>
+
+<p><span class=“term”>比特币的最小单位</span><span class=“en”>（p30）</span>：“The smallest amount of BTC that can be transferred is 0.00000001 BTC, which is also known as ”Satoshi“.”</p>
+
+<div class="eq"><span class="m">1 <span class="up">Satoshi</span> = <span class="frac"><span>1</span><span>100,000,000</span></span> <span class="up">BTC</span> = 10<sup>−8</sup> <span class="up">BTC</span></span></div>
+
+<p>名字来自比特币的创造者中本聪（Satoshi Nakamoto）。比特币协议内部记金额就以聪为整数单位，避免小数误差。例：0.0015 BTC <span class="m">= 0.0015 × 10<sup>8</sup> = 150,000</span> 聪；比特币总量上限 2100 万 BTC <span class="m">= 2.1 × 10<sup>15</sup></span> 聪。p30 还说 BTC 既可用来转移价值，也作为挖矿奖励发给矿工（就是 coinbase 交易）。</p>
+
+<p><span class=“term”>比特币的工作过程</span><span class=“en”>（p31）</span>七步，与 L13 的 13 步对照：</p>
+
+<div class="tw"><table>
+<thead><tr><th>p31 原文</th><th>对应 L13 的步骤</th></tr></thead>
+<tbody>
+<tr><td>1. “A participating node send a transaction to neighboring nodes”</td><td>④ 广播交易</td></tr>
+<tr><td>2. “Neighboring nodes check this transaction”</td><td>⑤ 验证交易</td></tr>
+<tr><td>3. “All the nodes including miners add this transaction to the unverified transaction pool.”</td><td>⑥ 进交易池</td></tr>
+<tr><td>4. “Miner node gathers few transactions and starts mining the block”</td><td>⑦ 组块、⑧ 挖矿</td></tr>
+<tr><td>5. “Informs a block (including set of transactions) to the whole network.”</td><td>⑩ 加块、⑪ 广播（原文缺主语：是挖到块的矿工广播）</td></tr>
+<tr><td>6. “Full nodes (including miners) check different fields of the block and its validity.”</td><td>⑨ 验证区块</td></tr>
+<tr><td>7. “The nodes add correct block to their copy of the ledger.”</td><td>⑫ 加入本地副本</td></tr>
+</tbody></table></div>
+
+<p>两处值得注意：第 6 步明说<strong>全节点</strong>检查区块，再次说明 p3 表里全节点“Transaction validation”为“–”是错的；验证区块放在广播之后，意思是收到块的每个节点都要独立检查（L13 第 9 步只说了“Block validation is carried out”，没说谁做）。p31 第 3 步把交易池叫“unverified transaction pool”，意思是池里的交易虽已通过检查，还没被写进块、没得到区块确认。</p>
+
+<p>区块的组成（p32–p33）已在 <a href="#s2-1">第 2 节</a>讲过。</p>
+
+<h3 id="s4-4"><span class="n">4.4</span>以太坊与它的两类账户</h3>
+
+<p><span class=“term”>要点</span><span class=“en”>（p34）</span>：</p>
+
+<ul><li>“Pubilc available cryptocurrency. (Ethers are used as cryptocurrency. )”——以太坊的币叫 <strong>Ether</strong>（以太币，ETH）。</li><li>“Incorporates business logic to blockchain network in the form of smart contract.”——以太坊的核心：链上可以部署任意的智能合约。</li><li>“Proof-of-Work (PoW) variant of consensus algorithm named as Ethash (Ethereum 2.0 uses PoS)”——已过时。以太坊早期用 PoW 的一个变体 Ethash，<strong>2022 年 9 月 15 日“合并”（The Merge）之后全面改为 PoS</strong>（Proof of Stake，权益证明：按持有并锁定的币量选出块者，见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>），Ethash 不再使用；以太坊基金会也不再用“Ethereum 2.0”这个名字。</li><li>“Participating node needs to install/host Ethereum Virtual Machine (EVM) to execute smart contracts.”——<strong>EVM</strong>（Ethereum Virtual Machine，以太坊虚拟机）：每个节点上都运行的同一个执行环境，合约编译成它的<strong>字节码</strong>（bytecode：给虚拟机执行的低级指令序列），在每个节点上以完全相同的方式执行。</li><li>“Built on top of P2P network and requires virtual P2p (Vp2p) wire protocol.”——协议名写错了：以太坊节点间的通信协议叫 <strong>devp2p</strong>（写作 ÐΞVp2p，Ð 取自 Dev），不是“virtual”。</li></ul>
+
+<p><span class=“term”>账户</span><span class=“en”>（p35）</span>：“In Ethereum blockchain, there are three types of users”，列了 Contract Account (CA)、Miners、Externally Owned Account (EOA)。这一页有错，先给正确版本。以太坊官方文档（ethereum.org，“Ethereum accounts”）的说法是：<strong>以太坊只有两类账户。</strong></p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>外部账户 EOA</th><th>合约账户</th></tr></thead>
+<tbody>
+<tr><td>英文</td><td>Externally-owned account</td><td>Contract account</td></tr>
+<tr><td>由谁控制</td><td>“controlled by anyone with the private keys”：持有私钥的人</td><td>“a smart contract deployed to the network, controlled by code”：合约代码</td></tr>
+<tr><td>有没有私钥</td><td>有一对公私钥，地址由公钥得到（公钥的 Keccak-256 哈希值的后 20 字节）</td><td>没有私钥</td></tr>
+<tr><td>能否主动发起交易</td><td>“Can initiate transactions”</td><td>不能。“Can only send messages in response to receiving a transaction”：只能在收到一笔交易后作为响应去调用别的账户</td></tr>
+<tr><td>创建的代价</td><td>“Creating an account costs nothing”</td><td>部署合约要付费，因为占用了网络的存储</td></tr>
+<tr><td>典型用途</td><td>普通用户的钱包</td><td>一份部署好的合约，如代币、拍卖、交易所</td></tr>
+</tbody></table></div>
+
+<p>两类账户都能持有以太币。（课外：2025 年 5 月的 Pectra 升级引入 EIP-7702（Ethereum Improvement Proposal 7702，第 7702 号以太坊改进提案），允许 EOA 把自己的执行逻辑委托给某个合约代码，ethereum.org 的账户页因此加了“unless the account has delegated…”一类限定语。账户仍是两类，考试答法不变。）以太坊因此是<strong>账户模型</strong>（每个账户直接记一个余额），和比特币的 UTXO 模型不同（L13 六层的数据组织层提到的“transaction models”就是这对区别）。</p>
+
+<p>这样看一次合约调用：用户的 EOA 用私钥签一笔交易发给合约账户 → 合约代码在每个节点的 EVM 里执行 → 执行中合约可以再去调用别的合约。整条调用链的源头一定是某个 EOA 发起的交易。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p35 的两处错误</div>
+<p><strong>把合约账户说成普通用户。</strong> 课件原文“Contract Account (CA), which are normal users and can make transactions among each other”。正好说反了：普通用户用的是 EOA；合约账户由代码控制、没有私钥，不能主动发起交易，只能响应收到的交易。</p>
+<p><strong>把矿工列为一类账户。</strong> 矿工（The Merge 之后叫验证者 validator）是<strong>节点的角色</strong>（<a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s3-4">L13 的节点分类</a>），不是账户类型；矿工收奖励用的也是一个普通的 EOA。</p>
+<p>课件对 EOA 的描述是对的：“can perform transaction to another EOA. EOA can also call the function of CA and they can also make a new smart contract.”</p>
+<p style="margin-bottom:0">考试问以太坊账户，按正确定义答两类：EOA（私钥控制、能发起交易）与合约账户（代码控制、只能响应）。</p>
+</div>
+
+<h2 id="s5"><span class="n">5</span>智能合约：确定性与非确定性</h2>
+
+<p>p36 是大纲过渡页，高亮第四项“Properties of Blockchain System”，第 5–7 节都属于这一项。p37–p38（课件页眉写“Blockchain Platforms”，内容属于“Properties of Blockchain System”）把智能合约分两类：</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>确定性智能合约</th><th>非确定性智能合约</th></tr></thead>
+<tbody>
+<tr><td>英文</td><td>Deterministic smart contracts</td><td>Non-deterministic smart contracts</td></tr>
+<tr><td>课件定义</td><td>“The execution of smart contract is not dependent upon external data or event.”</td><td>“The execution of smart contract is dependent upon external data (also called as oracles).”</td></tr>
+<tr><td>例子</td><td>代币转账：A 的余额减 5、B 的加 5，所需数据都在链上</td><td>航班延误险：航班晚点两小时就自动赔付，“晚点了没有”在链外</td></tr>
+</tbody></table></div>
+
+<p>p38 底部蓝字：“Non-deterministic smart contract opened the door of new and innovative applications and business models.”——能读取真实世界的数据，合约才能做保险、供应链、博彩这类业务。</p>
+
+<p>为什么要分这两类：智能合约在<strong>每个节点上都执行一遍</strong>，各节点必须得到一模一样的结果，否则对“执行后账本是什么样”就无法达成共识。只依赖链上数据的合约，输入相同、结果必然相同。如果合约在执行时让每个节点自己去网上查航班状态，节点查询的时刻不同、网站返回的内容可能不同，结果就会分叉。</p>
+
+<p>解决办法是<span class=“term”>预言机</span><span class=“en”>（oracle）</span>：一个把链外数据写上链的机制或服务。它先把“航班 CA123 晚点 135 分钟”作为一笔交易写进链里，所有节点执行合约时读的都是链上同一份数据，执行本身又变回确定的。课件说外部数据“also called as oracles”不准确：预言机是送数据的机制，不是数据本身。代价也随之而来：合约的结果只和预言机一样可信，预言机成了新的信任点。</p>
+
+<h2 id="s6"><span class="n">6</span>可扩展性与交易容量</h2>
+
+<h3 id="s6-1"><span class="n">6.1</span>可扩展性的三个维度</h3>
+
+<p><span class=“term”>可扩展性</span><span class=“en”>（scalability）</span>：系统规模变大时性能能否跟上。p39 从三个方向问：</p>
+
+<ul><li>“How much scalable the blockchain system is when we increase the number of blockchain nodes?”——<strong>节点</strong>变多：每条消息要传给更多节点，传播变慢；</li><li>“How blockchain system behave when there is an increase in number of transactions?”——<strong>交易</strong>变多：每块装不下，交易在池里排队；</li><li>“How blockchain system behaves when the size of the ledger increases in terms of storage?”——<strong>账本</strong>变大：存储负担越来越重。</li></ul>
+
+<h3 id="s6-2"><span class="n">6.2</span>存储：账本只增不减</h3>
+
+<p>p40：“Basically, each blockchain keeps the copy of the complete ledger.”（应为“each blockchain node”）“With the passage of time, new blocks are adding, and the size of the ledger keeps growing.” “When applying blockchain to certain communication networks in which the nodes <strong>do not have high storage capacity</strong>, keeping the full copy of the ledger is problematic.”</p>
+
+<p>因果很直接：区块链只追加、不删除，所以账本只会越来越大；每个全节点都存一整份，存储需求随时间线性增长。这对传感器、手机、车载设备这类存储有限的无线节点（课程最后几讲 L18–L20 的应用场景）是硬约束。轻节点（只存区块头）是一种缓解。</p>
+
+<h3 id="s6-3"><span class="n">6.3</span>吞吐量受什么限制</h3>
+
+<p>p41：“The performance of blockchain system can be measured in terms of number of transactions handled per second by the blockchain.”——衡量区块链性能的指标是<strong>吞吐量</strong>（throughput：每秒处理的交易数，单位 Tx/s，也写作 TPS）。p41 列了三个限制因素，p42 给了对应的三条对策：</p>
+
+<div class="tw"><table>
+<thead><tr><th>p41 限制因素</th><th>p42 对策</th></tr></thead>
+<tbody>
+<tr><td>1. “Transactions included in each block”</td><td>“The higher the number of transactions included in each block, the higher the throughput.”</td></tr>
+<tr><td>2. “Transaction speed”</td><td>“Efficient and quick responding consensus algorithms are required.”</td></tr>
+<tr><td>3. “The interarrival time of blocks”</td><td>“The fast interarrival time of blocks is needed”</td></tr>
+</tbody></table></div>
+
+<p><strong>interarrival time of blocks</strong>（出块间隔：相邻两个块之间的平均时间，也叫 block time）。</p>
+
+<p>这三条在下一讲 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a> 会变成一个公式。先看它为什么长这样：每秒的交易数 = 每块装几笔 × 每秒出几块，而每块装几笔 = 块的容量 ÷ 每笔交易的大小，每秒出几块 = 1 ÷ 出块间隔。于是</p>
+
+<div class="eq"><span class="m"><span class="up">Throughput</span> = <span class="frac"><span><span class="up">Block Size</span></span><span><span class="up">Tx Size</span></span></span> × <span class="frac"><span>1</span><span><span class="up">Block Time</span></span></span> = <span class="frac"><span><span class="up">Block Size</span></span><span><span class="up">Tx Size</span> × <span class="up">Block Time</span></span></span></span></div>
+
+<p>对照 p42：第 1 条是让分子那一项（每块交易数）变大；第 2 条（共识要快）作用在分母——共识越快，出块就能越快，Block Time 才能缩短；第 3 条直接要求缩短分母里的 Block Time。（与 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a> 的说法一致。）p41 第 2 项的“Transaction speed”本身不是公式里的量，它由共识的快慢决定，p42 给的对策就是加快共识。</p>
+
+<p><strong>算一个例子</strong>（模拟卷 Q3(b)(iii)）：“Suppose a blockchain network has a block size of 6 MBytes, transaction size of 80 Bytes, Block time is 200 seconds and it requires to wait for 20 blocks to confirm any new block. Calculate the average block confirmation time and transaction per second (throughput) of this blockchain network. [3 marks]”</p>
+
+<ol><li>每块交易数：<span class="m">6 × 10<sup>6</sup> <span class="up">B</span> ÷ 80 <span class="up">B</span> = 75,000</span> 笔（课件 L15 的例题按 <span class="m">1 <span class="up">MB</span> = 10<sup>6</sup> <span class="up">B</span></span> 算，这里同样取 <span class="m">10<sup>6</sup></span>）。</li><li>吞吐量：<span class="m">75,000 ÷ 200 <span class="up">s</span> = 375 <span class="up">Tx/s</span></span>。</li><li>平均确认时间：<span class="m">20 × 200 <span class="up">s</span> = 4000 <span class="up">s</span></span>（“确认”在这里指等后面 20 个块，见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html#s5-3">L13 的“确认”两义</a>）。</li></ol>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>模拟卷参考答案的 37.5 Tx/s 是错的</div>
+<p>参考答案写“Transaction Throughput = 6 (M Bytes) / (80 (Bytes) × 200 (seconds)) = 37.5 Tx/second”。公式是对的，数算错了：<span class="m">6 × 10<sup>6</sup>/(80 × 200) = 6 × 10<sup>6</sup>/16,000 = 375</span>。反推 37.5 要求块只有 <span class="m">37.5 × 80 × 200 = 600,000</span> 字节 = 0.6 MB，多除了一个 10。按 <span class="m">1 <span class="up">MB</span> = 2<sup>20</sup> <span class="up">B</span></span> 算是 393.216 Tx/s，也不是 37.5。</p>
+<p>口径依据：L15 p53 的例题按 <span class="m">10<sup>6</sup></span> 代入，它的结果 200 Tx/s 同样算错了（应为 20 Tx/s），但 <span class="m">10<sup>6</sup></span> 的口径是明确的，见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>。</p>
+<p style="margin-bottom:0">考场写法：先写“taking 1 MB = <span class="m">10<sup>6</sup></span> bytes”，再写公式、代数、得 375 Tx/s——参考答案三个给分点（公式、吞吐量数值、确认时间）都能拿到。</p>
+</div>
+
+<p>三条对策的效果可以直接从公式读出：块容量翻倍（12 MB）或出块间隔减半（100 s），吞吐量都翻倍到 750 Tx/s。作为参照，比特币取 1 MB 块、每笔约 250 B、600 s 出一块，<span class="m">10<sup>6</sup>/(250 × 600) ≈ 6.67</span> Tx/s，就是常说的“比特币每秒约 7 笔”。</p>
+
+<div class="tool" id="tpTool">
+  <h4>吞吐量与确认时间计算器</h4>
+  <p class="sub">默认是模拟卷 Q3(b)(iii) 的数。公式就是两步：每块装几笔 = 区块大小 ÷ 交易大小，吞吐量 = 每块几笔 ÷ 出块时间。改区块大小或出块时间看吞吐量怎样变；分片数给出不计通信开销的理想上限。</p>
+  <div class="row">
+    <span class="ctl"><label for="tpB">区块大小（MB）</label><input class="num" type="text" inputmode="decimal" id="tpB" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpTx">交易大小（B）</label><input class="num" type="text" inputmode="decimal" id="tpTx" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpT">出块时间（s）</label><input class="num" type="text" inputmode="decimal" id="tpT" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpK">等待块数</label><input class="num" type="text" inputmode="numeric" id="tpK" oninput="tpGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="tpUnit">1 MB =</label><select id="tpUnit" onchange="tpGo()"><option value="1000000">10⁶ B（课件与模拟卷的口径）</option><option value="1048576">2²⁰ B</option></select></span>
+    <span class="ctl"><label for="tpS">分片数</label><input class="num" type="text" inputmode="numeric" id="tpS" value="4" oninput="tpGo()"></span>
+  </div>
+  <div class="row"><button class="btn pre" data-p="mock" onclick="tpPreset('mock')">模拟卷 Q3(b)(iii)</button><button class="btn pre" data-p="btc" onclick="tpPreset('btc')">比特币粗算</button><button class="btn pre" data-p="q2" onclick="tpPreset('q2')">课件 Q2（L15 p52）</button></div>
+  <div class="steps" id="tpSteps"></div>
+  <div class="result" id="tpOut"></div>
+</div>
+
+<div class="box def">
+  <div class="h"><span class="tag">补充</span>为什么不能把块无限加大、间隔无限缩短（课件外）</div>
+<p style="margin-bottom:0">块越大，传遍全网越慢；间隔越短，两个矿工几乎同时出块、链暂时分叉的机会越多，分叉越多，作废的块越多，攻击者也越容易钻空子。块大还意味着每个全节点要更多存储和带宽，能跑全节点的人变少，网络就趋向中心化。去中心化、安全、可扩展三者难以兼得，常被称为<span class=“term”>可扩展性三难</span><span class=“en”>（scalability trilemma）</span>。所以 p43 接着提出侧链、链下和分片：不在一条链上硬挤，而是换一种结构。</p>
+</div>
+
+<h3 id="s6-4"><span class="n">6.4</span>侧链与链下交易</h3>
+
+<p>p42 的三条之后，p43 补了第 4、5 条：“Another possible way to increase the transaction capacity is to offload the transactions from the main blockchain to the <strong>side chain</strong>.” “<strong>Sharding</strong> is an important concept in blockchain which is proposed to handle transaction capacity, bottleneck of blockchain systems.”（粗体为课件红字。）第 5 条分片放到下一小节。</p>
+
+<p>p44 展开第 4 条（粗体为课件红字）：“Another possible way to increase the transaction capacity is to offload the transactions from the main blockchain to the <strong>side chain</strong>. This process is known as <strong>off-chain transactions</strong>. Researchers also explored the idea to store only <strong>the hashes in the main blockchain</strong> while <strong>other data</strong> need to store in off-chain solutions. In this manner, the overall storage requirement of keeping the ledger <strong>will not surpass</strong> the storage requirements of light weight nodes.”</p>
+
+<p>p44 说了两个想法：</p>
+
+<p><strong>一、把交易挪到主链之外处理。</strong> 课件把“转移到侧链”叫作“off-chain transactions”，用的是<strong>广义的链下</strong>（off-chain：凡是不在主链上处理的交易都算）口径；L15 p54 举链下方案时也写“Sidechains, Payment Channels, etc.”，两讲一致。广义链下里有两种机制不同的做法：</p>
+
+<ul><li><span class=“term”>侧链</span><span class=“en”>（sidechain）</span>：另一条独立运行的区块链，通过<strong>双向锚定</strong>（two-way peg：在主链上锁定一笔币，就在侧链上放出等量的币，反之亦然）与主链互通。大量交易在侧链上完成，主链只处理锁定和释放。侧链有自己的区块和共识。</li><li><span class=“term”>支付通道</span><span class=“en”>（payment channel）</span>，即<strong>狭义的链下交易</strong>：交易根本不上任何链。典型是比特币的<span class=“term”>闪电网络</span><span class=“en”>（Lightning Network）</span>：两人在主链上开一个支付通道（锁定一笔钱），之后在通道里互相签名来回付款任意多次，只有关闭通道时才把最终结果写回主链。成千上万笔支付最后只占主链两笔交易。</li></ul>
+
+<p><strong>二、主链只存哈希，数据存在链外。</strong> 原始数据（文件、图片）放在别处，主链只存它的哈希。由 L13 讲的哈希性质，哈希就是数据的指纹：日后有人拿出数据，算一下哈希与链上的对比，就知道数据有没有被改过。这样主链上每条记录只占 32 字节。课件说这样账本的存储“will not surpass”轻节点的需求，是夸大：账本仍随时间增长，只是长得慢得多。</p>
+
+<h3 id="s6-5"><span class="n">6.5</span>分片</h3>
+
+<p>p45（粗体为课件红字）：“In <strong>sharding</strong>, blockchain nodes are divided into multiple groups (shards) and each group (shard) is responsible to handle a certain amount of transactions <strong>in parallel</strong>. However, in sharding system, it is necessary to consider how all the blockchain nodes <strong>keep the copy</strong> of the complete ledger. Additionally, it is also important to consider how different blockchain nodes (groups) <strong>communicate with each other</strong>.”</p>
+
+<p><span class=“term”>分片</span><span class=“en”>（sharding）</span>这个词借自数据库：把一张太大的表按某种规则切成几块，分放到不同服务器上。区块链里的做法是：把全网节点分成若干组，每组叫一个<span class=“term”>分片</span><span class=“en”>（shard）</span>，每个分片只处理分给它的那一部分交易，各分片<strong>同时</strong>工作。</p>
+
+<p>为什么能提高容量：不分片时，全网每个节点都要处理每一笔交易，加再多节点，吞吐量也不变——多出来的节点只是在重复同样的工作。分片后，<span class="m">k</span> 个分片各自出块，理想情况下吞吐量约为单链的 <span class="m">k</span> 倍。例如 <a href="#s6-3">6.3</a> 那条 375 Tx/s 的链分成 4 个分片，理想上可到 <span class="m">4 × 375 = 1500</span> Tx/s（这是不计分片间通信开销的上限）。而且节点越多，能分的片越多，吞吐量随网络规模一起增长，这就是“可扩展”的本义。</p>
+
+<p>p45 提出两个要考虑的问题：</p>
+
+<ul><li><span class=“term”>账本副本</span><span class=“en”>（“keep the copy of the complete ledger”）</span>：每个节点只处理本分片的交易，它手里就只有一部分账本；全网的完整账本怎样保存、怎样核对，要专门设计。</li><li><span class=“term”>分片之间的通信</span><span class=“en”>（“communicate with each other”）</span>：一笔交易的付款方在分片 1、收款方在分片 2，两个分片必须协调，保证这笔交易要么两边都生效、要么都不生效，这叫<span class=“term”>跨分片交易</span><span class=“en”>（cross-shard transaction）</span>；“要么都生效、要么都不生效”这一要求叫<span class=“term”>原子性</span><span class=“en”>（atomicity）</span>。</li></ul>
+
+<div class="box def">
+  <div class="h"><span class="tag">补充</span>课外补充：分片真正的难点</div>
+<p style="margin-bottom:0">p45 说“要考虑所有节点怎样保存完整账本”，与分片的设计初衷相反：分片的目的正是让每个节点<strong>不再</strong>存、不再处理全部交易。研究文献里分片的主要难点是两个：跨分片交易的原子性（上面第二点）与各分片之间的一致性；以及<strong>单分片被攻占</strong>——每个分片的节点只有全网的一小部分，攻击者不必控制全网，只要集中力量控制一个分片就能在那里作恶，所以要定期随机打乱节点在分片间的分配。考试照课件写“账本副本 + 分片间通信”两点即可。</p>
+</div>
+
+<p><strong>模拟卷 Q3(b)(v)</strong>：“Explain the advantages of sharing. [2 marks]”（sharing 是 sharding 的笔误。）参考答案任答两项、每项 1 分：</p>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>Q3(b)(v) 答法</div>
+<p>Sharding divides the nodes into groups (shards); each shard processes its own share of transactions in parallel. Advantages:</p>
+<ul><li><strong>High scalability</strong>: adding nodes allows more shards, so throughput grows with the size of the network instead of staying fixed.</li><li><strong>Greater transaction capacity</strong>: shards process transactions in parallel, so the total throughput is roughly the sum over all shards, removing the transaction-capacity bottleneck.</li><li><strong>Low cost</strong>: each node only processes and stores the transactions of its own shard, which reduces its computation, storage and bandwidth cost.</li></ul>
+<p style="margin-bottom:0">前两条有课件原文依据（p45“in parallel”、p43“handle transaction capacity, bottleneck”、p39 的可扩展性语境）；“low cost”课件没有出现，是参考答案额外给的，写的时候附上一句理由更稳。</p>
+</div>
+
+<h2 id="s7"><span class="n">7</span>互操作性</h2>
+
+<h3 id="s7-1"><span class="n">7.1</span>为什么需要互操作</h3>
+
+<p>p46：“Implement and operate multiple distributed ledgers.” “Ledgers can be developed by different organizations and thus designed for specific purposes.” “Interoperability is required among ledgers to share information and talk with each other.”</p>
+
+<p><span class=“term”>互操作性</span><span class=“en”>（interoperability）</span>：不同系统之间交换信息、协同工作的能力。现实中有许多条链，由不同组织为不同目的建造；一家银行的联盟链和一条供应链的链要对账，比特币持有者想换成以太币，都需要链与链之间能“说话”。p47 指出互操作在编程语言和数据库领域早就存在，并说交易所（exchanges）是在不同账本之间交换加密货币的一种办法——它能用，但交易所本身是一个中心化的第三方，用户要信任它，这正是区块链想去掉的东西。</p>
+
+<h3 id="s7-2"><span class="n">7.2</span>影响互操作的因素</h3>
+
+<p>p48 列了八项（“Important factors of Interoperability”），每项都是两条链之间可能“对不上”的地方：</p>
+
+<div class="tw"><table>
+<thead><tr><th>因素</th><th>为什么影响互操作</th></tr></thead>
+<tbody>
+<tr><td>Smart Contract</td><td>两条链的合约语言与执行环境不同，一边的合约无法直接调用另一边</td></tr>
+<tr><td>Exchange</td><td>资产怎样在两条链之间兑换</td></tr>
+<tr><td>Consensus Protocols</td><td>共识不同，“一个块什么时候算定下来”的标准也不同</td></tr>
+<tr><td>Generation of blockchain systems</td><td>第一代（只有交易）、第二代（有智能合约）等不同代的链能力不同</td></tr>
+<tr><td>Transaction Speed</td><td>一边几秒出块、一边十分钟出块，跨链操作要等慢的那一边</td></tr>
+<tr><td>Semantic</td><td>语义：同一个字段在两条链上是否表示同一个意思</td></tr>
+<tr><td>Transaction Fees</td><td>两边各收各的手续费，计价单位也不同</td></tr>
+<tr><td>Tokens</td><td>各链的代币不同，跨链要处理换算与锁定</td></tr>
+</tbody></table></div>
+
+<h3 id="s7-3"><span class="n">7.3</span>实现互操作的六种途径</h3>
+
+<p>p49“How is blockchain interoperability achieved?”列了六项，课件只列名字、没有解释（右侧一张星形图：中心“Interoperable blockchain”，四周 Supply chain、Chain 1、Private bank、Chain 2 用双向箭头连到中心，表示交换数据与资产）：</p>
+
+<ul><li><strong>Sidechains</strong>（侧链）：<a href="#s6-4">6.4</a> 的双向锚定，主链与侧链之间就互通了。</li><li><strong>Notary schemes</strong>（公证人方案）：由一个或一组受信任的“公证人”监听链 A 上的事件，再在链 B 上确认或执行。简单，但要信任公证人。</li><li><strong>Oracles</strong>（预言机）：<a href="#s5">第 5 节</a>的预言机把一条链上发生的事当作“外部数据”送到另一条链。</li><li><strong>Blockchain routers</strong>（区块链路由器）：在多条链之间转发跨链消息的中继，像互联网里在不同网络之间转发数据包的路由器。</li><li><strong>Industrial solutions</strong>（工业方案）：课件没有解释，推测指 Polkadot、Cosmos 这类专门做跨链的项目（两者都让多条链经一个中心枢纽互通）。</li><li><strong>Hashed TimeLocks</strong>：标准名称是<span class=“term”>哈希时间锁合约</span><span class=“en”>（HTLC，Hashed Timelock Contract）</span>，见下面的例子。</li></ul>
+
+<details class="box">
+  <summary>哈希时间锁怎样让两条链上的交换“要么都成、要么都不成”（课件外）</summary>
+<p>场景：Alice 在链 A 上有币，想换 Bob 在链 B 上的币，两人互不信任，也不想用交易所。</p>
+<ol><li>Alice 随机选一个秘密数 <span class="m">s</span>，算出它的哈希 <span class="m">h = H(s)</span>，只公开 <span class="m">h</span>。</li><li>Alice 在链 A 上锁定她的币，条件是：谁能出示一个哈希等于 <span class="m">h</span> 的数，谁就能取走；若 48 小时内没人取，币退回 Alice。</li><li>Bob 看到后，在链 B 上用<strong>同一个</strong> <span class="m">h</span> 锁定他的币：谁出示 <span class="m">h</span> 的原像就能取走；若 24 小时内没人取，退回 Bob。</li><li>Alice 在链 B 上出示 <span class="m">s</span>，取走 Bob 的币。这一步让 <span class="m">s</span> 公开在链 B 上。</li><li>Bob 从链 B 上读到 <span class="m">s</span>，拿去链 A 取走 Alice 的币。</li></ol>
+<p style="margin-bottom:0">为什么安全：哈希锁靠哈希函数的单向性——只知道 <span class="m">h</span> 的人算不出 <span class="m">s</span>，所以 Bob 无法抢先取 Alice 的币；时间锁保证任何一方中途放弃，对方的币都能按时退回。Bob 的期限比 Alice 短，是为了让 Bob 在 Alice 出示 <span class="m">s</span> 之后还有时间去链 A 取款。</p>
+</details>
+
+<p>p50 小结列了本讲四节：General Process、Governance System、Platforms、Properties。</p>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul><li>p3–p14 重复 L13（节点职能表、三套分类、六层、13 步），见 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a>。</li><li><span class=“term”>区块三部分</span><span class=“en”>（p32–p33）</span>：外层头（“block size and block identification information”；课件术语，比特币存盘格式里对应 magic + 块大小）；<span class=“term”>区块头</span><span class=“en”>（version、previous/parent block hash、Merkle root、time stamp、hashing target、nonce）</span>；区块体（交易计数 + 全部交易）。区块头 <span class="m">4 + 32 + 32 + 4 + 4 + 4 = 80</span> 字节。创世块：整数小端、哈希字段按字节反序拼成 80 字节，两次 SHA-256 后反序显示 = <code>000000000019d6689c…8ce26f</code>。挖矿条件：哈希 <span class="m">≤</span> 目标值；nonce 对应实验的 <code>proof</code>，难度 1 相当于实验 <span class="m">d = 8</span>（约 <span class="m">2<sup>32</sup></span> 次）。<strong>块自己的哈希不在块里</strong>，由头算出。</li><li><span class=“term”>哈希指针</span><span class=“en”>（p16–p17）</span>：后一块存前一块区块头的哈希，指向前一块并可验证完整性。p16 图里的 Height（不在比特币区块头里）、Confirmations（现算的，不可能存储）不是区块头字段；与 p33 冲突时以 p33 为准。</li><li><span class=“term”>Merkle 树</span><span class=“en”>（p18–p19）</span>：二叉树；叶 = 每笔交易的哈希；上层 = 两个子哈希拼接后再哈希；根写进区块头。改任一交易 → 根变 → 头变 → 块哈希变 → 下一块链接断。奇数个则复制最后一个。</li><li><strong>Merkle 证明</strong>：证明某笔交易在块里只需 <span class="m">⌈<span class="up">log</span><sub>2</sub>n⌉</span> 个兄弟哈希及其左右位置（100 万笔交易只要 20 个、640 字节）→ 轻节点只存头也能用（SPV）。证的是“在块里”，不是“合法”。</li><li><span class=“term”>治理</span><span class=“en”>（p20–p22）</span>：多家公司运营 = 联盟链，单一组织 = 私有链；permissionless 任何人可写入、permissioned 受限节点可写入（“modify”应理解为写入新块；已有记录改了会被发现、改起来代价高，即 tamper-evident 与 tamper-resistant）；公有链无机密性、只有假名性（假名性 ≠ 机密性），联盟/私有链机密性更高但节点身份须已知。</li><li><strong>平台</strong>：p24 四类应用（资产管理与追踪、代币、加密货币、智能合约业务逻辑）；三类平台（只做加密货币 / 支持智能合约 / 云上 BaaS，Azure 例已于 2021 年停服）；2×2：Bitcoin（无许可、只交易）、Ethereum（无许可、合约）、Chain Core（联盟、只交易）、Hyperledger Fabric（许可、合约）。</li><li><strong>比特币</strong>：PoW、P2P、BTC；硬编码的是 DNS 种子；可编程性来自 Bitcoin Script（UTXO 是记账模型）；公私钥用于签名而非加密；1 Satoshi <span class="m">= 10<sup>−8</sup></span> BTC。工作七步：发给邻居 → 邻居检查 → 进交易池 → 矿工组块挖矿 → 广播 → 全节点检查块 → 加入副本。</li><li><strong>以太坊</strong>：Ether；智能合约；EVM；已于 2022-09-15 转为 PoS（Ethash 停用）；协议名 devp2p。<strong>两类账户</strong>：EOA（私钥控制、能主动发起交易、创建免费）与合约账户（代码控制、无私钥、只能响应交易、部署收费）。课件 p35 把 CA 说成普通用户、把矿工列为账户类型，都是错的。</li><li><strong>智能合约两类</strong>：确定性（不依赖外部数据或事件）、非确定性（依赖外部数据，经预言机送上链）。确定性的根源：每个节点都执行，结果必须一致。</li><li><strong>可扩展性三维度</strong>：节点数、交易量、账本存储。账本只增不减，对低存储的无线节点是问题。</li><li><strong>吞吐量</strong>：三个限制因素（每块交易数、交易速度、出块间隔）↔ 三条对策（每块多装、快速共识、缩短出块间隔）。公式（L15）<span class="m"><span class="up">Throughput</span> = <span class="frac"><span><span class="up">Block Size</span></span><span><span class="up">Tx Size</span> × <span class="up">Block Time</span></span></span></span>；模拟卷 6 MB、80 B、200 s → <strong>375 Tx/s</strong>（参考答案 37.5 错），20 块确认 = 4000 s。</li><li><strong>广义链下</strong>（课件 p44、L15 p54 的口径）包括：<strong>侧链</strong>（独立的链，双向锚定与主链互通）与<strong>支付通道</strong>（狭义链下交易：不上链、只在开关通道时上链，如闪电网络）；另有主链只存哈希、数据放链外。</li><li><strong>分片</strong>：节点分组，每组并行处理一部分交易；挑战：账本副本、分片间通信。<span class=“term”>优点</span><span class=“en”>（Q3(b)(v)）</span>：high scalability、greater transaction capacity、low cost。</li><li><strong>互操作</strong>：多条账本由不同组织为不同目的建造，需要交换信息；八个因素（智能合约、兑换、共识协议、代际、交易速度、语义、手续费、代币）；六种途径（侧链、公证人、预言机、区块链路由器、工业方案、哈希时间锁 HTLC）。</li></ul></div>
+
+<footer>
+<p>下一讲 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>：共识机制 PoW 与 PoS，以及衡量共识的指标——吞吐量公式与区块确认时间就在那里正式登场。（p51 预告写成“Proof of Stock”，应为 Proof of Stake。）</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L14 区块链工作原理（下）.md</code> 的阅读优化版，内容一致；图与交互件里的哈希值全部由页面内的 SHA-256 现算（已与 Python hashlib 对拍）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ===================== 区块链三讲（L13–L15）共用的计算内核 =====================
+   只放纯函数：SHA-256、字节与十六进制、哈希链、Merkle 树、区块头、PoW、
+   获胜概率、追赶概率、吞吐量。页面与 node 测试共用同一份代码。
+   数值一律现算，不写死答案；测试见 test-core.js（对拍 Python hashlib 生成的向量）。 */
+
+/* ---------- 字节工具 ---------- */
+function utf8(s){
+  if(typeof TextEncoder!=='undefined') return new TextEncoder().encode(s);
+  return new Uint8Array(Buffer.from(s,'utf8'));
+}
+function toHex(b){ var s=''; for(var i=0;i<b.length;i++) s+=(b[i]<16?'0':'')+b[i].toString(16); return s; }
+function fromHex(h){
+  h=String(h).replace(/\s+/g,'').toLowerCase();
+  if(h.length%2 || /[^0-9a-f]/.test(h)) return null;
+  var b=new Uint8Array(h.length/2);
+  for(var i=0;i<b.length;i++) b[i]=parseInt(h.substr(2*i,2),16);
+  return b;
+}
+function concatBytes(){
+  var n=0,i; for(i=0;i<arguments.length;i++) n+=arguments[i].length;
+  var o=new Uint8Array(n), p=0;
+  for(i=0;i<arguments.length;i++){ o.set(arguments[i],p); p+=arguments[i].length; }
+  return o;
+}
+function reverseBytes(b){ var o=new Uint8Array(b.length); for(var i=0;i<b.length;i++) o[i]=b[b.length-1-i]; return o; }
+function u32le(v){ v=v>>>0; return new Uint8Array([v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]); }
+function u32be(v){ v=v>>>0; return new Uint8Array([(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,v&255]); }
+
+/* ---------- SHA-256（FIPS 180-4） ---------- */
+var SHA_K=new Uint32Array([
+0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+var SHA_W=new Uint32Array(64);
+function sha256(msg){
+  var len=msg.length, nblk=((len+9+63)>>6), buf=new Uint8Array(nblk*64);
+  buf.set(msg); buf[len]=0x80;
+  var bits=len*8, hi=Math.floor(bits/4294967296), lo=bits>>>0, e=buf.length;
+  buf[e-8]=(hi>>>24)&255; buf[e-7]=(hi>>>16)&255; buf[e-6]=(hi>>>8)&255; buf[e-5]=hi&255;
+  buf[e-4]=(lo>>>24)&255; buf[e-3]=(lo>>>16)&255; buf[e-2]=(lo>>>8)&255; buf[e-1]=lo&255;
+  var h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+  var W=SHA_W, K=SHA_K;
+  for(var off=0;off<buf.length;off+=64){
+    for(var t=0;t<16;t++){ var j=off+4*t; W[t]=(buf[j]<<24)|(buf[j+1]<<16)|(buf[j+2]<<8)|buf[j+3]; }
+    for(t=16;t<64;t++){
+      var x=W[t-15], y=W[t-2];
+      var s0=((x>>>7)|(x<<25))^((x>>>18)|(x<<14))^(x>>>3);
+      var s1=((y>>>17)|(y<<15))^((y>>>19)|(y<<13))^(y>>>10);
+      W[t]=(W[t-16]+s0+W[t-7]+s1)|0;
+    }
+    var a=h0,b=h1,c=h2,d=h3,ee=h4,f=h5,g=h6,h=h7;
+    for(t=0;t<64;t++){
+      var S1=((ee>>>6)|(ee<<26))^((ee>>>11)|(ee<<21))^((ee>>>25)|(ee<<7));
+      var ch=(ee&f)^(~ee&g);
+      var t1=(h+S1+ch+K[t]+W[t])|0;
+      var S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));
+      var mj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+mj)|0;
+      h=g; g=f; f=ee; ee=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0; h4=(h4+ee)|0; h5=(h5+f)|0; h6=(h6+g)|0; h7=(h7+h)|0;
+  }
+  var out=new Uint8Array(32), hs=[h0,h1,h2,h3,h4,h5,h6,h7];
+  for(var i=0;i<8;i++){ out[4*i]=(hs[i]>>>24)&255; out[4*i+1]=(hs[i]>>>16)&255; out[4*i+2]=(hs[i]>>>8)&255; out[4*i+3]=hs[i]&255; }
+  return out;
+}
+function sha256d(b){ return sha256(sha256(b)); }
+function sha256hex(s){ return toHex(sha256(typeof s==='string'?utf8(s):s)); }
+
+/* ---------- L13：哈希链 ----------
+   H_i = SHA-256(H_{i-1} ‖ data_i)，H_0 = 32 个零字节。
+   mode 'raw'：H_{i-1} 以 32 个原始字节参与拼接（笔记 4.3 的口径）；
+   mode 'hex'：H_{i-1} 写成 64 个十六进制字符再拼（L11 玩具链的口径）。
+   prevs 可选：每块「存着的」Prev. Hash（Uint8Array）；不给就按链接自动填（即情形②）。 */
+function chainCompute(datas, mode, prevs){
+  var out=[], prev=new Uint8Array(32);
+  for(var i=0;i<datas.length;i++){
+    var stored = (prevs && prevs[i]) ? prevs[i] : prev;
+    var pre = mode==='hex' ? utf8(toHex(stored)) : stored;
+    var h=sha256(concatBytes(pre, utf8(datas[i])));
+    out.push({prev:stored, hash:h, linked: toHex(stored)===toHex(i===0?new Uint8Array(32):out[i-1].hash)});
+    prev=h;
+  }
+  return out;
+}
+
+/* ---------- L14：Merkle 树（比特币口径：两次 SHA-256，奇数个时复制最后一个） ----------
+   返回 levels[0]=叶哈希, levels[k]=第 k 层；dup[k] 标记该层是否复制了最后一个。 */
+function merkleTree(leaves){
+  var levels=[leaves.slice()], dup=[];
+  while(levels[levels.length-1].length>1){
+    var cur=levels[levels.length-1], nxt=[], d=false;
+    for(var i=0;i<cur.length;i+=2){
+      var L=cur[i], R=(i+1<cur.length)?cur[i+1]:(d=true,cur[i]);
+      nxt.push(sha256d(concatBytes(L,R)));
+    }
+    dup.push(d); levels.push(nxt);
+  }
+  dup.push(false);
+  return {levels:levels, dup:dup, root:levels[levels.length-1][0]};
+}
+function merkleLeavesFromTx(txs){ return txs.map(function(t){ return sha256d(utf8(t)); }); }
+/* 第 idx 片叶子的证明：每层的兄弟哈希与它在左还是在右 */
+function merkleProof(tree, idx){
+  var proof=[], i=idx;
+  for(var k=0;k<tree.levels.length-1;k++){
+    var lv=tree.levels[k], sib=(i%2===0)?i+1:i-1;
+    var sibHash = sib<lv.length ? lv[sib] : lv[i];   /* 落单：兄弟就是自己的复制 */
+    proof.push({hash:sibHash, side:(i%2===0)?'R':'L', level:k, sibIndex:sib<lv.length?sib:i, dup:sib>=lv.length});
+    i=i>>1;
+  }
+  return proof;
+}
+function merkleVerify(leafHash, proof){
+  var h=leafHash, steps=[];
+  for(var k=0;k<proof.length;k++){
+    var p=proof[k];
+    h = p.side==='R' ? sha256d(concatBytes(h,p.hash)) : sha256d(concatBytes(p.hash,h));
+    steps.push(h);
+  }
+  return {root:h, steps:steps};
+}
+function ceilLog2(n){ var k=0, p=1; while(p<n){ p*=2; k++; } return k; }
+
+/* ---------- L14：比特币区块头 ----------
+   f = {version, prevHex, merkleHex, time, bitsHex, nonce}（哈希字段按显示顺序给）。
+   opts.bigEndianInts / opts.noReverseHashes 用来演示两种常见的字节序错误。 */
+function headerBytes(f, opts){
+  opts=opts||{};
+  var prev=fromHex(f.prevHex), mr=fromHex(f.merkleHex), bits=parseInt(f.bitsHex,16);
+  if(!prev||prev.length!==32) return {err:'前一块哈希应为 64 个十六进制字符'};
+  if(!mr||mr.length!==32) return {err:'Merkle 根应为 64 个十六进制字符'};
+  if(!/^[0-9a-fA-F]{8}$/.test(String(f.bitsHex))) return {err:'bits 应为 8 个十六进制字符'};
+  var I = opts.bigEndianInts ? u32be : u32le;
+  var H = opts.noReverseHashes ? function(b){ return b; } : reverseBytes;
+  var parts=[
+    {name:'version', bytes:I(f.version)},
+    {name:'prev', bytes:H(prev)},
+    {name:'merkle', bytes:H(mr)},
+    {name:'time', bytes:I(f.time)},
+    {name:'bits', bytes:I(bits)},
+    {name:'nonce', bytes:I(f.nonce)}];
+  var all=concatBytes.apply(null, parts.map(function(p){ return p.bytes; }));
+  return {parts:parts, bytes:all};
+}
+function blockHash(f, opts){
+  var hb=headerBytes(f,opts); if(hb.err) return hb;
+  var raw=sha256d(hb.bytes);
+  return {parts:hb.parts, bytes:hb.bytes, raw:raw, display:reverseBytes(raw)};
+}
+/* bits → 目标值 T = m × 256^(e−3)（BigInt） */
+function bitsToTarget(bitsHex){
+  var v=parseInt(bitsHex,16), e=v>>>24, m=v&0xffffff;
+  var T = e>=3 ? BigInt(m)*(256n**BigInt(e-3)) : BigInt(m)/(256n**BigInt(3-e));
+  return {e:e, m:m, T:T};
+}
+function bigToHex64(x){ var s=x.toString(16); while(s.length<64) s='0'+s; return s; }
+/* 2^256 / T 的近似（平均尝试次数）与单次成功概率 */
+function targetStats(T){
+  var hex=bigToHex64(T);
+  /* 用前 15 位有效十六进制估计浮点值，足够 6 位有效数字 */
+  var lead=hex.replace(/^0+/,''), nz=hex.length-lead.length;
+  var mant=parseInt((lead+'000000000000000').slice(0,15),16);
+  var Tf=mant*Math.pow(16, lead.length-15);
+  var p=Tf/Math.pow(2,256);
+  return {hex:hex, zeros:nz, p:p, tries:1/p};
+}
+function leadingHexZeros(hex){ var m=String(hex).match(/^0*/); return m[0].length; }
+
+/* ---------- L15：PoW 挖矿（前 d 位十六进制为 0） ---------- */
+function powCheck(hashBytes, d){
+  /* 前 d 个十六进制位为 0：逐半字节检查，避免转成字符串 */
+  for(var i=0;i<d;i++){
+    var byte=hashBytes[i>>1], nib=(i&1)?(byte&15):(byte>>4);
+    if(nib!==0) return false;
+  }
+  return true;
+}
+/* 从 startNonce 开始试最多 maxTries 次；返回 {found, nonce, tries, hash} */
+function powMine(prefix, d, startNonce, maxTries){
+  var pre=utf8(prefix), n=startNonce|0;
+  for(var t=1;t<=maxTries;t++,n++){
+    var h=sha256(concatBytes(pre, utf8(String(n))));
+    if(powCheck(h,d)) return {found:true, nonce:n, tries:n-startNonce+1, hash:h};
+  }
+  return {found:false, nonce:n, tries:maxTries};
+}
+
+/* ---------- L15：获胜概率 P_wi = φ_i / Σφ_j ---------- */
+function winProbs(phis){
+  var s=phis.reduce(function(a,b){ return a+b; },0);
+  return {sum:s, p:phis.map(function(x){ return s>0?x/s:NaN; })};
+}
+/* 反求：已知节点 k 的胜率 P 与其余各节点算力（未知那个记 null），求未知算力 */
+function solveUnknown(phis, k, P){
+  var total=phis[k]/P, known=0, unk=-1;
+  for(var i=0;i<phis.length;i++){ if(phis[i]===null) unk=i; else known+=phis[i]; }
+  return {total:total, x:total-known, unknownIndex:unk};
+}
+/* 指数竞赛模拟：每个节点首次成功时刻 ~ Exp(p0·φ_i)，最早者获胜。rng 可注入以便复现 */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function raceSimulate(phis, p0, rounds, rng){
+  rng=rng||Math.random;
+  var wins=phis.map(function(){ return 0; }), tsum=0;
+  for(var r=0;r<rounds;r++){
+    var best=Infinity, who=-1;
+    for(var i=0;i<phis.length;i++){
+      if(phis[i]<=0) continue;
+      var t=-Math.log(1-rng())/(p0*phis[i]);
+      if(t<best){ best=t; who=i; }
+    }
+    if(who>=0){ wins[who]++; tsum+=best; }
+  }
+  return {freq:wins.map(function(w){ return w/rounds; }), meanTime:tsum/rounds};
+}
+
+/* ---------- L15：追赶概率 ----------
+   中本聪（2008）第 11 节：λ = z·q/p，P = 1 − Σ_{k=0}^{z} Poisson(k;λ)·(1 − (q/p)^{z−k})；q ≥ p 时为 1。 */
+function nakamotoP(q, z){
+  var p=1-q; if(q>=p) return 1;
+  var lam=z*q/p, s=1, pois=Math.exp(-lam);
+  for(var k=0;k<=z;k++){
+    if(k>0) pois*=lam/k;
+    s-=pois*(1-Math.pow(q/p, z-k));
+  }
+  return Math.max(0,s);
+}
+/* 精确版（Rosenfeld 2014）：攻击者块数服从负二项分布。
+   P = 1 − Σ_{k=0}^{z} C(k+z−1,k)(p^z q^k − q^z p^k)；z = 0 时为 1。 */
+function exactP(q, z){
+  var p=1-q; if(q>=p) return 1; if(z<=0) return 1;
+  /* 对数空间里算组合数与幂，避免 z 大时 C(k+z−1,k) 溢出 */
+  var lp=Math.log(p), lq=Math.log(q), s=0, lc=0; /* lc = ln C(k+z−1, k) */
+  for(var k=0;k<=z;k++){
+    if(k>0) lc+=Math.log((k+z-1)/k);
+    s+=Math.exp(lc+z*lp+k*lq)-Math.exp(lc+z*lq+k*lp);
+  }
+  return Math.max(0,1-s);
+}
+/* 最小的 z，使 P < eps */
+function minZ(fn, q, eps, zmax){
+  zmax=zmax||400;
+  for(var z=0;z<=zmax;z++) if(fn(q,z)<eps) return z;
+  return null;
+}
+
+/* ---------- L14 / L15：吞吐量与确认时间 ----------
+   Throughput = Block Size / (Tx Size × Block Time)；Confirmation = k × Block Time */
+function throughput(blockMB, txB, blockT, k, mbBytes){
+  mbBytes=mbBytes||1e6;
+  var bytes=blockMB*mbBytes, perBlock=bytes/txB;
+  return {bytes:bytes, perBlock:perBlock, tps:perBlock/blockT, confirm:k*blockT};
+}
+/* 传播时间 τ 内别人也出块（分叉）的概率 ≈ 1 − e^{−τ/T} */
+function forkRate(tau, T){ return 1-Math.exp(-tau/T); }
+
+
+/* ===================== 区块链三讲共用：绘图与界面小件 =====================
+   配色规则同 L1–L4：中性线条 currentColor + 透明度；强调色描边/填充硬编码 #2F6F8F；
+   其余语义色（warn / ok / exam / muted）开页时从 CSS 变量读一次。文字一律用 currentColor 或这些变量，
+   不用硬编码的 #2F6F8F（暗色下对比太低）。 */
+var AC='#2F6F8F';
+var CSSV=getComputedStyle(document.documentElement);
+function cssv(n,fb){ var v=(CSSV.getPropertyValue(n)||'').trim(); return v||fb; }
+var WRC=cssv('--warn','#B4534B'), OKC=cssv('--ok','#3F8A63'), EXC=cssv('--exam','#9A6B2F'),
+    MUC=cssv('--muted','#5C6673'), FTC=cssv('--faint','#8A929C'), ACT=cssv('--accent','#2F6F8F');
+var MONO='ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- 数字 ---------- */
+/* 千分位 + U+2212 负号；最多 d 位小数，去尾零 */
+function fmt(v,d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  d=(d===undefined)?2:d;
+  var neg=v<0; v=Math.abs(v);
+  var s=v.toFixed(d);
+  if(s.indexOf('.')>=0) s=s.replace(/0+$/,'').replace(/\.$/,'');
+  var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return (neg?'−':'')+p.join('.');
+}
+var SUPD={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+function supN(n){ return String(n).split('').map(function(c){ return SUPD[c]||c; }).join(''); }
+var SUBD=['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+function subN(n){ return String(n).split('').map(function(c){ return SUBD[+c]||c; }).join(''); }
+/* 科学计数：a × 10ⁿ（n 用上标，负号是 U+207B） */
+function sci(v,sig){
+  if(v===0) return '0';
+  sig=sig||3;
+  var e=Math.floor(Math.log10(Math.abs(v))), m=v/Math.pow(10,e);
+  var ms=m.toPrecision(sig); if(+ms>=10){ e++; ms=(m/10).toPrecision(sig); }
+  ms=ms.replace(/\.?0+$/,'');
+  return ms+' × 10'+supN(e);
+}
+/* 概率：≥ 0.1% 用百分数，更小用科学计数 */
+function pct(v,d){
+  /* d = 有效数字位数（默认 4） */
+  if(v===0) return '0%';
+  if(v>=1e-4){ var t=(v*100).toPrecision(d||4); if(t.indexOf('e')<0){ if(t.indexOf('.')>=0) t=t.replace(/0+$/,'').replace(/\.$/,''); return t+'%'; } }
+  return sci(v,3);
+}
+function short(hex,n){ return hex.slice(0,n||8)+'…'; }
+
+/* ---------- SVG ---------- */
+var _mk=0;
+function svgEl(tag,attrs){
+  var e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null&&attrs[k]!==undefined) e.setAttribute(k,attrs[k]);
+  return e;
+}
+function svgRoot(W,H,label){
+  var s=svgEl('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':label});
+  s.style.display='block'; s.style.width='100%'; s.style.height='auto';
+  return s;
+}
+function sText(g,x,y,t,o){
+  o=o||{};
+  var e=svgEl('text',{x:x,y:y,fill:o.fill||'currentColor','font-size':o.size||13,'text-anchor':o.anchor||'middle'});
+  if(o.mono) e.setAttribute('font-family',MONO);
+  if(o.weight) e.setAttribute('font-weight',o.weight);
+  if(o.op!==undefined) e.setAttribute('fill-opacity',o.op);
+  if(o.italic) e.setAttribute('font-style','italic');
+  if(o.rot) e.setAttribute('transform','rotate('+o.rot+' '+x+' '+y+')');
+  e.textContent=t; g.appendChild(e); return e;
+}
+function sRect(g,x,y,w,h,o){
+  o=o||{};
+  var e=svgEl('rect',{x:x,y:y,width:w,height:h,rx:o.rx===undefined?6:o.rx,
+    fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.04:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.3:o.sop,'stroke-width':o.sw||1.2});
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  g.appendChild(e); return e;
+}
+function sPath(g,d,o){
+  o=o||{};
+  var e=svgEl('path',{d:d,fill:o.fill||'none',stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.55:o.sop,'stroke-width':o.sw||1.4});
+  if(o.marker) e.setAttribute('marker-end',o.marker);
+  if(o.markerStart) e.setAttribute('marker-start',o.markerStart);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  g.appendChild(e); return e;
+}
+/* 箭头标记：每次调用生成唯一 id，避免宽窄两版图里 id 重复 */
+function arrow(svg,color){
+  var id='mk'+(++_mk), defs=svgEl('defs'), mk=svgEl('marker',{id:id,markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto-start-reverse'});
+  mk.appendChild(svgEl('path',{d:'M0,0 L8,3 L0,6 z',fill:color||'currentColor','fill-opacity':color?.9:.6}));
+  defs.appendChild(mk); svg.appendChild(defs); return 'url(#'+id+')';
+}
+/* 多行文字（按 \n 拆） */
+function sLines(g,x,y,text,o){
+  var ls=String(text).split('\n'), lh=(o&&o.lh)||((o&&o.size)||13)*1.35;
+  for(var i=0;i<ls.length;i++) sText(g,x,y+i*lh,ls[i],o);
+}
+function mount(hostId,svg){ var h=$(hostId); if(!h) return; h.innerHTML=''; h.appendChild(svg); }
+
+/* ---------- 打印前展开全部折叠块（Chromium 对关着的 details 不渲染内容） ---------- */
+function openAllDetails(){ var d=document.querySelectorAll('details'); for(var i=0;i<d.length;i++) d[i].open=true; }
+window.onbeforeprint=openAllDetails;
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); if(mq.addEventListener) mq.addEventListener('change',function(e){ if(e.matches) openAllDetails(); }); else mq.onchange=function(e){ if(e.matches) openAllDetails(); }; } })();
+
+/* =====================================================================
+   共用交互件：吞吐量与确认时间计算器（L14 6.3 与 L15 5.6）
+   opts：shards（L14：分片的理想上限）、fork（L15：分叉概率）、trap（L15：误代确认时间）
+   ===================================================================== */
+var TP={};
+function tpInit(opts){ TP=opts||{}; tpPreset(TP.first||'mock'); }
+var TP_PRE={
+  mock:{b:6,t:80,T:200,k:20},
+  q2:{b:2,t:500,T:200,k:10},
+  btc:{b:1,t:250,T:600,k:6},
+  ex:{b:1,t:500,T:10,k:6}
+};
+function tpPreset(name){
+  var p=TP_PRE[name]; $('tpB').value=p.b; $('tpTx').value=p.t; $('tpT').value=p.T; $('tpK').value=p.k;
+  var bs=document.querySelectorAll('#tpTool .pre'); for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on',bs[i].getAttribute('data-p')===name);
+  tpGo();
+}
+function tpNum(id){ var s=String($(id).value).replace(/[,，\s]/g,''); return s===''?NaN:Number(s); }
+function tpGo(){
+  var b=tpNum('tpB'), tx=tpNum('tpTx'), T=tpNum('tpT'), k=tpNum('tpK'), mb=+$('tpUnit').value;
+  var st=$('tpSteps'), out=$('tpOut');
+  if(!(b>0&&tx>0&&T>0&&k>=0)){ st.innerHTML='<span class="bad">四个量都要填正数（等待块数可以是 0）</span>'; out.innerHTML='<span class="bad">等待输入</span>'; return; }
+  var r=throughput(b,tx,T,k,mb), unit=mb===1e6?'10⁶':'2²⁰';
+  var h='<div><span class="k">1</span>每块装几笔：<span class="mono">'+fmt(b,4)+' × '+unit+' B ÷ '+fmt(tx,4)+' B = '+fmt(r.perBlock,3)+'</span> 笔</div>'+
+    '<div><span class="k">2</span>吞吐量 = 每块几笔 ÷ 出块时间：<span class="mono">'+fmt(r.perBlock,3)+' ÷ '+fmt(T,4)+' s = <strong>'+fmt(r.tps,3)+' Tx/s</strong></span></div>'+
+    '<div><span class="k">3</span>确认时间 = 等待块数 × 出块时间：<span class="mono">'+fmt(k,0)+' × '+fmt(T,4)+' s = <strong>'+fmt(r.confirm,3)+' s</strong></span>（约 '+fmt(r.confirm/60,1)+' 分钟）</div>';
+  st.innerHTML=h;
+  var o='<div>吞吐量 <strong class="mono">'+fmt(r.tps,3)+' Tx/s</strong>，平均确认时间 <strong class="mono">'+fmt(r.confirm,3)+' s</strong>。改等待块数只改确认时间，吞吐量不动。</div>';
+  if(TP.trap){
+    var wrong=throughput(b,tx,r.confirm||NaN,k,mb).tps;
+    o+='<div style="margin-top:.35rem" class="bad">误把确认时间代进分母：'+fmt(r.perBlock,3)+' ÷ '+fmt(r.confirm,3)+' s = '+(isFinite(wrong)?fmt(wrong,3):'—')+' Tx/s（错）</div>';
+  }
+  if(TP.fork){
+    var tau=tpNum('tpTau');
+    if(tau>=0){ o+='<div style="margin-top:.35rem">传播时间 τ = '+fmt(tau,3)+' s 内别人也出块、造成分叉的概率 ≈ 1 − e<sup>−τ/T</sup> = <strong class="mono">'+pct(forkRate(tau,T),4)+'</strong></div>'; }
+  }
+  if(TP.shards){
+    var ks=tpNum('tpS');
+    if(ks>=1){ o+='<div style="margin-top:.35rem">分成 '+fmt(ks,0)+' 个分片，理想上限约 '+fmt(ks,0)+' × '+fmt(r.tps,3)+' = <strong class="mono">'+fmt(ks*r.tps,3)+' Tx/s</strong>（不计分片间通信开销）</div>'; }
+  }
+  out.innerHTML=o;
+}
+
+/* ===================== L14 区块链工作原理（下）：图与交互件 =====================
+   区块头、Merkle 树的哈希全部由 bc-core.js 的 SHA-256 现算（已与 Python hashlib 对拍）。 */
+
+/* =====================================================================
+   图：比特币区块的三部分
+   ===================================================================== */
+function drawBlockFig(hostId){
+  var W=900,H=600, svg=svgRoot(W,H,'比特币区块的三部分：外层头、80 字节的区块头（版本、前一块哈希、Merkle 根、时间戳、难度目标、临时数）、区块体（交易计数与全部交易）。区块 N 的区块头做两次 SHA-256 得到区块 N 的哈希，存进区块 N+1 的前一块哈希字段；区块体里的交易经 Merkle 树算出 Merkle 根写进本块区块头');
+  var g=svgEl('g',{'font-family':'inherit'}); svg.appendChild(g);
+  var MKR=arrow(svg,WRC), MKG=arrow(svg,OKC), MKE=arrow(svg,EXC);
+  var bw=330, fields=[['版本 Version','4 B'],['前一块哈希 Previous Block Hash','32 B'],['Merkle 根 Merkle Root','32 B'],['时间戳 Timestamp','4 B'],['难度目标 Bits（hashing target）','4 B'],['临时数 Nonce（逐个递增去试）','4 B']];
+  var geo=[];
+  [['区块 N',20],['区块 N+1',550]].forEach(function(B){
+    var x=B[1], y=14;
+    sRect(g,x,y,bw,548,{rx:10,fill:AC,fop:.05,stroke:AC,sop:.6,sw:1.6});
+    sText(g,x+bw/2,y+26,B[0],{size:17,weight:'700'});
+    /* 外层头 */
+    sRect(g,x+14,y+40,bw-28,58,{rx:6,fill:EXC,fop:.1,stroke:EXC,sop:.75,sw:1.4});
+    sText(g,x+26,y+62,'外层头 Outer header（课件术语）',{anchor:'start',size:13,weight:'700',fill:EXC});
+    sText(g,x+26,y+84,'比特币存盘格式中对应：magic（4 B）＋ 块大小（4 B）',{anchor:'start',size:11.5});
+    /* 区块头 */
+    var hy=y+110;
+    sRect(g,x+14,hy,bw-28,272,{rx:6,fill:'currentColor',fop:.02,stroke:WRC,sop:.85,sw:1.6});
+    sText(g,x+26,hy+24,'区块头 Block header：共 80 字节',{anchor:'start',size:13,weight:'700',fill:WRC});
+    var rows=[];
+    fields.forEach(function(f,i){
+      var ry=hy+38+i*38, prev=(i===1);
+      sRect(g,x+26,ry,bw-52,30,{rx:4,fill:prev?WRC:'currentColor',fop:prev?.16:.03,sop:.4});
+      sText(g,x+36,ry+20,f[0],{anchor:'start',size:12.5});
+      sText(g,x+bw-36,ry+20,f[1],{anchor:'end',size:12,op:.65});
+      rows.push(ry);
+    });
+    /* 区块体 */
+    var by=hy+284;
+    sRect(g,x+14,by,bw-28,142,{rx:6,fill:OKC,fop:.05,stroke:OKC,sop:.85,sw:1.6});
+    sText(g,x+26,by+24,'区块体 Block body',{anchor:'start',size:13,weight:'700',fill:OKC});
+    ['交易计数 transaction counter','Tx 1（coinbase：给矿工发奖励）','Tx 2','……'].forEach(function(t,i){ sText(g,x+36,by+50+i*24,t,{anchor:'start',size:12.5}); });
+    /* 绿色虚线：区块体 → Merkle 根 */
+    sPath(g,'M'+(x+bw-22)+','+(by+100)+' V'+(rows[2]+15),{stroke:OKC,sop:.95,dash:'5 4',marker:MKG,sw:1.6});
+    geo.push({x:x,rows:rows,hy:hy});
+  });
+  /* 中间：两次 SHA-256 */
+  var sx=375, sy=250, sw=150, sh=92;
+  sRect(g,sx,sy,sw,sh,{rx:8,fill:EXC,fop:.12,stroke:EXC,sop:.85,sw:1.6});
+  sText(g,sx+sw/2,sy+22,'SHA-256 两次',{size:13.5,weight:'700'});
+  sLines(g,sx+sw/2,sy+44,'对整个区块头算\n→ 区块 N 的哈希\n（不存在区块 N 里）',{size:11.5,lh:16});
+  sPath(g,'M'+(geo[0].x+bw-14)+','+(geo[0].hy+150)+' L'+(sx-3)+','+(sy+40),{stroke:EXC,sop:.95,marker:MKE,sw:1.8});
+  sPath(g,'M'+(sx+sw)+','+(sy+40)+' C'+(sx+sw+20)+','+(sy+40)+' '+(geo[1].x+6)+','+(geo[1].rows[1]+15)+' '+(geo[1].x+24)+','+(geo[1].rows[1]+15),{stroke:WRC,sop:.95,marker:MKR,sw:1.8});
+  sText(g,20,H-16,'绿色虚线：区块体里全部交易两两哈希，算出 Merkle 根写进区块头（第 2.4 节）',{anchor:'start',size:11.5,fill:OKC});
+  sText(g,W-20,H-16,'粉色格：存的是前一块区块头的哈希（哈希指针）',{anchor:'end',size:11.5,fill:WRC});
+  mount(hostId,svg);
+}
+
+/* =====================================================================
+   交互件：区块头拼装器（创世块实算）
+   ===================================================================== */
+var GENESIS={version:1,prevHex:'0'.repeat(64),merkleHex:'4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',time:1231006505,bitsHex:'1d00ffff',nonce:2083236893};
+var GENESIS_HASH='000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+var HD_NAMES={version:['version','版本'],prev:['previous block hash','前一块哈希'],merkle:['merkle root','Merkle 根'],time:['time','时间戳'],bits:['bits','难度目标'],nonce:['nonce','临时数']};
+function hdLoad(){
+  $('hdVer').value=GENESIS.version; $('hdPrev').value=GENESIS.prevHex; $('hdMr').value=GENESIS.merkleHex;
+  $('hdTime').value=GENESIS.time; $('hdBits').value=GENESIS.bitsHex; $('hdNonce').value=GENESIS.nonce;
+  $('hdBE').checked=false; $('hdNR').checked=false; hdGo();
+}
+function hdNonce(d){ var n=parseInt($('hdNonce').value,10); if(isFinite(n)){ $('hdNonce').value=Math.max(0,Math.min(4294967295,n+d)); hdGo(); } }
+function hdInt(id){ var s=String($(id).value).trim(); if(!/^\d+$/.test(s)) return NaN; var v=Number(s); return v<=4294967295?v:NaN; }
+function hdGo(){
+  var f={version:hdInt('hdVer'),prevHex:$('hdPrev').value.trim(),merkleHex:$('hdMr').value.trim(),time:hdInt('hdTime'),bitsHex:$('hdBits').value.trim(),nonce:hdInt('hdNonce')};
+  var tab=$('hdBytes'), out=$('hdOut');
+  var bad=['version','time','nonce'].filter(function(k){ return !isFinite(f[k]); });
+  if(bad.length){ tab.innerHTML='<span class="bad">version、time、nonce 要填 0 到 4294967295 之间的整数</span>'; out.innerHTML='<span class="bad">等待输入</span>'; return; }
+  var opts={bigEndianInts:$('hdBE').checked, noReverseHashes:$('hdNR').checked};
+  var r=blockHash(f,opts);
+  if(r.err){ tab.innerHTML='<span class="bad">'+r.err+'</span>'; out.innerHTML='<span class="bad">'+r.err+'</span>'; return; }
+  var dt=new Date(f.time*1000).toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC');
+  var shown={version:String(f.version),prev:short(f.prevHex.toLowerCase(),16),merkle:short(f.merkleHex.toLowerCase(),16),time:f.time+'（'+dt+'）',bits:f.bitsHex.toLowerCase(),nonce:String(f.nonce)};
+  var h='<div class="tw"><table class="compact hdt"><thead><tr><th>字段</th><th>填的值</th><th>写进区块头的字节</th><th>字节</th></tr></thead><tbody>';
+  r.parts.forEach(function(p){
+    h+='<tr><td>'+HD_NAMES[p.name][1]+'<br><span class="sub2">'+HD_NAMES[p.name][0]+'</span></td><td class="hx">'+esc(shown[p.name])+'</td><td class="hx">'+toHex(p.bytes)+'</td><td>'+p.bytes.length+'</td></tr>';
+  });
+  h+='</tbody></table></div><div class="sub2">合计 <strong>'+r.bytes.length+'</strong> 字节 = 4 + 32 + 32 + 4 + 4 + 4</div>';
+  tab.innerHTML=h;
+  var raw=toHex(r.raw), disp=toHex(r.display), z=leadingHexZeros(disp);
+  var tg=bitsToTarget(f.bitsHex), ts=targetStats(tg.T);
+  var okT=BigInt('0x'+disp)<=tg.T;
+  var o='<div class="kv">'+
+    '<span>两次 SHA-256 的原始输出</span><span class="hx">'+raw+'</span>'+
+    '<span>按字节反序显示</span><span class="hx"><span class="hot">'+disp.slice(0,z)+'</span>'+disp.slice(z)+'</span>'+
+    '<span>开头的十六进制 0</span><span>'+z+' 个</span>'+
+    '<span>bits 拆开</span><span class="mono">e = 0x'+tg.e.toString(16)+' = '+tg.e+'，m = 0x'+('00000'+tg.m.toString(16)).slice(-6)+'，T = m × 256<sup>'+(tg.e-3)+'</sup></span>'+
+    '<span>目标值 T</span><span class="hx">'+ts.hex+'</span>'+
+    '<span>哈希 ≤ T？</span><span>'+(okT?'<span class="tag2 good">合格</span>':'<span class="tag2 bad">不合格</span>')+'</span>'+
+    '<span>单次成功概率 p = T / 2²⁵⁶</span><span class="mono">≈ '+sci(ts.p,4)+'</span>'+
+    '<span>平均尝试次数 1/p</span><span class="mono">≈ '+sci(ts.tries,4)+'（16'+supN(ts.zeros)+' = '+fmt(Math.pow(16,ts.zeros),0)+'，相差 '+fmt(ts.tries-Math.pow(16,ts.zeros),0)+'）</span>'+
+    '</div>';
+  var isG=disp===GENESIS_HASH;
+  if(opts.bigEndianInts||opts.noReverseHashes) o+='<div class="bad" style="margin-top:.45rem">这是错误的字节序口径：算出的哈希与公认值不同'+(okT?'':'，也不满足目标值')+'。</div>';
+  else if(isG) o+='<div class="good" style="margin-top:.45rem">与公认的比特币创世块哈希完全一致。</div>';
+  out.innerHTML=o;
+}
+
+/* =====================================================================
+   Merkle 树：图与交互件共用的画法
+   sel：被证明的叶子序号（null 表示不标路径）
+   ===================================================================== */
+var MK_TX4=['Alice->Bob:5','Bob->Carol:2','Carol->Dave:1','Dave->Eve:3'];
+function mkNodeName(level,idx,tree,n){
+  var L=tree.levels.length-1;
+  if(level===L) return 'R';
+  if(level===0) return 'h'+subN(idx);
+  /* 覆盖的叶子区间 */
+  var span=1<<level, a=idx*span, b=Math.min(a+span-1,n-1);
+  var lv=tree.levels[level-1], li=2*idx, ri=2*idx+1;
+  if(level===1) return 'h'+subN(li)+(ri<lv.length?subN(ri):subN(li));
+  return 'h'+subN(a)+'…'+subN(b);
+}
+function drawMerkle(hostId,txs,sel,o){
+  o=o||{};
+  var n=txs.length, tree=merkleTree(merkleLeavesFromTx(txs)), L=tree.levels.length-1;
+  var W=820, slot=W/n, nodeW=Math.min(170,slot-14), nodeH=46, lvGap=78;
+  var H=(L+1)*nodeH+L*lvGap+ (o.tx===false?0:86) + 60;
+  var svg=svgRoot(W,H,o.label||('Merkle 树：'+n+' 笔交易，叶子是每笔交易的哈希，相邻两个哈希拼接后再哈希，一层层合到根'));
+  var g=svgEl('g',{'font-family':'inherit'}); svg.appendChild(g);
+  var MKN=arrow(svg), MKR=arrow(svg,WRC), MKG=arrow(svg,OKC);
+  /* 路径与兄弟 */
+  var onPath={}, isSib={};
+  if(sel!==null && sel!==undefined){
+    var i=sel;
+    for(var k=0;k<=L;k++){ onPath[k+':'+i]=true; if(k<L){ var lv=tree.levels[k], s=(i%2===0)?i+1:i-1; if(s<lv.length) isSib[k+':'+s]=true; } i=i>>1; }
+  }
+  var top=o.legend===false?16:62;
+  if(o.legend!==false){
+    sText(g,12,18,'H = SHA-256 两次；‖ = 32 字节原始摘要首尾拼接；方框里是哈希值（原始字节顺序）的前 8 位十六进制',{anchor:'start',size:11.5,op:.7});
+    if(sel!==null && sel!==undefined){
+      sRect(g,12,28,16,14,{rx:3,fill:WRC,fop:.18,stroke:WRC,sop:.9}); sText(g,34,40,'到根的路径',{anchor:'start',size:11.5});
+      sRect(g,124,28,16,14,{rx:3,fill:OKC,fop:.18,stroke:OKC,sop:.9}); sText(g,146,40,'证明里要别人提供的兄弟',{anchor:'start',size:11.5});
+    }
+  }
+  /* 每层节点的 x */
+  var X=[]; X[0]=[]; for(var j=0;j<n;j++) X[0].push(slot*j+slot/2);
+  for(k=1;k<=L;k++){ X[k]=[]; var pl=X[k-1]; for(j=0;j<tree.levels[k].length;j++){ var a=pl[2*j], b=pl[2*j+1]; X[k].push(b===undefined?a:(a+b)/2); } }
+  function Y(k){ return top+(L-k)*(nodeH+lvGap); }
+  /* 边 */
+  for(k=0;k<L;k++){
+    var lvk=tree.levels[k];
+    for(j=0;j<lvk.length;j++){
+      var px=X[k+1][j>>1], py=Y(k+1)+nodeH, cx=X[k][j], cy=Y(k);
+      var col=onPath[k+':'+j]?WRC:(isSib[k+':'+j]?OKC:null);
+      sPath(g,'M'+cx+','+cy+' L'+(px+(cx-px)*0.12)+','+(py+3),{stroke:col||'currentColor',sop:col?.95:.5,marker:col===WRC?MKR:(col===OKC?MKG:MKN),sw:1.6});
+    }
+    if(tree.dup[k]){
+      var last=lvk.length-1, xx=X[k][last];
+      sPath(g,'M'+(xx+nodeW/2-4)+','+Y(k)+' C'+(xx+nodeW/2+30)+','+(Y(k)-30)+' '+(xx+20)+','+(Y(k+1)+nodeH+30)+' '+(xx+8)+','+(Y(k+1)+nodeH+3),{dash:'4 3',sop:.55,marker:MKN});
+      sText(g,xx+nodeW/2+16,Y(k)-16,'复制自己凑对',{size:10.5,op:.7,anchor:'start'});
+    }
+  }
+  /* 节点 */
+  for(k=0;k<=L;k++){
+    for(j=0;j<tree.levels[k].length;j++){
+      var x=X[k][j]-nodeW/2, y=Y(k), key=k+':'+j;
+      var col=onPath[key]?WRC:(isSib[key]?OKC:null);
+      sRect(g,x,y,nodeW,nodeH,{rx:7,fill:col||'currentColor',fop:col?.14:.04,stroke:col||'currentColor',sop:col?.95:.45,sw:col?1.8:1.3});
+      var nm=mkNodeName(k,j,tree,n), lab;
+      if(o.formula && nodeW>=150){
+        if(k===L) lab='Merkle 根 R = H('+(L===0?'T₀':mkNodeName(k-1,0,tree,n)+' ‖ '+mkNodeName(k-1,tree.levels[k-1].length>1?1:0,tree,n))+')';
+        else if(k===0) lab=nm+' = H(T'+subN(j)+')';
+        else { var pv=tree.levels[k-1], l2=2*j, r2=(2*j+1<pv.length)?2*j+1:2*j; lab=nm+' = H('+mkNodeName(k-1,l2,tree,n)+' ‖ '+mkNodeName(k-1,r2,tree,n)+')'; }
+      } else lab=(k===L?'根 R':nm);
+      sText(g,x+nodeW/2,y+19,lab,{size:nodeW>=150?13:12,weight:'700'});
+      sText(g,x+nodeW/2,y+37,toHex(tree.levels[k][j]).slice(0,8)+'…',{size:12,mono:true,op:.85});
+      if(k===L && o.headerRoot){
+        var same=toHex(tree.root)===toHex(o.headerRoot);
+        sText(g,x+nodeW+10,y+19,'区块头里的 R：'+toHex(o.headerRoot).slice(0,8)+'…',{anchor:'start',size:11.5});
+        sText(g,x+nodeW+10,y+37,same?'✓ 一致':'✗ 不一致',{anchor:'start',size:12,weight:'700',fill:same?OKC:WRC});
+      }
+    }
+  }
+  /* 交易 */
+  if(o.tx!==false){
+    var ty=Y(0)+nodeH+40;
+    for(j=0;j<n;j++){
+      var tx=X[0][j];
+      sPath(g,'M'+tx+','+ty+' V'+(Y(0)+nodeH+4),{stroke:onPath['0:'+j]?WRC:'currentColor',sop:onPath['0:'+j]?.95:.5,marker:onPath['0:'+j]?MKR:MKN,sw:1.6});
+      sRect(g,tx-nodeW/2,ty,nodeW,40,{rx:6,fill:'currentColor',fop:.01,sop:.35});
+      if(nodeW>=150) sText(g,tx,ty+25,'T'+subN(j)+'  '+txs[j],{size:12});
+      else {
+        sText(g,tx,ty+16,'T'+subN(j),{size:12,weight:'600'});
+        sText(g,tx,ty+32,txs[j].length>13?txs[j].slice(0,12)+'…':txs[j],{size:10.5,mono:true,op:.8});
+      }
+    }
+  }
+  mount(hostId,svg);
+  return tree;
+}
+function drawMerkleFig(hostId){ drawMerkle(hostId,MK_TX4,2,{formula:true,label:'四笔交易的 Merkle 树：红色是 T2 到根的路径，绿色是验证 T2 时需要别人提供的兄弟节点 h3 与 h01'}); }
+
+/* =====================================================================
+   交互件：Merkle 证明
+   ===================================================================== */
+var MK_HDR=null, MK_SEL=2;
+function mkTxs(){ return $('mkTx').value.split('\n').map(function(s){ return s.replace(/\r/g,''); }).filter(function(s){ return s.trim()!==''; }); }
+function mkPreset(k){
+  var t;
+  if(k==='4') t=MK_TX4.slice();
+  if(k==='3') t=MK_TX4.slice(0,3);
+  if(k==='8') t=MK_TX4.concat(['Eve->Fay:4','Fay->Gus:6','Gus->Hal:7','Hal->Ann:8']);
+  $('mkTx').value=t.join('\n'); MK_SEL=Math.min(2,t.length-1); mkPack();
+}
+function mkTamper(){ var t=mkTxs(); if(t.length>2){ t[2]='Carol->Dave:9'; $('mkTx').value=t.join('\n'); MK_SEL=2; mkGo(); } }
+function mkPack(){ var t=mkTxs(); if(t.length){ MK_HDR=merkleTree(merkleLeavesFromTx(t)).root; } mkGo(); }
+function mkPick(){ MK_SEL=+$('mkSel').value; mkGo(); }
+function mkGo(){
+  var t=mkTxs(), st=$('mkSteps'), out=$('mkOut');
+  if(t.length<1||t.length>8){ $('mkTree').innerHTML='<p class="sub">（填 1 到 8 笔交易，每行一笔）</p>'; st.innerHTML=''; out.innerHTML='<span class="bad">交易数要在 1 到 8 之间，现在是 '+t.length+'</span>'; return; }
+  if(MK_SEL>=t.length) MK_SEL=t.length-1;
+  var sel=$('mkSel'), opts='';
+  for(var i=0;i<t.length;i++) opts+='<option value="'+i+'"'+(i===MK_SEL?' selected':'')+'>T'+subN(i)+'  '+esc(t[i])+'</option>';
+  sel.innerHTML=opts;
+  var tree=drawMerkle('mkTree',t,MK_SEL,{headerRoot:MK_HDR,legend:true,label:'交互 Merkle 树'});
+  var pr=merkleProof(tree,MK_SEL), leaf=tree.levels[0][MK_SEL], v=merkleVerify(leaf,pr);
+  var bin=MK_SEL.toString(2); while(bin.length<pr.length) bin='0'+bin;
+  var h='<div><span class="k">1</span>轻节点自己算叶子：<span class="mono">'+mkNodeName(0,MK_SEL,tree,t.length)+' = H(“'+esc(t[MK_SEL])+'”) = '+toHex(leaf).slice(0,16)+'…</span></div>';
+  h+='<div><span class="k">2</span>向全节点要 '+pr.length+' 个兄弟哈希及左右位置（序号 '+MK_SEL+' 写成二进制 '+(pr.length?bin:'—')+'，从低位读起：0 = 本节点在左、兄弟在右；1 = 本节点在右、兄弟在左）：</div>';
+  if(pr.length){
+    h+='<div class="tw"><table class="compact"><thead><tr><th>层</th><th>兄弟</th><th>位置</th><th>兄弟哈希</th></tr></thead><tbody>';
+    var idx=MK_SEL;
+    pr.forEach(function(p,k){
+      h+='<tr><td>'+(k+1)+'</td><td>'+mkNodeName(k,p.sibIndex,tree,t.length)+(p.dup?'（落单，复制自己）':'')+'</td><td>'+(p.side==='R'?'在右':'在左')+'</td><td class="hx">'+toHex(p.hash).slice(0,16)+'…</td></tr>';
+      idx>>=1;
+    });
+    h+='</tbody></table></div>';
+  } else h+='<div class="sub2">只有一笔交易：它的哈希就是根，不需要兄弟。</div>';
+  var cur=mkNodeName(0,MK_SEL,tree,t.length);
+  h+='<div><span class="k">3</span>沿路径往上算：</div><div class="mono" style="font-size:13.5px">';
+  var acc=cur;
+  pr.forEach(function(p,k){
+    var sn=mkNodeName(k,p.sibIndex,tree,t.length);
+    acc=p.side==='R'?'H('+acc+' ‖ '+sn+')':'H('+sn+' ‖ '+acc+')';
+    h+='<div>第 '+(k+1)+' 层：'+(p.side==='R'?'H(上一步 ‖ '+sn+')':'H('+sn+' ‖ 上一步)')+' = '+toHex(v.steps[k]).slice(0,16)+'…</div>';
+  });
+  h+='</div>';
+  st.innerHTML=h;
+  var good=MK_HDR && toHex(v.root)===toHex(MK_HDR);
+  var o='<div>算出的根 <span class="hx">'+toHex(v.root).slice(0,16)+'…</span>，区块头里的 R <span class="hx">'+(MK_HDR?toHex(MK_HDR).slice(0,16)+'…':'—')+'</span> '+(good?'<span class="tag2 good">✓ 一致：T'+subN(MK_SEL)+' 在这个块里</span>':'<span class="tag2 bad">✗ 对不上</span>')+'</div>';
+  if(!good) o+='<div class="sub2" style="margin-top:.3rem">交易被改过或不在这个块里，算出来的根就对不上区块头里的 R。点「打包」把当前交易重新写进区块头，就又对得上了。</div>';
+  o+='<div class="sub2" style="margin-top:.3rem">证明共 '+pr.length+' 个 32 字节哈希 = '+(32*pr.length)+' B；全部叶哈希是 '+(32*t.length)+' B。它证的是「在块里」，不是「合法」。</div>';
+  out.innerHTML=o;
+  mkSize();
+}
+function mkSize(){
+  var s=String($('mkN').value).replace(/[,，\s]/g,''), n=Number(s), o=$('mkSizeOut');
+  if(!/^\d+$/.test(s)||n<1||n>1e15){ o.innerHTML='<span class="bad">填一个正整数</span>'; return; }
+  var k=ceilLog2(n);
+  o.innerHTML='<span class="mono">⌈log₂ '+fmt(n,0)+'⌉ = '+k+'</span> 个哈希，证明 <strong class="mono">'+fmt(32*k,0)+' B</strong>；对比全部叶哈希 32n = <span class="mono">'+fmt(32*n,0)+' B</span>。';
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+drawBlockFig('figBlock');
+hdLoad();
+drawMerkleFig('figMerkle');
+mkPack();
+tpInit({first:'mock',shards:true,fork:false,trap:false});
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+</script>
+</body>
+</html>

@@ -35,12 +35,27 @@ Moodle 的 Lecture 5 就是 L4 的课件（AES），所以没有单独的 L5。
 
 ## 浏览器版学习页
 
-自包含 HTML，离线可用，带交互件（凯撒与 Playfair 的逐步演示、DES 与 AES 的现算工具等）。
+自包含 HTML，离线可用，带交互件（凯撒与 Playfair 的逐步演示、DES 与 AES 的现算工具、工作模式篡改实验、RSA/DH 演算器、证书链校验、挖矿实验、法定人数与 RAFT/PBFT 演示等）。
 
 - [L1 信息安全基础](笔记/HTML/L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html)
 - [L2 古典密码与密码分析](笔记/HTML/L2%20%E5%8F%A4%E5%85%B8%E5%AF%86%E7%A0%81%E4%B8%8E%E5%AF%86%E7%A0%81%E5%88%86%E6%9E%90.html)
 - [L3 分组密码与 DES](笔记/HTML/L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html)
 - [L4 AES](笔记/HTML/L4%20AES.html)
+- [L6 对称密码的安全使用](笔记/HTML/L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html)
+- [L7 公钥密码](笔记/HTML/L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html)
+- [L8 数字签名、证书与 PKI](笔记/HTML/L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html)
+- [L9 实用安全协议](笔记/HTML/L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html)
+- [L10 网络安全：威胁、攻击与防御](笔记/HTML/L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html)
+- [L11 分布式账本与区块链导论](笔记/HTML/L11%20%E5%88%86%E5%B8%83%E5%BC%8F%E8%B4%A6%E6%9C%AC%E4%B8%8E%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AF%BC%E8%AE%BA.html)
+- [L12 区块链系统概览](笔记/HTML/L12%20%E5%8C%BA%E5%9D%97%E9%93%BE%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%A7%88.html)
+- [L13 区块链工作原理（上）](笔记/HTML/L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html)
+- [L14 区块链工作原理（下）](笔记/HTML/L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html)
+- [L15 区块链共识 I](笔记/HTML/L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html)
+- [L16 区块链共识 II](笔记/HTML/L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html)
+- [L17 区块链共识 III](笔记/HTML/L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html)
+- [L18 区块链赋能的认知无线电网络](笔记/HTML/L18%20%E5%8C%BA%E5%9D%97%E9%93%BE%E8%B5%8B%E8%83%BD%E7%9A%84%E8%AE%A4%E7%9F%A5%E6%97%A0%E7%BA%BF%E7%94%B5%E7%BD%91%E7%BB%9C.html)
+- [L19 区块链应用：网联自动驾驶](笔记/HTML/L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html)
+- [L20 区块链应用：D2D 缓存](笔记/HTML/L20%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9AD2D%20%E7%BC%93%E5%AD%98.html)
 
 ## 实验
 
@@ -53,3 +68,5 @@ Moodle 的 Lecture 5 就是 L4 的课件（AES），所以没有单独的 L5。
 
 - [[公式与算法卡]]
 - [[背诵清单]]
+- [[模拟卷全解]]：去年版模拟卷逐小问的考场答法与参考答案勘误
+- [[Tutorial 1 案例精讲]]：Tutorial 1 的 10 份案例按题型解答，另收旧版辅导幻灯片里今年没讲的条目

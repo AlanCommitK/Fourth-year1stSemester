@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L16 区块链共识 II · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 IS L1） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:min(220px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+    color:var(--accent); min-width:2.2rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.cap{font-size:13px; color:var(--muted)}
+.c2{color:var(--accent); font-weight:600}
+.tool tr.use td{background:var(--accent-bg)}
+/* 四列以上的表在窄屏不再挤成一字一行，改为在 .tw 里横向滚动（同 L1） */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* 骨架里 details.box>*{display:block} 在 Chromium/Safari 里打不开已关闭的 details，这里补上（同 L1） */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+
+/* ---------- 区块链共识页补充 ---------- */
+:root{--vio:#6B4FA0; --vio-bg:#6B4FA012}
+@media (prefers-color-scheme:dark){ :root{--vio:#B9A3E3; --vio-bg:#B9A3E316} }
+.m .tx{font-style:normal}
+/* 分式里套的 span（如 \text）不要再画分数线 */
+.frac>span span{border:none !important; padding:0 !important}
+th .m{white-space:nowrap}
+.eq .m{white-space:normal}
+svg .halo{paint-order:stroke; stroke:var(--surface); stroke-width:4px; stroke-linejoin:round}
+/* 两块并排的图：每块一张 SVG，窄屏改上下排 */
+.duo{display:grid; grid-template-columns:1fr 1fr; gap:.8rem}
+@media (max-width:700px){ .duo{grid-template-columns:1fr} }
+/* 宽图（时序图等）在窄屏保持可读字号，在图框里横向滚动 */
+.scrollfig{overflow-x:auto}
+@media (max-width:700px){ .scrollfig>svg{min-width:620px} }
+@media print{ .scrollfig>svg{min-width:0} }
+/* 交互件 */
+.tool .steps{font-size:14.5px; line-height:1.85}
+.three span.lab,.three span.val{display:block}
+.result .three div{background:var(--surface)}
+.tool table{max-width:none}
+.tool td.num{text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.tool td.m{font-size:1em}
+.pxt td{font-size:13.5px}
+.pxt td:nth-child(2){min-width:15rem}
+.pxt thead tr.sub th{font-size:11.5px; font-weight:400; padding-top:0; color:var(--faint)}
+.pxt td.chg{background:var(--accent-bg)}
+.pxt td.nw{white-space:nowrap; font-weight:600}
+.pxt td:nth-child(3),.pxt td:nth-child(4),.pxt td:nth-child(5){white-space:nowrap; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px}
+.pxt{min-width:40rem}
+#rfElect table{min-width:38rem}
+.toolfig>svg{display:block}
+.chk{display:flex; flex-direction:column; gap:.25rem; margin:0 0 .9rem; font-size:14.5px}
+.chk label{display:flex; gap:.45rem; align-items:baseline}
+.rfrow{display:flex; align-items:center; gap:.6rem; margin:.3rem 0; flex-wrap:wrap}
+.rfrow .rfn{min-width:6.2rem; font-size:14px; color:var(--muted)}
+.rfrow input[type=text]{width:min(15rem,100%); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:14px; padding:.22rem .45rem}
+table.rfg{width:auto; border-collapse:separate; border-spacing:3px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:14px; margin:.2rem 0}
+table.rfg th,table.rfg td{padding:.12rem .45rem; text-align:center; border:none; line-height:1.5}
+table.rfg td{background:var(--surface2); border:1px solid var(--line); border-radius:4px; min-width:2rem}
+table.rfg td.no{background:none; border:none}
+table.rfg td.cm{background:var(--ok-bg); border-color:var(--ok); color:var(--ok); font-weight:700}
+table.rfg td.df{border:1.5px solid var(--warn); color:var(--warn)}
+table.rfg thead th{background:none; font-size:12px; border:none}
+table.rfg thead th.cm{color:var(--ok)}
+table.rfg tbody th{text-align:right; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif; font-weight:600; font-size:13px; color:var(--muted); white-space:nowrap}
+table.rfg tr.ld th{color:var(--text)}
+table.rfg tbody tr:hover{background:none}
+table.rfc td,table.rfc th{text-align:center; padding:.3rem .45rem}
+table.rfc td:first-child{text-align:left; white-space:nowrap}
+table.rfc td i{white-space:nowrap; display:block; font-style:normal; font-size:11px; color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 16</div>
+  <div class="tt">区块链共识 II</div>
+  <div class="toc">
+<a href="#s1">1 · 回顾：L15 的 PoW、PoS 与性能指标</a>
+<a href="#s1-1" class="sub">1.1 共识、两类节点与两类故障</a>
+<a href="#s1-2" class="sub">1.2 PoW 与 PoS</a>
+<a href="#s1-3" class="sub">1.3 吞吐量与确认时间</a>
+<a href="#s1-4" class="sub">1.4 从 PoW、PoS 到本讲：能不能直接数票</a>
+<a href="#s2">2 · 三个协议在解决同一个问题</a>
+<a href="#s2-1" class="sub">2.1 复制状态机：把&quot;一致&quot;归结为&quot;日志一致&quot;</a>
+<a href="#s2-2" class="sub">2.2 故障模型与网络模型</a>
+<a href="#s2-3" class="sub">2.3 安全性与活性</a>
+<a href="#s3">3 · 法定人数交集：2f+1 与 3f+1 从哪里来</a>
+<a href="#s3-1" class="sub">3.1 两条约束</a>
+<a href="#s3-2" class="sub">3.2 崩溃故障：N ≥ 2f+1</a>
+<a href="#s3-3" class="sub">3.3 拜占庭故障：N ≥ 3f+1</a>
+<a href="#s3-4" class="sub">3.4 只差一个节点就失败：两个反例</a>
+<a href="#s3-5" class="sub">3.5 考场写法</a>
+<a href="#s4">4 · Paxos</a>
+<a href="#s4-1" class="sub">4.1 主思想与适用场景</a>
+<a href="#s4-2" class="sub">4.2 三种角色</a>
+<a href="#s4-3" class="sub">4.3 提案编号</a>
+<a href="#s4-4" class="sub">4.4 Phase 1：prepare</a>
+<a href="#s4-5" class="sub">4.5 Phase 2：accept</a>
+<a href="#s4-6" class="sub">4.6 learn 与时序图</a>
+<a href="#s4-7" class="sub">4.7 每条规则为什么必要：两个提案者的例子</a>
+<a href="#s4-8" class="sub">4.8 选一个 leader：为了活性</a>
+<a href="#s4-9" class="sub">4.9 考场答法：Paxos 的节点与阶段</a>
+<a href="#s5">5 · RAFT</a>
+<a href="#s5-1" class="sub">5.1 主思想与运行前提</a>
+<a href="#s5-2" class="sub">5.2 三种角色与任期</a>
+<a href="#s5-3" class="sub">5.3 选主</a>
+<a href="#s5-4" class="sub">5.4 日志复制</a>
+<a href="#s5-5" class="sub">5.5 为什么按本任期多数提交就安全（课件外）</a>
+<a href="#s5-6" class="sub">5.6 RAFT 不能抵抗拜占庭故障</a>
+<a href="#s6">6 · PBFT</a>
+<a href="#s6-1" class="sub">6.1 主思想：三个子协议</a>
+<a href="#s6-2" class="sub">6.2 角色：primary 与 backup</a>
+<a href="#s6-3" class="sub">6.3 节点下限：3f+1</a>
+<a href="#s6-4" class="sub">6.4 正常流程的三个阶段</a>
+<a href="#s6-5" class="sub">6.5 每个阶段为什么必要</a>
+<a href="#s6-6" class="sub">6.6 view change 与 checkpoint</a>
+<a href="#s6-7" class="sub">6.7 代价：O(N²) 条消息</a>
+<a href="#s6-8" class="sub">6.8 附读物：PBFT 原论文</a>
+<a href="#s7">7 · 三个协议的对比</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 16 — Blockchain Consensus II</div>
+  <h1>区块链共识 II</h1>
+  <p>参与者是一组事先登记、彼此知道身份的机器，其中有些会崩溃、甚至会撒谎，它们怎样对「下一条记录是什么」达成一致。路线：回顾 L15 → 三个协议在解决同一个问题 → 法定人数交集推出 2f+1 与 3f+1 → Paxos → RAFT → PBFT → 三者对比。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+  <p>上一讲 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a> 讲的 PoW（Proof of Work，工作量证明）与 PoS（Proof of Stake，权益证明）是公有链（任何人都能自由加入的区块链）的做法：谁也不认识谁，就按算力或押上的币来"抽签"决定谁记账。这一讲换一个场景：<strong>参与者是一组事先登记好、彼此知道身份的机器，其中有些可能崩溃，甚至可能撒谎——它们怎样对"下一条记录是什么"达成一致？</strong> 这就是<strong>共识</strong>（consensus）问题：让一组节点对同一件事得出相同的结论。</p>
+  <p>课件讲了三个协议，回答由弱到强：</p>
+  <ul>
+<li><strong>Paxos</strong>：最经典的共识协议，Leslie Lamport 提出；名字取自希腊的 Paxos 岛，Lamport 在论文里虚构了岛上一个兼职议会的表决规则来讲这个算法。它只防<strong>崩溃</strong>，靠"多数派代表全体"；</li>
+<li><strong>RAFT</strong>：为了好懂而重新设计的崩溃容错协议，先选出一个 leader（领导者，负责协调的那个节点），再由它把日志（log，按顺序记下的命令列表）复制给大家；</li>
+<li><strong>PBFT</strong>（Practical Byzantine Fault Tolerance，实用拜占庭容错）：连<strong>撒谎的节点</strong>也防，代价是多一轮投票、消息量随节点数平方增长。</li>
+</ul>
+  <p>三个协议表面上各有一套角色和阶段，底下是同一条规则：<strong>任意两个法定人数（quorum）必须相交于至少一个诚实节点</strong>。法定人数是协议每一步至少要凑齐的回应者集合；下文 <span class="m">N</span> 表示节点总数，<span class="m">f</span> 表示至多出故障的节点数。课件把这条规则推出的两个数 <span class="m">2f + 1</span>（p38）和 <span class="m">3f + 1</span>（p67）分散在 Paxos 和 PBFT 里、只给结论。本笔记把它提到最前面统一推导（<a href="#s3">第 3 节</a>），再逐个讲三个协议，每讲一条规则都回头说明它在守护哪个交集。这是和课件顺序的主要不同；三个协议内部仍按课件的"主思想 → 角色 → 阶段"展开，另补了课件没讲的"每一步为什么必要"。</p>
+  <p>对应课件 <code>Lecture 16 - Blockchain Consensus-II.pdf</code>，74 页。p2–p22 原样复习 L15，压缩在<a href="#s1">第 1 节</a>；p23–25、p43、p62、p73–74 是路线图、教学计划、分节页和小结，没有新知识点（p62 标题误印成 "Outline of Lecture 13"；p74 预告的认知无线电实际在 <a href="L18%20%E5%8C%BA%E5%9D%97%E9%93%BE%E8%B5%8B%E8%83%BD%E7%9A%84%E8%AE%A4%E7%9F%A5%E6%97%A0%E7%BA%BF%E7%94%B5%E7%BD%91%E7%BB%9C.html">L18 区块链赋能的认知无线电网络</a>）。p24 教学计划的目标只有一行 "Three consensus mechanisms PAXOS, RAFT, and PBFT (typical in communication network)"。课件这三个协议部分的措辞和几张时序图、状态图，与 Imran Bashir《Mastering Blockchain》共识算法一章的风格一致，很可能取自该书；本笔记核对用的是三篇原始论文：Lamport 2001、Ongaro 与 Ousterhout 2014、Castro 与 Liskov 1999。</p>
+  <p style="margin-bottom:0">下一讲 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 的课件几乎逐字重放本讲的 RAFT 与 PBFT；<strong>Paxos 的五页细则 p32–34、p40–41 只在本讲出现</strong>，模拟卷的 Paxos 题明说以本讲为准。附读物 <code>PBFT-Mathematical Proof.pdf</code> 实为 PBFT 原论文全文，概要见 <a href="#s6-8">6.8</a>。课程总览与考情见 《00 课程信息与考情》。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+  <p>课件没有 "exam""you will be asked" 一类原话。考试信号有两处：</p>
+  <ul>
+<li>唯一带 "Note" 标记的一页是 p38："Note: … in order to tolerate <strong>f faulty acceptors</strong>, at least a set consisting of <strong>2f + 1</strong> acceptors is required."——它被模拟卷直接考了；</li>
+<li>RAFT 与 PBFT 的主思想、三种角色、<span class="m">N ≥ 3f + 1</span>、三阶段与时序图，在 L17、L18（p3–17）和 L20 Summary（p54–68）里又原样出现了三次，是全课重复最多的内容。</li>
+</ul>
+  <p>模拟卷（去年版）有 9 小题、共 30 分落在本讲的页面上（含复习页）。其中 4 小题共 15 分首讲在本讲；另 5 小题共 15 分首讲在 L15，本讲只是复习页，规范答法以 L15 为准：</p>
+  <div class="tw"><table class="wide">
+<thead><tr><th>题号</th><th>分值</th><th>问什么</th><th>首讲</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td>Q3(b)(i)</td><td>4</td><td>两类故障并解释</td><td>L15</td><td><a href="#s1-1">1.1</a>；<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s2-2">L15 2.2</a></td></tr>
+<tr><td>Q3(b)(ii)</td><td>3</td><td>列三种共识机制</td><td>L15</td><td><a href="#s7">第 7 节</a>；<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s2-4">L15 2.4</a></td></tr>
+<tr><td>Q3(b)(iii)</td><td>3</td><td>吞吐量与确认时间（参考答案算错）</td><td>L15</td><td><a href="#s1-3">1.3</a>；<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s5-6">L15 5.6</a></td></tr>
+<tr><td>Q3(b)(iv)</td><td>3</td><td>3 个崩溃节点，求最少合法节点，要推导</td><td><strong>L16</strong></td><td><a href="#s3-2">3.2</a>、<a href="#s3-5">3.5</a></td></tr>
+<tr><td>Q4(a)(i)</td><td>3</td><td>PoW 获胜概率反求算力</td><td>L15</td><td><a href="#s1-2">1.2</a>；<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s3-3">L15 3.3</a></td></tr>
+<tr><td>Q4(a)(ii)</td><td>2</td><td>PoS 相对 PoW 的优点</td><td>L15</td><td><a href="#s1-2">1.2</a>；<a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s4-2">L15 4.2</a></td></tr>
+<tr><td><strong>Q4(a)(iii)</strong></td><td><strong>5</strong></td><td><strong>Paxos 的节点与阶段</strong>（参考答案："refer to the slides in lecture 16"）</td><td><strong>L16</strong></td><td><a href="#s4-9">4.9</a></td></tr>
+<tr><td>Q4(a)(iv)</td><td>3</td><td>3 个拜占庭节点，求最少合法节点，要推导</td><td><strong>L16</strong></td><td><a href="#s3-3">3.3</a>、<a href="#s3-5">3.5</a></td></tr>
+<tr><td>Q4(a)(v)</td><td>4</td><td>RAFT 三种角色，能否抗拜占庭</td><td><strong>L16</strong></td><td><a href="#s5-6">5.6</a></td></tr>
+</tbody></table></div>
+  <p style="margin-bottom:0">模拟卷没出 PBFT 的阶段题。但 PBFT 在四个讲次里重复出现，课件对三个协议又用同一个"主思想 → 角色 → 阶段"模板，按 "Explain the main process of PBFT, including the nodes and phases" 出题的可能性不低，<a href="#s6-4">6.4</a> 按这个问法写到能直接作答。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>回顾：L15 的 PoW、PoS 与性能指标</h2>
+
+<p>课件 p2–p22 逐页重放了 L15 的 21 页，只删了三句话。完整讲解和这几道模拟卷题的规范答法都在 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html">L15 区块链共识 I</a>；这里只留读懂本讲需要的定义和结论，每道题给一行结果和出处。</p>
+
+<h3 id="s1-1"><span class="n">1.1</span>共识、两类节点与两类故障</h3>
+
+<p><strong>共识</strong>（consensus）就是"达成共同的约定"（p3 "Consensus means to reach a common agreement."）；约定一旦达成，要通知所有参与方，系统状态随之更新。在区块链里，要约定的是"下一个区块是什么、账本按什么顺序记"。</p>
+
+<p>分布式环境里的节点分两类（p4）：</p>
+
+<ul>
+<li><strong>合法节点</strong>（legitimate node）：诚实的节点，按协议办事；</li>
+<li><strong>恶意节点</strong>（malicious node）：可能做任何违反协议的事。</li>
+</ul>
+
+<p>故障也分两类（p5）。课件按节点身份来分（合法节点出的是崩溃故障，恶意节点出的是拜占庭故障），准确的分法是按<strong>出故障时的行为</strong>：</p>
+
+<ul>
+<li><strong>崩溃故障</strong>（crash failure）：节点停止工作——死机、断电、断网、进程退出，表现为<strong>不再收发消息</strong>。它要么正常、要么沉默，崩溃前说的每句话都是真的。</li>
+<li><strong>拜占庭故障</strong>（Byzantine failure）：节点可以<strong>任意行为</strong>——沉默、<strong>撒谎</strong>、伪造内容、对不同的人说不同的话、和别的故障节点串通。原因可能是作恶，也可能只是软件缺陷让它乱发消息；课件 p5 把它归给恶意节点（"occurs if malicious node causes any failure"）。名字来自 Lamport 等人 1982 年的"拜占庭将军问题"：几位将军靠信使商定进攻或撤退，其中有叛徒会给不同的人送去相反的口信。</li>
+</ul>
+
+<p>模拟卷 Q3(b)(i)（4 分）："List and explain two typical failures occurred in a blockchain system." 考场写法与 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s2-2">L15 2.2</a> 相同：</p>
+
+<ul>
+<li><strong>Crash failure</strong>: the node cannot work properly (either receiving data or transmitting data), e.g. it crashes or goes offline.</li>
+<li><strong>Byzantine failure</strong>: the node can arbitrarily send any false information (e.g. conflicting messages to different nodes), typically because it is malicious or compromised.</li>
+</ul>
+
+<p>共识协议的职责（p6）有两条：按顺序、保持原样、防篡改地<strong>维护账本数据</strong>；在有节点作恶时仍让节点之间<strong>达成一致</strong>（课件原话 "to provide Byzantine agreement, even in the presence of misbehaving nodes"）。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>PoW 与 PoS</h3>
+
+<p><strong>工作量证明</strong>（Proof of Work，PoW）是比特币的基础，为<strong>公有链</strong>（public blockchain，任何人都能加入的区块链）设计（p7）。节点比赛解一道哈希难题，<strong>哈希率</strong>（hash rate，每秒能算多少次哈希，即算力）越高越可能先解出；先解出的节点把区块加到链上并拿奖励（p8）。在 PoW 里矿工既当提议区块的 leader，又当 validator（验证者：检查新区块是否合法的节点）。</p>
+
+<p>获胜概率（p9）：</p>
+
+<div class="eq"><span class="m">P<sub>w<sub>i</sub></sub> = <span class="frac"><span>φ<sub>i</sub></span><span>∑<sub>j=1</sub><sup>N</sup>φ<sub>j</sub></span></span></span></div>
+
+<p><span class="m">φ<sub>i</sub></span> 是节点 <span class="m">i</span> 的算力，<span class="m">N</span> 是节点总数。每次哈希尝试都是独立的"抽奖"，单位时间里抽的次数和算力成正比，所以先中奖的概率就是算力占比。模拟卷 Q4(a)(i)（3 分）就是把这个式子倒过来用：四个节点算力 3、5、4、<span class="m">x</span>，N1 胜率 20%，总算力 <span class="m">= 3/0.2 = 15</span>，<span class="m">x = 15 − 12 = 3</span>。规范答法见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s3-3">L15 3.3</a>。</p>
+
+<p>PoW 的问题（p10）：存在<strong>双花</strong>（double spending，同一笔钱花两次）的风险；两个节点可能同时解出难题，造成<strong>分叉</strong>（fork，链在某个高度出现两个相互竞争的后继区块），所以 PoW 的<strong>终局性</strong>（finality，一笔交易一旦确认就不会被推翻）只是概率性的（p7 "consensus finality is not guaranteed"）；确认慢；耗电极大。容错性（p11）：会受 <strong>51% 攻击</strong>（掌握过半算力的人可以改写历史）；能容忍拜占庭故障，也能抵抗 <strong>Sybil 攻击</strong>（女巫攻击：恶意节点伪造大量假身份来左右投票，L15 原文的定义 "where malicious blockchain nodes create multiple pseudo identities"）。这两条"能"都以<strong>诚实算力过半</strong>为前提，和同页第一句的 51% 攻击是一回事的两面。</p>
+
+<p><strong>权益证明</strong>（Proof of Stake，PoS）按节点押上的币——<strong>质押</strong>（stake）——的多少选出记账者，押得越多越可能被选中（p12）。优点（p13）：<strong>耗能少</strong>；<strong>对算力和硬件要求低</strong>；每轮只生成一个区块，确认更快。模拟卷 Q4(a)(ii)（2 分）答前两条，规范答法见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s4-2">L15 4.2</a>。问题（p14–p16）：消息丢失或延迟会让节点拿不到最新账本；某些 PoS 变体要靠委员会（committee：从质押者中抽出、轮流负责出块和投票的一小组节点）成员之间及时通信，否则性能严重下降；奖励若总给质押最多的节点，就会富者愈富。</p>
+
+<p>p17 是两张网页截图拼成的 PoW/PoS 对比表，要点：</p>
+
+<div class="tw"><table>
+<thead><tr><th>方面</th><th>PoW</th><th>PoS</th></tr></thead>
+<tbody>
+<tr><td>谁记账</td><td>算力决定出块概率</td><td>质押量决定验证概率</td></tr>
+<tr><td>竞争</td><td>矿工比拼算力解难题</td><td>由算法按质押大小定胜者</td></tr>
+<tr><td>集中化</td><td>越来越适合大型矿场，趋于集中</td><td>（原表此格是复制错误，见下）</td></tr>
+<tr><td>硬件</td><td>ASIC（application-specific integrated circuit，专用集成电路）、GPU（graphics processing unit，图形处理器）</td><td>普通服务器即可</td></tr>
+<tr><td>作恶门槛</td><td>51% 算力</td><td>51% 的币</td></tr>
+<tr><td>效率与可靠性</td><td>耗能高、花费高，但更可靠</td><td>省钱省电，可靠性较低</td></tr>
+<tr><td>分叉</td><td>经济激励天然抑制分叉</td><td>不会自动抑制分叉</td></tr>
+</tbody></table></div>
+
+<div class="box def">
+  <div class="h">p17 原表的两处错</div>
+  <p style="margin-bottom:0">原表 PoW 的"效率与可靠性"一格写 "less energy-efficient and <strong>less expensive</strong>"，和同行 PoS 的 "far more cost and energy-efficient" 自相矛盾，应为 more expensive，上表已按此改写；"集中化"一行的 PoS 格子原样抄了上一行"竞争"的文字，是截图时的复制错误，PoS 的集中化问题实际是 p16 讲的"质押越多越容易赢"。</p>
+</div>
+
+<h3 id="s1-3"><span class="n">1.3</span>吞吐量与确认时间</h3>
+
+<p>衡量共识的非功能指标有两类（p18）：<strong>性能</strong>（吞吐量、确认时间）与<strong>可扩展性</strong>。</p>
+
+<p><strong>交易吞吐量</strong>（transaction throughput）是网络每秒能处理的交易数，单位 Tx/s（Tx 是 transaction 的缩写）（p19–p20）：</p>
+
+<div class="eq"><span class="m"><span class="tx">Throughput</span> = <span class="frac"><span><span class="tx">Block Size (Bytes)</span></span><span><span class="tx">Transaction Size (Bytes)</span> × <span class="tx">Block Time (s)</span></span></span></span></div>
+
+<p>拆开读：区块大小 ÷ 每笔交易大小 = 一个块装多少笔；再 ÷ <strong>出块时间</strong>（block time，平均多久出一个块）= 每秒多少笔。</p>
+
+<p><strong>区块确认时间</strong>（block confirmation time）是一个块从生成到被认为确认所需的时间（p21）：新块后面还要再接若干个块才算安全，所以</p>
+
+<div class="eq"><span class="m"><span class="tx">Confirmation Time</span> = <span class="tx">需等待的块数</span> × <span class="tx">Block Time</span></span></div>
+
+<p><strong>可扩展性</strong>（scalability）指平台承受不断增长的交易量与节点数的能力（p22）；<strong>链下方案</strong>（off-chain solution）把大部分交易放到主链之外处理，如<strong>侧链</strong>（sidechain，与主链相连、可双向转移资产的另一条链）和<strong>支付通道</strong>（payment channel，双方在链下反复记账、最后只把结算结果上链）。</p>
+
+<p>模拟卷 Q3(b)(iii)（3 分）：区块 6 MB、交易 80 B、出块时间 200 s、要等 20 个块确认。吞吐量 <span class="m">= 6 × 10<sup>6</sup>/(80 × 200) = 375</span> Tx/s（课程把 1 MB 按 <span class="m">10<sup>6</sup></span> B 算），确认时间 <span class="m">= 20 × 200 = 4000</span> s。<strong>参考答案写的 37.5 Tx/s 少了一个 0。</strong> 规范答法和这条勘误见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s5-6">L15 5.6</a>。</p>
+
+<h3 id="s1-4"><span class="n">1.4</span>从 PoW、PoS 到本讲：能不能直接数票</h3>
+
+<p>PoW 和 PoS 绕了一个弯：不让节点直接投票，而是按算力或质押"抽签"。原因是公有链里身份不值钱——开一个新节点几乎零成本，若"一节点一票"，攻击者用 Sybil 攻击开一万个假节点就赢了。算力和币伪造不出来，于是拿它们代替人头。（这条因果链课件没写，是把 L15 与本讲接起来的关键。）</p>
+
+<p>本讲的三个协议走另一条路：<strong>直接数票</strong>——"多数同意就算数"。数票的前提是参与者名单固定、身份可确认，所以它们用在成员事先登记的场合：分布式数据库、云服务的配置中心，以及区块链里的<strong>许可链</strong>（permissioned blockchain，需经许可才能加入的私有链和联盟链，见 <a href="L12%20%E5%8C%BA%E5%9D%97%E9%93%BE%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%A7%88.html">L12 区块链系统概览</a>）。课件学习目标里的 "typical in communication network" 也是这个意思。</p>
+
+<p>数票省掉了挖矿的算力浪费，也让终局性变成确定的：一旦决定就不会被推翻。代价是要回答一个 PoW 不必回答的问题——<strong>到底要凑够多少票才算数</strong>。这就是第 3 节的内容；在那之前，先把三个协议共同的目标讲清楚。</p>
+
+<h2 id="s2"><span class="n">2</span>三个协议在解决同一个问题</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>复制状态机：把"一致"归结为"日志一致"</h3>
+
+<p>为了容错，同一份服务要在多台机器上各放一份，每一份叫一个<strong>副本</strong>（replica）。只要每台机器满足三点：</p>
+
+<ul>
+<li>是一个<strong>确定性的状态机</strong>（deterministic state machine）：同样的状态、同样的命令，永远得到同样的新状态；</li>
+<li>从同一个初始状态出发；</li>
+<li>按<strong>同样的顺序</strong>执行<strong>同样的命令序列</strong>；</li>
+</ul>
+
+<p>那么每个副本执行完同一段命令之后，状态都相同（进度快的副本只是先走到后面）。这种做法叫<strong>复制状态机</strong>（state machine replication，SMR），课件 p44 的 "state machine replication with a persistent log" 说的就是它。</p>
+
+<p>顺序为什么要紧，看一个例子：账户余额 20 元，来了两条命令"存 100"和"取 30"。先存后取得 90；先取后存，取 30 时余额不足被拒，最后是 120。两台机器只是顺序不同，状态就分岔了。</p>
+
+<p>所以问题归结为：大家维护一份按位置编号的<strong>日志</strong>（log，命令的有序列表），对"第 1 个位置放什么命令、第 2 个位置放什么……"逐个达成一致。区块链本身就是这样一份日志，区块的高度就是位置编号。三个协议的分工：</p>
+
+<ul>
+<li>Paxos 每运行一次，对<strong>一个</strong>值达成一致（p26 "consensus over a value"）；对日志的每个位置各跑一次，就得到整份日志；</li>
+<li>RAFT 直接以日志为中心设计；</li>
+<li>PBFT 给每个请求分配一个<strong>序号</strong>，序号就是日志位置。</li>
+</ul>
+
+<p>每个节点内部因此由三部分组成。课件 p60 画的就是这个结构，下图按 p60 重画：</p>
+
+<figure>
+<div id="figSMR" class="scrollfig"></div>
+<figcaption>按课件 p60 重画，3 个节点，Node 1 是 leader；节点之间的 AppendEntries RPC 是 RAFT 的复制消息，见 <a href="#s5-2">5.2</a>。原图顶部发命令、收结果的电脑标着 "Leader"，按 p55 "The client sends commands/requests to the leader" 和 p58 "returns the result to the client"，它其实是客户端，此图已改正。</figcaption>
+</figure>
+
+<ul>
+<li><strong>共识模块</strong>（consensus module）：和其他节点通信，决定日志的每个位置放什么——三个协议就是三种不同的共识模块；</li>
+<li><strong>日志</strong>：按位置存命令（图中 "Append to log"）；</li>
+<li><strong>状态机</strong>：按顺序执行已经达成一致的命令。</li>
+</ul>
+
+<h3 id="s2-2"><span class="n">2.2</span>故障模型与网络模型</h3>
+
+<p>协议能防什么，取决于对"坏节点会做什么"和"网络有多不可靠"的假设。</p>
+
+<p><strong>故障模型</strong>。<a href="#s1-1">1.1</a> 的崩溃与拜占庭是两头：Paxos 和 RAFT 只防崩溃，而且允许崩溃的节点<strong>重启</strong>后继续参加——这叫 crash-recovery（崩溃–恢复）模型。重启的节点必须记得崩溃前许下的承诺，所以关键状态要写进<strong>稳定存储</strong>（stable storage，断电不丢的硬盘一类存储），不能只放内存。PBFT 防拜占庭，坏节点干什么都行，只是假定它伪造不了别人的数字签名（只有本人能生成、任何人都能验证的电子签名）。</p>
+
+<p><strong>网络模型</strong>。按"消息多久能送到"分三种：</p>
+
+<ul>
+<li><strong>同步</strong>（synchronous）：延迟有一个已知的上界，超过就可以断定对方坏了；</li>
+<li><strong>异步</strong>（asynchronous）：延迟没有上界，消息可以任意晚到；</li>
+<li><strong>部分同步</strong>（partially synchronous）：上界存在但事先不知道，或者网络乱一阵子之后才变得守时。</li>
+</ul>
+
+<p>真实的互联网接近异步。异步带来一个根本困难：<strong>收不到某个节点的回复时，分不清它是崩溃了还是只是慢</strong>。这一点是下一节推导的起点。</p>
+
+<p>更强的结论是 <strong>FLP 不可能性定理</strong>（以 Fischer、Lynch、Paterson 三位作者命名，1985）：在纯异步网络里，哪怕只有一个节点可能崩溃，也不存在一个总能在有限时间内做出决定的确定性共识算法。三个协议都不去硬碰这个定理，而是做同一个取舍，见下一小节。</p>
+
+<h3 id="s2-3"><span class="n">2.3</span>安全性与活性</h3>
+
+<ul>
+<li><strong>安全性</strong>（safety）："坏事永远不发生"——同一个位置不会决定出两个不同的值，决定的值一定是有人提出过的。</li>
+<li><strong>活性</strong>（liveness）："好事终究会发生"——协议最终能做出决定，不会永远卡住。</li>
+</ul>
+
+<p>三个协议的共同设计：<strong>安全性任何时候都保证，不依赖网络是否守时；活性只在网络一段时间内足够守时时才保证</strong>，靠超时、重试、换 leader 往前推（Paxos 换一个更大的编号重试，RAFT 超时后重新选 leader，PBFT 换掉出问题的主节点）。网络最坏时，协议可能一直做不出决定，但绝不会做出两个矛盾的决定。下面讲每条规则时，都会说清它守的是安全性还是活性。</p>
+
+<h2 id="s3"><span class="n">3</span>法定人数交集：2f+1 与 3f+1 从哪里来</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>两条约束</h3>
+
+<p>设一共 <span class="m">N</span> 个节点，其中至多 <span class="m">f</span> 个故障。协议每往前走一步，都要向大家发消息、收回应，凑够某个数目 <span class="m">q</span> 才继续。这样一组凑够数的回应者叫<strong>法定人数</strong>（quorum，原意是议会表决所需的最低出席人数），<span class="m">q</span> 是它的大小。后面三个协议里的"多数派""<span class="m">2f + 1</span> 条一致的消息"都是 quorum。<span class="m">q</span> 取多少，被两条约束夹住。</p>
+
+<p><strong>约束 ①（活性：不能等太多人）。</strong> <span class="m">f</span> 个故障节点可能永远不回应；异步网络里又分不清"坏了"和"慢"，所以不能指望等到它们。若 <span class="m">q &gt; N − f</span>，故障节点集体沉默就能让协议永远卡住。于是</p>
+
+<div class="eq"><span class="m">q ≤ N − f</span><span class="lbl">(1)</span></div>
+
+<p><strong>约束 ②（安全：任意两个 quorum 必须相交于至少一个诚实节点）。</strong> 同一个位置上前后有两次决策，比如第一次已经由 quorum <span class="m">Q<sub>1</sub></span> 决定了 <span class="m">x</span>，后来另一个提案者通过 quorum <span class="m">Q<sub>2</sub></span> 来问"这里该放什么"。如果 <span class="m">Q<sub>1</sub></span> 和 <span class="m">Q<sub>2</sub></span> 有一个共同的诚实成员，它会如实说出"我参与决定过 <span class="m">x</span>"，第二次就不会决定成别的值。如果两者不相交，第二次根本听不到第一次；如果只交在撒谎的节点上，撒谎者可以对 <span class="m">Q<sub>1</sub></span> 说 <span class="m">x</span>、对 <span class="m">Q<sub>2</sub></span> 说 <span class="m">y</span>，交集形同虚设。两种情况下同一位置都可能出现两个决定，安全性就破了。</p>
+
+<p>两个 quorum 至少相交多少？两个集合的元素总数减去并集的大小就是交集的大小，而并集最多是全体 <span class="m">N</span> 个节点：</p>
+
+<div class="eq"><span class="m">|Q<sub>1</sub> ∩ Q<sub>2</sub>| = |Q<sub>1</sub>| + |Q<sub>2</sub>| − |Q<sub>1</sub> ∪ Q<sub>2</sub>|<span class="tx"> </span> ≥ <span class="tx"> </span>2q − N</span><span class="lbl">(2)</span></div>
+
+<p>这个下界取得到：把节点排成一排，<span class="m">Q<sub>1</sub></span> 取前 <span class="m">q</span> 个、<span class="m">Q<sub>2</sub></span> 取后 <span class="m">q</span> 个，交集正好是 <span class="m">2q − N</span> 个。协议必须对最坏情形也成立，所以只能按 <span class="m">2q − N</span> 算。</p>
+
+<p><span class="m">q</span> 越大交集越大，所以在约束 (1) 允许的范围内取最大的 <span class="m">q = N − f</span>，代入 (2)，<strong>最坏交集</strong>为</p>
+
+<div class="eq"><span class="m">2(N − f) − N = N − 2f</span><span class="lbl">(3)</span></div>
+
+<p>剩下的问题只有一个：交集里至少要有几个节点，才能保证其中有一个诚实节点？这取决于故障节点会不会撒谎。</p>
+
+<figure>
+<div id="figQuorum"></div>
+<figcaption>左：崩溃模型 <span class="m">N = 3</span>，两个 2 人 quorum 交于节点 2。右：拜占庭模型 <span class="m">N = 4</span>，两个 3 人 quorum 交于节点 2、3，即使节点 2 是故障节点，节点 3 仍是诚实的。</figcaption>
+</figure>
+
+<h3 id="s3-2"><span class="n">3.2</span>崩溃故障：N ≥ 2f+1</h3>
+
+<p>崩溃的节点不撒谎。交集里的节点对两次询问都回应过，说明它两次都活着，说的都是真话，并且凭稳定存储记得第一次的事。所以<strong>交集非空就够</strong>：由 (3)</p>
+
+<div class="eq"><span class="m">N − 2f ≥ 1<span class="tx"> </span> ⟹ <span class="tx"> </span>N ≥ 2f + 1</span></div>
+
+<p>此时 quorum 大小 <span class="m">q = N − f = f + 1</span>，正好是 <span class="m">2f + 1</span> 个节点中的<strong>多数</strong>（超过一半）。这就是 Paxos "a majority represents the whole"（p26）和 p38 "to tolerate f faulty acceptors, at least … 2f + 1 acceptors" 的来历：任意两个多数派必然相交，而崩溃模型里相交就足够。</p>
+
+<p>反过来读同一个不等式：<span class="m">N</span> 台机器最多容忍 <span class="m">f = ⌊(N − 1)/2⌋</span> 台崩溃（<span class="m">⌊·⌋</span> 是向下取整）。3 台容 1 台，5 台容 2 台；4 台也只容 1 台，所以实际部署常用奇数台。</p>
+
+<p>模拟卷 Q3(b)(iv)：<span class="m">f = 3</span> 个崩溃节点，<span class="m">N ≥ 2 × 3 + 1 = 7</span>，最少合法节点 <span class="m">= 7 − 3 = 4</span>。</p>
+
+<h3 id="s3-3"><span class="n">3.3</span>拜占庭故障：N ≥ 3f+1</h3>
+
+<p>拜占庭节点会撒谎，而且它们完全可能同时出现在两个 quorum 里（它们乐意回应每一次询问）。最坏情形下 <span class="m">f</span> 个故障节点全落在交集里。要让交集里扣掉它们之后还剩至少一个诚实节点，由 (3)</p>
+
+<div class="eq"><span class="m">N − 2f − f ≥ 1<span class="tx"> </span> ⟹ <span class="tx"> </span>N ≥ 3f + 1</span></div>
+
+<p>此时 quorum 大小 <span class="m">q = N − f = 2f + 1</span>，两个 quorum 的交集 <span class="m">= N − 2f = f + 1</span>，其中至多 <span class="m">f</span> 个故障，至少 1 个诚实。</p>
+
+<p>PBFT 原论文（附读物 §3）用的是另一个说法，结论相同："it must be possible to proceed after communicating with <span class="m">n − f</span> replicas, since <span class="m">f</span> replicas might be faulty and not responding. However, it is possible that the <span class="m">f</span> replicas that did not respond are not faulty and, therefore, <span class="m">f</span> of those that responded might be faulty. Even so, there must still be enough responses that those from non-faulty replicas outnumber those from faulty ones, i.e., <span class="m">n − 2f &gt; f</span>. Therefore <span class="m">n &gt; 3f</span>." 逐句对应（论文的 <span class="m">n</span> 即本笔记的 <span class="m">N</span>）：</p>
+
+<ol>
+<li>只能等 <span class="m">N − f</span> 个回应——约束 (1)；</li>
+<li>没回应的 <span class="m">f</span> 个可能恰好是诚实但慢的节点，于是 <span class="m">f</span> 个故障节点可能全在回应者里；</li>
+<li>回应者里的诚实者至少 <span class="m">(N − f) − f = N − 2f</span> 个，必须比撒谎者多：<span class="m">N − 2f &gt; f</span>；</li>
+<li><span class="m">N &gt; 3f</span>，节点数是整数，即 <span class="m">N ≥ 3f + 1</span>。</li>
+</ol>
+
+<p>两种推法得到同一个不等式 <span class="m">N − 2f ≥ f + 1</span>：交集的写法看"两个 quorum 之间"，论文的写法看"一个 quorum 内部"，背后是同一件事——拜占庭比崩溃多需要的那 <span class="m">f</span> 个节点，专门用来抵消混在回应里的撒谎者。</p>
+
+<p>反过来读：<span class="m">N</span> 台机器最多容忍 <span class="m">f = ⌊(N − 1)/3⌋</span> 个拜占庭节点（论文 §1 的写法）。4 台容 1 个，7 台容 2 个，10 台容 3 个。</p>
+
+<p>模拟卷 Q4(a)(iv)：<span class="m">f = 3</span> 个拜占庭节点，<span class="m">N ≥ 3 × 3 + 1 = 10</span>，最少合法节点 <span class="m">= 10 − 3 = 7</span>。</p>
+
+<h3 id="s3-4"><span class="n">3.4</span>只差一个节点就失败：两个反例</h3>
+
+<p>把节点数各减一，协议就能被构造出的情形击破。</p>
+
+<figure>
+<div id="figCounter"></div>
+<figcaption>左：崩溃模型 <span class="m">N = 2f</span>。右：拜占庭模型 <span class="m">N = 3f</span>。都取 <span class="m">f = 1</span>。</figcaption>
+</figure>
+
+<p><strong>崩溃模型，<span class="m">N = 2f</span>。</strong> 取 <span class="m">f = 1</span>、<span class="m">N = 2</span>，quorum <span class="m">= N − f = 1</span>。A 和 B 之间的网络断了（或消息无限延迟）。A 收不到 B 的消息，分不清 B 是崩溃还是慢，按规则只能凭自己一票往下走，决定 <span class="m">x</span>；B 同理决定 <span class="m">y</span>。两个 quorum <span class="m">{A}</span>、<span class="m">{B}</span> 不相交，两个诚实节点决定了不同的值。一般地，<span class="m">N = 2f</span> 时把节点分成各 <span class="m">f</span> 个的两半，每一半都恰好是一个 quorum，彼此隔开就各决各的。若想避免，就得把 quorum 提到 <span class="m">f + 1</span>，可那违反约束 (1)：<span class="m">f</span> 个节点一沉默，协议就卡死。</p>
+
+<p><strong>拜占庭模型，<span class="m">N = 3f</span>。</strong> 取 <span class="m">f = 1</span>、<span class="m">N = 3</span>，quorum <span class="m">= 2</span>。A、B 诚实，C 是故障节点；A 倾向 <span class="m">x</span>，B 倾向 <span class="m">y</span>，A、B 之间的消息被拖延。C 对 A 说"我投 <span class="m">x</span>"，对 B 说"我投 <span class="m">y</span>"。A 看到 <span class="m">{A, C}</span> 两票支持 <span class="m">x</span>，凑够 quorum，决定 <span class="m">x</span>；B 看到 <span class="m">{B, C}</span> 两票支持 <span class="m">y</span>，决定 <span class="m">y</span>。两个 quorum 只交于撒谎的 C，安全性被破坏。一般地，<span class="m">N = 3f</span> 时把 <span class="m">2f</span> 个诚实节点分成各 <span class="m">f</span> 个的两组 <span class="m">H<sub>1</sub></span>、<span class="m">H<sub>2</sub></span>，<span class="m">f</span> 个故障节点记为 <span class="m">F</span>：<span class="m">H<sub>1</sub> ∪ F</span> 和 <span class="m">H<sub>2</sub> ∪ F</span> 各有 <span class="m">2f</span> 个，都是 quorum，交集正好是 <span class="m">F</span>，里面一个诚实节点都没有。</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th><span class="m">f</span></th><th>崩溃：<span class="m">N<sub><span class="tx">min</span></sub> = 2f + 1</span></th><th>崩溃 quorum <span class="m">f + 1</span></th><th>拜占庭：<span class="m">N<sub><span class="tx">min</span></sub> = 3f + 1</span></th><th>拜占庭 quorum <span class="m">2f + 1</span></th><th>拜占庭：两 quorum 交集（其中诚实 ≥）</th><th>拜占庭只有 <span class="m">N = 3f</span> 时：交集中诚实 ≥</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>3</td><td>2</td><td>4</td><td>3</td><td>2（1）</td><td>0</td></tr>
+<tr><td>2</td><td>5</td><td>3</td><td>7</td><td>5</td><td>3（1）</td><td>0</td></tr>
+<tr><td>3</td><td>7</td><td>4</td><td>10</td><td>7</td><td>4（1）</td><td>0</td></tr>
+</tbody></table></div>
+
+<p>（表中交集都是最坏情形，已对 <span class="m">N ≤ 10</span> 枚举全部 quorum 对核对过。）</p>
+
+<div class="tool" id="qmTool">
+  <h4>法定人数交集计算器</h4>
+  <p class="sub">选故障模型，设节点总数 <span class="m">N</span>、至多故障数 <span class="m">f</span>、每步要凑齐的回应数 <span class="m">q</span>。图里上下两条括号是最坏情形的两个 quorum：<span class="m">Q<sub>1</sub></span> 取最左 <span class="m">q</span> 个，<span class="m">Q<sub>2</sub></span> 取最右 <span class="m">q</span> 个，虚框是交集；拜占庭模型把 <span class="m">f</span> 个故障节点尽量放进交集。取消勾选「q 取 N − f」可以单独拖 <span class="m">q</span>，看两条约束怎样互相拉扯。</p>
+  <div class="row">
+    <span class="ctl"><label for="qmModel">故障模型</label><select id="qmModel" onchange="qmStd()"><option value="crash">崩溃</option><option value="byz">拜占庭</option></select></span>
+    <span class="ctl"><label for="qmF">f</label><input type="range" id="qmF" min="0" max="4" value="1" oninput="qmLockGo()"><span class="rv" id="qmFv"></span></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="qmN">N</label><input type="range" id="qmN" min="1" max="13" value="3" oninput="qmLockGo()"><span class="rv" id="qmNv"></span></span>
+    <span class="ctl"><label for="qmQ">q</label><input type="range" id="qmQ" min="1" max="13" value="2" oninput="qmGo()"><span class="rv" id="qmQv"></span></span>
+    <label><input type="checkbox" id="qmLock" checked onchange="qmLockGo()"> q 取 N − f</label>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="qmSet('crash',7,3)">Q3(b)(iv)：崩溃 f = 3</button>
+    <button class="btn" onclick="qmSet('byz',10,3)">Q4(a)(iv)：拜占庭 f = 3</button>
+    <button class="btn" onclick="qmSet('crash',2,1)">反例：崩溃 N = 2f</button>
+    <button class="btn" onclick="qmSet('byz',3,1)">反例：拜占庭 N = 3f</button>
+    <button class="btn" onclick="qmSet('byz',4,1)">拜占庭 N = 4</button>
+  </div>
+  <div class="toolfig" id="qmFig"></div>
+  <div class="steps" id="qmSteps"></div>
+  <div class="result" id="qmOut"></div>
+</div>
+
+<h3 id="s3-5"><span class="n">3.5</span>考场写法</h3>
+
+<p>模拟卷两题各 3 分，参考答案只写了一行不等式（2 分）和减法（1 分），题面却要求 "the derivation should be provided"。先看最容易丢分的地方：</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>这两题的三个常见错</div>
+  <ul style="margin-bottom:0">
+<li>题目问的是 <strong>legitimate nodes</strong>（合法节点），答成总数 7 或 10 就丢 1 分，要再减去 <span class="m">f</span>。</li>
+<li>把拜占庭模型的 quorum 也写成"多数"（<span class="m">f + 1</span>）。多数只够防崩溃；拜占庭要 <span class="m">2f + 1</span>。</li>
+<li>写成 <span class="m">N &gt; 2f + 1</span> 或 <span class="m">N &gt; 3f + 1</span>。正确是 <span class="m">N ≥ 2f + 1</span>、<span class="m">N ≥ 3f + 1</span>（等价于 <span class="m">N &gt; 2f</span>、<span class="m">N &gt; 3f</span>）。</li>
+</ul>
+</div>
+
+<p>规范答法是把推导写成四行再给数，英文可以照写：</p>
+
+<details class="box">
+  <summary>Q3(b)(iv) 与 Q4(a)(iv) 的规范答法</summary>
+  <p><strong>Q3(b)(iv)</strong>："If there are 3 crash-failure nodes participating in a distributed consensus process, calculate the minimum number of legitimate nodes to achieve crash-failure tolerance (the derivation should be provided)."</p>
+  <ol>
+<li>Let <span class="m">N</span> be the total number of nodes and <span class="m">f</span> the number of faulty nodes. Since <span class="m">f</span> nodes may never respond, each step can wait for at most <span class="m">N − f</span> replies (quorum <span class="m">q = N − f</span>).</li>
+<li>Any two quorums overlap in at least <span class="m">2(N − f) − N = N − 2f</span> nodes. Crashed nodes do not lie, so a non-empty overlap is enough: <span class="m">N − 2f ≥ 1</span>, i.e. <span class="m">N ≥ 2f + 1</span>.</li>
+<li>With <span class="m">f = 3</span>: <span class="m">N ≥ 2 × 3 + 1 = 7</span>.</li>
+<li>Minimum number of legitimate nodes <span class="m">= 7 − 3 = 4</span>.</li>
+</ol>
+  <p><strong>Q4(a)(iv)</strong>："If there are 3 Byzantine attackers participating in a distributed consensus process, calculate the minimum number of legitimate nodes to achieve Byzantine attack tolerance (derivations should be provided)."</p>
+  <ol style="margin-bottom:0">
+<li>Each step can wait for at most <span class="m">N − f</span> replies, because <span class="m">f</span> nodes may not respond.</li>
+<li>Among these <span class="m">N − f</span> replies, up to <span class="m">f</span> may come from Byzantine nodes (the silent ones may be honest but slow), so honest replies <span class="m">≥ N − 2f</span>. Honest replies must outnumber faulty ones: <span class="m">N − 2f &gt; f</span>, i.e. <span class="m">N ≥ 3f + 1</span>. (Equivalently: two quorums of <span class="m">N − f</span> overlap in <span class="m">N − 2f</span> nodes, and at least one of them must be honest: <span class="m">N − 2f ≥ f + 1</span>.)</li>
+<li>With <span class="m">f = 3</span>: <span class="m">N ≥ 3 × 3 + 1 = 10</span>.</li>
+<li>Minimum number of legitimate nodes <span class="m">= 10 − 3 = 7</span>.</li>
+</ol>
+</details>
+
+<h2 id="s4"><span class="n">4</span>Paxos</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>主思想与适用场景</h3>
+
+<p>Paxos 是"最基础的分布式共识算法，允许在不可靠的通信下对<strong>一个值</strong>达成共识"（p26）。下文的"原文"指 Lamport 2001 年的《Paxos Made Simple》，它用十几页讲完了本讲的 Paxos。核心思想是课件红字的 "<strong>a majority represents the whole</strong> — if more than half of processes choose a value, that value is the consensus"：过半数选定的值就是共识。这句话成立的理由正是 <a href="#s3-2">3.2</a>：任意两个多数派必相交，后来的多数派总能从交集里得知先前的决定。</p>
+
+<p>适用场景（p27）：</p>
+
+<ul>
+<li>网络里的消息可以<strong>延迟、丢失、乱序、重复，但不会被篡改</strong>（"not corrupted"）；</li>
+<li>节点按<strong>停止故障</strong>（fail-stop）的方式失效：可以停下、可以重启，但不作恶（"not present Byzantine faults"）。</li>
+</ul>
+
+<p>所以 Paxos 是<strong>崩溃容错</strong>（crash fault tolerant，CFT）的协议。（"fail-stop"在文献里严格指"停下且能被别人察觉"，Paxos 实际用的是可重启的 crash-recovery 模型，课件用得宽松，不影响结论。）</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>三种角色</h3>
+
+<p>运行 Paxos 的节点可以担任三种角色，一个进程可以同时担任全部三种（p28）：</p>
+
+<ul>
+<li><strong>提案者</strong>（proposer）：提出待决定的值，处理客户端请求。课件红字："An elected proposer acts as a single leader to propose a new value."——通常选出一个 proposer 当唯一的 leader，原因见 <a href="#s4-8">4.8</a>。</li>
+<li><strong>接受者</strong>（acceptor）：按一组规则评估 proposer 的提案，接受或拒绝。它们就是投票人，quorum 由它们组成。</li>
+<li><strong>学习者</strong>（learner）：得知最终决定的值（"the agreed-upon value"），比如把它执行、返回给客户端。</li>
+</ul>
+
+<p>每个 acceptor 只需记住两样东西，下面的规则全是围绕它们写的：</p>
+
+<ul>
+<li>它<strong>承诺过的最大编号</strong>（还没承诺过时为空）；</li>
+<li>它<strong>接受过的编号最高的提案</strong> <span class="m">(n<sub>a</sub>, v<sub>a</sub>)</span>（还没接受过时为空；为什么一定是编号最高的那个，见 <a href="#s4-5">4.5</a>）。</li>
+</ul>
+
+<h3 id="s4-3"><span class="n">4.3</span>提案编号</h3>
+
+<p><strong>提案</strong>（proposal）是一对 <span class="m">(n, v)</span>：编号 <span class="m">n</span> 加值 <span class="m">v</span>。<strong>提案编号</strong>（proposal number）<span class="m">n</span> 的要求（p32 红字）：</p>
+
+<ul>
+<li><strong>全局唯一</strong>：任何两个 proposer 都不会用同一个编号；</li>
+<li><strong>比这个 proposer 以前用过的都大</strong>；</li>
+<li>课件举例："n can be a timestamp in nanoseconds or some other incrementing value"。</li>
+</ul>
+
+<p>原文只要求各 proposer 从<strong>互不相交</strong>的数集里取号。一种常见做法是：有 <span class="m">P</span> 个 proposer 时，编号 <span class="m">i</span> 的 proposer 只用 <span class="m">n = kP + i</span>（<span class="m">k = 0, 1, 2, …</span>）。比如 3 个 proposer，P0 用 0、3、6…，P1 用 1、4、7…，永不撞号。proposer 还要把用过的最大编号写进稳定存储，重启后不会倒退。</p>
+
+<p>编号的作用是给提案排先后，好让"更新的提案"有一个明确的含义。为什么非唯一不可，见 <a href="#s4-7">4.7</a>。</p>
+
+<h3 id="s4-4"><span class="n">4.4</span>Phase 1：prepare</h3>
+
+<p>协议分两个阶段（p30）。课件对两阶段结束时的状态描述是：</p>
+
+<ul>
+<li>prepare 阶段结束时："A majority of acceptors have promised a specific <strong>proposal number</strong>."</li>
+<li>accept 阶段结束时："A majority of acceptors have <strong>accepted a proposed value</strong>, and consensus is reached."</li>
+</ul>
+
+<p>第一阶段还<strong>不提值</strong>（p32 "At this stage, no value is proposed for a decision yet"），只做一件事：proposer 用编号 <span class="m">n</span> 向多数 acceptor "占位"，同时打听它们以前接受过什么。</p>
+
+<p><strong>proposer 一侧</strong>（p31 step 1–2，p32）：</p>
+
+<ol>
+<li>收到客户端请求，要就某个值达成共识。</li>
+<li>选一个新编号 <span class="m">n</span>，向<strong>多数或全部</strong> acceptor 发 <strong>prepare(<span class="m">n</span>)</strong>。发给多数就够——前提是多数里的每一个都会回应；如果等不到回应而超时，就<strong>换一个更大的 <span class="m">n</span> 重试</strong>（p32 "If a timeout occurs, then the proposer will retry with a higher n"）。</li>
+</ol>
+
+<p><strong>acceptor 一侧</strong>（p31 step 3，p33–34）：收到 prepare(<span class="m">n</span>) 后，按它此前的状态分情况：</p>
+
+<div class="tw"><table>
+<thead><tr><th>情况</th><th>出处</th><th>acceptor 的做法</th></tr></thead>
+<tbody>
+<tr><td>① 从没承诺过任何编号</td><td>p33</td><td>承诺"忽略任何编号小于 <span class="m">n</span> 的请求"，记下 <span class="m">n</span>，回 <strong>promise(<span class="m">n</span>)</strong></td></tr>
+<tr><td>② 承诺过更小的编号，还没接受过任何值</td><td>p34 1)</td><td>把记下的编号更新为 <span class="m">n</span>，回 promise(<span class="m">n</span>)</td></tr>
+<tr><td>③ 承诺过更小的编号，且已接受过提案</td><td>p34 2)</td><td>更新为 <span class="m">n</span>，回 promise(<span class="m">n</span>)，并把自己接受过的<strong>编号最高的</strong>完整提案 <span class="m">(n<sub>a</sub>, v<sub>a</sub>)</span> 一并带回（"full proposal"）</td></tr>
+<tr><td>④ <span class="m">n</span> 不大于它已承诺的编号</td><td>课件漏写</td><td><strong>忽略</strong>（也可以回一个拒绝，让 proposer 早点换更大的编号）</td></tr>
+</tbody></table></div>
+
+<p>四种情况合成一条规则（Lamport 原文 Phase 1(b)）：<strong>若 <span class="m">n</span> 大于自己承诺过的所有编号，就承诺不再接受编号小于 <span class="m">n</span> 的提案，并回报自己接受过的编号最高的提案（如果有）；否则不予理会。</strong></p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p33–34 漏了第 ④ 种情况</div>
+  <p>课件只讨论了"没承诺过"和"承诺过<strong>更小</strong>编号"两种前提，没说收到的编号<strong>不大于</strong>已承诺编号时怎么办。答案是忽略：这正是 ① 里许下的承诺"ignore any request less than the proposal number n"的兑现，没有它，承诺就是空话（后果见 <a href="#s4-7">4.7</a> 的第 ④ 步之后）。</p>
+  <p style="margin-bottom:0">考场写法：照课件写 ①②③，再补一句 "If <span class="m">n</span> is not greater than the number it has already promised, the acceptor ignores the request (or replies with a rejection)."——不和课件冲突，又补全了规则。</p>
+</div>
+
+<h3 id="s4-5"><span class="n">4.5</span>Phase 2：accept</h3>
+
+<p><strong>proposer 一侧</strong>（p35 step 1–2，p36 step 3，p40）：</p>
+
+<ol>
+<li><strong>等多数 acceptor 回 promise(<span class="m">n</span>)</strong>（p35 "waits until it gets responses from the majority of the acceptors"）。</li>
+<li><strong>选值</strong>（p40）：
+<ul>
+<li>若收到的 promise 里有一个或多个带回了完整提案，就选其中<strong>编号最高</strong>的那个提案的值；</li>
+<li>若没有一个 promise 带回提案，proposer 可以<strong>任意选值</strong>（通常就是客户端请求的值）。</li>
+</ul></li>
+<li>向 acceptor 发 <strong>accept(<span class="m">n</span>, <span class="m">v</span>)</strong>——一个完整提案，<span class="m">n</span> 是刚被承诺的编号，<span class="m">v</span> 是第 2 步选出的值（p36）。</li>
+</ol>
+
+<p><strong>acceptor 一侧</strong>（p37 step 4，p41）：收到 accept(<span class="m">n</span>, <span class="m">v</span>) 后，</p>
+
+<ol>
+<li>若它承诺过不接受这个编号（即已对比 <span class="m">n</span> 更大的编号回过 promise），就<strong>忽略</strong>；</li>
+<li>否则<strong>接受</strong>：把承诺编号提到 <span class="m">n</span>，把 <span class="m">(n, v)</span> 记为已接受的提案，回 <strong>accepted(<span class="m">n</span>, <span class="m">v</span>)</strong>；</li>
+<li>并把 accepted(<span class="m">n</span>, <span class="m">v</span>) 发给<strong>所有 learner</strong>。</li>
+</ol>
+
+<p>第 2 步"把承诺编号提到 <span class="m">n</span>"让 acceptor 接受的编号只增不减：接受 <span class="m">(n, v)</span> 之后，编号比 <span class="m">n</span> 小的 accept 都会被第 1 步挡掉。于是它记下的永远是自己接受过的<strong>编号最高</strong>的提案，Phase 1 回报的也正是这一个。</p>
+
+<p><strong>决定</strong>（p37 step 5）：只要<strong>多数</strong> acceptor 接受了同一个提案 <span class="m">(n, v)</span>，<span class="m">v</span> 就成为协议的决定值，共识达成。注意"被决定"是一个客观事实，发生在第多数个 acceptor 接受的那一刻，那时可能还没有任何人知道；proposer 和 learner 是之后通过 accepted 消息才得知的。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p41 的接受条件比 Lamport 原文严</div>
+  <p>课件 p41 2) 写的是："if it has responded to the corresponding prepare request with the <strong>same n</strong>, that is, prepare(n), only then it replies with accepted(n, v)"——只有对 prepare(<span class="m">n</span>) 回过 promise 的 acceptor 才接受。</p>
+  <p>Lamport 原文 Phase 2(b)："it accepts the proposal <strong>unless</strong> it has already responded to a prepare request having a number <strong>greater than</strong> n"——只要没对<strong>更大</strong>的编号承诺过就接受，并不要求收到过 prepare(<span class="m">n</span>)。</p>
+  <p>两者的差别只在一种情形：某个 acceptor 的 prepare(<span class="m">n</span>) 丢了，却收到了 accept(<span class="m">n</span>, <span class="m">v</span>)。原文接受，课件拒绝。拒绝不会破坏安全性（少一票而已），只是可能让本该成功的一轮失败、多重试一次，所以课件版本是"安全但保守"。</p>
+  <p>用原文规则时，"接受时把承诺编号提到 <span class="m">n</span>"这一步不能省（等价的说法：已接受的记录只被编号更高的提案替换）。否则 acceptor 可能先接受 <span class="m">(2, y)</span>、再接受迟到的 <span class="m">(1, x)</span>，记录退回旧提案。反例，3 个 acceptor A、B、C：</p>
+  <ol>
+<li>P1 用编号 1 拿到 B、C 的 promise，发出 accept(1, <span class="m">x</span>)，消息还在路上；</li>
+<li>P2 用编号 2 拿到 B、C 的 promise，发 accept(2, <span class="m">y</span>)，A、B 接受——<strong><span class="m">y</span> 已决定</strong>；</li>
+<li>迟到的 accept(1, <span class="m">x</span>) 到达 A。A 从没回过任何 prepare，只看"没对更大编号承诺过"它会接受；若再用 <span class="m">(1, x)</span> 覆盖记录，A 记下的就退回旧提案；</li>
+<li>P3 用编号 3 向 A、C 发 prepare：A 带回 <span class="m">(1, x)</span>，C 没接受过任何提案，P3 只能选 <span class="m">x</span>；</li>
+<li>A、C 接受 <span class="m">(3, x)</span>——<strong><span class="m">x</span> 也被决定</strong>。</li>
+</ol>
+  <p>第 2 步 A 接受 <span class="m">(2, y)</span> 时若把承诺提到 2，第 3 步就会忽略迟到的 accept(1, <span class="m">x</span>)，反例不成立。课件的严格版本恰好避开了这个坑：它只接受对 prepare(<span class="m">n</span>) 回过 promise 的提案，接受时承诺编号已经是 <span class="m">n</span>，接受的编号自然只增不减。</p>
+  <p style="margin-bottom:0">考场写法："The acceptor accepts <span class="m">(n, v)</span> unless it has already promised a proposal number greater than <span class="m">n</span>, and on accepting it raises its promised number to <span class="m">n</span> — in a normal run this is exactly the acceptor that replied promise(<span class="m">n</span>)." 前半句是原文的规则，后半句点出课件描述的正常情形，两边都不违背。</p>
+</div>
+
+<h3 id="s4-6"><span class="n">4.6</span>learn 与时序图</h3>
+
+<p>学习是第二阶段的一部分（p39 "The learning is considered part of the second phase"）：acceptor 一接受提案，就通知 learner。p42 的时序图把它画成单独的第三段 "Learn"，课件说明这只是为了直观（"just for visualizing the protocol in a simpler way; learning is in fact part of phase 2"）。</p>
+
+<p>下图按课件的角色重画了一次正常运行，并让 Acceptor 3 中途崩溃，以显示"等多数、不等全部"：</p>
+
+<figure>
+<div id="figPaxos" class="scrollfig"></div>
+<figcaption><span class="m">f = 1</span>，3 个 acceptor <span class="m">= 2f + 1</span>，多数 <span class="m">= f + 1 = 2</span>。蓝 = proposer 发出的请求，绿 = acceptor 的回应，紫 = 发给 learner 的通知。</figcaption>
+</figure>
+
+<p>按时间读：</p>
+
+<ol>
+<li>客户端把值 <span class="m">v</span> 交给 proposer。</li>
+<li><strong>Phase 1</strong>：proposer 发 prepare(<span class="m">n</span>) 给三个 acceptor。Acceptor 3 已崩溃，收不到。Acceptor 1、2 都没承诺过更大编号，各自记下 <span class="m">n</span>，回 promise(<span class="m">n</span>)，附上"没接受过任何提案"。</li>
+<li>proposer 收到 2 个 promise——3 个中的多数——不再等 Acceptor 3，进入 Phase 2。</li>
+<li><strong>Phase 2</strong>：两个 promise 都没带回已接受的提案，proposer 用客户端的 <span class="m">v</span>，发 accept(<span class="m">n</span>, <span class="m">v</span>)。</li>
+<li>Acceptor 1、2 都没对比 <span class="m">n</span> 更大的编号承诺过，接受 <span class="m">(n, v)</span>。第 2 个 acceptor 接受的瞬间（图中★），<span class="m">v</span> 已被多数接受，<strong>已经决定</strong>。</li>
+<li>两个 acceptor 各把 accepted(<span class="m">n</span>, <span class="m">v</span>) 发给 proposer 和两个 learner。每个 learner 收到 2 个 acceptor 对同一提案的 accepted，就知道 <span class="m">v</span> 已被决定。</li>
+</ol>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p42 图上的 "Wait for majority 2f+1"</div>
+  <p>图上两条虚线旁各标 "Wait for majority 2f+1"，容易读成"要等 <span class="m">2f + 1</span> 个回复"。正确的意思是"<strong>在 <span class="m">2f + 1</span> 个 acceptor 中等到多数</strong>"，即等 <span class="m">f + 1</span> 个回复。若真要等齐 <span class="m">2f + 1</span> 个，任何一个 acceptor 崩溃协议就卡死，和 p38 "tolerate f faulty acceptors" 的目的正相反。课件自己的 p35 正文写的也是 "waits until it gets responses from the majority of the acceptors"。原图三个 acceptor 都回应，只是画了没有故障的情形。</p>
+  <p style="margin-bottom:0">考场写法："The proposer waits for replies from a majority, i.e. <span class="m">f + 1</span> out of the <span class="m">2f + 1</span> acceptors."</p>
+</div>
+
+<p>（课件外：Lamport 还给了一种省消息的做法，acceptor 只通知一个"指定 learner"，由它转告其他 learner；消息少了，但多一跳延迟，而且这个指定 learner 成了单点故障。）</p>
+
+<h3 id="s4-7"><span class="n">4.7</span>每条规则为什么必要：两个提案者的例子</h3>
+
+<p>只有一个 proposer、网络良好时，上面的规则看起来多余。规则的用处在于多个 proposer 并发、消息丢失时仍保证只决定一个值。下面的例子（课件外，自拟）有 3 个 acceptor A1–A3（多数 = 2）和两个 proposer P1、P2：</p>
+
+<figure>
+<div id="figPaxos2" class="scrollfig"></div>
+<figcaption>上方标号 ①–⑥ 与下表的步骤一一对应；× 表示消息丢失，★ 表示该 acceptor 接受 <span class="m">(2, y)</span>。</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>步</th><th>发生了什么</th><th>各 acceptor 的状态（承诺编号；已接受提案）</th></tr></thead>
+<tbody>
+<tr><td>①</td><td>P1 发 prepare(1)，三个 acceptor 都回 promise(1, 无)</td><td>A1、A2、A3：1；无</td></tr>
+<tr><td>②</td><td>P1 发 accept(1, <span class="m">x</span>)，只有 A1 收到，发给 A2、A3 的丢了</td><td>A1：1；<span class="m">(1, x)</span>。A2、A3 不变。<span class="m">x</span> 只有 1 票，<strong>没有被决定</strong></td></tr>
+<tr><td>③</td><td>P2 发 prepare(2) 给 A2、A3，两者回 promise(2, 无)</td><td>A2、A3：2；无</td></tr>
+<tr><td>④</td><td>P2 没收到任何已接受提案，可任意选值，选 <span class="m">y</span>，发 accept(2, <span class="m">y</span>)，A2、A3 都接受</td><td>A2、A3：2；<span class="m">(2, y)</span>。<strong><span class="m">y</span> 被多数接受，已决定</strong></td></tr>
+<tr><td>⑤</td><td>P1 等不到结果，超时，用更大编号发 prepare(3) 给 A1、A2</td><td>A1 回 promise(3, <span class="m">(1, x)</span>)；A2 回 promise(3, <span class="m">(2, y)</span>)。两者承诺编号都变成 3</td></tr>
+<tr><td>⑥</td><td>P1 必须取编号最高的已接受提案：2 &gt; 1，只能用 <span class="m">y</span>，发 accept(3, <span class="m">y</span>)，A1、A2 接受</td><td>A1、A2：3；<span class="m">(3, y)</span>。A3：2；<span class="m">(2, y)</span>。<strong>决定仍是 <span class="m">y</span></strong></td></tr>
+</tbody></table></div>
+
+<p>逐条拿掉规则，看哪一步会出事：</p>
+
+<ul>
+<li><strong>拿掉"凑够多数"。</strong> 若一个 acceptor 接受就算决定，第 ② 步 <span class="m">x</span> 就因 A1 一票被决定，第 ④ 步 <span class="m">y</span> 又被决定。多数的意义就是让 ⑤ 的多数派 <span class="m">{A1, A2}</span> 与 ④ 的多数派 <span class="m">{A2, A3}</span> 必然相交——这里交于 A2，是 A2 把 <span class="m">y</span> 带了回来。这就是 <a href="#s3-1">约束 ②</a> 在 Paxos 里的样子。</li>
+<li><strong>拿掉 promise 的"忽略更小编号"。</strong> 设想第 ④ 步之后，P1 在第 ② 步发给 A2 的那条 accept(1, <span class="m">x</span>) 其实没丢，只是晚到了。A2 已承诺 2，按规则忽略它。若没有这条承诺，A2 会改为接受 <span class="m">(1, x)</span>，于是 <span class="m">{A1, A2}</span> 都接受了 <span class="m">(1, x)</span>，<span class="m">x</span> 也成了"多数接受"的值，和已决定的 <span class="m">y</span> 冲突。Phase 1 的承诺，就是让旧编号的提案在新的多数派面前作废。</li>
+<li><strong>拿掉"带回已接受提案、取编号最高的值"。</strong> 第 ⑥ 步 P1 若坚持用自己的 <span class="m">x</span>，A1、A2 接受 <span class="m">(3, x)</span>，<span class="m">x</span> 被多数接受——在 <span class="m">y</span> 之后又决定了 <span class="m">x</span>。</li>
+<li><strong>为什么是"编号最高"而不是"随便一个"。</strong> 第 ⑤ 步 P1 同时看到 <span class="m">(1, x)</span> 和 <span class="m">(2, y)</span>。<span class="m">x</span> 是过时的（从没被决定），<span class="m">y</span> 是可能已被决定的。编号越高的提案越新；能被决定的只可能是最新的那个，理由见下面的折叠块。</li>
+<li><strong>为什么编号必须全局唯一。</strong> 唯一性保证"编号为 <span class="m">n</span> 的提案"只对应一个值（proposer 对一个编号只发一个值），下面折叠证明的第 5 步就靠这一点。按 <a href="#s4-4">4.4</a> 的严格规则（<span class="m">n</span> 必须<strong>大于</strong>已承诺编号才回 promise），两个 proposer 撞号时，两个多数派的公共 acceptor 只会给其中一个回 promise，单靠撞号还出不了两个决定；但只要实现上对<strong>相等</strong>的编号也回 promise（比如为了容忍重传的 prepare），P1、P2 就能用同一个编号 2 各凑到一个多数派，各自让多数接受 <span class="m">(2, x)</span> 和 <span class="m">(2, y)</span>，同一编号决定了两个值。</li>
+<li><strong>为什么 acceptor 要写稳定存储。</strong> 若 A2 在第 ④ 步后崩溃重启、忘了自己承诺过 2 并接受过 <span class="m">(2, y)</span>，第 ⑤ 步它会回"无"，P1 就可能选 <span class="m">x</span>。</li>
+</ul>
+
+<div class="tool" id="pxTool">
+  <h4>逐条拿掉规则，把两个提案者的例子重跑一遍</h4>
+  <p class="sub">不勾任何一项时就是上表的六步。勾一项，就把那条规则从 acceptor 或 proposer 里拿掉，页面按剩下的规则重跑；表里蓝底是这一步状态变了的 acceptor，「决定」一列标出哪一步出现了被多数接受的值。出现两个不同的决定值，就是安全性被破坏。</p>
+  <div class="chk">
+    <label><input type="checkbox" id="px_noMajority" onchange="pxGo()"> 拿掉「凑够多数」：一个 acceptor 接受就算决定</label>
+    <label><input type="checkbox" id="px_noIgnore" onchange="pxGo()"> 拿掉 promise 的「忽略更小编号」：已承诺更大编号也照样接受</label>
+    <label><input type="checkbox" id="px_late" onchange="pxGo()"> 第 ② 步发给 A2 的 accept(1, x) 不是丢了，而是在第 ④ 步之后晚到</label>
+    <label><input type="checkbox" id="px_noHighest" onchange="pxGo()"> 拿掉「取编号最高的已接受提案的值」：proposer 坚持用自己的值</label>
+    <label><input type="checkbox" id="px_forget" onchange="pxGo()"> A2 在第 ④ 步之后崩溃重启，没写稳定存储</label>
+  </div>
+  <div class="row"><button class="btn" onclick="pxReset()">规则全部放回</button></div>
+  <div class="tw" id="pxTable"></div>
+  <div class="result" id="pxOut"></div>
+</div>
+
+<details class="box">
+  <summary>为什么"取编号最高的值"保证不会推翻已决定的值（Lamport 论证的梗概，课件外）</summary>
+  <p>设值 <span class="m">v</span> 已以编号 <span class="m">m</span> 被决定，即某个多数派 <span class="m">S</span> 都接受了 <span class="m">(m, v)</span>。要证：此后任何编号 <span class="m">n &gt; m</span> 的提案，值都是 <span class="m">v</span>。对 <span class="m">n</span> 从小到大归纳：</p>
+  <ol>
+<li>编号 <span class="m">n</span> 的提案要发出，proposer 必须先拿到某个多数派 <span class="m">T</span> 的 promise(<span class="m">n</span>)。</li>
+<li><span class="m">S</span> 与 <span class="m">T</span> 都是多数派，必相交（<a href="#s3-2">3.2</a>），设交点为 A。</li>
+<li>A 接受 <span class="m">(m, v)</span> 发生在回 promise(<span class="m">n</span>) 之前：否则 A 已承诺 <span class="m">n &gt; m</span>，会忽略 accept(<span class="m">m</span>, <span class="m">v</span>)。A 回 promise(<span class="m">n</span>) 时报告的是它接受过的<strong>编号最高的</strong>提案，而它接受过 <span class="m">(m, v)</span>，所以报告的编号至少是 <span class="m">m</span>。</li>
+<li>于是 <span class="m">T</span> 带回的提案里，编号最高的那个编号 <span class="m">k</span> 满足 <span class="m">m ≤ k &lt; n</span>。</li>
+<li><span class="m">k = m</span> 时，那个提案就是 <span class="m">(m, v)</span>（同一编号只对应一个值，因为编号唯一、proposer 对一个编号只发一个值）；<span class="m">m &lt; k &lt; n</span> 时，由归纳假设，编号为 <span class="m">k</span> 的提案值也是 <span class="m">v</span>。</li>
+<li>proposer 取编号最高者的值，所以编号 <span class="m">n</span> 的提案值是 <span class="m">v</span>。</li>
+</ol>
+  <p style="margin-bottom:0">这正是 Lamport 所说的不变式 P2c："either no acceptor in <span class="m">S</span> has accepted any proposal numbered less than <span class="m">n</span>, or <span class="m">v</span> is the value of the highest-numbered proposal among all proposals numbered less than <span class="m">n</span> accepted by the acceptors in <span class="m">S</span>."</p>
+</details>
+
+<h3 id="s4-8"><span class="n">4.8</span>选一个 leader：为了活性</h3>
+
+<p>上面的规则保证了安全性，却不保证一定能做出决定。两个 proposer 可能这样互相拆台：P1 prepare(1) 成功 → P2 prepare(2) 成功，使 P1 的 accept(1, ·) 被拒 → P1 用 prepare(3) 重试，又使 P2 的 accept(2, ·) 被拒 → P2 用 prepare(4) 重试……永远在抢编号，谁也走不到 accept。这种"大家都在动、却没有进展"的状态叫<strong>活锁</strong>（livelock）。</p>
+
+<p>解决办法就是 p29 的红字："<strong>An elected proposer acts as a single leader</strong>"——选出一个 proposer 作为唯一提案者（Lamport 称为 distinguished proposer）。选 leader 是为了<strong>活性</strong>，不是安全性所必需：就算一时选出了两个 leader，上面的规则仍保证不会决定两个值，最多是慢。选 leader 本身要靠超时判断旧 leader 是否还活着，这就依赖网络"足够守时"——和 <a href="#s2-3">2.3</a> 的取舍一致。</p>
+
+<p>（课件外：leader 稳定时，后续每个日志位置的 Phase 1 可以合并成一次提前做完，每个位置只走 Phase 2，这叫 Multi-Paxos，是 Paxos 的实用形态。RAFT 的"强 leader"思路就是从这里来的。）</p>
+
+<h3 id="s4-9"><span class="n">4.9</span>考场答法：Paxos 的节点与阶段</h3>
+
+<p>模拟卷 Q4(a)(iii) 的规范答法只放在这里，<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a> 不再另写。</p>
+
+<details class="box">
+  <summary>模拟卷 Q4(a)(iii) 规范答法（5 分）</summary>
+  <p>题面："Paxos is a fundamental consensus mechanism in distributed systems to reach an agreement by using a broadcast way. Explain the main process of Paxos, including the nodes and phases."</p>
+  <p>参考答案只写了 "refer to the slides in lecture 16"。按 5 个得分点组织：</p>
+  <ol>
+<li><strong>Setting and idea.</strong> Paxos reaches consensus on a single value over an unreliable network: messages may be delayed, lost, out of order or duplicated, but not corrupted; nodes may crash and restart but are not Byzantine. A majority represents the whole: any two majorities intersect, so to tolerate <span class="m">f</span> faulty acceptors, <span class="m">2f + 1</span> acceptors are needed.</li>
+<li><strong>Nodes (roles).</strong> Proposer: receives client requests and proposes values; usually one elected proposer acts as the leader. Acceptor: promises / accepts or rejects proposals according to the rules. Learner: learns the decided value. One process may play all three roles.</li>
+<li><strong>Phase 1 (prepare).</strong> The proposer chooses a globally unique proposal number <span class="m">n</span>, larger than any it has used, and sends prepare(<span class="m">n</span>) to a majority (or all) of the acceptors. If <span class="m">n</span> is greater than any number the acceptor has promised, it promises to ignore proposals numbered less than <span class="m">n</span>, records <span class="m">n</span> and replies promise(<span class="m">n</span>), attaching the highest-numbered proposal <span class="m">(n′, v′)</span> it has accepted, if any; otherwise it ignores the request. If it times out, the proposer retries with a higher <span class="m">n</span>.</li>
+<li><strong>Phase 2 (accept).</strong> After receiving promises from a majority (<span class="m">f + 1</span> of the <span class="m">2f + 1</span> acceptors), the proposer picks <span class="m">v</span>: the value of the highest-numbered proposal reported in the promises, or any value (e.g. the client's) if none was reported. It sends accept(<span class="m">n</span>, <span class="m">v</span>). An acceptor accepts unless it has promised a higher number, raises its promised number to <span class="m">n</span> (normally it is one that replied promise(<span class="m">n</span>)), and replies accepted(<span class="m">n</span>, <span class="m">v</span>).</li>
+<li><strong>Decision and learning.</strong> Once a majority of acceptors have accepted <span class="m">(n, v)</span>, <span class="m">v</span> is decided. Each acceptor sends accepted(<span class="m">n</span>, <span class="m">v</span>) to all learners; learning is part of phase 2 (drawn as a separate learn phase only for visualisation).</li>
+</ol>
+  <p style="margin-bottom:0">时间够就画一张 <a href="#s4-6">4.6</a> 那样的时序图（Proposer、3 个 Acceptor、2 个 Learner，prepare / promise / accept / accepted / learn 五种箭头），图比文字更快拿到"phases"的分。</p>
+</details>
+
+<h2 id="s5"><span class="n">5</span>RAFT</h2>
+
+<h3 id="s5-1"><span class="n">5.1</span>主思想与运行前提</h3>
+
+<p>RAFT 的卖点是"好懂、好实现"（p44 "RAFT is easy to understand and easy to implement"）。原论文的标题就叫《In Search of an Understandable Consensus Algorithm》（Ongaro 与 Ousterhout，2014）：Paxos 以难懂著称，RAFT 把共识拆成几块相对独立的问题来讲。</p>
+
+<p>课件说 RAFT 是 "Replicated And Fault Tolerant" 的缩写。原论文通篇写作 Raft，并没有说它是缩写；作者事后解释过，名字取义于 reliable、replicated、redundant、fault-tolerant，又借了"用日志（log）扎木筏（raft）"和"逃离 Paxos 岛"两层双关。考试若问全称，写课件的说法。</p>
+
+<p>核心思想（p44）：用一份<strong>持久化的日志</strong>实现<a href="#s2-1">复制状态机</a>。p45 另提了两个能力：</p>
+
+<ul>
+<li><strong>集群成员变更</strong>（cluster reconfiguration）：不停服务就能增删节点。原论文的做法是两阶段切换：过渡期里新旧两套成员配置要各自凑够多数，保证切换期间不会出现两个 leader；</li>
+<li><strong>日志压缩</strong>（log compaction）：日志越长越占空间、节点崩溃后重放越慢，于是定期把当前状态存成<strong>快照</strong>（snapshot），丢掉快照之前的日志。</li>
+</ul>
+
+<p>运行前提（p46）：</p>
+
+<ul>
+<li>没有拜占庭故障（"No Byzantine failures"）；</li>
+<li>网络通信不可靠（丢包、延迟、乱序、重复都可以）；</li>
+<li>通信和处理器都是异步的。</li>
+</ul>
+
+<p>第一条决定了 RAFT 也是崩溃容错协议，模拟卷 Q4(a)(v) 后半问就在这里（<a href="#s5-6">5.6</a>）。第三条的"异步"只对安全性成立：RAFT 的安全不靠时钟，但要往前走就得靠超时——收不到 leader 的消息就重新选举。没有超时，leader 一崩溃协议就永远停住，这正是 <a href="#s2-3">2.3</a> 的取舍。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>三种角色与任期</h3>
+
+<p>节点（更准确地说，节点里的共识模块）在 RAFT <strong>集群</strong>（cluster，一组共同提供服务的服务器）中可处于三种角色之一（p47–48）：</p>
+
+<ul>
+<li><strong>Leader</strong>（领导者）：接收客户端请求，管理日志复制，负责与 follower 通信。同一时刻正常情况下只有一个。</li>
+<li><strong>Follower</strong>（跟随者）：被动的——只回应 <strong>RPC</strong>（Remote Procedure Call，远程过程调用：一台机器像调用本地函数一样请求另一台机器执行某个操作并返回结果），自己从不主动发起通信。客户端若把请求发给了 follower，follower 会告诉它谁是 leader，让它改发过去。</li>
+<li><strong>Candidate</strong>（候选者）：想当 leader、正在拉票的节点所处的角色。</li>
+</ul>
+
+<p>RAFT 的基本算法只用两种 RPC：<strong>RequestVote</strong>（candidate 拉票）和 <strong>AppendEntries</strong>（leader 追加日志；不带日志条目的 AppendEntries 就是<strong>心跳</strong>（heartbeat），用来告诉大家"leader 还活着"）。日志压缩另有第三种 RPC（InstallSnapshot），给落后太多的节点直接发快照。</p>
+
+<p>时间被划分成一段段<strong>任期</strong>（term），用连续整数编号。每个任期从一次选举开始，<strong>一个任期内至多一个 leader</strong>。任期号充当逻辑时钟：每条 RPC 都带着发送者的任期号，节点一旦看到比自己大的任期号，立刻更新自己的任期并退回 follower；收到任期号比自己小的请求则直接拒绝。（任期的规则课件只在图里提到，详见原论文 §5.1。）</p>
+
+<p>例：leader A 在任期 3 期间网络断开，其余节点选出任期 4 的 leader B。A 恢复后还以为自己是 leader，发出带任期 3 的 AppendEntries，收到的节点一律拒绝，并在回复里带上任期 4；A 一看到更大的任期号就下台成 follower。过期的 leader 一露面就被识破，所以不会出现两个 leader 同时被大家听从的情形。</p>
+
+<p>三种角色之间的转换（p49，与原论文 Figure 4 对应）：</p>
+
+<figure>
+<div id="figRaftStates" class="scrollfig"></div>
+<figcaption>课件 p49 原图。</figcaption>
+</figure>
+
+<p>逐条箭头：</p>
+
+<ul>
+<li><strong>启动 → Follower</strong>："Node starts up"，所有节点都以 follower 身份启动。</li>
+<li><strong>Follower → Candidate</strong>：一段时间没有收到 leader 的消息（选举超时），认为 leader 已失效，发起新选举。</li>
+<li><strong>Candidate 自环</strong>：本轮选举超时还没结果，开始新任期，再给自己投一票。</li>
+<li><strong>Candidate → Leader</strong>：收到多数票。</li>
+<li><strong>Candidate → Follower</strong>：发现了当前任期的合法 leader，或者看到了更大的任期号。</li>
+<li><strong>Leader → Follower</strong>：发现任期号更大的节点，退位。原图写 "If a leader with higher term number discovered"，原论文是 "discovers <strong>server</strong> with higher term"——收到任何带更大任期号的请求或回复都要退位，不一定来自另一个 leader。</li>
+</ul>
+
+<p>图里<strong>没有</strong> Follower 直接到 Leader 的箭头：想当 leader 必须先当 candidate 拉票。</p>
+
+<h3 id="s5-3"><span class="n">5.3</span>选主</h3>
+
+<p>课件说 RAFT 由两个阶段组成（p50）：第一个是<strong>选主</strong>（leader election），第二个是<strong>日志复制</strong>（log replication）。原论文另把"安全性"列为第三个子问题，即 <a href="#s5-5">5.5</a> 的选举限制。</p>
+
+<p>课件说选主"用心跳机制触发"（p51 "a heartbeat mechanism is used to trigger a leader election process"）。准确的因果是：leader 定期发心跳<strong>压住</strong>选举，follower 收不到心跳才发起选举。课件的四步（p51–53）：</p>
+
+<ol>
+<li>所有节点以 follower 身份启动。</li>
+<li>只要持续收到 leader 或 candidate 的有效 RPC，follower 就一直当 follower。</li>
+<li>若 follower 一段时间收不到心跳，就发生<strong>选举超时</strong>（election timeout），它认为 leader 已失效，转为 candidate，发起选举。（L17 把 "heartbeats" 改成了 "AppendEntries RPC"，两种写法是一回事。）</li>
+<li>拿到<strong>多数节点</strong>的票，就成为 leader，其余节点为 follower。若没人胜出、选举又超时，就以新任期重新选举。</li>
+</ol>
+
+<p>p54 的流程图是 candidate 一侧的循环：</p>
+
+<figure>
+<div id="figRaftFlow" style="max-width:560px"></div>
+<figcaption>课件 p54 原图。</figcaption>
+</figure>
+
+<p>从上往下读：转为 candidate → 当前任期号加 1、给自己投一票 → 向其他节点发 RequestVote 拉票 → 判断：拿到多数票（Yes）则成为 leader 并开始发心跳；超时（Timeout）则回到"任期号加 1、自投一票"；收到某个 leader 的心跳则变回 follower。</p>
+
+<p>下图是一次完整的换届（5 台服务器，多数 = 3）：</p>
+
+<figure>
+<div id="figRaftElect" class="scrollfig"></div>
+<figcaption>5 台服务器，多数 = 3。灰 = 心跳，蓝 = RequestVote，绿 = 投票。S2、S4 判断"S3 的日志不比自己旧"用的是选举限制，见 <a href="#s5-5">5.5</a>。</figcaption>
+</figure>
+
+<ol>
+<li>任期 1 里 S1 是 leader，定期发心跳；收到心跳的 follower 重置计时器。</li>
+<li>S1 崩溃，心跳停止，每个 follower 的选举计时器都在走。</li>
+<li>S3 的计时器最短，最先超时：转为 candidate，任期号 1 → 2，先投自己一票，向其余 4 台发 RequestVote(term = 2, …)。</li>
+<li>S2、S4 在任期 2 里还没投过票，同意投给 S3。加上自投的一票共 3 票，达到 5 台的多数，S3 当选。S5 的票晚到，已经不需要。</li>
+<li>S3 立刻向所有节点发心跳，宣告自己是任期 2 的 leader，压住其他人的计时器。</li>
+</ol>
+
+<p>每一步为什么必要：</p>
+
+<ul>
+<li><strong>每台服务器每个任期最多投一票</strong>（先到先得）。两个 candidate 若在同一任期都拿到多数票，两个多数派必有一个公共投票者，它就投了两次——不可能。所以<strong>一个任期至多一个 leader</strong>。这又是 <a href="#s3-2">多数派交集</a>。</li>
+<li><strong>选举超时取随机值</strong>（原论文示例 150–300 ms）。若大家的超时都一样，就会同时变成 candidate、各投自己、平票，下一轮又同时超时……随机化让总有一个最先醒来，在别人醒来前拿到多数。</li>
+<li><strong>任期号加 1</strong>：新 leader 的任期比旧 leader 大，旧 leader 恢复后一收到新任期的消息就会退位，不会出现两个 leader 各管各的。</li>
+<li><strong>心跳</strong>：让 follower 知道 leader 还在，防止无谓的选举。</li>
+</ul>
+
+<p>candidate 的三种结局（原论文 §5.2）：拿到多数票当选；收到任期不小于自己的 leader 的 AppendEntries，退回 follower；平票无人当选，超时后任期加 1 重选。课件文字讲了第一和第三种，第二种在 p49、p54 的图里。</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>日志复制</h3>
+
+<p>日志复制按课件 p55–58 进行。p55 的第 1 条 "The log replication phase of RAFT is straightforward" 只是引子，实际步骤是后五条（编号沿用课件）：</p>
+
+<ol start="2">
+<li>客户端把要由复制状态机执行的命令发给 leader。</li>
+<li>leader 给命令分配<strong>任期号和索引</strong>（term and index），使它在所有节点的日志里能被唯一识别，并追加到自己的日志。<strong>日志索引</strong>（log index）就是日志里的位置编号。</li>
+<li>leader 一有新条目，就同时通过 AppendEntries RPC 发给各 follower，请它们复制这条命令。</li>
+<li>当命令被复制到多数节点并得到确认，这个条目就被认为在集群上<strong>已提交</strong>（committed）。准确的条件是：由<strong>创建它的 leader 在本任期内</strong>复制到全体服务器的多数（leader 自己算一份）；更早任期留下的条目随之一并提交，理由见 <a href="#s5-5">5.5</a>。</li>
+<li>leader 在自己的状态机里<strong>执行</strong>命令，把结果<strong>返回客户端</strong>；再通过 AppendEntries 通知 follower 这个条目已提交，follower 随即在各自的状态机里执行已提交的命令。</li>
+</ol>
+
+<figure>
+<div id="figRaftRepl" class="scrollfig"></div>
+<figcaption>5 台服务器，S1 是任期 3 的 leader，新命令 inc 放在索引 7。</figcaption>
+</figure>
+
+<p>图里几处细节：</p>
+
+<ul>
+<li>AppendEntries 里除了新条目，还带着<strong>前一个条目的任期和索引</strong>（图中 prev = (3, 6)）。follower 只有在自己日志的那个位置有条目、且任期也对得上时才接受；那个位置还没有条目，或任期不同，就拒绝。leader 于是往前退一格再试，直到找到两者一致的位置，再用 leader 的日志覆盖 follower 后面不一致的部分（原论文 §5.3，课件未讲）。这样维持的是<strong>日志匹配性质</strong>（Log Matching）：两份日志只要在某个索引上的任期号相同，这一条以及之前的内容就完全相同。</li>
+<li>S1 自己 + S2 + S3 = 3 台已有索引 7，达到 5 台的多数，而且索引 7 是 S1 在本任期（任期 3）创建的条目，所以<strong>已提交</strong>。S4 慢、S5 失联都不影响。</li>
+<li>leader 执行后回复客户端。follower 并不是马上执行，而是在下一次 AppendEntries（可以只是心跳）里看到 leader 告知的"已提交到哪个索引"（字段名 leaderCommit），才按顺序执行到那里。</li>
+<li>S5 恢复后，leader 会不断重发，直到它的日志追上。</li>
+</ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p57："majority of the follower nodes" 应为全体服务器的多数</div>
+  <p>课件原话："When the leader is able to replicate the command to the majority of the <strong>follower</strong> nodes … the entry is considered committed." 原论文 §5.3 的原句是 "A log entry is committed once <strong>the leader that created the entry</strong> has replicated it on a majority of the <strong>servers</strong>"。两处要紧：多数按<strong>全体服务器</strong>算，leader 自己也算一份；而且必须是<strong>创建这条条目的 leader</strong>，也就是在它自己的任期内完成复制。</p>
+  <p>第一处用数字看：5 台时，原文是 leader + 2 个 follower = 3 台即可；课件字面"4 个 follower 的多数"要 3 个 follower，共 4 台，在 2 台故障时就提交不了。3 台时差得更明显：课件字面要 2 个 follower 全部确认，坏 1 台就再也提交不了，和 RAFT 能容 1 台故障直接矛盾。课件自己的 p59 图注 "replicated on a majority of servers" 也和 p57 矛盾：那张图的索引 5、6 只在 Leader、Follower 2、Follower 4 上，按"follower 的多数"（3 个 follower）不算提交，图注却说提交到索引 6。以 p59 为准。</p>
+  <p>第二处（本任期）的理由见 <a href="#s5-5">5.5</a>。</p>
+  <p style="margin-bottom:0">考场写法："An entry is committed once the leader that created it (i.e. in the leader's current term) has replicated it on a majority of the servers (the leader included); earlier entries are then committed with it."</p>
+</div>
+
+<p>课件 p59 给了 5 个节点的日志快照，每格上面是任期号、下面是命令：</p>
+
+<figure>
+<div id="figRaftLog" class="scrollfig"></div>
+<figcaption>课件 p59 原图，改编自原论文 Figure 6。</figcaption>
+</figure>
+
+<p>逐个索引数一数有几台持有（多数 = 3）：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>索引</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+<tbody>
+<tr><td>条目的任期</td><td>1</td><td>1</td><td>2</td><td>3</td><td>3</td><td>3</td><td>3</td></tr>
+<tr><td>持有台数</td><td>5</td><td>5</td><td>4</td><td>4</td><td>3</td><td>3</td><td>2</td></tr>
+<tr><td>已提交？</td><td>是</td><td>是</td><td>是</td><td>是</td><td>是</td><td>是</td><td>否</td></tr>
+</tbody></table></div>
+
+<p>判断时要用上"本任期"的条件。假定当前任期是 3：索引 4–6 都是任期 3 的条目、持有台数够多数，按计数直接提交；索引 1–3 属于任期 1、2，是之前任期留下的，不能单凭计数判定，它们随索引 4–6 一并提交。索引 7 只有 Leader 和 Follower 2 两台，还没提交。结论与图下 "Committed entries … up to log index number 6" 一致。</p>
+
+<p>表里也看得出日志匹配性质：所有节点在同一索引上只要都有条目，任期和命令就完全相同。follower 的日志长短不一是正常的：有的网络慢、有的刚重启，leader 会通过一致性检查把它们补齐。</p>
+
+<p>p60 画的是复制状态机的内部结构，已放在 <a href="#s2-1">2.1</a>。p61 给了一个公认的 Raft 交互动画链接 <a href="http://thesecretlivesofdata.com/raft/">http://thesecretlivesofdata.com/raft/</a> ，几分钟就能看完选主和复制的全过程。</p>
+
+<h3 id="s5-5"><span class="n">5.5</span>为什么按本任期多数提交就安全（课件外）</h3>
+
+<p>日志复制的提交规则看似只是"多数确认"，要真正闭环还需要选举一侧的规则配合：已提交的条目，以后的每一任 leader 都必须持有，否则新 leader 会用自己的日志把它覆盖掉。</p>
+
+<p><strong>提交的准确定义</strong>（原论文 §5.4.2）：leader 只对<strong>自己当前任期</strong>产生的条目用"数够多数"判定提交；更早任期的条目，等到当前任期的某条条目提交时，按日志顺序一并提交。</p>
+
+<p><strong>选举的三条规则</strong>。课件只写了"拿到多数票就当选"；下面三条前两条在 <a href="#s5-3">5.3</a> 已讲，这里集中列一次（原论文 §5.2、§5.4.1）：</p>
+
+<ol>
+<li>每台服务器每个任期最多投一票，先到先得 ⇒ 每个任期至多一个 leader；</li>
+<li>选举超时取随机值 ⇒ 避免反复平票；</li>
+<li><strong>选举限制</strong>（election restriction）：RequestVote 里带着 candidate 最后一条日志的任期和索引，投票者若发现自己的日志比 candidate 的<strong>更新</strong>，就拒绝投票。"更新"先比最后一条的任期，任期大者新；任期相同再比长度，长者新。</li>
+</ol>
+
+<p>考场若要补充，先按课件写选主步骤，再加一句："In addition, each node votes for at most one candidate per term, election timeouts are randomised to avoid split votes, and a node only votes for a candidate whose log is at least as up-to-date as its own."</p>
+
+<p><strong>用 p59 的日志看选举限制</strong>。假设图中 leader 此时崩溃，剩下 4 个 follower 的最后一条日志分别是：F1 任期 3、索引 4；F2 任期 3、索引 7；F3 任期 1、索引 2；F4 任期 3、索引 6。当选要 3 票。</p>
+
+<ul>
+<li>F3 参选：其他三台的日志都比它新，没人投它，只有自己 1 票，选不上。</li>
+<li>F1 参选：F3 投它，F2、F4 比它新而拒绝，共 2 票，选不上。</li>
+<li>F4 参选：F1、F3 投它，F2 比它新而拒绝，加自己共 3 票，<strong>能当选</strong>。</li>
+<li>F2 参选：其余三台都不比它新，共 4 票，能当选。</li>
+</ul>
+
+<p>能当选的只有 F2、F4，它们恰好都持有已提交的索引 1–6。索引 7 只在两台上、尚未提交，F4 当选后会把它覆盖——这是允许的，客户端从没收到过它执行成功的答复。</p>
+
+<details class="box">
+  <summary>推理链：本任期提交的条目不会丢，以及"旧任期条目数够多数"为什么不算提交</summary>
+  <p><strong>命题</strong>：条目 <span class="m">e</span> 由任期 <span class="m">T</span> 的 leader 在本任期复制到多数服务器（集合 <span class="m">S</span>），即已提交；那么任期大于 <span class="m">T</span> 的每一任 leader 都持有 <span class="m">e</span>。</p>
+  <p>对任期 <span class="m">U &gt; T</span> 归纳，假设任期在 <span class="m">T</span> 与 <span class="m">U</span> 之间的 leader 都持有 <span class="m">e</span>：</p>
+  <ol>
+<li>任期 <span class="m">U</span> 的 leader（记为 C）当选时拿到多数票（集合 <span class="m">V</span>）。</li>
+<li><span class="m">S</span> 与 <span class="m">V</span> 都是多数，必相交，设交点为 X。</li>
+<li>X 是先接受 <span class="m">e</span>、后给 C 投票的：若它先投票，任期已升到 <span class="m">U &gt; T</span>，会拒绝任期 <span class="m">T</span> 的 AppendEntries，就不会在 <span class="m">S</span> 里。所以 X 投票时持有 <span class="m">e</span>，它最后一条日志的任期至少是 <span class="m">T</span>。</li>
+<li>由选举限制，C 的日志不比 X 旧。分两种情况：
+<ul>
+<li>C 最后一条的任期<strong>等于</strong> X 的：同一任期的条目都出自同一个 leader、按顺序追加，C 的日志又不比 X 短，所以 C 包含 X 的全部日志，持有 <span class="m">e</span>；</li>
+<li>C 最后一条的任期<strong>大于</strong> X 的，因而大于 <span class="m">T</span>：这一条出自某个任期 <span class="m">P</span>（<span class="m">T &lt; P &lt; U</span>）的 leader，由归纳假设那个 leader 持有 <span class="m">e</span>；再由日志匹配性质，C 的日志在这一条之前与那个 leader 的完全相同，所以也持有 <span class="m">e</span>。</li>
+</ul></li>
+<li>所以 C 持有 <span class="m">e</span>，不会覆盖它。RAFT 把这条性质叫 Leader Completeness（领导者完整性）。</li>
+</ol>
+  <p>第 3 步用到了"<span class="m">e</span> 是任期 <span class="m">T</span> 的 leader 在任期 <span class="m">T</span> 内复制到多数的"。只数副本、不管任期，这一步就断了。原论文 Figure 8 的反例（5 台 S1–S5）：</p>
+  <ol>
+<li>任期 2，S1 是 leader，把索引 2 的条目复制到 S1、S2 后崩溃；</li>
+<li>任期 3，S5 凭 S3、S4、S5 的票当选，在索引 2 写了另一条条目，没来得及复制就崩溃；</li>
+<li>任期 4，S1 恢复并当选，继续复制，把任期 2 的那条复制到 S3——它已在 S1、S2、S3 三台上，是多数；</li>
+<li>若此时就算它已提交，而 S1 又崩溃：S5 最后一条的任期是 3，比 S2、S3、S4 的最后一条（任期 2 或 1）都新，能拿到它们的票当选，把索引 2 覆盖成自己的条目。"已提交"的条目就丢了。</li>
+</ol>
+  <p style="margin-bottom:0">按本任期的规则，S1 必须等任期 4 的某条新条目也复制到多数，任期 2 那条才随之提交；那之后多数服务器的最后一条任期是 4，S5 的任期 3 不再"更新"，选不上。</p>
+</details>
+
+<div class="tool" id="rfTool">
+  <h4>RAFT 日志：哪些条目已提交，leader 崩溃后谁能当选</h4>
+  <p class="sub">每行是一个节点的日志，只写各条目的任期号，空格分开，可以改。与 leader 在同一索引上任期相同才算「持有」这一条。页面按三种口径判提交，再假设 leader 此刻崩溃，按选举限制逐票数每个节点能拿几票。</p>
+  <div class="row">
+    <button class="btn rfp" data-k="p59" onclick="rfLoad('p59')">课件 p59（L16 5.4）</button>
+    <button class="btn rfp" data-k="l17" onclick="rfLoad('l17')">L17 3.2 练习</button>
+    <button class="btn rfp" data-k="fig8" onclick="rfLoad('fig8')">Raft 论文 Figure 8 第 3 步</button>
+  </div>
+  <div class="rfrow"><span class="rfn" id="rfN0">Leader</span><input type="text" id="rfL0" oninput="rfGo()"></div>
+  <div class="rfrow"><span class="rfn" id="rfN1">Follower 1</span><input type="text" id="rfL1" oninput="rfGo()"></div>
+  <div class="rfrow"><span class="rfn" id="rfN2">Follower 2</span><input type="text" id="rfL2" oninput="rfGo()"></div>
+  <div class="rfrow"><span class="rfn" id="rfN3">Follower 3</span><input type="text" id="rfL3" oninput="rfGo()"></div>
+  <div class="rfrow"><span class="rfn" id="rfN4">Follower 4</span><input type="text" id="rfL4" oninput="rfGo()"></div>
+  <div class="row" style="margin-top:.6rem">
+    <span class="ctl"><label for="rfLeader">leader</label><select id="rfLeader" onchange="rfGo()"></select></span>
+    <span class="ctl"><label for="rfTerm">当前任期</label><input type="number" id="rfTerm" min="1" value="3" style="width:4.5rem" oninput="rfGo()"></span>
+  </div>
+  <div class="tw" id="rfGrid"></div>
+  <div class="tw" id="rfCount"></div>
+  <div class="result" id="rfOut"></div>
+  <div class="tw" id="rfElect"></div>
+</div>
+
+<h3 id="s5-6"><span class="n">5.6</span>RAFT 不能抵抗拜占庭故障</h3>
+
+<p>模拟卷 Q4(a)(v)："List the three roles that the nodes can take in the RAFT consensus mechanism and indicate if the RAFT can resist Byzantine attacks/failures."（4 分）</p>
+
+<p>答：<strong>Leader、Follower、Candidate</strong>（各 1 分）；<strong>RAFT cannot resist Byzantine attacks/failures</strong>（1 分）。</p>
+
+<p>理由（参考答案没要求，但能写一句更稳）：课件 p46 写明 RAFT 的前提是 "No Byzantine failures"。机制上有三个漏洞：</p>
+
+<ul>
+<li>follower 对 leader 发来的 AppendEntries 照单全收，消息没有签名，follower 之间也不互相核对。一个作恶的 leader 可以给 F1 发"第 5 条是转账给 A"、给 F2 发"第 5 条是转账给 B"，两边都以为自己和多数一致，状态机从此分叉；</li>
+<li>一个作恶的节点可以谎报一个极大的任期号，让 leader 下台、反复打断选举；</li>
+<li>也可以谎称自己的日志很新来骗票，绕过选举限制。</li>
+</ul>
+
+<p>根本原因是：RAFT 的安全论证（<a href="#s5-5">5.5</a>）只用到"两个多数必相交"，并默认交集里的节点说真话。节点会撒谎时，交集里那个节点的话不可信，论证就断了。要对付撒谎，quorum 要提到 <span class="m">2f + 1</span>、节点数要提到 <span class="m">3f + 1</span>（<a href="#s3-3">3.3</a>），每条消息还要可验证——那就是 PBFT。</p>
+
+<p>英文理由可以写一句："Followers accept the leader's AppendEntries without verification (no signatures, no cross-checking), so a malicious leader could send different logs to different followers; RAFT only tolerates crash failures (<span class="m">N ≥ 2f + 1</span>)."</p>
+
+<h2 id="s6"><span class="n">6</span>PBFT</h2>
+
+<p>记号：本节 <span class="m">N</span> 表示副本总数，<span class="m">n</span> 只表示请求的序号。课件 p67 用 <span class="m">n</span> 表示节点数，引用课件原话时照录。</p>
+
+<h3 id="s6-1"><span class="n">6.1</span>主思想：三个子协议</h3>
+
+<p><strong>实用拜占庭容错</strong>（Practical Byzantine Fault Tolerance，PBFT）"顾名思义，是为在存在拜占庭故障时提供共识而设计的协议"（p63），由 Castro 与 Liskov 在 1999 年提出。"实用"是相对于此前的拜占庭容错算法而言：它们要么假定网络同步，要么慢到不能用；PBFT 在异步网络里也保证安全性，而且实际跑得够快。</p>
+
+<p>PBFT 由三个<strong>子协议</strong>（subprotocol）组成（p63–64）：</p>
+
+<ul>
+<li><strong>正常运行</strong>（normal operation）：一切正常时执行的流程；</li>
+<li><strong>视图切换</strong>（view change）：检测到 primary（主节点：负责给请求排序、与客户端通信的那个副本，见 <a href="#s6-2">6.2</a>）有故障时运行，换一个 primary；</li>
+<li><strong>检查点</strong>（checkpointing）：定期确认一个大家公认的状态，把那之前的旧数据丢掉。</li>
+</ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p64 "the system is error-free"</div>
+  <p>课件原话："The normal operation subprotocol refers to a mechanism executed when everything is running normally, and the system is error-free."</p>
+  <p>误：正常运行子协议只在系统完全无错时执行。</p>
+  <p>正：只要求 <strong>primary 没坏</strong>；至多 <span class="m">f</span> 个 backup（primary 以外的副本）出故障甚至作恶时，正常运行照样完成——原论文的正常流程示意图里恰好有一个 backup 是坏的。若真要整个系统无错才能运行，就根本用不着拜占庭容错。</p>
+  <p style="margin-bottom:0">考场写法："Normal operation runs while the primary is non-faulty (up to <span class="m">f</span> backups may still be faulty)."</p>
+</div>
+
+<p>正常流程是重点，在 <a href="#s6-4">6.4</a> 展开；后两个在 <a href="#s6-6">6.6</a>。</p>
+
+<h3 id="s6-2"><span class="n">6.2</span>角色：primary 与 backup</h3>
+
+<p>p66 的三个名词：</p>
+
+<ul>
+<li><strong>Replica</strong>（副本）：PBFT 的每一个参与者。</li>
+<li><strong>Leader</strong>：由一个 leader 负责和客户端通信，它也叫 <strong>primary</strong>（主节点）。</li>
+<li><strong>Backup</strong>（备份节点）：除 leader 外的其余节点。</li>
+</ul>
+
+<p>真正的角色只有 primary 和 backup 两种，replica 是二者的总称（p65 图把 Replicas 画在上方、下方分出 leader 与 backup，就是这个"总–分"关系）。</p>
+
+<p><strong>视图</strong>（view）：PBFT 里"由谁当 primary"的一个时期，用编号 <span class="m">v = 0, 1, 2, …</span> 表示，作用相当于 RAFT 的任期。primary 不靠选举产生，而是按编号轮流：<span class="m">N</span> 个副本编号 <span class="m">0 ～ N − 1</span>，view <span class="m">v</span> 的 primary 是第 <span class="m">v<span class="tx"> mod </span>N</span> 号副本。同一个 view 里，成千上万个请求都由同一个 primary 排序；只有它被怀疑出故障、触发 view change 时，才换成下一个 view 的 primary。后面每条消息里的 <span class="m">v</span> 就是 view 编号。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p65 "three roles … in a RAFT cluster" 与 p66 "In each round"</div>
+  <p><strong>p65</strong>："There are three roles that nodes (more precisely the consensus module within nodes) can assume in a <strong>RAFT</strong> cluster"——整句从 RAFT 那页（p47）复制过来：RAFT cluster 应为 PBFT cluster（L17 已改），"three roles"也不准，角色只有 primary 和 backup 两种，replica 是统称。</p>
+  <p><strong>p66</strong>："In each <strong>round</strong>, a leader node, called the primary node" 应为每个 <strong>view</strong> 一个 primary，不是每轮一换。</p>
+  <p style="margin-bottom:0">考场写法："Replicas are either the primary (leader) or backups; the primary is fixed within a view (<span class="m">p = v<span class="tx"> mod </span>N</span>) and changes only through a view change." 若题目按课件问 "three roles"，就答 replica / primary (leader) / backup，并补半句 "replica is the collective name for both"。</p>
+</div>
+
+<h3 id="s6-3"><span class="n">6.3</span>节点下限：3f+1</h3>
+
+<p>p67："to tolerate Byzantine faults, the minimum number of nodes required is <strong>n = 3f + 1</strong> in a partially synchronous environment"；"PBFT ensures Byzantine fault tolerance as long as the number of nodes in a system stays <strong>n ≥ 3f + 1</strong>." 这里的 <span class="m">n</span> 是节点数，即本笔记的 <span class="m">N</span>。</p>
+
+<p>课件只给结论。推导见 <a href="#s3-3">3.3</a>，失败反例见 <a href="#s3-4">3.4</a>。结论里的几个数下面反复用到：<span class="m">N = 3f + 1</span> 个副本，每一步凑 <span class="m">2f + 1</span> 个一致的消息算 quorum，任意两个 quorum 至少交于 <span class="m">f + 1</span> 个副本、其中至少 1 个诚实。</p>
+
+<p>课件说"部分同步"，原论文说"安全性在异步下成立，活性需要弱同步"，两种口径下的下界都是 <span class="m">3f + 1</span>。这个前提不能省：在同步网络、消息又带签名时，拜占庭协定理论上可以用更少的节点；<span class="m">3f + 1</span> 是异步或部分同步模型下的下界。原论文为简单起见就取 <span class="m">N = 3f + 1</span>：更多副本只会降低性能，不会提高容错能力。</p>
+
+<h3 id="s6-4"><span class="n">6.4</span>正常流程的三个阶段</h3>
+
+<p>PBFT 的一次运行由三个阶段依次组成：<strong>pre-prepare</strong>（预准备）、<strong>prepare</strong>（准备）、<strong>commit</strong>（提交）（p68）。前后再加客户端的请求与回复，共五段。下图按课件 p72 重画，副本按原论文从 0 编号，副本 0 是 view 0 的 primary：</p>
+
+<figure>
+<div id="figPbft" class="scrollfig"></div>
+<figcaption><span class="m">N = 4</span>，<span class="m">f = 1</span>，四个副本都正常。顶部是各阶段的消息格式，底部是各阶段的消息条数。</figcaption>
+</figure>
+
+<p>消息里的记号：<span class="m">o</span> 是要执行的操作，<span class="m">t</span> 是客户端打的时间戳（用来保证每个请求只执行一次），<span class="m">c</span> 是客户端，<span class="m">v</span> 是 view 编号，<span class="m">n</span> 是序号，<span class="m">m</span> 是请求本身，<span class="m">d = D(m)</span> 是请求的<strong>摘要</strong>（digest：对 <span class="m">m</span> 做抗碰撞哈希得到的短值），<span class="m">i</span> 是发送者的副本编号，<span class="m">r</span> 是执行结果。每条消息都带发送者的签名（或消息认证码，见 <a href="#s6-5">6.5</a>）。</p>
+
+<p>本笔记用原论文的记号，和课件 p72 的对应是：摘要 <span class="m">d</span> ↔ 课件的 <span class="m">h</span>；副本 0 ↔ Primary，副本 1、2、3 ↔ Replica 2、3、4；大写消息名 ↔ 课件的小写（preprepare、prepare……）。考场按课件的写法画也可以，前后一致即可。</p>
+
+<p><strong>REQUEST</strong>：客户端把 <span class="m">⟨<span class="tx">REQUEST</span>, o, t, c⟩</span> 发给 primary。</p>
+
+<p><strong>PRE-PREPARE</strong>（p69，三步的主语都是 primary，课件漏写、L17 已补 "Leader"）：</p>
+
+<ol>
+<li>primary 接受客户端的请求；</li>
+<li>给它分配下一个<strong>序号</strong>（sequence number）<span class="m">n</span>——请求将按这个顺序执行；</li>
+<li>把 <span class="m">⟨⟨<span class="tx">PRE-PREPARE</span>, v, n, d⟩, m⟩</span> 广播给所有 backup。</li>
+</ol>
+
+<p><strong>PREPARE</strong>（p70）：</p>
+
+<ol>
+<li>backup 检查后才接受这条 pre-prepare（条件见下面的 warning）；</li>
+<li>接受后，向<strong>所有副本</strong>广播 <span class="m">⟨<span class="tx">PREPARE</span>, v, n, d, i⟩</span>。</li>
+</ol>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p70 的接受条件："same view or sequence number" 逻辑不对，且漏了三条</div>
+  <p>课件："Accepts the pre-prepare message only if the replica has not accepted any pre-prepare messages for the same view <strong>or</strong> sequence number before." 按字面，一个副本在同一个 view 里只能接受一条 pre-prepare（整个 view 只能处理一个请求），或者同一个序号在所有 view 里只能用一次（换了 primary 也不能重新安排）——两者都不对。</p>
+  <p>原论文的条件是四条同时满足：</p>
+  <ol>
+<li>签名正确，且 <span class="m">d</span> 确实是 <span class="m">m</span> 的摘要；</li>
+<li>自己正处于 view <span class="m">v</span>；</li>
+<li>没有接受过 view <span class="m">v</span>、序号 <span class="m">n</span> 相同但<strong>摘要不同</strong>的 pre-prepare（同一 view <strong>且</strong>同一序号，内容不同才拒）；</li>
+<li>序号在<strong>水位线</strong>（watermark，允许使用的序号范围的下界 <span class="m">h</span> 与上界 <span class="m">H</span>）之间：<span class="m">h &lt; n ≤ H</span>（怎样确定见 <a href="#s6-6">6.6</a>；这里的 <span class="m">h</span> 是论文的低水位，和课件图上表示摘要的 <span class="m">h</span> 不是一回事）。</li>
+</ol>
+  <p>第 3 条是要害：它防的是 primary 给同一个序号安排两个不同请求。</p>
+  <p style="margin-bottom:0">考场写法："A backup accepts the pre-prepare if the signature and digest are valid, it is in view <span class="m">v</span>, and it has not accepted another pre-prepare for the same view <strong>and</strong> sequence number with a different digest; it then multicasts a prepare message to all replicas."</p>
+</div>
+
+<p><strong>COMMIT</strong>（p71）：</p>
+
+<ol>
+<li>副本等到 <span class="m">2f + 1</span> 条 view、序号、请求都一致的 prepare 类消息（严格的数法见下），此时称它对这个请求 <strong>prepared</strong>；</li>
+<li>向所有副本广播 <span class="m">⟨<span class="tx">COMMIT</span>, v, n, d, i⟩</span>；</li>
+<li>等到 <span class="m">2f + 1</span> 条有效的、一致的 commit（可以含自己的），称为 <strong>committed-local</strong>；</li>
+<li>执行请求（还要等所有更小序号的请求都执行完，保证大家按同样顺序执行）；</li>
+<li>把 <span class="m">⟨<span class="tx">REPLY</span>, v, t, c, i, r⟩</span> 发给客户端。</li>
+</ol>
+
+<p><strong>REPLY</strong>：客户端等到 <strong><span class="m">f + 1</span> 个</strong>来自不同副本、<span class="m">t</span> 和 <span class="m">r</span> 都相同的回复，才接受结果 <span class="m">r</span>。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p71：prepare 的计数口径，以及漏掉的客户端规则</div>
+  <ul>
+<li><strong>"waits for 2f + 1 prepare messages"</strong>：原论文的 prepared 定义是"日志里有 pre-prepare，外加 <strong><span class="m">2f</span> 条</strong>来自不同 backup 的匹配 prepare（可以含自己的）"。primary 不发 prepare，它的 pre-prepare 就算它的一票，合计正好是 <span class="m">2f + 1</span> 个副本对同一个 <span class="m">(v, n, d)</span> 背书。若按字面只数 backup 发的 prepare、硬凑 <span class="m">2f + 1</span> 条，问题出在有故障时：只要有 <span class="m">f</span> 个 backup 故障，诚实 backup 只剩 <span class="m">2f</span> 个，发不出 <span class="m">2f + 1</span> 条 prepare，协议卡死，等于连 <span class="m">f</span> 个故障都容不下（<span class="m">f = 1, 2, 3</span> 时诚实 backup 有 2、4、6 个，需要 3、5、7 条）。课件的"<span class="m">2f + 1</span>"只能理解为把 pre-prepare 也算一票。</li>
+<li>课件 commit 阶段的第 1 步"等 prepare 凑够数"其实是 prepare 阶段的结束条件，课件把它放在了 commit 阶段开头。</li>
+<li><strong>漏了客户端</strong>：课件写到"副本发回复"就停了。客户端必须等 <strong><span class="m">f + 1</span> 个</strong>内容相同的回复：至多 <span class="m">f</span> 个副本会撒谎，<span class="m">f + 1</span> 个一致的回复里至少有一个来自诚实副本，结果才可信。只收一个回复，撒谎的副本就能骗过客户端。</li>
+</ul>
+  <p style="margin-bottom:0">考场写法："A replica is <em>prepared</em> when it has the pre-prepare and <span class="m">2f</span> matching prepares from different backups, i.e. <span class="m">2f + 1</span> replicas agree on <span class="m">(v, n, d)</span>. … The client accepts the result after receiving <span class="m">f + 1</span> matching replies from different replicas." 第一句的 <span class="m">2f + 1</span> 与课件一致，又说清了怎么数。</p>
+</div>
+
+<p>各阶段的消息条数（<span class="m">N</span> 个副本）：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>阶段</th><th>谁发给谁</th><th>条数</th><th><span class="m">N = 4</span></th><th><span class="m">N = 7</span></th><th><span class="m">N = 10</span></th></tr></thead>
+<tbody>
+<tr><td>request</td><td>客户端 → primary</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>pre-prepare</td><td>primary → 每个 backup</td><td><span class="m">N − 1</span></td><td>3</td><td>6</td><td>9</td></tr>
+<tr><td>prepare</td><td>每个 backup → 其余所有副本</td><td><span class="m">(N − 1)<sup>2</sup></span></td><td>9</td><td>36</td><td>81</td></tr>
+<tr><td>commit</td><td>每个副本 → 其余所有副本</td><td><span class="m">N(N − 1)</span></td><td>12</td><td>42</td><td>90</td></tr>
+<tr><td>reply</td><td>每个副本 → 客户端</td><td><span class="m">N</span></td><td>4</td><td>7</td><td>10</td></tr>
+<tr><td><strong>合计（不计 request）</strong></td><td></td><td><span class="m">N(2N − 1)</span></td><td><strong>28</strong></td><td><strong>91</strong></td><td><strong>190</strong></td></tr>
+</tbody></table></div>
+
+<p>一次请求的消息总数一律<strong>不计</strong>客户端发出的那 1 条 request：<span class="m">N = 4</span>、7、10 时为 28、91、190。若再不计 reply，副本之间的消息共 <span class="m">2N(N − 1)</span> 条（24、84、180）。<span class="m">N = 4</span> 的一列正是课件 p72 图上的箭头数 1、3、9、12、4。</p>
+
+<h3 id="s6-5"><span class="n">6.5</span>每个阶段为什么必要</h3>
+
+<p>Paxos 两个阶段、PBFT 三个阶段，多出来的一轮和 <span class="m">3f + 1</span> 的节点数一样，都是为撒谎者付的代价。逐段说明：</p>
+
+<ul>
+<li><strong>pre-prepare：由一个 primary 定顺序。</strong> 总得有人提议"这个请求排第几"；大家各排各的就永远对不上。所以由 primary 分配序号。但 primary 可能就是坏的。</li>
+<li><strong>prepare：防止 primary 一号两卖。</strong> 坏 primary 可以对不同副本给同一个序号安排不同请求（这种"对不同的人说不同的话"叫<strong>模棱两可</strong>（equivocation））。例：<span class="m">N = 4</span>，primary 是坏的，它给副本 1 发"序号 5 是请求 A"，给副本 2、3 发"序号 5 是请求 B"。
+<ul>
+<li>副本 1 收到副本 2、3 发来的"序号 5 是 B"的 prepare，和自己手里的 pre-prepare 对不上；与 A 匹配的 prepare 只有自己那 1 条，凑不够 <span class="m">2f = 2</span> 条，对 A 进不了 prepared。</li>
+<li>副本 2 手里是 B 的 pre-prepare，加上自己和副本 3 的两条 B 的 prepare，凑够 2 条，对 B 进入 prepared；副本 3 同理。</li>
+</ul>
+<p style="margin:.5rem 0 0">结果序号 5 上至多一个请求能 prepared。一般地：一个副本 prepared，意味着 <span class="m">2f + 1</span> 个副本对 <span class="m">(v, n, d)</span> 背书；若另一个请求 <span class="m">d′</span> 也想在某个诚实副本上以同一个 <span class="m">(v, n)</span> prepared，也得凑 <span class="m">2f + 1</span> 个背书者。两组至少交于 <span class="m">f + 1</span> 个副本，其中至少 1 个诚实，而诚实副本不会为同一个 <span class="m">(v, n)</span> 背书两个不同的请求——矛盾。所以<strong>同一个 view 里，在诚实副本上，一个序号只能对应一个请求</strong>（原论文的不变式 1；故障副本自己怎么宣称都不算数）。这就是 <a href="#s3-3">3.3</a> 的交集在这里的用法。</p></li>
+<li><strong>commit：让这个顺序在换 primary 之后也不变。</strong> prepared 只是"我知道大家对序号 5 没有分歧"，它不知道别人是否也 prepared。若副本一 prepared 就执行，随后 primary 被换掉，新 primary 可能不知道序号 5 已经被用了，把它分给别的请求，其他诚实副本就在序号 5 执行了不同的请求。commit 阶段要求凑齐 <span class="m">2f + 1</span> 条 commit 才执行：<span class="m">2f + 1</span> 个发 commit 的副本里至少 <span class="m">f + 1</span> 个是诚实且已 prepared 的。而 view change 要收集 <span class="m">2f + 1</span> 个副本的报告，<span class="m">(f + 1) + (2f + 1) = 3f + 2 &gt; 3f + 1</span>，两组必相交，交点是一个诚实且 prepared 的副本，它会把"序号 5 是请求 B"的证据带进新 view，新 primary 只能沿用。原论文的原话："The pre-prepare and prepare phases are used to totally order requests sent in the same view even when the primary … is faulty. The prepare and commit phases are used to ensure that requests that commit are totally ordered across views."</li>
+<li><strong>reply 等 <span class="m">f + 1</span> 个：防副本骗客户端。</strong> 见 <a href="#s6-4">6.4</a> 的 warning。</li>
+<li><strong>签名与摘要：让每一票都赖不掉、冒充不了。</strong> 若坏副本能伪造"副本 2 投了请求 A"，quorum 就可以凭空造出来。所以每条消息都要带发送者的<strong>数字签名</strong>（digital signature，只有持有私钥的人能生成、任何人能用公钥验证，见 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>），签的是摘要 <span class="m">d</span> 而不是整条请求，既短又能唯一代表请求。Paxos 和 RAFT 不需要这些，因为它们假定没有人撒谎。（原论文的实现里，正常流程用<strong>消息认证码</strong>（message authentication code，MAC：用双方共享的密钥给消息算一个校验值，见 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>）代替签名，快约三个数量级；签名只留给 view change。）</li>
+</ul>
+
+<h3 id="s6-6"><span class="n">6.6</span>view change 与 checkpoint</h3>
+
+<p>这两个子协议课件只各写了一句（p64），下面按原论文补全它们做什么、为什么要有。</p>
+
+<p><strong>view change（视图切换）</strong>：解决"primary 坏了怎么办"，守的是活性。</p>
+
+<ol>
+<li>backup 收到一个请求后开始计时；若这个请求迟迟没被执行，就认为 primary 有问题。</li>
+<li>它进入 view <span class="m">v + 1</span>，广播 VIEW-CHANGE 消息，里面带着最近的检查点证明，以及它所有已 prepared 请求的证据（pre-prepare 加 <span class="m">2f</span> 条 prepare）。</li>
+<li>view <span class="m">v + 1</span> 的 primary（编号 <span class="m">(v + 1)<span class="tx"> mod </span>N</span> 的副本）收到 <span class="m">2f</span> 个其他副本的 VIEW-CHANGE（加上自己共 <span class="m">2f + 1</span>），广播 NEW-VIEW：对证据里出现过的最小序号到最大序号之间的每个序号重新发 pre-prepare。同一序号有多份证据时，取 <strong>view 编号最高</strong>的那份里的请求；这个范围内没有证据的序号，填一个"空请求"。</li>
+<li>只有 <span class="m">f + 1</span> 个副本都要求换届时，大家才会跟进；<span class="m">f</span> 个坏副本凑不够数，没法无端把一个好 primary 拉下来。primary 按编号轮换，坏副本至多 <span class="m">f</span> 个，所以至多连续 <span class="m">f</span> 个 view 的 primary 是坏的。</li>
+</ol>
+
+<p>view change 对应 RAFT 的重新选举，但不需要投票：下一任是谁事先就定了。</p>
+
+<p><strong>checkpoint（检查点）</strong>：解决"日志无限增长"。</p>
+
+<ol>
+<li>每执行固定数量的请求（如序号是 100 的倍数时），副本广播一条 CHECKPOINT 消息，带上当前状态的摘要。</li>
+<li>凑齐 <span class="m">2f + 1</span> 条序号与摘要都相同的 CHECKPOINT，这个检查点就成为<strong>稳定检查点</strong>（stable checkpoint）：至少 <span class="m">f + 1</span> 个诚实副本确有这个状态，可以向任何人证明。</li>
+<li>于是序号不超过它的日志和消息都可以删掉。</li>
+<li>稳定检查点的序号就是<strong>低水位线</strong> <span class="m">h</span>，<strong>高水位线</strong> <span class="m">H = h + k</span>（<span class="m">k</span> 是一个固定的窗口，如 200）。副本只接受序号在 <span class="m">(h, H]</span> 之间的请求，这样坏 primary 无法发一个巨大的序号把序号空间耗尽。这就是 <a href="#s6-4">6.4</a> 接受条件里的 <span class="m">h &lt; n ≤ H</span>。</li>
+</ol>
+
+<p>checkpoint 和 RAFT 的日志压缩（快照）目的相同。</p>
+
+<h3 id="s6-7"><span class="n">6.7</span>代价：O(N²) 条消息</h3>
+
+<p>prepare 和 commit 都是"每个副本发给其余所有副本"，消息数随副本数平方增长：不计 request，<span class="m">N = 10</span> 时一次请求 190 条消息，<span class="m">N = 100</span> 时 19 900 条（<a href="#s6-4">6.4</a> 的表）。这种增长记作 <span class="m">O(N<sup>2</sup>)</span>——大 O 记号只看随 <span class="m">N</span> 增长的量级、不看常数。对比 RAFT：正常复制一条命令，leader 发 <span class="m">N − 1</span> 条 AppendEntries、收 <span class="m">N − 1</span> 条确认，是 <span class="m">O(N)</span>；Paxos 由 leader 汇总时同样是线性的。所以 PBFT 只适合几十个节点以内、成员固定的场合，在区块链里用于许可链（早期版本的 Hyperledger Fabric——Linux 基金会主持的开源许可链平台——就用过 PBFT）；公有链既有 Sybil 问题（<a href="#s1-4">1.4</a>）又有规模问题，两条都让它用不了。</p>
+
+<div class="tool" id="pbTool">
+  <h4>PBFT 消息计数器</h4>
+  <p class="sub">拖动副本数 <span class="m">N</span>，各阶段条数按上表的公式现算；下图把一次请求的消息总数（不计 request）和 RAFT 正常复制一条命令的 <span class="m">2(N − 1)</span> 条画在一起。</p>
+  <div class="row">
+    <span class="ctl"><label for="pbN">N</label><input type="range" id="pbN" min="4" max="100" value="4" oninput="pbGo()"><span class="rv" id="pbNv"></span></span>
+    <button class="btn" onclick="pbSet(4)">4</button><button class="btn" onclick="pbSet(5)">5</button>
+    <button class="btn" onclick="pbSet(7)">7</button><button class="btn" onclick="pbSet(10)">10</button><button class="btn" onclick="pbSet(100)">100</button>
+  </div>
+  <div class="three" id="pbThree"></div>
+  <div class="tw" id="pbTable"></div>
+  <div class="toolfig" id="pbPlot"></div>
+  <div class="result" id="pbOut"></div>
+</div>
+
+<h3 id="s6-8"><span class="n">6.8</span>附读物：PBFT 原论文</h3>
+
+<p>Moodle 上的 <code>PBFT-Mathematical Proof.pdf</code>（14 页）其实是 Castro 与 Liskov 的会议论文原文《Practical Byzantine Fault Tolerance》，发表于 OSDI 1999（Symposium on Operating Systems Design and Implementation，操作系统设计与实现研讨会，系统领域的顶级会议），不是一份单独的数学证明；论文 §4.5 自己说只给证明梗概，完整证明在另一份技术报告里。论文里真正"数学"的部分有三处：§3 的 <span class="m">3f + 1</span> 论证（已在 <a href="#s3-3">3.3</a> 逐句展开）、§4.2 的两个不变式（<a href="#s6-5">6.5</a> 的 prepare 和 commit 两条）、§4.5 的安全性与活性梗概。</p>
+
+<details class="box">
+  <summary>论文各节要点与其中出现的数量关系</summary>
+  <p><strong>各节要点</strong>（页码为该 PDF 的页序）：</p>
+  <ul>
+<li>Abstract、§1（p1–2）：第一个在互联网这类异步环境里正确工作的拜占庭容错状态机复制算法；在至多 <span class="m">⌊(N − 1)/3⌋</span> 个副本同时出错时，同时保证安全性与活性；安全性不依赖同步；只读操作 1 个往返、读写操作 2 个往返；用它做的拜占庭容错文件系统 BFS（Byzantine-fault-tolerant NFS；NFS 即 Network File System，网络文件系统）只比不复制的标准 NFS 慢 3%。</li>
+<li>§2 系统模型（p2）：异步网络，可丢失、延迟、重复、乱序；故障节点行为任意；假定节点故障相互独立（需要不同实现、不同操作系统、不同管理员）；敌手可以串通故障节点、拖延消息，但不能无限期拖延诚实节点，也算不出签名、摘要的碰撞。</li>
+<li>§3 服务性质（p2–3）：安全性是线性一致性（linearizability：整个系统表现得像一台按某个顺序逐个执行请求的机器）；活性依赖弱同步，用来绕开 FLP；<span class="m">3f + 1</span> 是最优下界。</li>
+<li>§4 算法（p3–7）：view 与 primary <span class="m">= v<span class="tx"> mod </span>|ℛ|</span>（<span class="m">ℛ</span> 是副本集合）；客户端等 <span class="m">f + 1</span> 个相同回复；三阶段与两个不变式；检查点与水位线；view change；正确性梗概。</li>
+<li>§5 优化（p7–8）：只让一个副本回完整结果、其余回摘要；prepared 后就试执行，客户端等 <span class="m">2f + 1</span> 个试执行结果；只读请求直接执行；正常流程用 MAC 代替签名（原文测得 RSA 签名 43 ms，MAC 10.3 µs；RSA 见 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>）。</li>
+<li>§6–7 实现与性能（p9–13）：4 个副本（容 1 个故障）的实验；BFS 在 Andrew 基准测试（一套模拟软件开发时各种文件操作的标准测试）上比标准 NFS 慢 3%。</li>
+</ul>
+  <p><strong>论文里用到的数量关系</strong>，全都是 <a href="#s3-3">3.3</a> 的同一个交集在不同地方的使用：</p>
+  <div class="tw"><table>
+<thead><tr><th>数量</th><th>用在哪</th><th>为什么是这个数</th></tr></thead>
+<tbody>
+<tr><td><span class="m">2f + 1</span>（pre-prepare + <span class="m">2f</span> 条 prepare）</td><td>prepared</td><td>一个 quorum；两组交于 <span class="m">≥ f + 1</span>，含诚实者</td></tr>
+<tr><td><span class="m">2f + 1</span> 条 commit</td><td>committed-local</td><td>一个 quorum ⇒ 至少 <span class="m">f + 1</span> 个诚实副本已 prepared</td></tr>
+<tr><td><span class="m">f + 1</span> 与 <span class="m">2f + 1</span> 相交</td><td>跨 view 的安全性</td><td><span class="m">(f + 1) + (2f + 1) = 3f + 2 &gt; 3f + 1</span></td></tr>
+<tr><td><span class="m">2f</span> 条他人的 VIEW-CHANGE</td><td>新 primary 发 NEW-VIEW</td><td>加上自己共 <span class="m">2f + 1</span>，一个 quorum</td></tr>
+<tr><td><span class="m">f + 1</span> 个相同回复</td><td>客户端接受结果</td><td>至少 1 个来自诚实副本</td></tr>
+<tr><td><span class="m">2f + 1</span> 条 CHECKPOINT</td><td>稳定检查点</td><td>一个 quorum，至少 <span class="m">f + 1</span> 个诚实副本可作证</td></tr>
+<tr><td><span class="m">f + 1</span> 条 VIEW-CHANGE</td><td>其他副本跟进换届</td><td>至少 1 个诚实副本确实在怀疑 primary</td></tr>
+</tbody></table></div>
+  <p style="margin-bottom:0">附带一处论文自身的印刷错误：参考文献 [2] Bracha 与 Toueg 的论文年份印成 1995，应为 1985（Journal of the ACM 第 32 卷第 4 期）。</p>
+</details>
+
+<h2 id="s7"><span class="n">7</span>三个协议的对比</h2>
+
+<p>课件没有这张表，下面把三个协议放在一起：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th></th><th>Paxos</th><th>RAFT</th><th>PBFT</th></tr></thead>
+<tbody>
+<tr><td>防什么</td><td>崩溃（可重启）</td><td>崩溃</td><td>拜占庭（任意行为）</td></tr>
+<tr><td>节点下限</td><td><span class="m">2f + 1</span> 个 acceptor</td><td><span class="m">2f + 1</span> 台服务器</td><td><span class="m">3f + 1</span> 个副本</td></tr>
+<tr><td>quorum</td><td>多数 <span class="m">⌊N/2⌋ + 1</span>（<span class="m">N = 2f + 1</span> 时为 <span class="m">f + 1</span>）</td><td>多数，leader 算一份（同左）</td><td><span class="m">2f + 1</span>（<span class="m">N = 3f + 1</span> 时）</td></tr>
+<tr><td>角色</td><td>Proposer、Acceptor、Learner</td><td>Leader、Follower、Candidate</td><td>Primary（leader）、Backup，统称 Replica</td></tr>
+<tr><td>阶段</td><td>Prepare → Accept（含 learn）</td><td>Leader election → Log replication</td><td>Pre-prepare → Prepare → Commit（另有 view change、checkpoint）</td></tr>
+<tr><td>leader 怎么来</td><td>为活性而选一个 proposer</td><td>投票选举，按任期；所有写入都经过它</td><td>按 view 轮换，<span class="m">v<span class="tx"> mod </span>N</span>，不投票</td></tr>
+<tr><td>正常流程消息数</td><td>由 leader（或指定 learner）汇总时随 <span class="m">N</span> 线性；acceptor 直接通知全部 learner 时为 acceptor 数 × learner 数</td><td>随 <span class="m">N</span> 线性</td><td>随 <span class="m">N</span> 平方</td></tr>
+<tr><td>需要签名/MAC</td><td>不需要</td><td>不需要</td><td>需要</td></tr>
+<tr><td>典型用途</td><td>分布式数据库、锁服务</td><td>分布式数据库与配置存储（如 etcd，一个开源的分布式键值存储）、许可链里给交易排序</td><td>许可链、联盟链</td></tr>
+</tbody></table></div>
+
+<p>模拟卷 Q3(b)(ii) "List any three consensus mechanisms used in blockchain systems" 的参考答案是 "PoW, PoS, RAFT, Paxos, PBFT, etc."，任写三个即可，规范答法见 <a href="L15%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20I.html#s2-4">L15 2.4</a>。</p>
+
+<p>三者的共同骨架：<strong>安全性靠 quorum 交集，活性靠超时换人</strong>。区别只在两处：防不防撒谎（决定 quorum 是多数还是 <span class="m">2f + 1</span>、要不要签名），以及 leader 有多强（Paxos 的 leader 只为避免冲突，RAFT 的 leader 包办一切，PBFT 的 primary 只负责排序且随时可被换掉）。</p>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li>公有链身份可伪造（Sybil），只能按算力（PoW）或质押（PoS）抽签；Paxos、RAFT、PBFT <strong>直接数票</strong>，要求成员固定，用于许可链与分布式系统，终局性确定。</li>
+<li>两类故障按行为分：<strong>崩溃</strong>（不收发消息，但不说谎）；<strong>拜占庭</strong>（任意行为，可以说谎、说两套话、串通；可能出于恶意，也可能是软件缺陷）。</li>
+<li>复习页（首讲 L15）：Q4(a)(i) 得 <span class="m">x = 3</span>；Q3(b)(iii) 得 <strong>375 Tx/s</strong>（参考答案 37.5 错）、确认时间 <span class="m">20 × 200 = 4000</span> s。</li>
+<li>复制状态机：确定性状态机 + 同一初始状态 + 同序执行同一命令序列 ⇒ 执行完同一段命令后状态相同；共识 = 对日志每个位置达成一致。每个节点 = 共识模块 + 日志 + 状态机（p60）。</li>
+<li>安全性（不出两个决定）永远保证；活性（终会决定）只在网络足够守时时保证（FLP），靠超时、重试、换 leader。</li>
+<li><strong>quorum 推导</strong>：等不到 <span class="m">f</span> 个 ⇒ <span class="m">q ≤ N − f</span>；两 quorum 最坏交集 <span class="m">2(N − f) − N = N − 2f</span>；崩溃要交集 <span class="m">≥ 1</span> ⇒ <span class="m">N ≥ 2f + 1</span>，quorum 为多数（<span class="m">N = 2f + 1</span> 时 <span class="m">f + 1</span>）；拜占庭要交集扣掉 <span class="m">f</span> 后 <span class="m">≥ 1</span> ⇒ <span class="m">N ≥ 3f + 1</span>，quorum <span class="m">2f + 1</span>，交集 <span class="m">f + 1</span>。论文写法 <span class="m">N − 2f &gt; f</span>。</li>
+<li>反例：<span class="m">N = 2f</span> 网络分区各自决定；<span class="m">N = 3f</span> 故障节点对两组诚实节点说两套话，两 quorum 只交于故障节点。</li>
+<li>模拟卷：崩溃 <span class="m">f = 3</span> ⇒ <span class="m">N ≥ 7</span>，合法 <strong>4</strong>；拜占庭 <span class="m">f = 3</span> ⇒ <span class="m">N ≥ 10</span>，合法 <strong>7</strong>。要写推导，要减 <span class="m">f</span>。</li>
+<li>Paxos 前提：消息可延迟、丢、乱序、重复但不被篡改；节点可崩溃重启、不作恶。角色 Proposer / Acceptor / Learner，一个进程可兼任；选一个 proposer 当 leader 是为了避免活锁。</li>
+<li>Paxos Phase 1：proposer 用全局唯一、递增的 <span class="m">n</span> 发 prepare(<span class="m">n</span>)；acceptor 若 <span class="m">n</span> 大于已承诺的所有编号，就承诺忽略 <span class="m">&lt; n</span>、记下 <span class="m">n</span>、回 promise(<span class="m">n</span>) 并带回<strong>接受过的编号最高的提案</strong>，否则忽略（<strong>课件漏这一句</strong>）；超时则用更大 <span class="m">n</span> 重试。</li>
+<li>Paxos Phase 2：收到多数 promise 后，<strong>取带回提案中编号最高者的值</strong>，没有就任选；发 accept(<span class="m">n</span>, <span class="m">v</span>)；acceptor <strong>只要没承诺过更大编号就接受，并把承诺编号提到 <span class="m">n</span></strong>（课件写"对 prepare(<span class="m">n</span>) 回过才接受"，偏严但安全），回 accepted(<span class="m">n</span>, <span class="m">v</span>) 并通知所有 learner；多数接受即决定。learn 属于 Phase 2。</li>
+<li>p42 图 "Wait for majority 2f+1" = 在 <span class="m">2f + 1</span> 个中等<strong>多数 <span class="m">f + 1</span> 个</strong>。</li>
+<li>RAFT：好懂；复制状态机 + 持久日志；成员变更、日志压缩；前提无拜占庭、网络不可靠、异步（异步只对安全性成立，进展靠超时）。角色 <strong>Leader / Follower / Candidate</strong>；任期号是逻辑时钟，见大任期即退位，过期 leader 一露面就被识破。</li>
+<li>RAFT 选主：心跳压住选举；收不到心跳 → 选举超时 → candidate，任期 +1、自投一票、发 RequestVote → 多数票当选；超时重选；收到 leader 心跳退回 follower。三条规则：每任期每人一票、随机超时、选举限制（只投日志不比自己旧的 candidate）。</li>
+<li>RAFT 复制：客户端 → leader；分配 term + index、追加日志；AppendEntries 复制（带前一条的 term 与 index 做一致性检查）；<strong>由创建它的 leader 在本任期内复制到全体服务器的多数</strong>（含 leader）即提交，更早任期的条目随之提交（课件写 follower 的多数，不准；只数副本不管任期会出 Figure 8 的错）；leader 执行、回客户端；后续 AppendEntries 告知提交位置，follower 执行。</li>
+<li>RAFT <strong>不能抗拜占庭</strong>：follower 无条件信 leader、无签名；恶意节点可谎报任期、谎称日志新；安全论证只靠多数相交，只够 <span class="m">N ≥ 2f + 1</span>。</li>
+<li>PBFT：三个子协议 normal operation（只要求 primary 没坏，不是"系统无错"）/ view change / checkpointing；角色 primary（leader）+ backup，统称 replica；每个 <strong>view</strong> 一个 primary，<span class="m">p = v<span class="tx"> mod </span>N</span>；<span class="m">N ≥ 3f + 1</span>。</li>
+<li>PBFT 正常流程：REQUEST → PRE-PREPARE（primary 分序号 <span class="m">n</span>，广播 <span class="m">⟨⟨<span class="tx">PRE-PREPARE</span>, v, n, d⟩, m⟩</span>）→ PREPARE（backup 验证后广播；prepared = pre-prepare + <span class="m">2f</span> 条匹配 prepare，共 <span class="m">2f + 1</span> 个副本）→ COMMIT（广播 commit，收 <span class="m">2f + 1</span> 条后按序执行）→ REPLY（<strong>客户端等 <span class="m">f + 1</span> 个相同回复</strong>，课件漏）。课件记号 <span class="m">h</span> = 摘要 <span class="m">d</span>。</li>
+<li>p70 接受条件应为：签名与摘要正确、处于 view <span class="m">v</span>、没接受过同 view <strong>且</strong>同序号但摘要不同的 pre-prepare、<span class="m">h &lt; n ≤ H</span>。p71 的"2f+1 条 prepare"若只数 backup，<span class="m">f</span> 个 backup 故障时诚实 backup 只剩 <span class="m">2f</span> 个，凑不齐。</li>
+<li>为什么三阶段：pre-prepare 定顺序；prepare 防坏 primary 一号两卖（同 view 内诚实副本上一号一请求）；commit 保证换 view 后顺序不变（<span class="m">f + 1</span> 与 <span class="m">2f + 1</span> 必相交）。</li>
+<li>PBFT 消息数 <span class="m">N = 4</span>：1 / 3 / 9 / 12 / 4；不计 request 合计 <span class="m">N(2N − 1)</span> = 28 / 91 / 190（<span class="m">N = 4/7/10</span>），再不计 reply 为 <span class="m">2N(N − 1)</span>；<span class="m">O(N<sup>2</sup>)</span>，只适合小规模许可链。</li>
+<li>附读物是 PBFT 原论文（OSDI 1999），不是单独的证明；BFS 只比 NFS 慢 3%；正常流程用 MAC 代替签名。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>：课件几乎逐字重放本讲的 RAFT 与 PBFT。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L16 区块链共识 II.md</code> 的阅读优化版，内容一致；配图按笔记附图重画成内联 SVG，交互件的数值都由页面脚本现算。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   consensus-core.js — L16/L17 交互件的纯计算内核（无 DOM）
+   法定人数交集、Paxos 双提案者脚本模拟、RAFT 提交与选举判定、PBFT 消息计数。
+   页面与 node 测试共用；末尾的 module.exports 块在 build.py 拼页时去掉。
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 法定人数 */
+/** N 个节点、至多 f 个故障、每步凑 q 个回应。model: 'crash' | 'byz' */
+function quorumInfo(N, f, q, model){
+  var live = q <= N - f;                      // 约束 (1)
+  var inter = Math.max(0, 2*q - N);           // 式 (2)：两 quorum 最坏交集
+  var honest = model === 'crash' ? inter : Math.max(0, inter - f);   // 拜占庭：f 个故障全落在交集里
+  var safe = model === 'crash' ? inter >= 1 : honest >= 1;
+  var Nmin = model === 'crash' ? 2*f + 1 : 3*f + 1;
+  var qStd = Nmin - f;                         // N = Nmin 时 q = N − f
+  return { N:N, f:f, q:q, model:model, live:live, inter:inter, honest:honest, safe:safe,
+           ok: live && safe, Nmin:Nmin, legitMin: Nmin - f, qStd:qStd,
+           fMax: model === 'crash' ? Math.floor((N-1)/2) : Math.floor((N-1)/3) };
+}
+function popcount(x){ var c=0; while(x){ x&=x-1; c++; } return c; }
+/** 枚举所有大小为 q 的子集，两两求交集，返回 {subsets, pairs, minInter}。N ≤ 14 */
+function quorumEnum(N, q){
+  var subs = [];
+  for (var m = 0; m < (1<<N); m++) if (popcount(m) === q) subs.push(m);
+  var minI = Infinity, pairs = 0;
+  for (var i = 0; i < subs.length; i++) for (var j = i; j < subs.length; j++){
+    pairs++; var c = popcount(subs[i] & subs[j]); if (c < minI) minI = c;
+  }
+  return { subsets: subs.length, pairs: pairs, minInter: subs.length ? minI : 0 };
+}
+
+/* ---------------------------------------------------------------- Paxos：两个提案者的例子（L16 4.7） */
+/** opt: {noMajority, noIgnore, noHighest, forget, late}
+    返回 {steps:[{k, text, states:{A1,A2,A3}, newly:[{v,n,by}]}], decided:[{v,n,step}], conflict} */
+function paxosRun(opt){
+  opt = opt || {};
+  var ACC = ['A1','A2','A3'], need = opt.noMajority ? 1 : 2;   // 多数 = 2（3 个 acceptor）
+  var st = {}; ACC.forEach(function(a){ st[a] = { p:null, a:null }; });
+  var votes = {}, decided = [], steps = [];
+  function snap(){ var o={}; ACC.forEach(function(a){ o[a] = { p:st[a].p, a:st[a].a ? {n:st[a].a.n, v:st[a].a.v} : null }; }); return o; }
+  function prepare(n, to){
+    var r = [];
+    to.forEach(function(a){
+      var s = st[a];
+      if (s.p === null || n > s.p){ s.p = n; r.push({ a:a, acc: s.a ? {n:s.a.n, v:s.a.v} : null }); }
+      else r.push({ a:a, ignored:true });
+    });
+    return r;
+  }
+  function accept(n, v, to, k, newly){
+    var res = [];
+    to.forEach(function(a){
+      var s = st[a];
+      if (!opt.noIgnore && s.p !== null && s.p > n){ res.push({a:a, ignored:true}); return; }
+      s.a = { n:n, v:v }; if (s.p === null || n > s.p) s.p = n;
+      var key = n + '|' + v; votes[key] = votes[key] || {};
+      votes[key][a] = 1;
+      res.push({a:a, ok:true});
+      var cnt = Object.keys(votes[key]).length;
+      if (cnt === need){ var d = { v:v, n:n, step:k, by:Object.keys(votes[key]).sort() }; decided.push(d); newly.push(d); }
+    });
+    return res;
+  }
+  function choose(prom, own){
+    var best = null;
+    prom.forEach(function(p){ if (p.acc && (!best || p.acc.n > best.n)) best = p.acc; });
+    if (opt.noHighest) return { v:own, why: best ? '（规则已拿掉）不看带回的提案，坚持用自己的 ' + own : '没有带回任何已接受提案，用自己的 ' + own, best:best };
+    if (best) return { v:best.v, why: '带回的提案里编号最高的是 (' + best.n + ', ' + best.v + ')，只能用 ' + best.v, best:best };
+    return { v:own, why:'没有带回任何已接受提案，可任意选值，选 ' + own, best:null };
+  }
+  function fmtProm(r){ return r.map(function(x){ return x.ignored ? x.a + ' 忽略' : x.a + ' 回 promise(' + '·' + ', ' + (x.acc ? '(' + x.acc.n + ',' + x.acc.v + ')' : '无') + ')'; }); }
+  function push(k, text, newly){ steps.push({ k:k, text:text, states:snap(), newly:newly||[] }); }
+
+  // ① P1 prepare(1) → A1 A2 A3
+  var r1 = prepare(1, ACC);
+  var p1ok = r1.filter(function(x){ return !x.ignored; });
+  push('①', 'P1 发 prepare(1)：' + fmtProm(r1).join('，').replace(/·/g,'1'));
+  // ② P1 accept(1, ·)：只有 A1 收到；发给 A2 的' + (late?'晚到':'丢了')，发给 A3 的丢了
+  var c1 = choose(p1ok, 'x'), nw = [];
+  accept(1, c1.v, ['A1'], '②', nw);
+  push('②', 'P1 发 accept(1, ' + c1.v + ')，只有 A1 收到；发给 A2 的' + (opt.late ? '在路上被拖延' : '丢了') + '，发给 A3 的丢了', nw);
+  // ③ P2 prepare(2) → A2 A3
+  var r3 = prepare(2, ['A2','A3']);
+  var p3ok = r3.filter(function(x){ return !x.ignored; });
+  push('③', 'P2 发 prepare(2) 给 A2、A3：' + fmtProm(r3).join('，').replace(/·/g,'2'));
+  // ④ P2 accept(2, ·) → A2 A3
+  nw = [];
+  if (p3ok.length >= 2){
+    var c3 = choose(p3ok, 'y');
+    var a4 = accept(2, c3.v, ['A2','A3'], '④', nw);
+    push('④', 'P2 ' + c3.why + '，发 accept(2, ' + c3.v + ')：' + a4.map(function(x){ return x.a + (x.ok ? ' 接受' : ' 忽略'); }).join('，'), nw);
+  } else push('④', 'P2 凑不够多数的 promise，不发 accept', nw);
+  // ④′ 迟到的 accept(1, x) 到达 A2
+  if (opt.late){
+    nw = [];
+    var a4b = accept(1, c1.v, ['A2'], '④′', nw);
+    push('④′', '第 ② 步发给 A2 的 accept(1, ' + c1.v + ') 迟到：A2 ' + (a4b[0].ok ? '接受了它' + (opt.noIgnore ? '（"忽略更小编号"已拿掉）' : '') : '已承诺 ' + st.A2.p + '，忽略'), nw);
+  }
+  // A2 崩溃重启
+  if (opt.forget){ st.A2 = { p:null, a:null }; push('↻', 'A2 崩溃后重启，没写稳定存储，忘了承诺和已接受的提案'); }
+  // ⑤ P1 prepare(3) → A1 A2
+  var r5 = prepare(3, ['A1','A2']);
+  var p5ok = r5.filter(function(x){ return !x.ignored; });
+  push('⑤', 'P1 超时，用更大编号发 prepare(3) 给 A1、A2：' + fmtProm(r5).join('，').replace(/·/g,'3'));
+  // ⑥ P1 accept(3, ·) → A1 A2
+  nw = [];
+  if (p5ok.length >= 2){
+    var c5 = choose(p5ok, 'x');
+    var a6 = accept(3, c5.v, ['A1','A2'], '⑥', nw);
+    push('⑥', 'P1 ' + c5.why + '，发 accept(3, ' + c5.v + ')：' + a6.map(function(x){ return x.a + (x.ok ? ' 接受' : ' 忽略'); }).join('，'), nw);
+  } else push('⑥', 'P1 凑不够多数的 promise，不发 accept', nw);
+
+  var vals = {}; decided.forEach(function(d){ vals[d.v] = 1; });
+  return { steps:steps, decided:decided, values:Object.keys(vals).sort(), conflict:Object.keys(vals).length > 1, need:need };
+}
+
+/* ---------------------------------------------------------------- RAFT：提交与选举（L16 5.4–5.5，L17 3.2） */
+/** logs: 每个节点一个任期数组（下标 0 = 日志索引 1）；leader: 节点序号；term: 当前任期 */
+function raftAnalyze(logs, leader, term){
+  var N = logs.length, maj = Math.floor(N/2) + 1, L = logs[leader];
+  var fol = N - 1, folMaj = Math.floor(fol/2) + 1;
+  var rows = [];
+  for (var i = 0; i < L.length; i++){
+    var holders = [], fh = [];
+    for (var s = 0; s < N; s++) if (logs[s].length > i && logs[s][i] === L[i]){ holders.push(s); if (s !== leader) fh.push(s); }
+    rows.push({ idx:i+1, term:L[i], count:holders.length, holders:holders, folCount:fh.length,
+                cur: L[i] === term, byCount: L[i] === term && holders.length >= maj });
+  }
+  var commit = 0, naive = 0, literal = 0;
+  rows.forEach(function(r){
+    if (r.byCount) commit = r.idx;
+    if (r.count >= maj) naive = r.idx;
+    if (r.cur && r.folCount >= folMaj) literal = r.idx;
+  });
+  rows.forEach(function(r){ r.committed = r.idx <= commit; });
+  return { N:N, maj:maj, folMaj:folMaj, rows:rows, commit:commit, naive:naive, literal:literal };
+}
+function lastOf(log){ return { t: log.length ? log[log.length-1] : 0, i: log.length }; }
+/** voter 是否投给 cand（选举限制：cand 的日志不比 voter 旧） */
+function upToDate(cand, voter){ var a = lastOf(cand), b = lastOf(voter); return a.t > b.t || (a.t === b.t && a.i >= b.i); }
+/** leader 崩溃后，其余每个节点参选的得票 */
+function raftElection(logs, leader, commitIdx, naiveIdx){
+  var N = logs.length, maj = Math.floor(N/2) + 1, L = logs[leader], out = [];
+  for (var c = 0; c < N; c++){
+    if (c === leader) continue;
+    var yes = [c], no = [];
+    for (var v = 0; v < N; v++){
+      if (v === c || v === leader) continue;
+      (upToDate(logs[c], logs[v]) ? yes : no).push(v);
+    }
+    var holds = function(k){ for (var i = 0; i < k; i++) if (!(logs[c].length > i && logs[c][i] === L[i])) return false; return true; };
+    out.push({ cand:c, last:lastOf(logs[c]), yes:yes, no:no, votes:yes.length, wins: yes.length >= maj,
+               holdsCommit: holds(commitIdx), holdsNaive: holds(naiveIdx) });
+  }
+  return { maj:maj, cands:out };
+}
+/** "1 1 2 3" → [1,1,2,3]；空串 → []；非法返回 null */
+function parseTerms(s){
+  s = String(s).trim(); if (s === '') return [];
+  var p = s.split(/[\s,，]+/), r = [];
+  for (var i = 0; i < p.length; i++){ if (!/^\d+$/.test(p[i])) return null; r.push(+p[i]); }
+  for (var j = 1; j < r.length; j++) if (r[j] < r[j-1]) return null;   // 同一份日志里任期只增不减
+  return r;
+}
+
+/* ---------------------------------------------------------------- PBFT 消息计数（L16 6.4、6.7） */
+function pbftCount(N){
+  var f = Math.floor((N-1)/3);
+  var c = { request:1, preprepare:N-1, prepare:(N-1)*(N-1), commit:N*(N-1), reply:N };
+  c.total = c.preprepare + c.prepare + c.commit + c.reply;          // 不计 request
+  c.replicaOnly = c.total - c.reply;                                // 再不计 reply
+  return { N:N, f:f, quorum:2*f+1, clientNeed:f+1, c:c,
+           formula: N*(2*N-1), formula2: 2*N*(N-1), raft: 2*(N-1) };
+}
+
+
+/* ===================== L16 配图（全部由脚本现画成内联 SVG） =====================
+   中性线条 currentColor + stroke-opacity；强调色硬编码 #2F6F8F（文字用 currentColor，
+   暗色下 #2F6F8F 的文字对比不够，做法同 L4）；其余语义色开页时从 CSS 变量读一次。 */
+
+var AC = '#2F6F8F';
+var CSSV = getComputedStyle(document.documentElement);
+function cssv(n, fb){ var v = (CSSV.getPropertyValue(n) || '').trim(); return v || fb; }
+var COL = { acc:AC, ok:cssv('--ok','#3F8A63'), warn:cssv('--warn','#B4534B'), exam:cssv('--exam','#9A6B2F'),
+            vio:cssv('--vio','#6B4FA0'), mut:'currentColor' };
+function tcol(k){ return (!k || k === 'acc' || k === 'mut') ? 'currentColor' : COL[k]; }
+function $(id){ return document.getElementById(id); }
+function svgEl(tag, attrs){
+  var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if (attrs) for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgRoot(W, H, label){
+  var s = svgEl('svg', { viewBox:'0 0 ' + W + ' ' + H, role:'img', 'aria-label':label });
+  s.style.display = 'block'; s.style.width = '100%'; s.style.height = 'auto';
+  return s;
+}
+/** 多行文字：t 里用 \n 分行 */
+function sText(g, x, y, t, o){
+  o = o || {};
+  var e = svgEl('text', { x:x, y:y, fill:o.fill || tcol(o.c), 'font-size':o.size || 12.5, 'text-anchor':o.anchor || 'middle' });
+  if (o.weight) e.setAttribute('font-weight', o.weight);
+  if (o.op !== undefined) e.setAttribute('fill-opacity', o.op);
+  if (o.halo) e.setAttribute('class', 'halo');
+  if (o.mono) e.setAttribute('font-family', 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace');
+  var lines = String(t).split('\n');
+  if (lines.length === 1) e.textContent = t;
+  else lines.forEach(function(l, i){ var ts = svgEl('tspan', { x:x, dy: i ? '1.25em' : 0 }); ts.textContent = l; e.appendChild(ts); });
+  g.appendChild(e); return e;
+}
+function sRect(g, x, y, w, h, o){
+  o = o || {};
+  var e = svgEl('rect', { x:x, y:y, width:w, height:h, rx:o.rx === undefined ? 6 : o.rx,
+    fill:o.fill || 'currentColor', 'fill-opacity':o.fop === undefined ? .04 : o.fop,
+    stroke:o.stroke || 'currentColor', 'stroke-opacity':o.sop === undefined ? .35 : o.sop, 'stroke-width':o.sw || 1.2 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  g.appendChild(e); return e;
+}
+function sPath(g, d, o){
+  o = o || {};
+  var e = svgEl('path', { d:d, fill:'none', stroke:o.stroke || 'currentColor', 'stroke-opacity':o.sop === undefined ? .6 : o.sop, 'stroke-width':o.sw || 1.4 });
+  if (o.marker) e.setAttribute('marker-end', o.marker);
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  g.appendChild(e); return e;
+}
+var MK_N = 0;
+/** 每张图各建一套箭头标记（id 不能重复） */
+function markers(svg){
+  var pre = 'mk' + (MK_N++), defs = svgEl('defs'), ids = {};
+  Object.keys(COL).forEach(function(k){
+    var mk = svgEl('marker', { id:pre + k, markerWidth:9, markerHeight:9, refX:8, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+    mk.appendChild(svgEl('path', { d:'M0,0 L8,3 L0,6 z', fill:COL[k], 'fill-opacity': k === 'mut' ? .6 : 1 }));
+    defs.appendChild(mk); ids[k] = 'url(#' + pre + k + ')';
+  });
+  svg.appendChild(defs); return ids;
+}
+function cross(g, x, y, c, r){ r = r || 6; sPath(g, 'M' + (x-r) + ',' + (y-r) + ' L' + (x+r) + ',' + (y+r) + ' M' + (x+r) + ',' + (y-r) + ' L' + (x-r) + ',' + (y+r), { stroke:COL[c || 'warn'], sop:1, sw:2 }); }
+function star(g, x, y, c, r){
+  r = r || 9; var p = [];
+  for (var i = 0; i < 10; i++){ var a = -Math.PI/2 + i*Math.PI/5, rr = i % 2 ? r*.45 : r; p.push((x + rr*Math.cos(a)).toFixed(1) + ',' + (y + rr*Math.sin(a)).toFixed(1)); }
+  g.appendChild(svgEl('polygon', { points:p.join(' '), fill:COL[c || 'warn'] }));
+}
+function dot(g, x, y, c, r){ g.appendChild(svgEl('circle', { cx:x, cy:y, r:r || 5, fill:COL[c] })); }
+function mount(id, svg){ var el = $(id); el.innerHTML = ''; el.appendChild(svg); return el; }
+
+/* ---------------------------------------------------------------- 通用时序图 */
+function drawSeq(id, S){
+  var svg = svgRoot(S.W, S.H, S.label), mk = markers(svg), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var ly = function(k){ var a = Math.floor(k), b = Math.min(a + 1, S.lanes.length - 1), t = k - a; return S.lanes[a][1]*(1-t) + S.lanes[b][1]*t; };
+  // 表头
+  var hy = S.head.y, hh = S.head.h;
+  S.head.cells.forEach(function(c){
+    sRect(g, c[0], hy, c[1] - c[0], hh, { rx:0, fill:AC, fop:.07, stroke:'currentColor', sop:.3 });
+    sText(g, (c[0] + c[1])/2, hy + (c[3] ? 19 : hh/2 + 5), c[2], { weight:600, size:S.headSize || 13 });
+    if (c[3]) sText(g, (c[0] + c[1])/2, hy + 37, c[3], { size:11, op:.75 });
+  });
+  // 阶段分隔虚线
+  var vb = S.vb || (S.lanes[S.lanes.length-1][1] + 26);
+  (S.vlines || []).forEach(function(x){ sPath(g, 'M' + x + ',' + (hy + hh) + ' V' + vb, { sop:.35, sw:1, dash:'4 4' }); });
+  // 泳道
+  var crashed = {}; (S.crash || []).forEach(function(c){ crashed[c[0]] = c[1]; });
+  S.lanes.forEach(function(l, i){
+    sText(g, S.labelX, l[1] + 4.5, l[0], { anchor:'end', weight:600, size:13 });
+    if (crashed[i] !== undefined){
+      sPath(g, 'M' + S.x0 + ',' + l[1] + ' H' + crashed[i], { sop:.8, sw:1.3 });
+      sPath(g, 'M' + crashed[i] + ',' + l[1] + ' H' + S.x1, { sop:.35, sw:1.2, dash:'2 4' });
+      cross(g, crashed[i], l[1], 'warn', 6);
+    } else sPath(g, 'M' + S.x0 + ',' + l[1] + ' H' + S.x1, { sop:.8, sw:1.3, marker:mk.mut });
+  });
+  // 消息
+  var cnt = {};
+  (S.msgs || []).forEach(function(m){
+    var y0 = ly(m[0]), y1 = ly(m[2]), o = m[5] || {}, k = m[4];
+    cnt[k] = (cnt[k] || 0) + (o.lost ? 0 : 1);
+    var d = 'M' + m[1] + ',' + y0 + ' L' + m[3] + ',' + (y1 + (o.lost ? 0 : (y1 > y0 ? -2 : 2)));
+    sPath(g, d, { stroke:COL[k], sop:k === 'mut' ? .55 : .95, sw:1.5, dash:o.dash ? '6 4' : (o.dot ? '2 3' : null), marker:o.lost ? null : mk[k] });
+    if (o.lost) cross(g, m[3], y1, 'warn', 6);
+  });
+  (S.marks || []).forEach(function(m){ var y = ly(m[0]); if (m[2] === 'star') star(g, m[1], y, m[3], 10); else dot(g, m[1], y, m[3], 5); });
+  (S.txt || []).forEach(function(t){ sText(g, t[0], t[1], t[2], Object.assign({ c:t[3], size:11.5, halo:true }, t[4] || {})); });
+  mount(id, svg);
+  return cnt;
+}
+
+/* ---------------------------------------------------------------- 图 1：复制状态机（课件 p60 重画） */
+function drawSMR(id){
+  var W = 780, H = 430, svg = svgRoot(W, H, '复制状态机的结构：三个节点各有共识模块、日志、状态机；客户端把命令发给 Node 1（leader），leader 用 AppendEntries RPC 复制给另外两个节点'),
+      mk = markers(svg), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var nodes = [[30, 'Node 1 · Leader', true], [290, 'Node 2 · Follower'], [540, 'Node 3 · Follower']], nw = 210;
+  var log = [['1','cmp'],['1','add'],['2','mov'],['3','div']];
+  // 客户端
+  sRect(g, 40, 14, 130, 36, { rx:12, fill:COL.exam, fop:.12, stroke:COL.exam, sop:.8 });
+  sText(g, 105, 37, '客户端 Client', { size:13.5 });
+  nodes.forEach(function(n){
+    var x = n[0], cx = x + nw/2;
+    sRect(g, x, 92, nw, 326, { rx:14, fill:'none', stroke:n[2] ? AC : 'currentColor', sop:n[2] ? .9 : .35, sw:n[2] ? 2.4 : 1.2 });
+    sText(g, cx, 116, n[1], { size:14 });
+    sRect(g, cx - 72, 136, 144, 44, { rx:14, fop:.03, sop:.7 });
+    sText(g, cx, 154, '共识模块', { size:12.5 }); sText(g, cx, 171, 'consensus module', { size:12 });
+    sPath(g, 'M' + cx + ',180 V232', { marker:mk.mut });
+    sText(g, cx + 6, 210, 'Append to log', { anchor:'start', size:11.5, halo:true });
+    var cw = 44, lx = cx - 2*cw;
+    log.forEach(function(e, i){
+      sRect(g, lx + i*cw, 234, cw, 50, { rx:0, fop:.03, sop:.55 });
+      sPath(g, 'M' + (lx + i*cw) + ',259 h' + cw, { sop:.35, sw:1 });
+      sText(g, lx + i*cw + cw/2, 252, e[0], { size:12.5 }); sText(g, lx + i*cw + cw/2, 277, e[1], { size:12.5 });
+    });
+    sPath(g, 'M' + cx + ',284 V352', { marker:mk.mut });
+    sText(g, cx + 6, 312, '已提交的条目', { anchor:'start', size:11.5, halo:true });
+    sText(g, cx + 6, 328, '按序执行', { anchor:'start', size:11.5, halo:true });
+    g.appendChild(svgEl('ellipse', { cx:cx, cy:384, rx:78, ry:26, fill:'currentColor', 'fill-opacity':.03, stroke:'currentColor', 'stroke-opacity':.6, 'stroke-width':1.2 }));
+    sText(g, cx, 380, '状态机', { size:12.5 }); sText(g, cx, 397, 'state machine', { size:12 });
+  });
+  var c1 = 30 + nw/2;
+  sPath(g, 'M60,50 C40,90 90,120 ' + (c1 - 20) + ',134', { stroke:COL.exam, sop:.95, sw:1.8, marker:mk.exam });
+  sPath(g, 'M' + (c1 - 4) + ',136 C' + (c1 - 4) + ',100 125,80 120,53', { stroke:COL.exam, sop:.95, sw:1.8, marker:mk.exam });
+  sText(g, 22, 82, '① Command', { anchor:'start', c:'exam', size:12, halo:true });
+  sText(g, 128, 82, '③ Reply', { anchor:'start', c:'exam', size:12, halo:true });
+  sPath(g, 'M' + (c1 + 72) + ',160 H' + (290 + nw/2 - 74), { stroke:AC, sop:.95, sw:1.8, marker:mk.acc });
+  sText(g, 268, 152, '② AppendEntries RPC', { size:11.5, halo:true });
+  sPath(g, 'M' + (c1 + 40) + ',136 C300,30 500,30 571,150', { stroke:AC, sop:.95, sw:1.8, marker:mk.acc });
+  sText(g, 380, 56, '② AppendEntries RPC', { size:11.5, halo:true });
+  mount(id, svg);
+}
+
+/* ---------------------------------------------------------------- 图 2：法定人数交集（两块） */
+function quorumPanel(N, q, faulty, title, note){
+  var W = 430, H = 270, svg = svgRoot(W, H, title), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var bw = Math.min(78, (W - 40 - (N-1)*10)/N), gap = 10, tot = N*bw + (N-1)*gap, x0 = (W - tot)/2, y0 = 92, bh = 62;
+  var X = function(i){ return x0 + i*(bw + gap); };
+  sText(g, W/2, 22, title, { weight:600, size:13.5 });
+  for (var i = 0; i < N; i++){
+    var bad = faulty.indexOf(i) >= 0;
+    sRect(g, X(i), y0, bw, bh, { rx:4, fill:bad ? COL.warn : AC, fop:.14, stroke:bad ? COL.warn : AC, sop:.9, sw:1.6 });
+    sText(g, X(i) + bw/2, y0 + bh/2 + (bad ? -2 : 5), String(i + 1), { size:13 });
+    if (bad) sText(g, X(i) + bw/2, y0 + bh/2 + 15, '故障', { size:11.5, c:'warn' });
+  }
+  // Q1：前 q 个（上方）；Q2：后 q 个（下方）
+  var a = X(0), b = X(q-1) + bw, c = X(N-q), d = X(N-1) + bw;
+  sPath(g, 'M' + a + ',' + (y0 - 8) + ' V' + (y0 - 24) + ' H' + b + ' V' + (y0 - 8), { stroke:COL.ok, sop:1, sw:2 });
+  sText(g, (a + b)/2, y0 - 32, '法定人数 Q₁（' + q + ' 个 = N − f）', { c:'ok', size:11.5 });
+  sPath(g, 'M' + c + ',' + (y0 + bh + 8) + ' V' + (y0 + bh + 24) + ' H' + d + ' V' + (y0 + bh + 8), { stroke:COL.vio, sop:1, sw:2 });
+  sText(g, (c + d)/2, y0 + bh + 41, '法定人数 Q₂（' + q + ' 个 = N − f）', { c:'vio', size:11.5 });
+  sRect(g, c - 6, y0 - 6, b - c + 12, bh + 12, { rx:3, fill:'none', stroke:COL.exam, sop:1, sw:2.2, dash:'6 4' });
+  sText(g, W/2, H - 34, note[0], { c:'exam', size:11.5 });
+  sText(g, W/2, H - 16, note[1], { c:'exam', size:11.5 });
+  return svg;
+}
+function drawQuorumFig(id){
+  var el = $(id); el.innerHTML = ''; el.className = 'duo';
+  el.appendChild(quorumPanel(3, 2, [], '(a) 崩溃故障：N = 2f+1 = 3，f = 1', ['交集 = 2(N−f)−N = 1 个节点（节点 2）', '崩溃节点不说谎 → 交集非空就够']));
+  el.appendChild(quorumPanel(4, 3, [1], '(b) 拜占庭故障：N = 3f+1 = 4，f = 1', ['交集 = 2(N−f)−N = 2 个节点（节点 2、3）', '扣掉至多 f=1 个故障，仍剩 ≥1 个诚实节点']));
+}
+
+/* ---------------------------------------------------------------- 图 3：只差一个节点就失败 */
+function circNode(g, x, y, name, sub, bad){
+  g.appendChild(svgEl('circle', { cx:x, cy:y, r:34, fill:bad ? COL.warn : AC, 'fill-opacity':.14, stroke:bad ? COL.warn : AC, 'stroke-opacity':.9, 'stroke-width':2 }));
+  sText(g, x, y - 3, name, { size:13.5 }); sText(g, x, y + 14, sub, { size:12, c:bad ? 'warn' : null });
+}
+function drawCounterFig(id){
+  var el = $(id); el.innerHTML = ''; el.className = 'duo';
+  // (a) N = 2f
+  var W = 430, H = 300, s1 = svgRoot(W, H, '崩溃模型 N = 2f = 2：网络分区，A、B 各凭自己一票决定不同的值'), g = svgEl('g', { 'font-family':'inherit' }); s1.appendChild(g);
+  sText(g, W/2, 22, '(a) 崩溃模型只有 N = 2f = 2 台（f = 1）', { weight:600, size:13.5 });
+  sText(g, W/2, 50, '网络分区 / 消息无限延迟', { c:'warn', size:11.5 });
+  sPath(g, 'M' + W/2 + ',62 V214', { stroke:COL.warn, sop:1, sw:2.2, dash:'7 5' });
+  circNode(g, 105, 120, 'A', '诚实'); circNode(g, 325, 120, 'B', '诚实');
+  sText(g, 105, 182, '只听得到自己\n= N − f = 1 票\n→ 决定 x', { c:'ok', size:11.5 });
+  sText(g, 325, 182, '只听得到自己\n= N − f = 1 票\n→ 决定 y', { c:'vio', size:11.5 });
+  sText(g, W/2, 256, 'A 分不清「B 崩溃了」还是「B 只是慢」，只能按 N − f = 1 票往下走；', { size:11 });
+  sText(g, W/2, 274, 'B 同理。两个法定人数 {A}、{B} 不相交 → 两个决定', { size:11 });
+  el.appendChild(s1);
+  // (b) N = 3f
+  var s2 = svgRoot(W, H, '拜占庭模型 N = 3f = 3：故障节点 C 对 A、B 说两套话，两个法定人数只交于 C'), mk = markers(s2), h = svgEl('g', { 'font-family':'inherit' }); s2.appendChild(h);
+  sText(h, W/2, 22, '(b) 拜占庭模型只有 N = 3f = 3 台（f = 1）', { weight:600, size:13.5 });
+  sText(h, 82, 48, '{A, C} 两票 x\n= N − f = 2 → 决定 x', { c:'ok', size:11.5 });
+  sText(h, 348, 48, '{B, C} 两票 y\n= N − f = 2 → 决定 y', { c:'vio', size:11.5 });
+  sText(h, W/2, 62, 'A、B 之间的消息被拖延', { size:11, op:.7 });
+  sPath(h, 'M' + W/2 + ',72 V170', { sop:.45, sw:1.2, dash:'2 4' });
+  circNode(h, 82, 120, 'A', '诚实'); circNode(h, 348, 120, 'B', '诚实'); circNode(h, W/2, 205, 'C', '故障', true);
+  sPath(h, 'M' + (W/2 - 26) + ',184 L108,144', { stroke:COL.warn, sop:1, sw:1.8, marker:mk.warn });
+  sPath(h, 'M' + (W/2 + 26) + ',184 L322,144', { stroke:COL.warn, sop:1, sw:1.8, marker:mk.warn });
+  sText(h, 118, 186, '对 A 说「我投 x」', { c:'warn', size:11.5, halo:true });
+  sText(h, 312, 186, '对 B 说「我投 y」', { c:'warn', size:11.5, halo:true });
+  sText(h, W/2, 262, '两个法定人数 {A, C}、{B, C} 只交于故障节点 C；', { size:11 });
+  sText(h, W/2, 280, '两个诚实节点决定了不同的值 → 安全性被破坏', { size:11 });
+  el.appendChild(s2);
+}
+
+/* ---------------------------------------------------------------- 图 4：Paxos 正常流程 */
+function drawPaxosFig(id){
+  drawSeq(id, { W:960, H:500, label:'Paxos 一次正常运行的时序图：Acceptor 3 崩溃，proposer 在 3 个 acceptor 中等到多数 2 个就往下走',
+    labelX:104, x0:114, x1:948,
+    head:{ y:8, h:46, cells:[[114,184,'请求'],[184,470,'Phase 1：prepare','proposer 用编号 n 先「占位」'],[470,948,'Phase 2：accept（learn 属于这一阶段）','把值写进多数派，并通知 learner']] },
+    vlines:[184,470],
+    lanes:[['Client',88],['Proposer',168],['Acceptor 1',222],['Acceptor 2',276],['Acceptor 3',330],['Learner 1',384],['Learner 2',438]],
+    crash:[[4,250]],
+    msgs:[[0,126,1,172,'vio'],
+      [1,204,2,244,'acc'],[1,206,3,262,'acc'],[1,222,4,300,'acc',{dash:1}],
+      [2,288,1,330,'ok'],[3,300,1,350,'ok'],
+      [1,526,2,566,'acc'],[1,528,3,584,'acc'],[1,544,4,626,'acc',{dash:1}],
+      [2,596,1,640,'ok'],[3,612,1,656,'ok'],
+      [2,596,5,700,'vio'],[2,598,6,718,'vio'],[3,612,5,724,'vio'],[3,614,6,744,'vio']],
+    marks:[[1,350,'dot','exam'],[3,584,'star','warn'],[5,724,'dot','vio'],[6,744,'dot','vio']],
+    txt:[[146,140,'request(v)','vio',{anchor:'end'}],[198,212,'prepare(n)','acc',{anchor:'end'}],
+      [350,118,'收齐 f+1=2 个 promise（3 个\nacceptor 中的多数）就往下走','exam'],
+      [372,204,'promise(n,\n已接受的提案/无)','ok',{anchor:'start'}],
+      [400,256,'acceptor 记下 n，\n承诺不理睬 <n 的请求','ok'],
+      [270,356,'Acceptor 3 崩溃（f=1）','warn'],
+      [720,118,'选值：promise 带回过已接受的提案 → 取编号最高的那个值；\n都没有 → 用客户端给的 v','exam'],
+      [592,292,'accept(n, v)','acc',{anchor:'end'}],[668,204,'accepted(n, v)','ok',{anchor:'start'}],
+      [770,300,'acceptor：没对比 n 大的编号作过承诺 →\n接受 (n, v)、承诺提到 n，发出 accepted','ok'],
+      [480,352,'★ 第 2 个 acceptor 接受的瞬间，\nv 已被决定（多数派已接受）','warn'],
+      [840,360,'accepted(n, v) → 所有 learner','vio'],
+      [850,410,'learner 收到 f+1=2 个 acceptor 的\naccepted(n, v) → 得知 v 已被决定','vio'],
+      [940,488,'时间 →',null,{anchor:'end',size:11,halo:false}]] });
+}
+
+/* ---------------------------------------------------------------- 图 5：Paxos 两个提案者 */
+function drawPaxos2Fig(id){
+  var c = [70,216,362,508,654,800,946];
+  drawSeq(id, { W:960, H:420, label:'Paxos 两个提案者的例子：P1 的 x 只拿到 1 票，P2 的 y 被 A2、A3 决定，P1 重试时只能沿用 y',
+    labelX:56, x0:66, x1:950, headSize:12.5,
+    head:{ y:8, h:40, cells:[[c[0],c[1],'① P1 准备 n=1'],[c[1],c[2],'② P1 发 (1,x)，两条丢失'],[c[2],c[3],'③ P2 准备 n=2'],[c[3],c[4],'④ P2 发 (2,y)：y 已决定'],[c[4],c[5],'⑤ P1 超时，改用 n=3'],[c[5],c[6],'⑥ P1 只能发 (3,y)']] },
+    vlines:[216,362,508,654,800], vb:380,
+    lanes:[['P1',84],['A1',150],['A2',216],['A3',282],['P2',348]],
+    msgs:[[0,86,1,112,'acc'],[0,88,2,122,'acc'],[0,90,3,132,'acc'],
+      [1,128,0,156,'ok'],[2,140,0,168,'ok'],[3,152,0,180,'ok'],
+      [0,232,1,258,'acc'],[0,234,1.55,270,'acc',{lost:1}],[0,236,2.55,292,'acc',{lost:1}],
+      [4,378,2,412,'acc'],[4,380,3,400,'acc'],[2,424,4,462,'ok'],[3,412,4,450,'ok'],
+      [4,522,2,566,'acc'],[4,524,3,548,'acc'],[2,578,4,622,'ok'],[3,562,4,608,'ok'],
+      [0,668,1,694,'acc'],[0,670,2,706,'acc'],[1,710,0,748,'ok'],[2,724,0,766,'ok'],
+      [0,814,1,840,'acc'],[0,816,2,854,'acc'],[1,856,0,894,'ok'],[2,870,0,912,'ok']],
+    marks:[[2,566,'star','warn'],[3,548,'star','warn']],
+    txt:[[143,304,'prepare(1)','acc'],[143,322,'promise(1, 无)','ok'],
+      [268,142,'A1 接受 (1,x)','ok',{anchor:'start'}],[289,322,'accept(1, x)','acc'],
+      [289,398,'x 只有 1 票，未决定',null,{op:.7}],
+      [376,372,'prepare(2)','acc',{anchor:'start'}],[452,196,'promise(2, 无)','ok'],
+      [540,374,'accept(2, y)','acc'],[616,374,'accepted(2, y)','ok'],
+      [581,186,'{A2, A3} 是多数派\n→ y 已被决定','warn'],
+      [727,240,'prepare(3)','acc'],
+      [727,262,'A1：promise(3, (1,x))\nA2：promise(3, (2,y))','ok'],
+      [727,316,'{A1, A2} 与 {A2, A3}\n交于 A2：A2 把 y 带回来','vio'],
+      [873,66,'编号 2 > 1 → 必须取 y','exam'],
+      [873,246,'accept(3, y)','acc'],[873,264,'accepted(3, y)','ok'],
+      [873,398,'决定仍是 y，没有被推翻','warn'],
+      [946,414,'时间 →',null,{anchor:'end',size:11,halo:false}]] });
+}
+
+/* ---------------------------------------------------------------- 图 6：RAFT 三种状态的转换（课件 p49） */
+function drawRaftStates(id){
+  var W = 900, H = 290, svg = svgRoot(W, H, 'RAFT 三种状态的转换：Follower 超时变 Candidate，Candidate 拿到多数票变 Leader，发现当前 leader 或更大任期退回 Follower'),
+      mk = markers(svg), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var F = [230, 160], Cd = [460, 160], L = [780, 160], r = 68;
+  [[F,'Follower'],[Cd,'Candidate'],[L,'Leader']].forEach(function(s){
+    g.appendChild(svgEl('circle', { cx:s[0][0], cy:s[0][1], r:r, fill:'currentColor', 'fill-opacity':.03, stroke:'currentColor', 'stroke-opacity':.7, 'stroke-width':1.4 }));
+    sText(g, s[0][0], s[0][1] + 5, s[1], { size:14 });
+  });
+  var o = { sop:.75, sw:1.3, marker:mk.mut }, t = { size:12 };
+  sPath(g, 'M90,62 C110,120 120,150 158,165', o);  sText(g, 80, 50, 'Node starts up', t);
+  sPath(g, 'M250,94 C300,20 410,20 452,90', o);   sText(g, 345, 26, 'Timeout if no leader is discovered\nand new election starts', t);
+  sPath(g, 'M440,96 C420,52 500,52 478,94', o);   sText(g, 466, 20, 'On election timeout\nnew term starts and\ncandidate self votes', Object.assign({ anchor:'start' }, t));
+  sPath(g, 'M526,140 C600,30 700,40 760,92', o);  sText(g, 640, 30, 'Gather votes, if\nmajority received', Object.assign({ anchor:'start' }, t));
+  sPath(g, 'M430,220 C380,250 330,240 290,200', o); sText(g, 360, 196, 'Discovers\ncurrent leader or\nnew term', t);
+  sPath(g, 'M760,226 C620,290 360,290 238,229', o); sText(g, 520, 262, 'If a leader with higher term number\ndiscovered, the leader steps down', t);
+  mount(id, svg);
+}
+
+/* ---------------------------------------------------------------- 图 7：RAFT 选举流程（课件 p54） */
+function drawRaftFlow(id){
+  var W = 640, H = 520, svg = svgRoot(W, H, 'RAFT candidate 一侧的选举流程图'),
+      mk = markers(svg), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var bx = function(x, y, w, h, t){ sRect(g, x, y, w, h, { rx:0, sop:.65 }); sText(g, x + w/2, y + h/2 + (t.indexOf('\n') >= 0 ? -3 : 5), t, { size:12.5 }); };
+  bx(250, 10, 230, 50, 'Transition to candidate state');
+  bx(250, 92, 230, 56, 'Increment current term number\nSelf vote');
+  bx(250, 180, 230, 56, 'Collect votes by sending\nRequestVote RPC to others');
+  g.appendChild(svgEl('polygon', { points:'365,270 455,345 365,420 275,345', fill:'currentColor', 'fill-opacity':.03, stroke:'currentColor', 'stroke-opacity':.65, 'stroke-width':1.2 }));
+  sText(g, 365, 330, 'If votes\nreceived\nfrom\nmajority', { size:12 });
+  bx(20, 318, 180, 54, 'Become leader\nSend heartbeats');
+  bx(250, 456, 230, 50, 'Become follower');
+  var o = { sop:.75, sw:1.3, marker:mk.mut };
+  sPath(g, 'M365,60 V90', o); sPath(g, 'M365,148 V178', o); sPath(g, 'M365,236 V268', o);
+  sPath(g, 'M275,345 H202', o); sText(g, 238, 337, 'Yes', { size:12 });
+  sPath(g, 'M365,420 V454', o); sText(g, 372, 441, 'Received heartbeat from a leader', { anchor:'start', size:12 });
+  sPath(g, 'M455,345 H520 V120 H482', o); sText(g, 528, 230, 'Timeout', { anchor:'start', size:12 });
+  mount(id, svg);
+}
+
+/* ---------------------------------------------------------------- 图 8：RAFT 选主过程 */
+function drawRaftElect(id){
+  var S = { W:960, H:440, label:'RAFT 一次换届：S1 崩溃，S3 的选举计时器最先超时，凭 S2、S4 的票当选任期 2 的 leader',
+    labelX:52, x0:62, x1:950,
+    head:{ y:8, h:46, cells:[[62,330,'term 1：S1 是 leader','定期发心跳（空的 AppendEntries）'],[330,500,'无 leader','各 follower 的选举计时器在走'],[500,760,'term 2：S3 竞选','RequestVote → 投票'],[760,950,'term 2：S3 是 leader','发心跳，压住其他人的计时器']] },
+    vlines:[330,500,760], vb:410,
+    lanes:[['S1',92],['S2',160],['S3',228],['S4',296],['S5',364]],
+    crash:[[0,300]],
+    msgs:[], marks:[[2,490,'dot','exam'],[2,612,'star','ok']],
+    txt:[[300,78,'S1 崩溃','warn'],[120,124,'heartbeat',null,{op:.7}],
+      [440,194,'S3 超时 → 变 Candidate\nterm 1→2，先投自己 1 票','exam'],
+      [640,118,'S2、S4：本 term 未投过票，且 S3 的日志\n不比自己旧 → 把票投给 S3','ok'],
+      [688,252,'自己 + S2 + S4 = 3 票\n≥ 5 台的多数 → 当选','ok',{anchor:'start'}],
+      [400,330,'RequestVote(term=2, 最后一条日志的 term 与 index)',null],
+      [690,330,'S5 的票来晚了，已不需要',null,{anchor:'start',op:.7}],
+      [855,78,'heartbeat（term=2）',null,{op:.7}],
+      [946,400,'收到心跳的 follower 重置自己的计时器，不再参选',null,{anchor:'end',op:.75,size:11}],
+      [300,400,'橙条 = 各自随机长度的选举超时（election timeout）：S3 最短，最先超时','exam',{size:11}],
+      [946,434,'时间 →',null,{anchor:'end',size:11,halo:false}]] };
+  [80, 190].forEach(function(x){ for (var k = 1; k <= 4; k++) S.msgs.push([0, x, k, x + 14 + 8*k, 'mut']); });
+  S.msgs.push([2,520,0,548,'acc',{dash:1}],[2,520,1,546,'acc'],[2,520,3,548,'acc'],[2,522,4,572,'acc'],
+              [1,566,2,610,'ok'],[3,576,2,612,'ok'],[4,592,2,640,'ok',{dot:1}]);
+  [790, 880].forEach(function(x){ [0,1,3,4].forEach(function(k){ S.msgs.push([2, x, k, x + 24, 'mut', k === 0 ? {dash:1} : null]); }); });
+  drawSeq(id, S);
+  // 选举超时条（S2–S5）
+  var svg = $(id).querySelector('svg'), g = svg.querySelector('g');
+  [[1,240,560],[2,240,486],[3,240,604],[4,240,590]].forEach(function(b){
+    var y = S.lanes[b[0]][1] + 13;
+    sPath(g, 'M' + b[1] + ',' + y + ' H' + b[2], { stroke:COL.exam, sop:.55, sw:4 });
+  });
+}
+
+/* ---------------------------------------------------------------- 图 9：RAFT 日志复制过程 */
+function drawRaftRepl(id){
+  drawSeq(id, { W:960, H:500, label:'RAFT 日志复制：S1 把 index 7 复制给 follower，自己加 S2、S3 共 3 台达到多数即提交，执行后回复客户端，再在下一次 AppendEntries 里告知提交位置',
+    labelX:92, x0:102, x1:950,
+    head:{ y:8, h:46, cells:[[102,190,'① 请求'],[190,430,'② 追加并复制','AppendEntries RPC'],[430,680,'③ 多数确认 → 提交','执行，回复客户端'],[680,950,'④ 通知提交','下一次 AppendEntries 带上 leaderCommit']] },
+    vlines:[190,430,680], vb:470,
+    lanes:[['Client',88],['S1 Leader',152],['S2',216],['S3',280],['S4',344],['S5',408]],
+    crash:[[5,262]],
+    msgs:[[0,116,1,160,'vio'],
+      [1,212,2,246,'acc'],[1,214,3,262,'acc'],[1,216,4,300,'acc'],[1,218,5,316,'acc',{dash:1}],
+      [2,262,1,300,'ok'],[3,278,1,318,'ok'],[4,322,1,420,'ok',{dot:1}],
+      [1,560,0,612,'vio'],
+      [1,712,2,744,'mut'],[1,714,3,762,'mut'],[1,716,4,780,'mut'],[1,718,5,798,'mut',{dash:1}]],
+    marks:[[1,318,'star','warn']],
+    txt:[[140,112,'command','vio'],[250,112,'写进自己的日志：\n(term 3, index 7, inc)','exam'],
+      [380,378,'AppendEntries(term 3,\nprev = (3, 6), entry 7)','acc'],
+      [322,232,'success','ok',{anchor:'start'}],
+      [520,112,'leader 把 inc 交给\n自己的状态机执行','exam'],[600,112,'result','vio',{anchor:'start'}],
+      [552,250,'★ 自己 + S2 + S3 = 3 台 ≥ 5 台的多数\n→ index 7 已提交（committed）','warn'],
+      [440,336,'S4 很慢，确认来得晚',null,{anchor:'start',op:.7}],
+      [300,434,'S5 暂时失联','warn'],
+      [946,198,'AppendEntries(leaderCommit = 7)，\n可以是心跳',null,{anchor:'end',op:.75}],
+      [946,316,'follower 得知 index 7 已提交\n→ 按顺序交给本地状态机执行','ok',{anchor:'end'}],
+      [946,440,'S5 恢复后，leader 会不断重发，\n直到它的日志追上',null,{anchor:'end',op:.75}],
+      [946,494,'时间 →',null,{anchor:'end',size:11,halo:false}]] });
+}
+
+/* ---------------------------------------------------------------- 图 10：RAFT 五节点日志（课件 p59） */
+var P59 = { names:['Leader','Follower 1','Follower 2','Follower 3','Follower 4'],
+  cmd:['cmp','add','mov','div','div','rep','inc'], terms:[1,1,2,3,3,3,3], len:[7,4,7,2,6] };
+function drawRaftLog(id){
+  var W = 760, H = 426, svg = svgRoot(W, H, '课件 p59 的五节点日志：每格上为任期号、下为命令；索引 1–6 复制到了多数服务器'),
+      mk = markers(svg), g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var x0 = 140, cw = 66, ch = 46, y0 = 70, gap = 12;
+  sText(g, x0 + 3.5*cw, 18, 'Log index', { size:13 });
+  sPath(g, 'M' + (x0 + 8) + ',44 V34 Q' + (x0 + 8) + ',28 ' + (x0 + 20) + ',28 H' + (x0 + 3.5*cw - 8) + ' L' + (x0 + 3.5*cw) + ',22 L' + (x0 + 3.5*cw + 8) + ',28 H' + (x0 + 7*cw - 20) + ' Q' + (x0 + 7*cw - 8) + ',28 ' + (x0 + 7*cw - 8) + ',34 V44', { sop:.5, sw:1 });
+  for (var i = 0; i < 7; i++) sText(g, x0 + i*cw + cw/2, 60, String(i + 1), { size:13 });
+  P59.names.forEach(function(n, r){
+    var y = y0 + r*(ch + gap);
+    sText(g, x0 - 14, y + ch/2 + 5, n, { anchor:'end', size:13 });
+    for (var i = 0; i < P59.len[r]; i++){
+      sRect(g, x0 + i*cw, y, cw, ch, { rx:0, fop:.03, sop:.6 });
+      sText(g, x0 + i*cw + cw/2, y + 19, String(P59.terms[i]), { size:13 });
+      sText(g, x0 + i*cw + cw/2, y + 37, P59.cmd[i], { size:13 });
+    }
+  });
+  var ex = x0 + 7*cw;
+  sPath(g, 'M' + (ex + 52) + ',' + (y0 + 15) + ' H' + (ex - 12), { sop:.7, sw:1.1, marker:mk.mut }); sText(g, ex + 56, y0 + 19, 'Term number', { anchor:'start', size:12 });
+  sPath(g, 'M' + (ex + 52) + ',' + (y0 + 34) + ' H' + (ex - 12), { sop:.7, sw:1.1, marker:mk.mut }); sText(g, ex + 56, y0 + 38, 'Command', { anchor:'start', size:12 });
+  var yb = y0 + 5*(ch + gap) + 4;
+  sPath(g, 'M' + (x0 + 6*cw - 4) + ',' + yb + ' H' + (x0 + 4), { sop:.7, sw:1.1, marker:mk.mut });
+  sPath(g, 'M' + (x0 + 4) + ',' + yb + ' H' + (x0 + 6*cw - 4), { sop:.7, sw:1.1, marker:mk.mut });
+  sText(g, x0 + 3*cw, yb + 20, 'Committed entries', { size:13 });
+  sText(g, x0 + 3*cw, yb + 38, 'Notice entries up to log index number 6\nare replicated on a majority of servers', { size:12 });
+  mount(id, svg);
+}
+
+/* ---------------------------------------------------------------- 图 11：PBFT 正常流程 */
+function drawPbftFig(id){
+  var lanes = [['Client',90],['副本 0（primary）',156],['副本 1（backup）',222],['副本 2（backup）',288],['副本 3（backup）',354]];
+  var msgs = [[0,146,1,190,'vio']], N = 4;
+  for (var k = 2; k <= N; k++) msgs.push([1, 254, k, 268 + 14*k, 'acc']);
+  for (var i = 1; i < N; i++) for (var j = 0; j < N; j++) if (j !== i) msgs.push([i + 1, 404 + 22*i, j + 1, 470 + 22*i + 4*j, 'ok']);
+  for (var i2 = 0; i2 < N; i2++) for (var j2 = 0; j2 < N; j2++) if (j2 !== i2) msgs.push([i2 + 1, 608 + 22*i2, j2 + 1, 672 + 22*i2 + 4*j2, 'warn']);
+  for (var r = 0; r < N; r++) msgs.push([r + 1, 818 + 16*r, 0, 858 + 18*r, 'vio']);
+  var cnt = drawSeq(id, { W:960, H:470, label:'PBFT 正常流程时序图（N = 4，f = 1）：request、pre-prepare、prepare、commit、reply 五段的消息',
+    labelX:128, x0:136, x1:950, headSize:12.5,
+    head:{ y:8, h:46, cells:[[136,234,'REQUEST','⟨REQUEST, o, t, c⟩'],[234,394,'PRE-PREPARE','⟨⟨PRE-PREPARE, v, n, d⟩, m⟩'],[394,600,'PREPARE','⟨PREPARE, v, n, d, i⟩'],[600,806,'COMMIT','⟨COMMIT, v, n, d, i⟩'],[806,950,'REPLY','⟨REPLY, v, t, c, i, r⟩']] },
+    vlines:[234,394,600,806], vb:400, lanes:lanes, msgs:msgs,
+    txt:[[878,72,'客户端等 f+1 = 2 个相同结果','vio'],
+      [314,126,'primary 给请求分配序号 n','exam'],
+      [497,126,'每个副本：pre-prepare + 2f = 2\n个匹配 prepare → prepared','ok'],
+      [703,126,'每个副本：2f+1 = 3 个匹配\ncommit → 执行','warn']] });
+  var g = $(id).querySelector('svg > g');
+  sText(g, 314, 394, '1 → ' + cnt.acc + ' 条（N−1）', { c:'acc', size:11.5 });
+  sText(g, 497, 386, '每个 backup → 其余 3 个副本\n共 ' + cnt.ok + ' 条（(N−1)²）', { c:'ok', size:11.5 });
+  sText(g, 703, 386, '每个副本 → 其余 3 个\n共 ' + cnt.warn + ' 条（N(N−1)）', { c:'warn', size:11.5 });
+  sText(g, 878, 394, (cnt.vio - 1) + ' 条（N）', { c:'vio', size:11.5 });
+  sText(g, 946, 440, 'N = 4，f = 1；不计 request 共 ' + (cnt.acc + cnt.ok + cnt.warn + cnt.vio - 1) + ' 条　　时间 →', { anchor:'end', size:11.5 });
+}
+
+/* ===================== L16 交互件：法定人数、Paxos 拿掉规则、PBFT 消息计数 =====================
+   数值全部由 consensus-core.js 现算。 */
+function errHTML(m){ return '<span class="bad">' + m + '</span>'; }
+function yes(b){ return b ? '<span class="good">✓</span>' : '<span class="bad">✗</span>'; }
+function nm(v){ return String(v).replace(/-/g, '−'); }
+
+/* ================================================================ 法定人数交集 */
+function qmSet(model, N, f){
+  $('qmModel').value = model; $('qmN').value = N; $('qmF').value = f; $('qmLock').checked = true; qmLockGo();
+}
+function qmStd(){ qmLockGo(); }
+/** 勾着「q 取 N − f」时 q 跟着 N、f 走 */
+function qmLockGo(){
+  var lock = $('qmLock').checked; $('qmQ').disabled = lock;
+  qmSync();
+  if (lock) $('qmQ').value = Math.max(1, +$('qmN').value - +$('qmF').value);
+  qmGo();
+}
+function qmSync(){ var N = +$('qmN').value; $('qmQ').max = N; if (+$('qmQ').value > N) $('qmQ').value = N; }
+function qmGo(){
+  qmSync();
+  var model = $('qmModel').value, N = +$('qmN').value, f = +$('qmF').value, q = +$('qmQ').value;
+  $('qmNv').textContent = N; $('qmFv').textContent = f; $('qmQv').textContent = q;
+  var r = quorumInfo(N, f, q, model), e = quorumEnum(N, q), byz = model === 'byz';
+  // 图
+  var W = Math.max(320, N*76 + 40), H = 150, svg = svgRoot(W, H, '两个最坏情形的法定人数与它们的交集');
+  svg.style.maxWidth = Math.round(W*1.2) + 'px'; svg.style.margin = '0 auto', g = svgEl('g', { 'font-family':'inherit' }); svg.appendChild(g);
+  var gap = 8, bw = Math.min(70, (W - 40 - (N-1)*gap)/N), tot = N*bw + (N-1)*gap, x0 = (W - tot)/2, y0 = 52, bh = 48;
+  var X = function(i){ return x0 + i*(bw + gap); };
+  var iL = N - q, iR = q - 1;               // 交集下标范围 [N−q, q−1]
+  var bad = {};
+  if (byz){ var left = f; for (var i = iL; i <= iR && left > 0; i++){ bad[i] = 1; left--; } for (var j = 0; j < N && left > 0; j++) if (!bad[j]){ bad[j] = 1; left--; } }
+  for (var k = 0; k < N; k++){
+    var b = bad[k];
+    sRect(g, X(k), y0, bw, bh, { rx:4, fill:b ? COL.warn : AC, fop:.14, stroke:b ? COL.warn : AC, sop:.9, sw:1.5 });
+    sText(g, X(k) + bw/2, y0 + bh/2 + (b ? -2 : 5), String(k + 1), { size:13 });
+    if (b) sText(g, X(k) + bw/2, y0 + bh/2 + 14, '故障', { size:11, c:'warn' });
+  }
+  var a = X(0), bb = X(q-1) + bw, c = X(N-q), d = X(N-1) + bw;
+  sPath(g, 'M' + a + ',' + (y0 - 6) + ' V' + (y0 - 20) + ' H' + bb + ' V' + (y0 - 6), { stroke:COL.ok, sop:1, sw:2 });
+  sText(g, (a + bb)/2, y0 - 27, 'Q₁（' + q + ' 个）', { c:'ok', size:12 });
+  sPath(g, 'M' + c + ',' + (y0 + bh + 6) + ' V' + (y0 + bh + 20) + ' H' + d + ' V' + (y0 + bh + 6), { stroke:COL.vio, sop:1, sw:2 });
+  sText(g, (c + d)/2, y0 + bh + 36, 'Q₂（' + q + ' 个）', { c:'vio', size:12 });
+  if (r.inter > 0) sRect(g, c - 4, y0 - 4, bb - c + 8, bh + 8, { rx:3, fill:'none', stroke:COL.exam, sop:1, sw:2, dash:'6 4' });
+  else sText(g, W - 12, y0 + bh + 36, 'Q₁、Q₂ 不相交', { anchor:'end', c:'warn', size:12 });
+  var fig = $('qmFig'); fig.innerHTML = ''; fig.appendChild(svg);
+  // 结果
+  var lines = [];
+  lines.push('<div><span class="k">1</span>约束 ①（活性）：<span class="m">q = ' + q + ' ≤ N − f = ' + nm(N - f) + '</span>？' + yes(r.live) +
+    (r.live ? '' : '　<span class="bad">' + f + ' 个故障节点集体沉默，就凑不够 ' + q + ' 个回应，协议永远卡住</span>') + '</div>');
+  lines.push('<div><span class="k">2</span>最坏交集 <span class="m">2q − N = ' + (2*q) + ' − ' + N + ' = ' + nm(2*q - N) + '</span>' + (2*q - N < 0 ? '，即 0' : '') +
+    '；枚举核对：<span class="m">C(' + N + ', ' + q + ') = ' + e.subsets + '</span> 个 quorum 两两配对共 ' + e.pairs + ' 对，最小交集 = <strong>' + e.minInter + '</strong> ' + yes(e.minInter === r.inter) + '</div>');
+  lines.push('<div><span class="k">3</span>约束 ②（安全）：' + (byz
+    ? '拜占庭节点会撒谎，最坏时 f 个全在交集里，交集中诚实节点至少 <span class="m">' + r.inter + ' − ' + f + '</span> → <strong>' + r.honest + '</strong> 个，要 ≥ 1？' + yes(r.safe)
+    : '崩溃节点不说谎，交集非空就够：<strong>' + r.inter + '</strong> ≥ 1？' + yes(r.safe)) + '</div>');
+  $('qmSteps').innerHTML = lines.join('');
+  var verdict = r.ok ? '<span class="good">两条约束都满足</span>' :
+    (!r.live && !r.safe ? '<span class="bad">两条都不满足</span>' : !r.live ? '<span class="bad">会卡死（活性破了）</span>' : '<span class="bad">可能在同一位置决定两个值（安全性破了）</span>');
+  $('qmOut').innerHTML =
+    '<div class="three"><div><span class="lab">最坏交集</span><span class="val">' + r.inter + '</span></div>' +
+    '<div><span class="lab">交集中诚实节点至少</span><span class="val">' + r.honest + '</span></div>' +
+    '<div><span class="lab">这 ' + N + ' 台最多容忍</span><span class="val">f = ' + nm(r.fMax) + '</span></div></div>' +
+    '<p style="margin:.7rem 0 .3rem">结论：' + verdict + '。</p>' +
+    '<p style="margin:0">对 <span class="m">f = ' + f + '</span>：<span class="m">N ≥ ' + (byz ? '3f + 1 = 3 × ' : '2f + 1 = 2 × ') + f + ' + 1 = ' + r.Nmin + '</span>，此时 quorum <span class="m">N − f = ' + r.qStd + '</span>，' +
+    '最少合法节点 <span class="m">' + r.Nmin + ' − ' + f + ' = <strong>' + r.legitMin + '</strong></span>。' +
+    '最多容忍数按 <span class="m">⌊(N − 1)/' + (byz ? 3 : 2) + '⌋ = ⌊' + nm(N - 1) + '/' + (byz ? 3 : 2) + '⌋</span> 算。</p>';
+}
+
+/* ================================================================ Paxos：逐条拿掉规则 */
+var PX_OPTS = ['noMajority','noIgnore','late','noHighest','forget'];
+function pxReset(){ PX_OPTS.forEach(function(k){ $('px_' + k).checked = false; }); pxGo(); }
+function pxCell(s, prev){
+  var t = (s.p === null ? '—' : s.p) + '；' + (s.a ? '(' + s.a.n + ',' + s.a.v + ')' : '无');
+  var ch = !prev || prev.p !== s.p || JSON.stringify(prev.a) !== JSON.stringify(s.a);
+  return '<td class="' + (ch ? 'chg' : '') + '">' + t + '</td>';
+}
+function pxGo(){
+  var opt = {}; PX_OPTS.forEach(function(k){ opt[k] = $('px_' + k).checked; });
+  var r = paxosRun(opt), prev = null;
+  var h = '<table class="compact pxt"><thead><tr><th>步</th><th>发生了什么</th><th>A1</th><th>A2</th><th>A3</th><th>决定</th></tr><tr class="sub"><th></th><th></th><th colspan="3">格内：承诺编号；已接受的提案</th><th></th></tr></thead><tbody>';
+  r.steps.forEach(function(s){
+    var dec = s.newly.map(function(d){ return '<span class="' + (r.conflict ? 'bad' : 'good') + '"><strong>' + d.v + '</strong> 以编号 ' + d.n + ' 被 ' + d.by.join('、') + ' 接受 → 已决定</span>'; }).join('<br>');
+    h += '<tr><td class="nw">' + s.k + '</td><td>' + s.text + '</td>' + ['A1','A2','A3'].map(function(a){ return pxCell(s.states[a], prev && prev[a]); }).join('') + '<td>' + (dec || '') + '</td></tr>';
+    prev = s.states;
+  });
+  $('pxTable').innerHTML = h + '</tbody></table>';
+  var off = PX_OPTS.filter(function(k){ return opt[k]; });
+  var msg;
+  if (r.conflict){
+    msg = '<strong class="bad">安全性被破坏：</strong>' + r.decided.filter(function(d, i, a){ return a.findIndex(function(z){ return z.v === d.v; }) === i; })
+      .map(function(d){ return '<strong>' + d.v + '</strong> 在第 ' + d.step + ' 步被决定'; }).join('，') + '——同一个位置决定了两个不同的值。';
+  } else {
+    msg = '<strong class="good">只决定了 ' + r.values.join('、') + '</strong>（第 ' + r.decided.map(function(d){ return d.step; }).join('、') + ' 步都是同一个值），安全性保住了。';
+    if (opt.noIgnore && !opt.late) msg += ' 本脚本里发给 A2 的 accept(1, x) 丢了，「忽略更小编号」没有用武之地；再勾上「晚到」才看得出它的作用。';
+    if (opt.late && !opt.noIgnore) msg += ' 迟到的 accept(1, x) 被 A2 按承诺忽略了。';
+  }
+  $('pxOut').innerHTML = (off.length ? '' : '规则齐全，就是上表的六步。') + msg;
+}
+
+/* ================================================================ PBFT 消息计数 */
+function pbSet(n){ $('pbN').value = n; pbGo(); }
+function pbGo(){
+  var N = +$('pbN').value, r = pbftCount(N), c = r.c;
+  $('pbNv').textContent = N;
+  $('pbThree').innerHTML =
+    '<div><span class="lab">容忍拜占庭 f = ⌊(N − 1)/3⌋</span><span class="val">' + r.f + '</span></div>' +
+    '<div><span class="lab">每步 quorum 2f + 1</span><span class="val">' + r.quorum + '</span></div>' +
+    '<div><span class="lab">客户端等相同回复 f + 1</span><span class="val">' + r.clientNeed + '</span></div>';
+  var row = function(a, b, f, v){ return '<tr><td>' + a + '</td><td>' + b + '</td><td class="m">' + f + '</td><td class="num">' + v.toLocaleString('en-US').replace(/,/g, ' ') + '</td></tr>'; };
+  $('pbTable').innerHTML = '<table class="compact"><thead><tr><th>阶段</th><th>谁发给谁</th><th>条数</th><th>N = ' + N + '</th></tr></thead><tbody>' +
+    row('request', '客户端 → primary', '1', c.request) +
+    row('pre-prepare', 'primary → 每个 backup', 'N − 1', c.preprepare) +
+    row('prepare', '每个 backup → 其余所有副本', '(N − 1)<sup>2</sup>', c.prepare) +
+    row('commit', '每个副本 → 其余所有副本', 'N(N − 1)', c.commit) +
+    row('reply', '每个副本 → 客户端', 'N', c.reply) +
+    '<tr class="use"><td><strong>合计（不计 request）</strong></td><td></td><td class="m">N(2N − 1)</td><td class="num"><strong>' + c.total.toLocaleString('en-US').replace(/,/g, ' ') + '</strong></td></tr>' +
+    '<tr><td>再不计 reply</td><td>副本之间</td><td class="m">2N(N − 1)</td><td class="num">' + c.replicaOnly.toLocaleString('en-US').replace(/,/g, ' ') + '</td></tr>' +
+    '</tbody></table>';
+  pbPlot(N);
+  var base = 3*r.f + 1, extra = N - base;
+  $('pbOut').innerHTML = '一次请求：PBFT <strong>' + c.total + '</strong> 条（<span class="m">' + N + ' × (2 × ' + N + ' − 1)</span>），RAFT 正常复制一条命令 <span class="m">2(N − 1) = ' + r.raft + '</span> 条，PBFT 是它的 <strong>' + (c.total / r.raft).toFixed(1) + '</strong> 倍。' +
+    (extra > 0 ? '<br>这 ' + N + ' 个副本能容忍的 f 与 ' + base + ' 个副本相同（<span class="m">3f + 1 = ' + base + '</span>）：多出的 ' + extra + ' 个副本不提高容错，只让每次请求多 ' + (c.total - pbftCount(base).c.total) + ' 条消息。' : '<br>此时正好 <span class="m">N = 3f + 1</span>。');
+}
+function pbPlot(N){
+  var W = 640, H = 230, L = 62, R = 16, T = 14, B = 40, nMax = 100, yMax = pbftCount(nMax).c.total;
+  var X = function(n){ return L + (n - 4)/(nMax - 4)*(W - L - R); }, Y = function(v){ return H - B - v/yMax*(H - T - B); };
+  var svg = svgRoot(W, H, '一次请求的消息数随副本数 N 的变化：PBFT 按平方增长，RAFT 线性'), g = svgEl('g', { 'font-family':'inherit', 'font-size':11.5 }); svg.appendChild(g);
+  for (var v = 0; v <= 20000; v += 5000){ sPath(g, 'M' + L + ',' + Y(v) + ' H' + (W - R), { sop:.12, sw:1 }); sText(g, L - 6, Y(v) + 4, v ? (v/1000) + 'k' : '0', { anchor:'end', size:11, op:.7 }); }
+  [4, 20, 40, 60, 80, 100].forEach(function(n){ sPath(g, 'M' + X(n) + ',' + (H - B) + ' v5', { sop:.5, sw:1 }); sText(g, X(n), H - B + 18, String(n), { size:11, op:.7 }); });
+  sText(g, (L + W - R)/2, H - 6, '副本数 N', { size:11.5, op:.8 });
+  var p1 = [], p2 = [];
+  for (var n = 4; n <= nMax; n++){ p1.push((n === 4 ? 'M' : 'L') + X(n).toFixed(1) + ',' + Y(pbftCount(n).c.total).toFixed(1)); p2.push((n === 4 ? 'M' : 'L') + X(n).toFixed(1) + ',' + Y(2*(n-1)).toFixed(1)); }
+  sPath(g, p1.join(' '), { stroke:AC, sop:1, sw:2 });
+  sPath(g, p2.join(' '), { stroke:COL.ok, sop:1, sw:2 });
+  var t = pbftCount(N).c.total;
+  sPath(g, 'M' + X(N) + ',' + (H - B) + ' V' + Y(t), { sop:.35, sw:1, dash:'3 3' });
+  dot(g, X(N), Y(t), 'exam', 4.5); dot(g, X(N), Y(2*(N-1)), 'ok', 4);
+  sText(g, X(N) + (N > 70 ? -8 : 8), Y(t) - 8, 'N = ' + N + '：' + t, { anchor:N > 70 ? 'end' : 'start', size:12, c:'exam', halo:true });
+  sText(g, X(84), Y(pbftCount(84).c.total) - 10, 'PBFT  N(2N − 1)', { anchor:'end', size:12, halo:true });
+  sText(g, X(96), Y(2*95) - 10, 'RAFT  2(N − 1)', { anchor:'end', size:12, c:'ok', halo:true });
+  var el = $('pbPlot'); el.innerHTML = ''; el.appendChild(svg);
+}
+
+/* ===================== RAFT 日志交互件（L16 5.4–5.5 与 L17 3.2 共用） =====================
+   提交按三种口径现算，选举按选举限制逐票现算，全部来自 consensus-core.js。 */
+var RF_PRESETS = {
+  p59: { names:['Leader','Follower 1','Follower 2','Follower 3','Follower 4'], logs:['1 1 2 3 3 3 3','1 1 2 3','1 1 2 3 3 3 3','1 1','1 1 2 3 3 3'], leader:0, term:3 },
+  l17: { names:['Leader','F1','F2','F3','F4'], logs:['1 1 2 4 4','1 1 2 4','1 1','1 1 2 4 4','1 1 2'], leader:0, term:4 },
+  fig8:{ names:['S1','S2','S3','S4','S5'], logs:['1 2','1 2','1 2','1','1 3'], leader:0, term:4 }
+};
+var RF_NAMES = RF_PRESETS.p59.names.slice();
+function rfLoad(k){
+  var p = RF_PRESETS[k]; RF_NAMES = p.names.slice();
+  p.logs.forEach(function(s, i){ $('rfL' + i).value = s; $('rfN' + i).textContent = p.names[i]; });
+  $('rfLeader').innerHTML = p.names.map(function(n, i){ return '<option value="' + i + '">' + n + '</option>'; }).join('');
+  $('rfLeader').value = p.leader; $('rfTerm').value = p.term;
+  document.querySelectorAll('#rfTool .rfp').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-k') === k); });
+  rfGo();
+}
+function rfGo(){
+  var logs = [], bad = [];
+  for (var i = 0; i < 5; i++){
+    var t = parseTerms($('rfL' + i).value);
+    $('rfL' + i).classList.toggle('badin', t === null);
+    if (t === null) bad.push(RF_NAMES[i]); logs.push(t || []);
+  }
+  var term = +$('rfTerm').value, ld = +$('rfLeader').value;
+  if (bad.length || !(term >= 1)){
+    var m = bad.length ? bad.join('、') + ' 的日志要写成一串非递减的正整数（任期号），用空格分开' : '当前任期要填正整数';
+    ['rfGrid','rfCount','rfElect'].forEach(function(id){ $(id).innerHTML = '<p class="cap bad" style="margin:0">' + m + '</p>'; });
+    $('rfOut').innerHTML = errHTML(m); return;
+  }
+  var a = raftAnalyze(logs, ld, term), e = raftElection(logs, ld, a.commit, a.naive), L = logs[ld];
+  var maxLen = Math.max.apply(null, logs.map(function(l){ return l.length; }).concat([1]));
+  // 日志网格
+  var h = '<table class="rfg"><thead><tr><th>索引</th>';
+  for (var c = 1; c <= maxLen; c++) h += '<th' + (c <= a.commit ? ' class="cm"' : '') + '>' + c + '</th>';
+  h += '</tr></thead><tbody>';
+  logs.forEach(function(l, s){
+    h += '<tr' + (s === ld ? ' class="ld"' : '') + '><th>' + RF_NAMES[s] + (s === ld ? '（leader）' : '') + '</th>';
+    for (var c = 0; c < maxLen; c++){
+      if (c >= l.length){ h += '<td class="no"></td>'; continue; }
+      var cls = c < L.length && l[c] === L[c] ? (c < a.commit ? 'cm' : '') : 'df';
+      h += '<td class="' + cls + '">' + l[c] + '</td>';
+    }
+    h += '</tr>';
+  });
+  $('rfGrid').innerHTML = h + '</tbody></table><p class="cap" style="margin:.3rem 0 0">格里是条目的任期号。绿底 = 按正确规则已提交；红框 = 与 leader 同一索引的条目任期不同（会被 leader 覆盖）。</p>';
+  // 逐索引计数
+  var k = '<table class="compact rfc"><thead><tr><th>索引</th>' + a.rows.map(function(r){ return '<th>' + r.idx + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    '<tr><td>条目的任期</td>' + a.rows.map(function(r){ return '<td' + (r.cur ? ' class="c2"' : '') + '>' + r.term + '</td>'; }).join('') + '</tr>' +
+    '<tr><td>持有台数（含 leader）</td>' + a.rows.map(function(r){ return '<td>' + r.count + '</td>'; }).join('') + '</tr>' +
+    '<tr><td>其中 follower</td>' + a.rows.map(function(r){ return '<td>' + r.folCount + '</td>'; }).join('') + '</tr>' +
+    '<tr><td>已提交？</td>' + a.rows.map(function(r){ return '<td>' + (r.committed ? (r.byCount ? '<span class="good">是</span>' : '<span class="good">是</span><i>随后</i>') : '否') + '</td>'; }).join('') + '</tr>' +
+    '</tbody></table>';
+  $('rfCount').innerHTML = k;
+  var fmt = function(n){ return n ? '已提交到第 <strong>' + n + '</strong> 条' : '<strong>没有</strong>条目能靠计数提交'; };
+  var cur = a.rows.filter(function(r){ return r.cur; }).map(function(r){ return r.idx; });
+  $('rfOut').innerHTML =
+    '<div>全体 ' + a.N + ' 台的多数 <span class="m">⌊' + a.N + '/2⌋ + 1 = ' + a.maj + '</span>；当前任期 ' + term + ' 的条目在索引 ' + (cur.length ? cur.join('、') : '（无）') + '。</div>' +
+    '<div style="margin-top:.4rem"><span class="good">✓</span> <strong>正确规则</strong>（本任期条目、全体服务器的多数、leader 算一份；更早的随之提交）：' + fmt(a.commit) + '。</div>' +
+    '<div><span class="bad">✗</span> 只数副本、不管任期：' + fmt(a.naive) + (a.naive !== a.commit ? '　<span class="bad">与正确规则不同</span>' : '') + '。</div>' +
+    '<div><span class="bad">✗</span> 课件 p57 字面（follower 中的多数 ' + a.folMaj + ' 个，且限本任期）：' + fmt(a.literal) + (a.literal !== a.commit ? '　<span class="bad">与正确规则不同</span>' : '') + '。</div>';
+  // 选举
+  var q = '<p class="cap" style="margin:.9rem 0 .3rem">假设 ' + RF_NAMES[ld] + ' 此刻崩溃，其余节点各自参选。当选仍要 ' + e.maj + ' 票（多数按全体 ' + a.N + ' 台算）；投票者只投给日志不比自己旧的候选人：先比最后一条的任期，任期相同再比长度。</p>' +
+    '<table class="compact"><thead><tr><th>候选人</th><th>最后一条（任期，索引）</th><th>投它的</th><th>拒绝的</th><th>票数</th><th>能当选？</th><th>持有已提交条目？</th></tr></thead><tbody>';
+  e.cands.forEach(function(c){
+    q += '<tr' + (c.wins ? ' class="use"' : '') + '><td>' + RF_NAMES[c.cand] + '</td><td>(' + c.last.t + ', ' + c.last.i + ')</td><td>' +
+      c.yes.map(function(v){ return v === c.cand ? '自己' : RF_NAMES[v]; }).join('、') + '</td><td>' + (c.no.map(function(v){ return RF_NAMES[v]; }).join('、') || '—') + '</td><td>' + c.votes + '</td><td>' +
+      (c.wins ? '<span class="good">能</span>' : '不能') + '</td><td>' + (a.commit ? (c.holdsCommit ? '是' : '<span class="bad">否</span>') : '—') +
+      (a.naive > a.commit && c.wins && !c.holdsNaive ? '；<span class="bad">会覆盖「只数副本」算出的前 ' + a.naive + ' 条</span>' : '') + '</td></tr>';
+  });
+  $('rfElect').innerHTML = q + '</tbody></table>';
+}
+
+
+/* ---------- 交互件与图初始化 ---------- */
+drawSMR('figSMR');
+drawQuorumFig('figQuorum');
+drawCounterFig('figCounter');
+qmSet('crash',3,1);
+drawPaxosFig('figPaxos');
+drawPaxos2Fig('figPaxos2');
+pxGo();
+drawRaftStates('figRaftStates');
+drawRaftFlow('figRaftFlow');
+drawRaftElect('figRaftElect');
+drawRaftRepl('figRaftRepl');
+drawRaftLog('figRaftLog');
+drawPbftFig('figPbft');
+pbSet(4);
+rfLoad('p59');
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+
+</script>
+</body>
+</html>

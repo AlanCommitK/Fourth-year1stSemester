@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L15 区块链共识 I · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1–L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.panes>div>svg,.toolfig>svg{border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+input[type=range]{width:200px; max-width:100%; vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:3.2rem; display:inline-block}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+.ctl{display:inline-flex; align-items:center; gap:.45rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.ctl{flex-wrap:wrap; max-width:100%}
+.tool select,.tool input[type=text]{max-width:100%}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+/* ---------- 链接、引用、交叉引用 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+.xref{color:var(--muted)}
+main p code,main li code,main td code{overflow-wrap:anywhere}
+blockquote{margin:1rem 0 1.2rem; padding:.2rem 0 .2rem 1rem; border-left:3px solid var(--line2); color:var(--muted); max-width:70ch}
+blockquote p:last-child{margin-bottom:0}
+hr{border:none; border-top:1px solid var(--line); margin:2.5rem 0}
+.box blockquote{margin:.6rem 0}
+.box pre{max-width:100%}
+/* ---------- 公式（沿用 L4 的手写 HTML 公式） ---------- */
+.m .up{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; font-size:.92em}
+.m .up.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85em}
+.m .sp1{display:inline-block; width:.17em} .m .sp4{display:inline-block; width:1em} .m .sp8{display:inline-block; width:2em}
+.m .bg1{font-size:1.15em; font-style:normal} .m .bg2{font-size:1.45em; font-style:normal; vertical-align:-.08em} .m .bg3{font-size:1.8em; font-style:normal}
+.m .opi{font-style:normal}
+.frac.sm{font-size:.72em}
+.bigop{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:1; margin:0 .15em}
+.bigop .op{font-size:1.6em; font-style:normal; line-height:1.05}
+.bigop .lim{font-size:.62em; min-height:.6em}
+.ubr{display:inline-flex; flex-direction:column; align-items:center; vertical-align:top}
+.ubr .ubb{border-bottom:1.3px solid currentColor; border-radius:0 0 .5em .5em; padding:0 .3em .2em}
+.ubr .ubl{font-size:.68em; margin-top:.15em}
+.ovs{display:inline-flex; flex-direction:column; align-items:center; vertical-align:bottom; line-height:1}
+.ovs .ovt{font-size:.62em}
+.cbrace{font-family:"Times New Roman",Georgia,serif; font-size:2.4em; font-weight:200; vertical-align:middle; line-height:1; margin:0 .08em 0 .05em; font-style:normal}
+.cases{display:inline-grid; grid-template-columns:auto auto; gap:.1em 1.1em; vertical-align:middle; text-align:left; font-size:.9em}
+.eq{overflow-x:auto; overflow-y:hidden; padding:.15rem 0}
+.m{white-space:nowrap}
+@media (max-width:600px){ .eq{font-size:1rem} .eq .lbl{float:none; display:block; text-align:right} }
+/* ---------- 宽表：窄屏横向滚动，不挤成一字一行 ---------- */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* ---------- 宽窄两版图；复杂图在窄屏横向滚动 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+.hscroll{overflow-x:auto}
+@media (max-width:640px){ .hscroll>svg{min-width:var(--minw,620px)} }
+/* ---------- 打印：骨架里 details 子元素 display:block 在 Chromium 里撑不开已关闭的 details，补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} .hscroll>svg{min-width:0 !important} }
+/* ---------- 交互件通用件 ---------- */
+.tool input.num{width:6.2rem; font-size:14px; padding:.25rem .4rem}
+.tool input.wide{width:min(100%,34rem)}
+.tool textarea{font:inherit; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px; width:min(100%,30rem);
+  padding:.35rem .55rem; background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+.hx{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.86em; word-break:break-all}
+.tag2{display:inline-block; font-size:12px; border-radius:4px; padding:0 .4rem; border:1px solid currentColor; margin-left:.35rem; line-height:1.5}
+.tag2.good{color:var(--ok)} .tag2.bad{color:var(--warn)} .tag2.mid{color:var(--exam)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.kv{display:grid; grid-template-columns:max-content 1fr; gap:.25rem 1rem; font-size:14.5px; align-items:baseline}
+.kv>span:nth-child(odd){color:var(--muted)}
+.bar{height:.7rem; border-radius:3px; background:var(--accent); opacity:.75; min-width:1px}
+.hot{color:var(--warn); font-weight:700}
+.sub2{font-size:13px; color:var(--muted)}
+svg text,input,textarea,select,option,.tool{font-feature-settings:"calt" 0, "liga" 0}
+@media (max-width:640px){ .tool .kv{grid-template-columns:1fr; gap:.05rem} .tool .kv>span:nth-child(even){margin-bottom:.35rem} }
+input.badin{outline:2px solid var(--warn); outline-offset:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 15</div>
+  <div class="tt">区块链共识 I</div>
+  <div class="toc">
+<a href="#s1">1 · 上一讲回顾：一块是怎样上链的</a>
+<a href="#s1-1" class="sub">1.1 十三步工作流程</a>
+<a href="#s1-2" class="sub">1.2 准入方式与三个系统性问题</a>
+<a href="#s2">2 · 共识要解决什么问题</a>
+<a href="#s2-1" class="sub">2.1 共识：对账本的下一步达成一致</a>
+<a href="#s2-2" class="sub">2.2 两类节点，两类故障</a>
+<a href="#s2-3" class="sub">2.3 开放网络的难点：身份不花钱</a>
+<a href="#s2-4" class="sub">2.4 常见共识机制一览</a>
+<a href="#s3">3 · PoW：用算力抽签</a>
+<a href="#s3-1" class="sub">3.1 谜题与领导者</a>
+<a href="#s3-2" class="sub">3.2 获胜概率：算力占比</a>
+<a href="#s3-3" class="sub">3.3 例题：求获胜概率与反求算力</a>
+<a href="#s3-4" class="sub">3.4 分叉、双花与概率终局性</a>
+<a href="#s3-5" class="sub">3.5 容错：过半算力、拜占庭与 Sybil</a>
+<a href="#s3-6" class="sub">3.6 难度：稳住出块速度的恒温器</a>
+<a href="#s4">4 · PoS：用质押抽签</a>
+<a href="#s4-1" class="sub">4.1 按质押选出块者</a>
+<a href="#s4-2" class="sub">4.2 相对 PoW 的优点</a>
+<a href="#s4-3" class="sub">4.3 PoS 的四个问题</a>
+<a href="#s4-4" class="sub">4.4 PoW 与 PoS 对照</a>
+<a href="#s4-5" class="sub">4.5 现状：以太坊已改用 PoS</a>
+<a href="#s5">5 · 怎样衡量一个共识：吞吐量与确认时间</a>
+<a href="#s5-1" class="sub">5.1 两类指标</a>
+<a href="#s5-2" class="sub">5.2 吞吐量：每块装几笔，每块用几秒</a>
+<a href="#s5-3" class="sub">5.3 三个参数，三条提速途径</a>
+<a href="#s5-4" class="sub">5.4 确认时间：要等几块</a>
+<a href="#s5-5" class="sub">5.5 出块时间与确认时间别混</a>
+<a href="#s5-6" class="sub">5.6 例题：课件 Q2 与模拟卷原题</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 15 — Blockchain Consensus I</div>
+  <h1>区块链共识 I</h1>
+  <p>下一块由谁来写、写什么，全网怎样对此达成一致？</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>区块链的账本由许多互不信任的节点各存一份，每隔一段时间要往上接一个新块。绕不开的问题是：<strong>下一块由谁来写、写什么，全网怎样对此达成一致？</strong> 回答这个问题的规则叫共识机制（consensus mechanism）。这一讲沿三步走：</p>
+<ol><li>共识要防住什么：两类节点、两类故障；以及开放网络特有的难点——新建身份不花钱，按人头投票行不通，只能把出块资格绑到伪造不了的资源上；</li><li>两种绑法：绑算力的工作量证明（Proof of Work，PoW）和绑质押代币的权益证明（Proof of Stake，PoS），各自怎样选出块者、获胜概率怎么算、有什么问题；</li><li>怎样衡量一个共识的快慢：吞吐量（throughput，每秒能记下多少笔交易）与确认时间（confirmation time，一笔交易要等多久才算稳），两道计算题。</li></ol>
+<p>和课件顺序的差别有三处：</p>
+<ul><li>课件把共识的一般原理（p21–p25）挂在 PoW 的页眉下，本笔记单列为第 2 节，并补上课件没讲、却决定了 PoW 与 PoS 为什么存在的 Sybil 攻击（伪造大量假身份来操纵投票）；</li><li>课件开头复习上一讲时讲的“怎样提高交易容量”（p14–p15）挪到第 5 节吞吐量公式之后，因为那几条办法正好是公式里的几个量；</li><li>p26、p32 讲的 PoW 分叉（fork：链在末端暂时分成两支）与概率终局性（probabilistic finality：已确认的块仍有很小的概率被推翻），和 p48 的确认时间是同一件事的两面，3.4 讲原因，5.4 讲度量。</li></ul>
+<p style="margin-bottom:0">对应课件 <code>Lecture 5 - Blockchain Consensus-I</code>，56 页（Moodle 上是 Lecture 15，课件分节页仍用去年的编号 “Lecture 5”）。p2–p16 复习上一讲 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a>；下一讲 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a> 讲 Paxos、RAFT、PBFT 这几种在已知成员之间按节点投票的共识。课程总览与考情见《00 课程信息与考情》。本笔记的数值全部用程序重算过。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+<p>课件全篇没有一句 “exam / examinable” 一类的提示，考点只能从去年的模拟卷（Moodle 上的 Mock Exam，带参考答案）判断。本讲直接对应 5 小题，共 15 分：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th>模拟卷题</th><th>分值</th><th>问什么</th><th>课件</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td>Q3(b)(i)</td><td>4</td><td>列出并解释两类典型故障</td><td>p22–p23</td><td><a href="#s2-2">2.2</a></td></tr>
+<tr><td>Q3(b)(ii)</td><td>3</td><td>列出任意三种共识机制</td><td>p17、p25、p56</td><td><a href="#s2-4">2.4</a></td></tr>
+<tr><td>Q3(b)(iii)</td><td>3</td><td>求平均区块确认时间与吞吐量</td><td>p47–p53</td><td><a href="#s5-6">5.6</a></td></tr>
+<tr><td>Q4(a)(i)</td><td>3</td><td>已知获胜概率，反求某节点的算力</td><td>p29–p31</td><td><a href="#s3-3">3.3</a></td></tr>
+<tr><td>Q4(a)(ii)</td><td>2</td><td>PoS 相对 PoW 的优点</td><td>p37、p43</td><td><a href="#s4-2">4.2</a></td></tr>
+</tbody></table></div>
+<p>两处不能照抄参考答案：</p>
+<ul><li>Q3(b)(iii) 参考答案的吞吐量 37.5 Tx/s（每秒交易数）是错的，正确是 375 Tx/s（课件 p53 的例题也错了 10 倍，方向相反）；</li><li>吞吐量公式的分母是<strong>出块时间</strong>（相邻两块的平均间隔），不是确认时间。课件 p47–p51 把两个词混用，见 <a href="#s5-5">5.5</a>。</li></ul>
+<p style="margin-bottom:0">相邻的题：Q3(a)(iii) 三种链的准入，本讲只在复习页 p8 用实例提到，见 <a href="#s1-2">1.2</a>；Q3(b)(v) 分片（sharding：把全网节点分成若干组，各组并行处理一部分交易）的优点（卷面误写作 sharing），本讲 p15 只点了名，展开在 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a>；Q3(b)(iv) 与 Q4(a)(iv) 的容错节点数 <span class="m">N ≥ 2f + 1</span>、<span class="m">N ≥ 3f + 1</span>（<span class="m">N</span> 为节点总数，<span class="m">f</span> 为要容忍的故障节点数），Q4(a)(iii) Paxos，Q4(a)(v) RAFT 的三种角色，都在 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>。模拟卷的 Q3、Q4 两道大题全是区块链内容（Q4(c) 是区块链赋能的认知无线电，见 <a href="L18%20%E5%8C%BA%E5%9D%97%E9%93%BE%E8%B5%8B%E8%83%BD%E7%9A%84%E8%AE%A4%E7%9F%A5%E6%97%A0%E7%BA%BF%E7%94%B5%E7%BD%91%E7%BB%9C.html">L18 区块链赋能的认知无线电网络</a>），本讲是其中计算题最集中的一讲。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>上一讲回顾：一块是怎样上链的</h2>
+
+<p>课件 p2–p16 复习上一讲 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a>。p2 列了四项：“General Process of Blockchain”、“Blockchain Governance System”、“Blockchain Platforms”、“Properties of Blockchain System”，其中第二项治理体系后面没有对应的复习页。这里只把与本讲相连的部分串一遍。</p>
+
+<h3 id="s1-1"><span class="n">1.1</span>十三步工作流程</h3>
+
+<p>p3–p4 把一笔交易从产生到写进全网账本分成 13 步，归成四段：</p>
+
+<ol><li><strong>发起</strong>（第 1–3 步）：用户建账户；创建交易（transaction，Tx：一次转账或一条要记进账本的操作，是账本的最小记录单位）；用私钥给交易签名，证明这笔交易确实是账户主人发的（数字签名的原理见 <a href="L8%20%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E3%80%81%E8%AF%81%E4%B9%A6%E4%B8%8E%20PKI.html">L8 数字签名、证书与 PKI</a>）。</li><li><strong>传播与校验</strong>（第 4–6 步）：交易广播给验证节点（validating node：检查交易是否合法——签名对不对、余额够不够——的节点）；校验通过后进入交易池（transaction pool，也叫 mempool：等待被打包的合法交易的集合）。</li><li><strong>出块</strong>（第 7–10 步）：矿工节点（miner node：负责把交易打包成新块、并争夺这一块写入权的节点）从池里挑一批交易组成候选块，然后挖矿（mining：按共识规则争夺“这一块由我来写”的资格，在 PoW 里就是反复试算一道数学谜题，见第 3 节）；块经过校验，胜出的矿工把它接到链上。</li><li><strong>确认与发布</strong>（第 11–13 步）：新块广播全网；每个节点把它加进自己的本地副本，课件称作 “Block confirmation”；它最终成为全局链的一部分，“Block published”。</li></ol>
+
+<p>第 8 步“挖矿”和第 10 步“胜出的矿工”之间藏着的就是本讲的主题：凭什么是这个矿工胜出，其他节点又为什么认它。</p>
+
+<p>p5 的图是三个块用哈希串起来。每块的区块头（block header：块的“封面”，存前一块的哈希、时间戳、交易摘要即 Merkle 根（把全部交易逐层两两哈希、汇总成的一个哈希）、供挖矿反复修改的数 nonce 等，不含交易明细；块自己的哈希不存在块里，由区块头算出）里有 “Prev. Hash”，等于前一块的 “Hash”；第一块叫创世块（genesis block：链的第一块，前面没有块可指，Prev. Hash 填全 0）。哈希（hash：把任意数据压成一个定长的“指纹”，输入改一位，指纹就面目全非）的性质，以及“哈希链只能让篡改留下痕迹、不能让篡改变贵”的论证，在 <a href="L13%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89.html">L13 区块链工作原理（上）</a> 和 <span class="xref">Lab3-4 第 5 节</span>讲过，区块头的完整字段见 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a>。要点是：攻击者改了一块之后，可以把后面每一块的哈希都重算一遍，整条链仍然自洽；这个缺口要靠共识来补，PoW 补的办法是让重算变贵。</p>
+
+<p>p5 的图把块号、前块哈希、本块哈希都画进区块头的大括号里，这是示意，不是存储结构：本块哈希不存在块里，是对区块头算出来的，见 <a href="#s3-1">3.1</a>。这张图还画得粗糙：第 3 块的 Hash 与第 1 块一样都是 <code>0abe0237df</code>，<code>8dbke8930</code> 里的 k 也不是十六进制字符。图要表达的“后一块存前一块的哈希”不受影响。</p>
+
+<h3 id="s1-2"><span class="n">1.2</span>准入方式与三个系统性问题</h3>
+
+<p>p8 用四个实例对应了三种准入方式（模拟卷 Q3(a)(iii) 考过三种链的准入），<a href="#s2-3">2.3</a> 要用到这组概念：</p>
+
+<ul><li>Bitcoin 只支持交易，运行在无许可（permissionless：任何人不需批准就能加入、读写、参与出块）环境；</li><li>Chain Core 只支持交易，是联盟链（consortium blockchain：由若干机构共同管理，成员要经批准）；</li><li>Ethereum 无许可，支持智能合约（smart contract：部署在链上、条件满足就自动执行的程序）；</li><li>Hyperledger Fabric（Linux 基金会主导的企业级区块链平台）是许可链（permissioned：只有获准的成员才能参与），支持智能合约。</li></ul>
+
+<p>p11 还说以太坊用 PoW 的变体 Ethash（以太坊早期专用的 PoW 算法）——<strong>这已经过时</strong>，见 <a href="#s4-5">4.5</a>。</p>
+
+<p>p13–p16 是区块链系统的三个性质：</p>
+
+<ul><li><span class=“term”>可扩展性</span><span class=“en”>（scalability）</span>：课件 p13 说 “each blockchain keeps the copy of the complete ledger”，准确说是每个<strong>全节点</strong>都存完整账本（轻节点 light node 不存交易明细，只存区块头）；账本只增不减，存储能力弱的节点（如无线网络里的设备）吃不消。</li><li><strong>交易容量</strong>：怎样每秒处理更多交易（p14–p15）。课件列了五条办法，前三条作用在吞吐量公式上，后两条改变结构，放到 <a href="#s5-3">5.3</a> 讲。</li><li><strong>互操作性</strong>（interoperability：不同区块链之间交换数据与资产的能力）：编程语言和数据库里早有这个概念；课件认为交易所可以在不同账本之间兑换加密货币，以此缓解这个问题（p16）。</li></ul>
+
+<details class="box">
+  <summary>复习页 p6–p12 的其余内容：平台与智能合约</summary>
+<p>p6 的表把应用场景和平台对上：资产管理与追踪（Corda、BigchainDB、MultiChain），以代币形式持有资产（Stellar、IOTA），加密货币（Bitcoin、Litecoin），基于智能合约的新业务逻辑（Parity、Ethereum、Quorum）。</p>
+<p>p7–p9 把平台分成三类：只适合做加密货币的；支持智能合约的；放在云上、以 BaaS（Blockchain as a Service，区块链即服务：云厂商替用户托管区块链基础设施）形式提供的。p9 举的例子 Microsoft Azure 句子没写完；Azure 的区块链服务已于 2021-09-10 停止。</p>
+<p>p10 列了 Bitcoin “不靠中心机构建立信任”的八个特征：密码学、P2P（peer-to-peer，点对点：节点之间直接通信、没有中心服务器）网络架构、哈希算法、公私钥（课件写 “Public/Private Key Encryption”，不准：比特币并不加密交易，公私钥用于数字签名）、分布式存储、逻辑上集中（全网看到的是同一本账）、共识算法、交易时间戳。</p>
+<p>p11 介绍 Ethereum：以太币（Ether）作货币；用智能合约承载业务逻辑；参与节点要运行 EVM（Ethereum Virtual Machine，以太坊虚拟机：执行智能合约代码的统一运行环境）；建立在 P2P 网络上，课件写作 “virtual P2p (Vp2p) wire protocol”。wire protocol 指节点之间在网络上交换消息的格式与规则；以太坊节点间的通信协议实际叫 devp2p（写作 ÐΞVp2p，Ð 取自 Dev），不是 “virtual”。</p>
+<p style="margin-bottom:0">p12 把智能合约分两种：确定性的（deterministic），执行不依赖外部数据；非确定性的（non-deterministic），执行依赖外部数据，这类外部数据源叫预言机（oracle：把链外的信息——价格、天气、比赛结果——喂给链上合约的服务）。课件说后者 “opened the door of new and innovative applications and business models”。</p>
+</details>
+
+<h2 id="s2"><span class="n">2</span>共识要解决什么问题</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>共识：对账本的下一步达成一致</h3>
+
+<p>p21 的定义很朴素：“Consensus means to reach a common agreement.” 达成之后，还要把决定告诉其他各方、更新系统状态。放到区块链里，要一致的就是一件事：<strong>账本的下一块是哪一块</strong>。</p>
+
+<p>p24 给了共识协议的两项职责：</p>
+
+<ol><li><strong>维护账本数据</strong>：“in terms of ordering, originality, and tamper-resistant”，即保证记录的顺序、原始性（记录就是发起者签名时的原样，没被冒名或改动）和防篡改。顺序是关键：一笔钱被花两次之所以可能，就是因为两笔冲突的交易谁先谁后没有定论（见 <a href="#s3-4">3.4</a>）。</li><li><strong>让节点达成一致</strong>：“i.e., to provide Byzantine agreement, even in the presence of misbehaving nodes”。拜占庭协议（Byzantine agreement）指即使有节点捣乱，诚实节点仍然对同一个结果达成一致。</li></ol>
+
+<p>难点全在“有节点不按规矩来”。</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>两类节点，两类故障</h3>
+
+<p>p22 把分布式环境里的节点分两类：合法节点（legitimate node，即诚实节点）和恶意节点（malicious node）。p23 说系统必须在出故障时照常工作，故障有两类：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>故障</th><th>课件 p23 的说法</th><th>准确含义</th><th>例子</th></tr></thead>
+<tbody>
+<tr><td>崩溃故障（crash failure）</td><td>“occurs if legitimate node cause any failure”</td><td>节点<strong>停止工作</strong>，不再收发消息；它要么正常、要么沉默，不会说假话</td><td>宕机、断电、断网</td></tr>
+<tr><td>拜占庭故障（Byzantine failure）</td><td>“occurs if malicious node causes any failure”</td><td>节点<strong>可以任意行为</strong>：发错误消息、对不同节点说不同的话、选择性不回应</td><td>被攻破的节点、恶意矿工；软件 bug 导致乱发消息也算</td></tr>
+</tbody></table></div>
+
+<p>“拜占庭”一词来自 Lamport 等人 1982 年的“拜占庭将军问题”：几位将军围城，只能靠信使通信，其中的叛徒会给不同的将军送相反的消息；问忠诚的将军怎样仍能统一进退。叛徒就是拜占庭节点。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>两类故障按行为分，不按身份分</div>
+<p>误：崩溃故障是好节点出的故障，拜占庭故障是坏节点出的故障（课件 p23 字面上的说法）。</p>
+<p>正：区分标准是<strong>出故障时的行为</strong>。崩溃节点只会不说话，拜占庭节点可能说假话。一个诚实节点的软件出了 bug、开始乱发消息，同样是拜占庭故障。</p>
+<p style="margin-bottom:0">分清的意义：防“不说话”只要凑够多数还活着的节点，防“说假话”还得能识破谎言，代价大得多。下一讲的容错门槛一个是 <span class="m">N ≥ 2f + 1</span>、一个是 <span class="m">N ≥ 3f + 1</span>（<span class="m">N</span> 是节点总数，<span class="m">f</span> 是故障节点数），差别就从这里来。</p>
+</div>
+
+<p>模拟卷 Q3(b)(i)（4 分）：“List and explain two typical failures occurred in a blockchain system.” 参考答案按行为解释，每类名称 1 分、解释 1 分。考场写法：</p>
+
+<ul><li><strong>Crash failure</strong>: the node cannot work properly (either receiving data or transmitting data), e.g. it crashes or goes offline.</li><li><strong>Byzantine failure</strong>: the node can arbitrarily send any false information (e.g. conflicting messages to different nodes), typically because it is malicious or compromised.</li></ul>
+
+<h3 id="s2-3"><span class="n">2.3</span>开放网络的难点：身份不花钱</h3>
+
+<p>如果参与的节点是事先登记过的固定几家机构（许可链），可以直接按节点投票：每家一票，超过某个比例就算通过。下一讲的三种协议就是这样做的：Paxos 和 RAFT 选出一个领导者、靠多数派确认，只防崩溃故障；PBFT（Practical Byzantine Fault Tolerance，实用拜占庭容错）多轮投票、超过 2/3 同意才确认，能防拜占庭故障。</p>
+
+<p>公有链（public blockchain：对所有人开放的链）是无许可的，任何人随时能加入，新建一个节点身份只需生成一对密钥，几乎零成本。这时按节点投票会被一种攻击打穿：<strong>Sybil 攻击</strong>（Sybil attack：攻击者伪造大量假身份，靠人数优势左右投票；名字来自一本讲多重人格患者的书）。一个人开一万个马甲，就有一万票。</p>
+
+<p>出路是不按人头，而按一种<strong>伪造不了的稀缺资源</strong>分配出块资格。开马甲不会凭空多出这种资源，Sybil 攻击就失效了：</p>
+
+<ul><li>绑定<strong>算力</strong>：谁算哈希算得快，谁出块的机会就大——PoW，第 3 节；</li><li>绑定<strong>质押</strong>（stake：节点锁定在系统里作担保的代币，作恶会被没收）：谁押在系统里的币多，谁出块的机会就大——PoS，第 4 节。</li></ul>
+
+<figure>
+<div class="hscroll" id="figCons" style="--minw:560px"></div>
+<figcaption>共识机制按网络是否需要许可分成两路：许可网络按节点投票（下一讲），无许可网络把出块资格绑到稀缺资源上（本讲）；两路最后都用第 5 节的指标比较。</figcaption>
+</figure>
+
+<h3 id="s2-4"><span class="n">2.4</span>常见共识机制一览</h3>
+
+<p>p25 列了 13 个分布式账本（DLT，distributed ledger technology，分布式账本技术：由多个节点共同维护、各存一份账本的技术，区块链是其中最常见的一种）各自用的共识。按机制整理成“一句话 + 课件举的系统”：</p>
+
+<div class="tw"><table>
+<thead><tr><th>机制</th><th>一句话</th><th>课件 p25 的例子</th></tr></thead>
+<tbody>
+<tr><td>PoW（Proof of Work，工作量证明）</td><td>解一道只能靠反复试算的哈希难题，先解出者出块</td><td>Bitcoin；Litecoin（由比特币衍生、出块更快）；ZCash（可隐藏交易金额与双方的隐私币）；Ethereum（已过时）</td></tr>
+<tr><td>PoS（Proof of Stake，权益证明）</td><td>按质押的币多少抽签选出块者</td><td>Parity（存疑，见下）；Tezos（支持链上投票自我升级的公有链）</td></tr>
+<tr><td>PBFT（Practical Byzantine Fault Tolerance，实用拜占庭容错）</td><td>已知成员多轮投票，超过 2/3 同意即确认，能容忍拜占庭节点</td><td>Hyperledger（见下）</td></tr>
+<tr><td>RAFT</td><td>选出一个领导者统一排序，多数派确认；只能容忍崩溃故障</td><td>Quorum（摩根大通基于以太坊改造的许可链）</td></tr>
+<tr><td>Paxos</td><td>比 RAFT 更早的经典协议，同样只能容忍崩溃故障（p25 表里没有，p17、p56 列了）</td><td>—</td></tr>
+<tr><td>Tendermint</td><td>一种 BFT 式（拜占庭容错式）PoS：按质押加权投票，超过 2/3 同意即终局</td><td>Monax（早期的企业区块链平台）</td></tr>
+<tr><td>PoET（Proof of Elapsed Time，流逝时间证明）</td><td>每个节点在可信硬件里随机等待一段时间，先等完者出块</td><td>Hyperledger Sawtooth（课件用旧名 Sawtooth Lake）</td></tr>
+<tr><td>虚拟投票（virtual voting）</td><td>节点互相转发“谁在什么时候告诉了我什么”的通信记录，每个节点据此推算别人会怎么投，不必真的发选票</td><td>Hashgraph（Hedera 网络使用的账本算法）</td></tr>
+<tr><td>Ripple 协议</td><td>每个节点信任一张验证者名单，名单里足够多数（80%）同意即通过</td><td>Ripple（面向跨境支付的网络）</td></tr>
+<tr><td>Tangle</td><td>交易不排成一条链，而组成一张有向无环图，每笔新交易要确认两笔旧交易</td><td>IOTA（面向物联网的账本）</td></tr>
+</tbody></table></div>
+
+<p>两处补充：PoET 靠 Intel SGX 防止节点谎报等待时间，SGX（Software Guard Extensions）是英特尔 CPU 里一块连操作系统都看不到、改不了的隔离执行区，课件说 “Trusted and reliable hardware, such as Intel SGX is required”；有向无环图（directed acyclic graph，DAG）是边有方向、沿着边走永远回不到出发点的图。p25 表里有五行附了说明：PoW 一行是 “PoW operates in public blockchain and blockchain nodes are required to solve the cryptographic puzzle to win the mining process.”；PBFT 一行是 “If 2/3 member confirm the block, then block become part of the blockchain.”；PoS 一行与 p36 的定义同一句；虚拟投票一行是 “In voting-based consensus algorithm, votes are required to reach to consensus.”；PoET 一行就是上面引的 SGX 那句。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>p25 表格的几处不准（不影响列举答题）</div>
+<ul style="margin-bottom:0"><li><strong>Ethereum — PoW</strong>：以太坊 2022-09-15 已改为 PoS，见 <a href="#s4-5">4.5</a>。</li><li><strong>Parity — PoS</strong>：Parity（后改名 OpenEthereum）是以太坊的一个客户端软件，不是独立的链，支持的是 PoW 和 PoA（Proof of Authority，权威证明：由几个指定的可信节点轮流出块）。</li><li><strong>Hyperledger — PBFT</strong>：Hyperledger 是 Linux 基金会下一组区块链项目的总称，不是一条链。PBFT 只是早期 Fabric 的共识，后来改用 Kafka（一种分布式消息队列，由它给交易统一排序），再改用 Raft；Fabric 3.0（2024）起又提供基于 SmartBFT 的拜占庭容错排序服务。</li><li><strong>Quorum — RAFT</strong>：Quorum 支持 Raft、IBFT（Istanbul BFT，一种 PBFT 变体）等多种，Raft 只是其一。</li></ul>
+</div>
+
+<p>模拟卷 Q3(b)(ii)（3 分）：“List any three consensus mechanisms used in blockchain systems.” 参考答案 “PoW, PoS, RAFT, Paxos, PBFT, etc.”，正是课件 p17 路线图上的五个名字，也就是本讲和下一讲的主角。考场从这五个里任写三个、带全称最稳：Proof of Work (PoW), Proof of Stake (PoS), Practical Byzantine Fault Tolerance (PBFT)。</p>
+
+<h2 id="s3"><span class="n">3</span>PoW：用算力抽签</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>谜题与领导者</h3>
+
+<p>p26：“Proof-of-Work (PoW) is one of the famous consensus algorithms used in blockchain networks. It is the building block of Bitcoin blockchain and PoW is designed for public blockchain. In PoW, consensus finality is not guaranteed. It is worth noting that in PoW, the miner acts as both leader and validator node.” 拆成四点：</p>
+
+<ul><li><strong>为公有链设计</strong>：它就是 2.3 说的“把出块资格绑到算力上”，不需要知道有哪些节点，也不需要登记。</li><li><strong>谜题是什么</strong>（课件只说 “cryptographic puzzle”）：矿工对候选块的区块头做哈希，区块头里有前一块的哈希、本块交易的摘要、时间戳，以及一个可以随便填的数 nonce（number used once：专门留给矿工反复改的字段）；要求哈希结果小于一个目标值（target）。哈希的输出无法预测，想找到合格的 nonce 只能一个个试；而别人验证只要算一次。<strong>求解难、验证易</strong>，是 PoW 的核心。</li><li><strong>领导者兼验证者</strong>：p28 定义领导者节点（leader node）为 “A blockchain node which wins the mining process and receives the mining reward”，并强调 “In PoW, this winning will be dependent upon solving a cryptographic puzzle.” 解出谜题的矿工就是这一轮的领导者，由它决定这一块装哪些交易；同时每个矿工也校验别人的块。</li><li><strong>终局性不保证</strong>：终局性（finality：一块一旦被确认，就永远不会被撤销）在 PoW 里只能是概率性的，原因见 <a href="#s3-4">3.4</a>。</li></ul>
+
+<p>谜题有多难，用难度（difficulty）衡量：直观地说，就是平均要试多少次哈希才能成功一次。最直观的版本是实验里用的“要求哈希以 <span class="m">d</span> 个十六进制 0 开头”。把每试一次成功的概率记作 <span class="m">p<sub>0</sub></span>，则</p>
+
+<div class="eq"><span class="m">p<sub>0</sub> = <span class="bg2">(</span><span class="frac"><span>1</span><span>16</span></span><span class="bg2">)</span><sup>d</sup>,<span class="sp8"></span><span class="up">平均尝试次数</span> = <span class="frac"><span>1</span><span>p<sub>0</sub></span></span> = 16<sup>d</sup></span></div>
+
+<p>这在实验里已经推过、测过，见 <span class="xref">Lab3-4 的 6.2</span>：难度 1–4 下各挖 200 块，实测平均尝试次数 15.9、237.7、3704.0、64844.3，与 16、256、4096、65536 吻合；而单块的次数波动很大，难度 4 时最少 136 次、最多约 48 万次。<strong>平均工作量由难度决定、单次结果高度随机</strong>，下面算获胜概率就建立在这两点上。</p>
+
+<p>“前 <span class="m">d</span> 位为 0”是“哈希小于目标值”的特例：把 64 位十六进制的哈希看成一个整数，前 <span class="m">d</span> 位为 0 就是它小于 <span class="m">16<sup>64 − d</sup></span>。所以同一件事有三种说法，后文都会用到：前导零个数 <span class="m">d</span> 越大，就是目标值越小，也就是单次成功概率 <span class="m">p<sub>0</sub></span> 越小、平均尝试次数 <span class="m">1/p<sub>0</sub></span> 越大。比特币不用 <span class="m">d</span>，而是直接调目标值，它公布的“难度”数值与平均尝试次数成正比、与目标值成反比。<strong>说“难度翻倍”，指平均尝试次数翻倍、目标值减半，不是 <span class="m">d</span> 翻倍</strong>：<span class="m">d</span> 每加 1 工作量就乘 16，前导零的方案只能以 16 倍为单位调，整数目标值才能连续地调（见 <span class="xref">Lab3-4 第 7 节</span>）。</p>
+
+<div class="tool" id="powTool">
+  <h4>挖矿实验：要求哈希前 d 位十六进制为 0</h4>
+  <p class="sub">页面真的在算 SHA-256：对「区块内容 + nonce」从 nonce = 0 起逐个试，直到哈希前 d 位都是 0。连挖多块时每块内容末尾加上块号，互不相同。看两件事：平均次数贴着 16<sup>d</sup>，单块的次数却忽多忽少。</p>
+  <div class="row">
+    <span class="ctl"><label for="powD">难度 d</label><select id="powD" onchange="powDHint()"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></span>
+    <span class="sub2" id="powHint"></span>
+  </div>
+  <div class="row"><span class="ctl" style="flex:1 1 100%"><label for="powPre">区块内容</label><input class="wide" type="text" id="powPre" value="block|prev=0bcc65f1|Alice->Bob:5|nonce="></span></div>
+  <div class="row">
+    <button class="btn" onclick="powStart(false)">挖一块</button>
+    <span class="ctl"><label for="powN">连挖</label><select id="powN"><option>20</option><option>50</option><option selected>200</option></select><label>块</label></span>
+    <button class="btn" onclick="powStart(true)">开始连挖</button>
+    <button class="btn" onclick="powStop()">停止</button>
+  </div>
+  <div class="sub2" id="powLive"></div>
+  <div class="result" id="powOut"></div>
+</div>
+
+<p>p27 是 PoW 的主旨：“The higher the hash rate, the higher the chances to solve the PoW cryptographic puzzle. The node that solves the PoW puzzle will be the winner and thus will be able to add block to the blockchain and deserve the reward.” 哈希率（hash rate：每秒能算多少次哈希，即算力）越高，赢的机会越大；赢家出块并得到奖励。奖励是矿工愿意花电费的理由。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>获胜概率：算力占比</h3>
+
+<p>p29 给出节点 <span class="m">i</span> 赢得这一轮的概率：</p>
+
+<div class="eq"><span class="m">P<sub>w<sub>i</sub></sub> = <span class="frac"><span>φ<sub>i</sub></span><span><span class="bigop"><span class="lim">N</span><span class="op">∑</span><span class="lim">j = 1</span></span>φ<sub>j</sub></span></span></span></div>
+
+<ul><li><span class="m">φ<sub>i</sub></span>：节点 <span class="m">i</span> 的算力（课件正文写作 ϕ，同一个量），单位随意，各节点一致即可；</li><li><span class="m">N</span>：参与挖矿的节点总数；</li><li><span class="m">P<sub>w<sub>i</sub></sub></span>：这一块由节点 <span class="m">i</span> 挖出的概率，下标 <span class="m">w</span> 是 winning。</li></ul>
+
+<p>它量的是<strong>份额</strong>：分母是全网总算力，所以 <span class="m">P<sub>w<sub>i</sub></sub></span> 就是节点 <span class="m">i</span> 的算力占全网的比例，所有节点的概率加起来恰好是 1。</p>
+
+<p>为什么是这个形状：每次哈希都是一张独立的彩票，中奖率对所有人一样；每秒买 <span class="m">φ<sub>i</sub></span> 张的人，在任意一段时间里买到的彩票占全网的 <span class="m">φ<sub>i</sub>/<span class="opi">∑</span>φ</span>，第一张中奖票落在谁手里的概率就是这个比例。</p>
+
+<details class="box">
+  <summary>推导：为什么胜率恰好等于算力占比（课件外，选读）</summary>
+<p>设每次哈希成功的概率为 <span class="m">p<sub>0</sub></span>（即 3.1 的单次成功概率，由难度决定，极小），各次独立。</p>
+<p>① 节点 <span class="m">i</span> 每秒做 <span class="m">φ<sub>i</sub></span> 次哈希，在很短的 <span class="m">Δt</span> 内成功的概率约为 <span class="m">p<sub>0</sub>φ<sub>i</sub>Δt</span>，与之前已经试了多久无关。这种“单位时间内发生概率恒定、与过去无关”的事件，首次发生的时刻服从指数分布（exponential distribution：等待一个发生率恒定、随时可能发生的事件所需的时间），速率 <span class="m">λ<sub>i</sub> = p<sub>0</sub>φ<sub>i</sub></span>，即</p>
+<div class="eq"><span class="m"><span class="up">Pr</span>(X<sub>i</sub> &gt; t) = e<sup>−λ<sub>i</sub>t</sup></span></div>
+<p>其中 <span class="m">X<sub>i</sub></span> 是节点 <span class="m">i</span> 首次成功的时刻。</p>
+<p>② 节点 <span class="m">i</span> 获胜，就是 <span class="m">X<sub>i</sub></span> 比其他所有节点都小。各节点独立，所以“节点 <span class="m">i</span> 恰在时刻 <span class="m">t</span> 附近成功、而其余节点都还没成功”的概率密度是</p>
+<div class="eq"><span class="m">λ<sub>i</sub>e<sup>−λ<sub>i</sub>t</sup><span class="bigop"><span class="lim"></span><span class="op">∏</span><span class="lim">j ≠ i</span></span>e<sup>−λ<sub>j</sub>t</sup> = λ<sub>i</sub>e<sup>−Λt</sup>,<span class="sp8"></span>Λ = <span class="bigop"><span class="lim"></span><span class="op">∑</span><span class="lim">j</span></span>λ<sub>j</sub></span></div>
+<p>③ 对所有 <span class="m">t</span> 积分：</p>
+<div class="eq"><span class="m"><span class="up">Pr</span>(i <span class="up">获胜</span>) = <span class="opi">∫</span><sub>0</sub><sup>∞</sup>λ<sub>i</sub>e<sup>−Λt</sup><span class="sp1"></span>dt = <span class="frac"><span>λ<sub>i</sub></span><span>Λ</span></span> = <span class="frac"><span>p<sub>0</sub>φ<sub>i</sub></span><span>p<sub>0</sub><span class="bigop"><span class="lim"></span><span class="op">∑</span><span class="lim">j</span></span>φ<sub>j</sub></span></span> = <span class="frac"><span>φ<sub>i</sub></span><span><span class="bigop"><span class="lim"></span><span class="op">∑</span><span class="lim">j</span></span>φ<sub>j</sub></span></span></span></div>
+<p><span class="m">p<sub>0</sub></span> 约掉了。</p>
+<p>④ 全网第一次成功的时刻是所有 <span class="m">X<sub>j</sub></span> 中最小的那个，<span class="m"><span class="up">Pr</span>(<span class="up">min</span><sub>j</sub>X<sub>j</sub> &gt; t) = <span class="opi">∏</span><sub>j</sub>e<sup>−λ<sub>j</sub>t</sup> = e<sup>−Λt</sup></span>，也服从指数分布，速率 <span class="m">Λ</span>，均值 <span class="m">1/Λ = 1/(p<sub>0</sub><span class="opi">∑</span><sub>j</sub>φ<sub>j</sub>)</span>。框下正文列出的结论由此而来。</p>
+<p style="margin-bottom:0">用课件 Q1 的七个算力做 40 万轮模拟（每个节点按自己的速率抽一个首次成功时刻，最早者获胜），得到的胜率与公式相差都在 0.001 以内。</p>
+</details>
+
+<p>上面折叠框里的推导还给出三条后面要用的结论：</p>
+
+<ul><li><strong>难度只影响出块快慢，不影响谁赢</strong>：单次成功概率 <span class="m">p<sub>0</sub></span> 在胜率公式里约掉了。</li><li><strong>全网出块间隔服从指数分布</strong>（exponential distribution：等待一个发生率恒定、随时可能发生的事件所需的时间），平均出块时间 <span class="m">= <span class="frac"><span>1</span><span>p<sub>0</sub><span class="opi">∑</span><sub>j</sub>φ<sub>j</sub></span></span></span>。全网算力翻倍，出块就快一倍，要靠调难度（减小 <span class="m">p<sub>0</sub></span>）把出块时间拉回来，见 <a href="#s3-6">3.6</a>。</li><li><strong>等待没有记忆</strong>：已经算了很久，不会让下一刻更容易成功，挖矿没有“快挖到了”这回事。</li></ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>算力最大不等于必赢</div>
+<p>误：算力最高的节点每一块都赢。</p>
+<p style="margin-bottom:0">正：它只是赢的概率最大。下面例题里算力最高的 N7 胜率约 33%，平均三块里赢一块。PoW 的出块权是按算力比例抽签，不是比赛排名。</p>
+</div>
+
+<h3 id="s3-3"><span class="n">3.3</span>例题：求获胜概率与反求算力</h3>
+
+<p><strong>课件 Q1（p30–p31）</strong>：“Suppose a blockchain network with seven participating nodes (N1, N2, ..., N7), having computing power (hash rate) values (ϕ1, ϕ2, ϕ3, ..., ϕ7). Calculate the probability of wining the puzzle by each participating node? The computation power (hash rates) are ϕ1 = 8, ϕ2 = 4, ϕ3 =5, ϕ4 = 10, ϕ5 = 3, ϕ6 = 1, ϕ7 = 15.”</p>
+
+<p>课件只算了 N1：<span class="m">P<sub>w<sub>1</sub></sub> = 8/(8 + 4 + 5 + 10 + 3 + 1 + 15) = 0.17</span>，其余“in the similar manner”。完整答案：</p>
+
+<p>第一步，总算力 <span class="m"><span class="opi">∑</span><sub>j</sub>φ<sub>j</sub> = 8 + 4 + 5 + 10 + 3 + 1 + 15 = 46</span>。第二步，逐个除以 46：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>节点</th><th><span class="m">φ<sub>i</sub></span></th><th><span class="m">P<sub>w<sub>i</sub></sub></span></th><th>约</th></tr></thead>
+<tbody>
+<tr><td>N1</td><td>8</td><td>8/46</td><td>0.174</td></tr>
+<tr><td>N2</td><td>4</td><td>4/46</td><td>0.087</td></tr>
+<tr><td>N3</td><td>5</td><td>5/46</td><td>0.109</td></tr>
+<tr><td>N4</td><td>10</td><td>10/46</td><td>0.217</td></tr>
+<tr><td>N5</td><td>3</td><td>3/46</td><td>0.065</td></tr>
+<tr><td>N6</td><td>1</td><td>1/46</td><td>0.022</td></tr>
+<tr><td>N7</td><td>15</td><td>15/46</td><td>0.326</td></tr>
+<tr><td>合计</td><td>46</td><td>46/46</td><td>1.000</td></tr>
+</tbody></table></div>
+
+<p>第三步自查：七个分数之和是 46/46 = 1。</p>
+
+<p><strong>模拟卷 Q4(a)(i)（3 分）</strong>：“Consider a PoW-based blockchain system with five participating nodes (N1, N2, N3, N4), with computing power (hash rate) values ϕ1=3, ϕ2=5, ϕ3=4, and ϕ4=x. If the probability of winning the puzzle by N1 is 20%, calculate the value of x.”</p>
+
+<p>题干说 “five” 却只列了四个节点，是卷面笔误，按四个节点做。这是同一个公式倒过来用：已知份额，求总量。规范答法（参考答案三行各 1 分）：</p>
+
+<div class="eq"><span class="m">P<sub>w<sub>1</sub></sub> = <span class="frac"><span>φ<sub>1</sub></span><span>φ<sub>1</sub> + φ<sub>2</sub> + φ<sub>3</sub> + φ<sub>4</sub></span></span> = 20%</span><span class="lbl">(1)</span></div>
+
+<div class="eq"><span class="m">φ<sub>1</sub> + φ<sub>2</sub> + φ<sub>3</sub> + φ<sub>4</sub> = <span class="frac"><span>φ<sub>1</sub></span><span>0.2</span></span> = <span class="frac"><span>3</span><span>0.2</span></span> = 15</span><span class="lbl">(2)</span></div>
+
+<div class="eq"><span class="m">x = φ<sub>4</sub> = 15 − (3 + 5 + 4) = 3</span><span class="lbl">(3)</span></div>
+
+<p>回代验算：<span class="m">3/(3 + 5 + 4 + 3) = 3/15 = 20%</span>。</p>
+
+<p>这类题的通法：<strong>先由“份额 = 自己 ÷ 总量”求出总量，再减去已知部分</strong>。不必一上来解含 <span class="m">x</span> 的分式方程，移项时容易出错。</p>
+
+<div class="tool" id="wpTool">
+  <h4>获胜概率计算器</h4>
+  <p class="sub">填各节点的算力（空格隔开），逐个除以总算力。下面两块：已知某节点胜率反求未知算力（模拟卷 Q4(a)(i) 的做法）；以及按「每个节点首次成功时刻服从指数分布、最早者获胜」直接模拟，看频率是否等于算力占比、难度 p₀ 是否约掉。</p>
+  <div class="row">
+    <span class="ctl" style="flex:1 1 18rem"><label for="wpPhi">各节点算力 φ</label><input type="text" id="wpPhi" value="8 4 5 10 3 1 15" oninput="wpGo()" style="width:min(100%,16rem)"></span>
+    <button class="btn" onclick="wpSet('8 4 5 10 3 1 15')">课件 Q1</button>
+    <button class="btn" onclick="wpSet('3 5 4 3')">模拟卷 Q4(a)(i) 回代</button>
+  </div>
+  <div id="wpTab"></div>
+  <div class="result" id="wpOut"></div>
+  <h4 style="margin-top:1.2rem">反求未知算力</h4>
+  <div class="row">
+    <span class="ctl"><label for="wsP">N1 胜率（%）</label><input class="num" type="text" id="wsP" value="20" oninput="wpSolve()" style="width:4.5rem"></span>
+    <span class="ctl"><label for="wsF1">φ₁</label><input class="num" type="text" id="wsF1" value="3" oninput="wpSolve()" style="width:4.5rem"></span>
+    <span class="ctl"><label for="wsOth">其余已知 φ</label><input class="num" type="text" id="wsOth" value="5 4" oninput="wpSolve()" style="width:7rem"></span>
+  </div>
+  <div class="result" id="wsOut"></div>
+  <h4 style="margin-top:1.2rem">指数竞赛模拟</h4>
+  <div class="row">
+    <span class="ctl"><label for="wpP0">单次成功概率 p₀</label><select id="wpP0"><option value="1e-6">10⁻⁶</option><option value="1e-3">10⁻³</option></select></span>
+    <span class="ctl"><label for="wpR">轮数</label><select id="wpR"><option value="10000">10,000</option><option value="100000" selected>100,000</option><option value="400000">400,000</option></select></span>
+    <button class="btn" onclick="wpSim()">模拟</button>
+  </div>
+  <div class="result" id="wpSimOut"></div>
+</div>
+
+<h3 id="s3-4"><span class="n">3.4</span>分叉、双花与概率终局性</h3>
+
+<p>p32 列了 PoW 的四个问题：</p>
+
+<ol><li>“Double spending problem is associated with PoW consensus algorithm.”</li><li>“PoW is probabilistic in nature as two or more nodes may solve PoW puzzle simultaneously, which will result in the creation of ”fork“.”</li><li>“PoW has a long latency issue, i.e., nodes take time to validate transactions.”</li><li>“PoW is computationally expensive.”</li></ol>
+
+<p>第 2 条是根子，第 1、3 条都从它来，按因果顺序讲；第 4 条放到 3.6。</p>
+
+<p><strong>分叉从哪来。</strong> 出块是随机的（3.2），两个矿工可能在几秒内先后解出谜题，各自广播自己的块。消息在网络里传播要时间，一部分节点先收到 A 块，另一部分先收到 B 块，链在末端分成两支，这叫分叉（fork）。</p>
+
+<p><strong>怎样收敛。</strong> 每个节点遵守最长链规则（longest-chain rule：总是在累计工作量最大的那条链上继续挖，通常就是最长的那条）。下一个块接在哪一支上，那一支就更长，全网随之转过去；另一支上的块被抛弃，叫孤块（orphan block，也叫 stale block），里面的交易退回交易池，等着被重新打包。</p>
+
+<p><strong>所以终局性只能是概率性的。</strong> 任何一块都可能被另一支更长的链取代，只是它后面接的块越多，被取代越难。这就是 p26 “finality is not guaranteed” 的含义，也是第 3 条“延迟长”的原因：一笔交易进了块还不够，要再等若干块才算稳，比特币的惯例是等 6 个确认（交易所在的块算第 1 个，后面再接 5 块），约 1 小时。要等几块、要多久，就是第 5 节的确认时间。</p>
+
+<p><strong>双花的真实关系。</strong> 双花（double spending：同一笔钱花两次——先付给商家，再用一条不含这笔付款的链把它抹掉，钱回到自己手里）是数字货币要解决的头号问题。PoW 不是双花的来源，恰恰是比特币的匿名设计者中本聪（Satoshi Nakamoto）用来<strong>解决</strong>双花的手段：它给全网的交易定下一个公认的先后顺序。它留下的问题是，这个顺序只是概率性地稳定，攻击者如果能私下挖出一条更长的链，就能改写最近的交易。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>“PoW 有双花问题”的准确说法</div>
+<p>误：PoW 导致双花（课件 p32 第一条字面上的意思）。</p>
+<p style="margin-bottom:0">正：PoW 是用来防双花的；只因终局性是概率性的，刚确认不久的交易仍有被改写、被双花的风险，后面接的块越多，风险越小。攻击者算力超过全网一半时，改写变成必然，这就是 51% 攻击（见 3.5）。</p>
+</div>
+
+<p>“越等越安全”可以定量算。中本聪的比特币论文（2008）第 11 节给出了攻击者最终追上并改写的概率：设攻击者占全网算力的比例为 <span class="m">q</span>，交易所在块之后已经接了 <span class="m">z</span> 块。</p>
+
+<figure>
+<div id="figCuW" class="only-wide"></div><div id="figCuN" class="only-narrow"></div>
+<figcaption>攻击者改写一笔交易的成功率随等待块数的变化，纵轴为对数刻度，按中本聪论文第 11 节的公式计算。</figcaption>
+</figure>
+
+<p>读图（按中本聪的公式）：<span class="m">q = 0.1</span> 时，<span class="m">z = 5</span>（即比特币的 6 个确认）成功率约 0.091%，<span class="m">z = 6</span> 约 0.024%；<span class="m">q = 0.3</span> 时 <span class="m">z = 6</span> 仍有约 13%，要到 <span class="m">z = 24</span> 才压到 0.1% 以下；<span class="m">q = 0.45</span> 时 <span class="m">z = 30</span> 还有约 43%。攻击者越强，要等的块越多；<span class="m">q ≥ 0.5</span> 时成功率恒为 1。这条公式是近似，精确计算出的风险还要更高一些，见下面折叠框的第 ④ 步。</p>
+
+<details class="box">
+  <summary>中本聪的追赶概率公式（课件外，选读）</summary>
+<p>记诚实方的算力占比 <span class="m">p = 1 − q</span>（这里的 <span class="m">p</span> 与 3.2 的单次成功概率 <span class="m">p<sub>0</sub></span> 无关）。把攻击链与诚实链的竞赛看作一次次“谁先挖出下一块”，攻击者每次赢的概率为 <span class="m">q</span>。</p>
+<p>① 攻击者落后 <span class="m">z</span> 块时最终追平的概率，是经典的赌徒破产问题（gambler's ruin：每局赢面为 <span class="m">q</span> 的赌徒，从落后 <span class="m">z</span> 局到追平的概率）：</p>
+<div class="eq"><span class="m">q<sub>z</sub> = <span class="cbrace">{</span><span class="cases"><span>1,</span><span>p ≤ q</span><span>(q/p)<sup>z</sup>,</span><span>p &gt; q</span></span></span></div>
+<p>落后越多，追平的概率按 <span class="m">q/p</span> 的幂次衰减。</p>
+<p>② 商家等诚实链接出 <span class="m">z</span> 块的这段时间里，攻击者也在私下挖，平均挖出 <span class="m">μ = z<span class="sp1"></span>q/p</span> 块；中本聪取实际块数 <span class="m">k</span> 服从泊松分布（Poisson distribution：一段时间内随机事件发生次数的分布，<span class="m"><span class="up">Pr</span>(k) = μ<sup>k</sup>e<sup>−μ</sup>/k!</span>）。他已挖出 <span class="m">k</span> 块时只落后 <span class="m">z − k</span> 块，<span class="m">k &gt; z</span> 时已经领先。</p>
+<p>③ 按 <span class="m">k</span> 加权求和，得改写成功的总概率：</p>
+<div class="eq"><span class="m">P = 1 − <span class="bigop"><span class="lim">z</span><span class="op">∑</span><span class="lim">k = 0</span></span><span class="frac"><span>μ<sup>k</sup>e<sup>−μ</sup></span><span>k!</span></span><span class="bg2">(</span>1 − (q/p)<sup>z − k</sup><span class="bg2">)</span></span></div>
+<p>程序算出的值与原论文的表一致：<span class="m">q = 0.1</span> 时 <span class="m">z = 1</span> 为 0.2045873、<span class="m">z = 5</span> 为 0.0009137；<span class="m">q = 0.3</span> 时 <span class="m">z = 10</span> 为 0.0416605。注意 <span class="m">P</span> 衰减得比①的 <span class="m">(q/p)<sup>z</sup></span> 慢得多：<span class="m">q = 0.1</span>、<span class="m">z = 6</span> 时 <span class="m">(q/p)<sup>6</sup> ≈ 1.9 × 10<sup>−6</sup></span>，而 <span class="m">P ≈ 2.4 × 10<sup>−4</sup></span>——①只是“落后 <span class="m">z</span> 块时追平”的概率，没算等待期间攻击者已经挖出的块。</p>
+<p>④ ②是一个近似：它假设诚实方挖出 <span class="m">z</span> 块恰好用了平均时长。实际这段时间本身也是随机的，攻击者挖出的块数精确地服从负二项分布（negative binomial distribution：一串独立的“谁挖出下一块”里，等到诚实方第 <span class="m">z</span> 次胜出之前，攻击者胜出次数的分布）。按精确分布算，风险更高：<span class="m">q = 0.1</span>、<span class="m">z = 6</span> 约 0.059%；<span class="m">q = 0.3</span>、<span class="m">z = 6</span> 约 15.6%，<span class="m">z = 24</span> 约 0.40%，要到 <span class="m">z = 32</span> 才低于 0.1%（Rosenfeld 2014；Grunspan 与 Pérez-Marco 2017）。考试不涉及；“越等越安全、过半必成”的结论不变。</p>
+<p style="margin-bottom:0">这条公式把 p32 的双花、p33 的 51% 攻击和 p48 的“新块要等几块才算确认”串成了一条因果链。</p>
+</details>
+
+<div class="tool" id="cuTool">
+  <h4>追赶概率：等几块才够</h4>
+  <p class="sub">拖动攻击者算力占比 q 与等待块数 z。实线是中本聪公式，虚线是把等待时长也当随机量的精确算法；横虚线是选定的风险阈值。</p>
+  <div class="row">
+    <span class="ctl"><label for="cuQ">q</label><input type="range" id="cuQ" min="0.01" max="0.6" step="0.01" value="0.1" oninput="cuGo()"><span class="rv" id="cuQv"></span></span>
+    <span class="ctl"><label for="cuZ">z</label><input type="range" id="cuZ" min="0" max="60" step="1" value="5" oninput="cuGo()"><span class="rv" id="cuZv"></span></span>
+    <span class="ctl"><label for="cuThr">阈值</label><select id="cuThr" onchange="cuGo()"><option value="0.01">1%</option><option value="0.001" selected>0.1%</option><option value="0.0001">0.01%</option></select></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="cuSet(0.1,1)">q 0.1，z 1</button>
+    <button class="btn" onclick="cuSet(0.1,5)">q 0.1，z 5</button>
+    <button class="btn" onclick="cuSet(0.1,6)">q 0.1，z 6</button>
+    <button class="btn" onclick="cuSet(0.3,6)">q 0.3，z 6</button>
+    <button class="btn" onclick="cuSet(0.3,24)">q 0.3，z 24</button>
+    <button class="btn" onclick="cuSet(0.45,30)">q 0.45，z 30</button>
+  </div>
+  <div class="toolfig" id="cuPlot"></div>
+  <div class="result" id="cuOut"></div>
+</div>
+
+<h3 id="s3-5"><span class="n">3.5</span>容错：过半算力、拜占庭与 Sybil</h3>
+
+<p>p33 三句话要合起来读：</p>
+
+<ul><li>“PoW consensus is susceptible to 51% attack.”</li><li>“PoW is fault-tolerant to Byzantine Failure.”</li><li>“PoW is attack-resistant against Sybil attacks, where malicious blockchain nodes create multiple pseudo identities to launch this attack.”</li></ul>
+
+<p><span class=“term”>51% 攻击</span><span class=“en”>（51% attack）</span>：攻击者控制全网过半算力，平均出块就比其余所有人加起来还快，他私下挖的链迟早会最长。由 3.4 的公式，<span class="m">q ≥ 0.5</span> 时追上的概率是 1，攻击者可以改写最近的交易（双花），也可以拒绝打包某些人的交易。</p>
+
+<p><strong>对拜占庭故障的容错有前提。</strong> 恶意矿工可以发假块、藏块、在分叉上捣乱，都是典型的拜占庭行为。只要诚实算力占多数，最长链终究由诚实方主导，系统照常工作。所以准确的说法是：<strong>诚实节点掌握过半算力时，PoW 能容忍拜占庭节点</strong>，而且这种容忍是概率性的。p33 第一句正是这个前提被打破的情形。</p>
+
+<p><strong>Sybil 抗性</strong>：PoW 的“票”是算力，开再多假身份，总算力不变，胜率 <span class="m">φ<sub>i</sub>/<span class="opi">∑</span>φ</span> 一点不涨（2.3）。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>PoW 的容错门槛按算力算，不按节点数算</div>
+<p>PoW 能容忍的是“恶意方的算力不到一半”，与恶意节点有多少个无关：一个拥有 60% 算力的节点就能攻破它，一千个总共只有 10% 算力的恶意节点却不能。</p>
+<p style="margin-bottom:0">下一讲按节点投票的协议，门槛按<strong>节点数</strong>算：只防崩溃要 <span class="m">N ≥ 2f + 1</span>，即故障节点少于一半；防拜占庭要 <span class="m">N ≥ 3f + 1</span>，即故障节点少于三分之一。两种门槛不要混。</p>
+</div>
+
+<h3 id="s3-6"><span class="n">3.6</span>难度：稳住出块速度的恒温器</h3>
+
+<p>p34：“Difficulty is one parameter which can be used to deal with attacks. When the difficulty level is high in the mining process, more computing resources are required to solve the mining puzzles; thus, it will be very hard for the attacker nodes to consume such high resources to continue their malicious activities.”</p>
+
+<p>难度的三种说法（前导零个数 <span class="m">d</span>、目标值、平均尝试次数）见 <a href="#s3-1">3.1</a>；它怎样决定平均尝试次数（<span class="m">16<sup>d</sup></span>），以及为什么篡改第 <span class="m">k</span> 块要把后面每一块都重挖，实验笔记已经讲透，见 <span class="xref">Lab3-4 的 6.2</span> 与 <span class="xref">6.3</span>。这里补的是它在真实网络里怎样用，以及 p34 这段话的问题。</p>
+
+<p><strong>难度是自动调的。</strong> 由 3.2，平均出块时间 <span class="m">= 1/(p<sub>0</sub><span class="opi">∑</span><sub>j</sub>φ<sub>j</sub>)</span>，全网算力翻倍，出块就快一倍。比特币每 2016 块（约两周）按这段时间的实际耗时重设目标值，让平均出块时间回到约 10 分钟：算力翻倍，难度也翻倍，即平均尝试次数翻倍、目标值减半。所以难度的首要作用是<strong>稳住出块时间</strong>，像一个恒温器。</p>
+
+<p><strong>真正挡住攻击者的是全网诚实算力的规模。</strong> 难度对攻击者和诚实矿工同时提高，攻击者需要的算力<strong>占比</strong>（过半）不会因此改变。变的是绝对成本：全网算力越大、难度越高，“过半”对应的矿机和电费就越多。p34 的结论（攻击者负担不起）在这个意义上成立，原因却是诚实方投入的算力大，而不是难度这个参数被调高了。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>难度不是为抗攻击而手动调高的参数</div>
+<p>误：把难度调高，攻击就变难了。</p>
+<p style="margin-bottom:0">正：难度由协议按出块速度自动调整，目的是让出块时间稳定；它对所有人同比例变难，攻击者需要的算力占比始终是过半。安全性来自全网诚实算力的绝对规模。</p>
+</div>
+
+<p>p32 第 4 条 “computationally expensive” 也落在这里：要让攻击者付不起，诚实矿工就得持续付出同样巨大的算力。这些计算除了维护安全，没有别的用处，耗电极大。PoS 想解决的就是这个代价。</p>
+
+<h2 id="s4"><span class="n">4</span>PoS：用质押抽签</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>按质押选出块者</h3>
+
+<p>p36：“In Proof-of-Stake (PoS) category of consensus protocol, the selection of miners is dependent upon the amount of stakes each node carries instead of its computational power. The higher the stake a node has, the higher the chances to select that node as a winning miner node.”</p>
+
+<p>PoS 把 PoW 里的算力换成<strong>质押</strong>（stake，2.3 已介绍：节点锁定作担保、作恶会被没收的代币）。思路与 PoW 相同，是按资源比例抽签：节点被选中出块的概率随质押增大。PoS 里的出块者一般不叫矿工，而叫验证者（validator），课件沿用了 “miner” 一词。</p>
+
+<p>p38 说 “In PoS consensus, the winner is the one which has a higher stake”，并列了 stake 的四种形式：持有的加密货币、持有的数字代币、拥有的能量、拥有的算力。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>stake 不包括算力</div>
+<p>p38 把 “The amount of computational power a node has” 列为 stake 的一种，与 p36 的定义 “instead of its computational power” 自相矛盾：按算力选人就是 PoW 了。“amount of energy” 同样不合通行定义。</p>
+<p>通行的说法：stake 是节点<strong>锁定的代币</strong>；早期的 Peercoin 还把持有时间算进去，叫币龄（coin age：币数 × 持有天数）。</p>
+<p style="margin-bottom:0">另外，“the winner is the one which has a higher stake” 不能理解成质押最多的人必赢。和 PoW 一样是按比例的概率，否则永远是同一个人出块。</p>
+</div>
+
+<p>PoS 能抗 Sybil，理由与 PoW 相同：把币分散到一万个账户里，总质押不变，被选中的总概率也不变。</p>
+
+<h3 id="s4-2"><span class="n">4.2</span>相对 PoW 的优点</h3>
+
+<p>p37 三条：</p>
+
+<ol><li>“Less consumption of energy.” 不需要全网矿机反复算哈希，选出块者只要按质押做一次抽签运算。以太坊 2022 年从 PoW 改为 PoS 后，能耗下降约 99.95%。</li><li>“Lower requirements in terms of nodes' computation power (hardware).” PoW 的胜率取决于算力，矿工被逼着军备竞赛，用上 ASIC（application-specific integrated circuit，专用集成电路：只为算一种哈希而设计的芯片，比通用 CPU 快几个数量级）和 GPU（graphics processing unit，图形处理器）；PoS 的胜率与硬件无关，p43 说 “A standard server-grade device is sufficient for PoS-based systems”。</li><li>“Faster transaction confirmation speed due to single block generation in each round.” 每一轮由协议指定一个出块者，不必等哈希竞赛，也不会因为两人同时解出而分叉。这一条有前提，见下面的 warning。</li></ol>
+
+<p>模拟卷 Q4(a)(ii)（2 分）：“Discuss the advantages of PoS over PoW.” 参考答案 “less energy consumption, less computing resource required”，正是前两条。考场写法：</p>
+
+<ul><li><strong>Less energy consumption</strong>: PoS selects the block producer according to its stake, so nodes do not need to compete by computing hashes repeatedly.</li><li><strong>Lower hardware / computing requirements</strong>: the chance of winning does not depend on computing power, so no ASICs or GPUs are needed; a standard server is enough.</li></ul>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>出块更快、不分叉只对一部分 PoS 成立</div>
+<p>p37 第三条说 PoS “single block generation in each round”，p43 却又说 “Forking is not automatically discouraged by PoS systems”，两页口径不一。</p>
+<p style="margin-bottom:0">“每轮恰好一个块、一经确认即终局”只对 <strong>BFT 式 PoS</strong> 成立，如 Tendermint：按质押加权投票，超过 2/3 同意才算确认。<strong>链式 PoS</strong>（选出出块者之后仍按最长链规则延伸）照样会分叉。答 PoS 的优点，前两条最稳；写第三条要带上这个前提。</p>
+</div>
+
+<h3 id="s4-3"><span class="n">4.3</span>PoS 的四个问题</h3>
+
+<p><strong>一、大户主导（p39）。</strong> “The network/blockchain system is subject to dominance by the most significant token holders.” 课件给了一个闭环：“more token -&gt; high winning probability -&gt; more rewards -&gt; more token”。</p>
+
+<p>这个闭环要加条件才成立。设三个节点质押 60、30、10，每轮发 10 个币的奖励，按质押比例的概率给出：平均每轮三人分别得 6、3、1，下一轮变成 66、33、11，占比仍是 60%、30%、10%。<strong>奖励严格按质押比例发放时，大户的份额在期望上不变</strong>，不会自动越滚越大。闭环要成立，靠的是别的不对称：不参与质押的持币者，份额被新发行的币稀释；大户运维成本摊得更薄，也更容易吸引别人把币委托（delegation：自己不运行节点，把币交给别人代为质押、分享奖励）给他。但大户本来就占大头，已经意味着出块权和话语权集中在少数人手里，这才是 p39 担心的 “dominance”。</p>
+
+<p><strong>二、消息丢失与延迟（p40）。</strong> “If there is any delay or link connectivity issues, nodes may not have the recent copy of the ledger and thus, results in the synchronization problem.” 节点因延迟或断线没拿到最新的账本，就会在旧状态上出块或投票，这是同步问题。</p>
+
+<p><strong>三、委员会成员之间的通信（p41）。</strong> 有些 PoS 变体先按质押抽出一个验证委员会（committee：这一轮负责投票确认区块的一小批验证者），由他们投票。“Without timely sharing of messages among the committee members, the performance of PoS consensus algorithm can be seriously degraded.” 投票要多轮消息往返，消息慢，确认就慢。</p>
+
+<p><strong>四、奖励与激励（p42）。</strong> 奖励要让所有节点都有平等的参与机会（“equal opportunity”），“Otherwise, a situation will arise when only the mining node which has the higher stake will always get rewarded and always wins the mining process.” 这和第一条是同一个问题在设计侧的一面：奖励怎样分，出块权才不会固化。</p>
+
+<p>另有一个问题，p43 的对照表只说 PoS “Forking is not automatically discouraged”，没点名原因：<span class=“term”>无利害关系</span><span class=“en”>（nothing-at-stake）</span>。在 PoW 里同时在两条分叉上挖，要把算力劈成两半，代价是真的；在 PoS 里给两条分叉都签名几乎不花成本，于是理性的验证者倾向于两边都押，分叉难以收敛。现代 PoS 的对策是<strong>罚没</strong>（slashing：一旦发现某个验证者给冲突的块都签了名，就没收它的一部分质押），让“两边都押”要付真金白银。</p>
+
+<h3 id="s4-4"><span class="n">4.4</span>PoW 与 PoS 对照</h3>
+
+<p>p43 是两张对照表，是比较题的主要出处。原表有几格写错，下表按原表的行整理，错处在格内改正：</p>
+
+<div class="tw"><table>
+<thead><tr><th>维度</th><th>PoW</th><th>PoS</th></tr></thead>
+<tbody>
+<tr><td>谁出块</td><td>算力决定出块概率</td><td>质押（币数）决定出块概率</td></tr>
+<tr><td>奖励</td><td>先挖出块者得出块奖励</td><td>原表说验证者不得出块奖励、只收手续费；这只对部分设计成立，以太坊的验证者两样都有</td></tr>
+<tr><td>竞争方式</td><td>矿工用算力比赛解谜题</td><td>算法按质押大小选出赢家</td></tr>
+<tr><td>集中化</td><td>越来越依赖大规模矿场，趋于集中</td><td>原表此格误抄了上一行；应为大户主导，即 4.3 第一条</td></tr>
+<tr><td>专用设备</td><td>ASIC、GPU</td><td>普通服务器即可</td></tr>
+<tr><td>加入恶意块要什么</td><td>51% 的算力</td><td>原表写“全网 51% 的加密货币”，应为<strong>质押量</strong>，且不止一档。以以太坊为例：超过 1/3 可阻止最终确定，或以全部质押被罚没为代价造成冲突的最终确定；超过 1/2 可控制分叉选择、审查交易；超过 2/3 可单方面最终确定任意一条链</td></tr>
+<tr><td>效率与可靠性</td><td>能效低、<strong>成本高</strong>（原表误作 “less expensive”）；原表称其更可靠</td><td>成本与能效都好得多；原表称其不那么可靠</td></tr>
+<tr><td>安全来源</td><td>全网算力越大越安全</td><td>质押锁住资产，作恶会损失质押</td></tr>
+<tr><td>分叉</td><td>在错误分叉上挖等于白烧电，经济激励自然抑制分叉</td><td>不会自动抑制分叉（nothing-at-stake），要靠罚没</td></tr>
+</tbody></table></div>
+
+<p>“更可靠、不那么可靠”是原表的主观评价，没给标准；答题引用时说成“PoW 的安全性经过了更长时间的实践检验”更站得住。</p>
+
+<h3 id="s4-5"><span class="n">4.5</span>现状：以太坊已改用 PoS</h3>
+
+<p>课件 p11 说以太坊用 PoW 的变体 Ethash，p25 的表也把 Ethereum 列在 PoW 下。<strong>这是 2022 年以前的情况。</strong> 2022-09-15，以太坊完成合并（The Merge：把原来的 PoW 主链并入 2020 年起并行运行的 PoS 信标链 Beacon Chain），从此改用 PoS：</p>
+
+<ul><li>想当验证者，至少要质押 32 ETH（ETH 是以太币的代号；2025 年的 Pectra 升级后，单个验证者最多可计入 2048 ETH）；</li><li>时间切成 12 秒一个时隙（slot），每个时隙随机选一名验证者提议一个块；32 个时隙为一个周期（epoch），约 6.4 分钟；</li><li>其他验证者对块投票，一个块要再过约两个周期才被最终确定（finalized），至少 12.8 分钟，通常约 15 分钟。这是确定的终局性，不再是 PoW 那样越等越稳；要推翻已最终确定的块，攻击者得被罚没至少三分之一的全网质押；</li><li>能耗比 PoW 时期下降约 99.95%。</li></ul>
+
+<p>考试若问以太坊用什么共识，写 “Ethereum originally used PoW (Ethash), but has used PoS since The Merge in September 2022”。比特币仍然用 PoW。</p>
+
+<h2 id="s5"><span class="n">5</span>怎样衡量一个共识：吞吐量与确认时间</h2>
+
+<h3 id="s5-1"><span class="n">5.1</span>两类指标</h3>
+
+<p>p45：“Performance and scalability of IT systems have always been the key non-functional metrics that are used to gauge a blockchain consensus.” 非功能性指标（non-functional metrics：不管系统能不能做某件事，而管它做得多快、能撑多大规模）分两类：</p>
+
+<ol><li><span class=“term”>性能</span><span class=“en”>（performance）</span>：交易吞吐量（transaction throughput）、区块确认时间（block confirmation time）；</li><li><span class=“term”>可扩展性</span><span class=“en”>（scalability）</span>。</li></ol>
+
+<p>性能的两个量各管一件事：吞吐量管每秒能记下多少笔，确认时间管一笔交易要等多久才算稳。</p>
+
+<h3 id="s5-2"><span class="n">5.2</span>吞吐量：每块装几笔，每块用几秒</h3>
+
+<p>p46 的定义：“Transaction throughput is defined as the number of transactions per second a blockchain network can process.” 单位 Tx/s，即每秒交易数。p46 顺带重复了链的层次：交易是基本单元，交易组成块，块连成链。</p>
+
+<p>p47 的公式：</p>
+
+<div class="eq"><span class="m"><span class="up">Transaction Throughput</span> = <span class="frac"><span><span class="up">Block Size (Bytes)</span></span><span><span class="up">Transaction Size (Bytes)</span> × <span class="up">Block Time (seconds)</span></span></span></span></div>
+
+<p>Block Size 是区块大小，Transaction Size 是单笔交易的大小，Block Time 课件定义为 “the time required to add a block to the blockchain – average”，即<strong>平均出块时间</strong>（block time：相邻两块之间平均隔多久）。</p>
+
+<p>拆成两步就不用背：</p>
+
+<div class="eq"><span class="m"><span class="ubr"><span class="ubb"><span class="frac"><span><span class="up">Block Size</span></span><span><span class="up">Transaction Size</span></span></span></span><span class="ubl"><span class="up">每块装几笔</span></span></span> ÷  <span class="ubr"><span class="ubb"><span class="up">Block Time</span></span><span class="ubl"><span class="up">每块用几秒</span></span></span> = <span class="up">每秒记几笔</span></span></div>
+
+<p>例：区块 1 MB、交易 500 B，每块装 <span class="m">10<sup>6</sup>/500 = 2000</span> 笔；每 10 s 出一块，吞吐量 <span class="m">2000/10 = 200</span> Tx/s。</p>
+
+<p><strong>单位约定</strong>：课件和模拟卷都按 <span class="m">1 <span class="up">MB</span> = 10<sup>6</sup> <span class="up">B</span></span>。p53 第二行直接把 2 MBytes 写成 <span class="m">2 × 10<sup>6</sup></span>，p49–p51 三张图也只有按 <span class="m">10<sup>6</sup></span> 才对得上。考场按 <span class="m">10<sup>6</sup></span> 算，并在第一步写出换算，表明约定。</p>
+
+<p>按课件的口径粗算比特币：区块 1 MB、平均交易约 250 B、出块约 600 s，得 <span class="m">10<sup>6</sup>/(250 × 600) ≈ 6.7</span> Tx/s，与常说的“比特币每秒约 7 笔”同一量级。信用卡网络每秒能处理数千笔，差距就是可扩展性问题的由来。</p>
+
+<h3 id="s5-3"><span class="n">5.3</span>三个参数，三条提速途径</h3>
+
+<p>p49–p51 三张柱状图各固定两个量、改变第三个，看吞吐量怎样变。原图的说明文字和横轴有标签错误（见 5.5），下面按公式重画，数值与原图逐点一致：</p>
+
+<figure>
+<div id="figTpW" class="only-wide"></div><div id="figTpN" class="only-narrow"></div>
+<figcaption>(a) 区块越大，吞吐量线性上升；(b) 出块越慢，吞吐量按反比下降；(c) 单笔交易越大，吞吐量按反比下降。三张图就是吞吐量公式里三个量各自的作用。</figcaption>
+</figure>
+
+<p>课件 p14–p15 复习页给的五条提高交易容量的办法，前三条都作用在公式上：</p>
+
+<ol><li>“The higher the number of transactions included in each block, the higher the throughput.”——加大区块，即分子；</li><li>“Efficient and quick responding consensus algorithms are required.”——共识快本身不是公式里的量，它让出块时间（分母）能安全地缩短；</li><li>“The fast interarrival time of blocks is needed”——缩短出块间隔，即分母；</li><li>链下（off-chain：把大量交易挪到主链之外处理，只把结果写回主链），例如侧链（sidechain：与主链相连、规则可以不同的另一条链）；</li><li>分片（sharding：把全网节点分成若干组，每组叫一个分片，只处理分给它的那一部分交易，各组并行工作），课件原话 “proposed to handle transaction capacity, bottleneck of blockchain systems”。</li></ol>
+
+<p>拧旋钮都有代价：</p>
+
+<ul><li><strong>加大区块</strong>：块传播变慢，每个节点要存的账本涨得更快（p13 的问题），能当全节点（full node：存完整账本、独立校验一切的节点）的人变少，网络趋于集中。</li><li><strong>缩短出块间隔</strong>：一个块在网络里传播要花时间 <span class="m">τ</span>；按 3.2 的结论，全网出块间隔服从均值为 <span class="m">T</span> 的指数分布（<span class="m">T</span> 为平均出块时间），这 <span class="m">τ</span> 秒里别人也挖出块、造成分叉的概率约为 <span class="m">1 − e<sup>−τ/T</sup></span>。<span class="m">τ = 10</span> s 时，<span class="m">T = 600</span> s 约 1.7%，<span class="m">T = 200</span> s 约 4.9%。出块越快，分叉和孤块越多，被浪费的算力越多，安全性越差。</li></ul>
+
+<p>单纯拧旋钮很快会撞上“去中心化、安全、可扩展性三者难以兼得”这堵墙，这个说法叫可扩展性三难（scalability trilemma）。第 4、5 条不再拧公式，而是改结构。</p>
+
+<p>p54 给可扩展性下的定义正是从这里出发：“Scalability of blockchain networks is the ability of that platform to support increasing load of transactions, as well as increasing the number of nodes in the network.” 它举的方案是链下：“built on top of the main blockchain and handle most of the transactions. (Sidechains, Payment Channels, etc.)”。支付通道（payment channel）指两个人在链下反复记账，只把开通和最终结算两笔写上链，比特币的闪电网络（Lightning Network）就是这种。分片的优点（模拟卷 Q3(b)(v)：高可扩展性、更大的交易容量、低成本）在 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a> 展开。</p>
+
+<h3 id="s5-4"><span class="n">5.4</span>确认时间：要等几块</h3>
+
+<p>p48：“It is defined as the time to confirm the block and it tells us how quickly a block can be confirmed in a blockchain.” 另有三点：“Depending upon the underlying blockchain, it can further be dependent upon the number of blocks.”、“A new block must wait before it is confirmed.”、“It can be measured in seconds.”</p>
+
+<p>新块为什么要等，<a href="#s3-4">3.4</a> 讲过：PoW 的块随时可能被更长的分支取代，后面接的块越多越稳。所以每条链会规定一块之后再接 <span class="m">k</span> 块才算确认，确认时间就是</p>
+
+<div class="eq"><span class="m"><span class="up">Confirmation Time</span> = k × <span class="up">Block Time</span></span></div>
+
+<p>课件没写成式子，p53 用的就是这个算法。<span class="m">k</span> 越大越安全，代价是等得越久。比特币惯例 6 个确认，按本课的口径粗算 <span class="m">6 × 600 = 3600</span> s，约 1 小时。</p>
+
+<p>这里的“确认”和 1.1 第 12 步课件叫的 “Block confirmation” 不是一回事：那一步指节点收下广播来的块、加进本地副本；这里指块后面已经接上 <span class="m">k</span> 块、足够稳了。</p>
+
+<figure>
+<div class="hscroll" id="figConf" style="--minw:620px"></div>
+<figcaption>橙色是交易所在的块，蓝色是它之后要等的 k 块，灰色是前后的其他块。出块时间是相邻两块的间隔，决定每秒记下几笔；确认时间是一块之后再等 k 块的总时长，决定一笔交易多久算稳。</figcaption>
+</figure>
+
+<h3 id="s5-5"><span class="n">5.5</span>出块时间与确认时间别混</h3>
+
+<p>两个量都以秒计、名字又像，课件自己就混用了：p47 公式的分母是 “Block Time”；p48、p53 把确认时间定义为等待块数 × 出块时间；可 p49、p51 的说明文字写 “block confirmation time is 10 s”，p50 的标题、正文和横轴都写成 “Block Confirmation Time”，而代进公式、能和图上数字对上的，其实是出块时间。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>吞吐量公式的分母是出块时间</div>
+<p>误：把确认时间代进吞吐量公式。课件 Q2 会因此算成 <span class="m"><span class="frac"><span>2 × 10<sup>6</sup></span><span>500 × 2000</span></span> = 2</span> Tx/s，模拟卷那道会算成 18.75 Tx/s。</p>
+<p>正：分母是<strong>出块时间</strong>（block time，课件 Q2 题面叫 block generation time）。确认时间只决定一笔交易要等多久才算最终确定，不改变每秒能记下多少笔：不管规定等 6 块还是 60 块，链上照样每 <span class="m">T</span> 秒新增一块交易。</p>
+<p style="margin-bottom:0">判别抓手：题目里“每隔多少秒出一块”的那个数进吞吐量公式；“要等多少块”的那个数只进确认时间。</p>
+</div>
+
+<h3 id="s5-6"><span class="n">5.6</span>例题：课件 Q2 与模拟卷原题</h3>
+
+<p><strong>课件 Q2（p52–p53）</strong>：“Suppose a blockchain network has a block size of 2 MBytes, transaction size of 500 Bytes, Block generation time is 200 s, and it requires to wait for 10 blocks to confirm any new block. Calculate average block confirmation time and transaction per second (throughput) of this blockchain network?”</p>
+
+<ol><li>每块交易数：<span class="m">2 × 10<sup>6</sup> <span class="up">B</span> ÷ 500 <span class="up">B</span> = 4000</span> 笔；</li><li>吞吐量：<span class="m">4000 ÷ 200 <span class="up">s</span> = 20</span> Tx/s，即 <span class="m"><span class="frac"><span>2 × 10<sup>6</sup></span><span>500 × 200</span></span> = <span class="frac"><span>2 × 10<sup>6</sup></span><span>10<sup>5</sup></span></span> = 20</span> Tx/s；</li><li>确认时间：<span class="m">10 × 200 <span class="up">s</span> = 2000</span> s。</li></ol>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p53 的吞吐量算错了</div>
+<p>p53 写 “The transaction throughput is 200 Tx/s”。<span class="m">500 × 200 = 10<sup>5</sup></span>，<span class="m">2 × 10<sup>6</sup> ÷ 10<sup>5</sup> = 20</span>，正确答案是 <strong>20 Tx/s</strong>，课件多了一个 0。确认时间 2000 s 是对的。</p>
+<p style="margin-bottom:0">就算把 1 MB 当作 <span class="m">2<sup>20</sup></span> B，结果也只是约 21 Tx/s，到不了 200。</p>
+</div>
+
+<p><strong>模拟卷 Q3(b)(iii)（3 分）</strong>：“Suppose a blockchain network has a block size of 6 MBytes, transaction size of 80 Bytes, Block time is 200 seconds and it requires to wait for 20 blocks to confirm any new block. Calculate the average block confirmation time and transaction per second (throughput) of this blockchain network.”</p>
+
+<p>规范答法，按参考答案的给分点（代入公式 1 分、吞吐量结果 1 分、确认时间 1 分）：</p>
+
+<div class="eq"><span class="m"><span class="up">Transaction Throughput</span> = <span class="frac"><span><span class="up">Block Size</span></span><span><span class="up">Transaction Size</span> × <span class="up">Block Time</span></span></span> = <span class="frac"><span>6 × 10<sup>6</sup> <span class="up">Bytes</span></span><span>80 <span class="up">Bytes</span> × 200 <span class="up">s</span></span></span></span><span class="lbl">(4)</span></div>
+
+<div class="eq"><span class="m"><span class="up">Transaction Throughput</span> = <span class="frac"><span>6 × 10<sup>6</sup></span><span>1.6 × 10<sup>4</sup></span></span> = 375 <span class="up">Tx/s</span></span><span class="lbl">(5)</span></div>
+
+<div class="eq"><span class="m"><span class="up">Average Confirmation Time</span> = 20 × 200 <span class="up">s</span> = 4000 <span class="up">s</span></span><span class="lbl">(6)</span></div>
+
+<p>分两步验算一遍：每块 <span class="m">6 × 10<sup>6</sup> ÷ 80 = 75000</span> 笔，每 200 s 一块，<span class="m">75000 ÷ 200 = 375</span> Tx/s。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>模拟卷参考答案的 37.5 Tx/s 是错的</div>
+<p style="margin-bottom:0">参考答案写 37.5 Tx/s，少了一个 0，正确是 <strong>375 Tx/s</strong>。考场上用“每块几笔 ÷ 每块几秒”和整式代入各算一次，互相核对。</p>
+</div>
+
+<div class="tool" id="tpTool">
+  <h4>吞吐量与确认时间计算器</h4>
+  <p class="sub">每块装几笔 = 区块大小 ÷ 交易大小，吞吐量 = 每块几笔 ÷ 出块时间，确认时间 = 等待块数 × 出块时间。红字是把确认时间误代进分母的结果；最后一行按 1 − e<sup>−τ/T</sup> 估出块间隔缩短后的分叉概率。</p>
+  <div class="row">
+    <span class="ctl"><label for="tpB">区块大小（MB）</label><input class="num" type="text" inputmode="decimal" id="tpB" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpTx">交易大小（B）</label><input class="num" type="text" inputmode="decimal" id="tpTx" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpT">出块时间（s）</label><input class="num" type="text" inputmode="decimal" id="tpT" oninput="tpGo()"></span>
+    <span class="ctl"><label for="tpK">等待块数</label><input class="num" type="text" inputmode="numeric" id="tpK" oninput="tpGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="tpUnit">1 MB =</label><select id="tpUnit" onchange="tpGo()"><option value="1000000">10⁶ B（课件与模拟卷的口径）</option><option value="1048576">2²⁰ B</option></select></span>
+    <span class="ctl"><label for="tpTau">块的传播时间 τ（s）</label><input class="num" type="text" inputmode="decimal" id="tpTau" value="10" oninput="tpGo()"></span>
+  </div>
+  <div class="row"><button class="btn pre" data-p="q2" onclick="tpPreset('q2')">课件 Q2（L15 p52）</button><button class="btn pre" data-p="mock" onclick="tpPreset('mock')">模拟卷 Q3(b)(iii)</button><button class="btn pre" data-p="ex" onclick="tpPreset('ex')">例：1 MB、500 B、10 s</button><button class="btn pre" data-p="btc" onclick="tpPreset('btc')">比特币粗算</button></div>
+  <div class="steps" id="tpSteps"></div>
+  <div class="result" id="tpOut"></div>
+</div>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul><li>共识：全网对“账本下一块由谁写、写什么”达成一致。职责两条：维护数据（顺序、原始性、防篡改）；有捣乱节点时仍达成一致（拜占庭协议）。</li><li>两类故障<strong>按行为分</strong>：crash＝停机，不再收发消息；Byzantine＝任意行为，可发假消息或矛盾消息（不一定出于恶意）。模拟卷 Q3(b)(i)。</li><li>无许可网络里身份不花钱，按节点投票会被 <strong>Sybil 攻击</strong>淹没 → 把出块资格绑到稀缺资源：算力（PoW）、质押（PoS）。许可网络可直接按节点投票：Paxos、RAFT、PBFT（L16）。</li><li>列三种共识机制（模拟卷 Q3(b)(ii)）：PoW、PoS、PBFT、RAFT、Paxos 任选三个，写全称。</li><li>PoW：对区块头反复换 nonce 算哈希，小于目标值即成功；求解难、验证易；前 <span class="m">d</span> 位十六进制为 0 时单次成功概率 <span class="m">p<sub>0</sub> = 16<sup>−d</sup></span>，平均试 <span class="m">16<sup>d</sup></span> 次。难度三种说法：前导零个数 <span class="m">d</span> 大 ⇔ 目标值小 ⇔ 平均尝试次数大；“难度翻倍”＝平均尝试次数翻倍、目标值减半，不是 <span class="m">d</span> 翻倍。矿工兼领导者与验证者；终局性只是概率性的。</li><li>获胜概率 <span class="m">P<sub>w<sub>i</sub></sub> = φ<sub>i</sub>/<span class="opi">∑</span><sub>j</sub>φ<sub>j</sub></span>，就是算力占比；难度只影响出块快慢、不影响谁赢；平均出块时间 <span class="m">= 1/(p<sub>0</sub><span class="opi">∑</span><sub>j</sub>φ<sub>j</sub>)</span>；算力最大也只是概率最大。课件 Q1：总算力 46，N7 最高，15/46 ≈ 0.326。模拟卷 Q4(a)(i)：总量 <span class="m">3/0.2 = 15</span>，<span class="m">x = 15 − 12 = 3</span>。</li><li>分叉：两人几乎同时出块 → 最长链规则收敛 → 孤块里的交易回到交易池；块越深越难推翻。PoW 是<strong>防</strong>双花的，只是新交易仍有被改写的风险；攻击者改写成功率随后面接的块数 <span class="m">z</span> 指数下降（中本聪公式：<span class="m">q = 0.1</span> 时 <span class="m">z = 6</span> 约 0.024%，<span class="m">q = 0.3</span> 时 <span class="m">z = 6</span> 仍约 13%）；<span class="m">(q/p)<sup>z</sup></span> 只是“落后 <span class="m">z</span> 块时最终追平”的概率，不是改写成功率；<span class="m">q ≥ 0.5</span> 时必成（51% 攻击）。</li><li>PoW 能容忍拜占庭节点的前提是诚实算力过半；门槛按<strong>算力</strong>算，不按节点数。Sybil 抗性：马甲不增加算力。</li><li>难度由协议自动调整以稳住出块时间（比特币每 2016 块调一次，约 10 分钟一块；算力翻倍则难度翻倍）；安全来自全网诚实算力的绝对规模，不来自“调高难度”。</li><li>PoS：按质押抽签选验证者；stake 是锁定的代币，<strong>不包括算力</strong>（课件 p38 有误）。优点（模拟卷 Q4(a)(ii)）：能耗低、硬件要求低；“出块快、不分叉”只对 BFT 式 PoS 成立。</li><li>PoS 的四个问题：大户主导、消息丢失与延迟造成同步问题、委员会通信、奖励分配要公平；另有 nothing-at-stake，靠罚没（slashing）应对。</li><li>PoW 与 PoS 对照（p43）：出块依据、奖励、竞争方式、集中化、设备、攻击门槛（51% 算力 vs 质押量：以太坊 &gt;1/3 可阻止最终确定、&gt;1/2 控制分叉选择、&gt;2/3 可确定任意链）、能效与成本、安全来源、分叉。原表 PoS 集中化一格是误抄，“PoW less expensive” 应为 more expensive。</li><li>以太坊 2022-09-15 合并后改用 PoS：质押 32 ETH，12 秒一个时隙，约两个周期后最终确定（至少 12.8 分钟，通常约 15 分钟），能耗降约 99.95%；课件 p11、p25 写的 PoW 已过时。</li><li>吞吐量 <span class="m">= <span class="frac"><span><span class="up">区块大小</span></span><span><span class="up">交易大小</span> × <span class="up">出块时间</span></span></span></span>，即每块几笔 ÷ 每块几秒；<span class="m">1 <span class="up">MB</span> = 10<sup>6</sup> <span class="up">B</span></span>；分母是<strong>出块时间</strong>，不是确认时间。</li><li>确认时间 <span class="m">= k ×</span> 出块时间（<span class="m">k</span> 为要等的块数），与吞吐量无关。</li><li>课件 Q2：20 Tx/s（课件误作 200）、2000 s。模拟卷 Q3(b)(iii)：375 Tx/s（参考答案误作 37.5）、4000 s。</li><li>提速：加大区块、更快的共识、缩短出块间隔，各有代价（集中化；分叉率约 <span class="m">1 − e<sup>−τ/T</sup></span> 上升，<span class="m">τ</span> 为传播时间）；链下（侧链、支付通道）与分片改结构。可扩展性＝能承受交易量和节点数的增长。</li></ul></div>
+
+<footer>
+<p>课件自身的框架：p17 路线图把共识分为本讲（PoW、PoS）与下一讲（Paxos、RAFT、PBFT）；p18 的学习目标是 “Understand the principles of consensus” 与 “Two typical consenses mechanisms PoW and PoS”，前置知识 “none”；p55 小结三行：共识、PoW 与 PoS、性能指标。</p>
+<p>下一讲 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>：许可网络里按节点投票的共识——Paxos、RAFT、PBFT，以及容错门槛 <span class="m">N ≥ 2f + 1</span>（崩溃故障）与 <span class="m">N ≥ 3f + 1</span>（拜占庭故障）。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L15 区块链共识 I.md</code> 的阅读优化版，内容一致；图与交互件里的概率、吞吐量与挖矿哈希全部由页面内核现算（已与 Python 对拍）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ===================== 区块链三讲（L13–L15）共用的计算内核 =====================
+   只放纯函数：SHA-256、字节与十六进制、哈希链、Merkle 树、区块头、PoW、
+   获胜概率、追赶概率、吞吐量。页面与 node 测试共用同一份代码。
+   数值一律现算，不写死答案；测试见 test-core.js（对拍 Python hashlib 生成的向量）。 */
+
+/* ---------- 字节工具 ---------- */
+function utf8(s){
+  if(typeof TextEncoder!=='undefined') return new TextEncoder().encode(s);
+  return new Uint8Array(Buffer.from(s,'utf8'));
+}
+function toHex(b){ var s=''; for(var i=0;i<b.length;i++) s+=(b[i]<16?'0':'')+b[i].toString(16); return s; }
+function fromHex(h){
+  h=String(h).replace(/\s+/g,'').toLowerCase();
+  if(h.length%2 || /[^0-9a-f]/.test(h)) return null;
+  var b=new Uint8Array(h.length/2);
+  for(var i=0;i<b.length;i++) b[i]=parseInt(h.substr(2*i,2),16);
+  return b;
+}
+function concatBytes(){
+  var n=0,i; for(i=0;i<arguments.length;i++) n+=arguments[i].length;
+  var o=new Uint8Array(n), p=0;
+  for(i=0;i<arguments.length;i++){ o.set(arguments[i],p); p+=arguments[i].length; }
+  return o;
+}
+function reverseBytes(b){ var o=new Uint8Array(b.length); for(var i=0;i<b.length;i++) o[i]=b[b.length-1-i]; return o; }
+function u32le(v){ v=v>>>0; return new Uint8Array([v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]); }
+function u32be(v){ v=v>>>0; return new Uint8Array([(v>>>24)&255,(v>>>16)&255,(v>>>8)&255,v&255]); }
+
+/* ---------- SHA-256（FIPS 180-4） ---------- */
+var SHA_K=new Uint32Array([
+0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+var SHA_W=new Uint32Array(64);
+function sha256(msg){
+  var len=msg.length, nblk=((len+9+63)>>6), buf=new Uint8Array(nblk*64);
+  buf.set(msg); buf[len]=0x80;
+  var bits=len*8, hi=Math.floor(bits/4294967296), lo=bits>>>0, e=buf.length;
+  buf[e-8]=(hi>>>24)&255; buf[e-7]=(hi>>>16)&255; buf[e-6]=(hi>>>8)&255; buf[e-5]=hi&255;
+  buf[e-4]=(lo>>>24)&255; buf[e-3]=(lo>>>16)&255; buf[e-2]=(lo>>>8)&255; buf[e-1]=lo&255;
+  var h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+  var W=SHA_W, K=SHA_K;
+  for(var off=0;off<buf.length;off+=64){
+    for(var t=0;t<16;t++){ var j=off+4*t; W[t]=(buf[j]<<24)|(buf[j+1]<<16)|(buf[j+2]<<8)|buf[j+3]; }
+    for(t=16;t<64;t++){
+      var x=W[t-15], y=W[t-2];
+      var s0=((x>>>7)|(x<<25))^((x>>>18)|(x<<14))^(x>>>3);
+      var s1=((y>>>17)|(y<<15))^((y>>>19)|(y<<13))^(y>>>10);
+      W[t]=(W[t-16]+s0+W[t-7]+s1)|0;
+    }
+    var a=h0,b=h1,c=h2,d=h3,ee=h4,f=h5,g=h6,h=h7;
+    for(t=0;t<64;t++){
+      var S1=((ee>>>6)|(ee<<26))^((ee>>>11)|(ee<<21))^((ee>>>25)|(ee<<7));
+      var ch=(ee&f)^(~ee&g);
+      var t1=(h+S1+ch+K[t]+W[t])|0;
+      var S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));
+      var mj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+mj)|0;
+      h=g; g=f; f=ee; ee=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0; h4=(h4+ee)|0; h5=(h5+f)|0; h6=(h6+g)|0; h7=(h7+h)|0;
+  }
+  var out=new Uint8Array(32), hs=[h0,h1,h2,h3,h4,h5,h6,h7];
+  for(var i=0;i<8;i++){ out[4*i]=(hs[i]>>>24)&255; out[4*i+1]=(hs[i]>>>16)&255; out[4*i+2]=(hs[i]>>>8)&255; out[4*i+3]=hs[i]&255; }
+  return out;
+}
+function sha256d(b){ return sha256(sha256(b)); }
+function sha256hex(s){ return toHex(sha256(typeof s==='string'?utf8(s):s)); }
+
+/* ---------- L13：哈希链 ----------
+   H_i = SHA-256(H_{i-1} ‖ data_i)，H_0 = 32 个零字节。
+   mode 'raw'：H_{i-1} 以 32 个原始字节参与拼接（笔记 4.3 的口径）；
+   mode 'hex'：H_{i-1} 写成 64 个十六进制字符再拼（L11 玩具链的口径）。
+   prevs 可选：每块「存着的」Prev. Hash（Uint8Array）；不给就按链接自动填（即情形②）。 */
+function chainCompute(datas, mode, prevs){
+  var out=[], prev=new Uint8Array(32);
+  for(var i=0;i<datas.length;i++){
+    var stored = (prevs && prevs[i]) ? prevs[i] : prev;
+    var pre = mode==='hex' ? utf8(toHex(stored)) : stored;
+    var h=sha256(concatBytes(pre, utf8(datas[i])));
+    out.push({prev:stored, hash:h, linked: toHex(stored)===toHex(i===0?new Uint8Array(32):out[i-1].hash)});
+    prev=h;
+  }
+  return out;
+}
+
+/* ---------- L14：Merkle 树（比特币口径：两次 SHA-256，奇数个时复制最后一个） ----------
+   返回 levels[0]=叶哈希, levels[k]=第 k 层；dup[k] 标记该层是否复制了最后一个。 */
+function merkleTree(leaves){
+  var levels=[leaves.slice()], dup=[];
+  while(levels[levels.length-1].length>1){
+    var cur=levels[levels.length-1], nxt=[], d=false;
+    for(var i=0;i<cur.length;i+=2){
+      var L=cur[i], R=(i+1<cur.length)?cur[i+1]:(d=true,cur[i]);
+      nxt.push(sha256d(concatBytes(L,R)));
+    }
+    dup.push(d); levels.push(nxt);
+  }
+  dup.push(false);
+  return {levels:levels, dup:dup, root:levels[levels.length-1][0]};
+}
+function merkleLeavesFromTx(txs){ return txs.map(function(t){ return sha256d(utf8(t)); }); }
+/* 第 idx 片叶子的证明：每层的兄弟哈希与它在左还是在右 */
+function merkleProof(tree, idx){
+  var proof=[], i=idx;
+  for(var k=0;k<tree.levels.length-1;k++){
+    var lv=tree.levels[k], sib=(i%2===0)?i+1:i-1;
+    var sibHash = sib<lv.length ? lv[sib] : lv[i];   /* 落单：兄弟就是自己的复制 */
+    proof.push({hash:sibHash, side:(i%2===0)?'R':'L', level:k, sibIndex:sib<lv.length?sib:i, dup:sib>=lv.length});
+    i=i>>1;
+  }
+  return proof;
+}
+function merkleVerify(leafHash, proof){
+  var h=leafHash, steps=[];
+  for(var k=0;k<proof.length;k++){
+    var p=proof[k];
+    h = p.side==='R' ? sha256d(concatBytes(h,p.hash)) : sha256d(concatBytes(p.hash,h));
+    steps.push(h);
+  }
+  return {root:h, steps:steps};
+}
+function ceilLog2(n){ var k=0, p=1; while(p<n){ p*=2; k++; } return k; }
+
+/* ---------- L14：比特币区块头 ----------
+   f = {version, prevHex, merkleHex, time, bitsHex, nonce}（哈希字段按显示顺序给）。
+   opts.bigEndianInts / opts.noReverseHashes 用来演示两种常见的字节序错误。 */
+function headerBytes(f, opts){
+  opts=opts||{};
+  var prev=fromHex(f.prevHex), mr=fromHex(f.merkleHex), bits=parseInt(f.bitsHex,16);
+  if(!prev||prev.length!==32) return {err:'前一块哈希应为 64 个十六进制字符'};
+  if(!mr||mr.length!==32) return {err:'Merkle 根应为 64 个十六进制字符'};
+  if(!/^[0-9a-fA-F]{8}$/.test(String(f.bitsHex))) return {err:'bits 应为 8 个十六进制字符'};
+  var I = opts.bigEndianInts ? u32be : u32le;
+  var H = opts.noReverseHashes ? function(b){ return b; } : reverseBytes;
+  var parts=[
+    {name:'version', bytes:I(f.version)},
+    {name:'prev', bytes:H(prev)},
+    {name:'merkle', bytes:H(mr)},
+    {name:'time', bytes:I(f.time)},
+    {name:'bits', bytes:I(bits)},
+    {name:'nonce', bytes:I(f.nonce)}];
+  var all=concatBytes.apply(null, parts.map(function(p){ return p.bytes; }));
+  return {parts:parts, bytes:all};
+}
+function blockHash(f, opts){
+  var hb=headerBytes(f,opts); if(hb.err) return hb;
+  var raw=sha256d(hb.bytes);
+  return {parts:hb.parts, bytes:hb.bytes, raw:raw, display:reverseBytes(raw)};
+}
+/* bits → 目标值 T = m × 256^(e−3)（BigInt） */
+function bitsToTarget(bitsHex){
+  var v=parseInt(bitsHex,16), e=v>>>24, m=v&0xffffff;
+  var T = e>=3 ? BigInt(m)*(256n**BigInt(e-3)) : BigInt(m)/(256n**BigInt(3-e));
+  return {e:e, m:m, T:T};
+}
+function bigToHex64(x){ var s=x.toString(16); while(s.length<64) s='0'+s; return s; }
+/* 2^256 / T 的近似（平均尝试次数）与单次成功概率 */
+function targetStats(T){
+  var hex=bigToHex64(T);
+  /* 用前 15 位有效十六进制估计浮点值，足够 6 位有效数字 */
+  var lead=hex.replace(/^0+/,''), nz=hex.length-lead.length;
+  var mant=parseInt((lead+'000000000000000').slice(0,15),16);
+  var Tf=mant*Math.pow(16, lead.length-15);
+  var p=Tf/Math.pow(2,256);
+  return {hex:hex, zeros:nz, p:p, tries:1/p};
+}
+function leadingHexZeros(hex){ var m=String(hex).match(/^0*/); return m[0].length; }
+
+/* ---------- L15：PoW 挖矿（前 d 位十六进制为 0） ---------- */
+function powCheck(hashBytes, d){
+  /* 前 d 个十六进制位为 0：逐半字节检查，避免转成字符串 */
+  for(var i=0;i<d;i++){
+    var byte=hashBytes[i>>1], nib=(i&1)?(byte&15):(byte>>4);
+    if(nib!==0) return false;
+  }
+  return true;
+}
+/* 从 startNonce 开始试最多 maxTries 次；返回 {found, nonce, tries, hash} */
+function powMine(prefix, d, startNonce, maxTries){
+  var pre=utf8(prefix), n=startNonce|0;
+  for(var t=1;t<=maxTries;t++,n++){
+    var h=sha256(concatBytes(pre, utf8(String(n))));
+    if(powCheck(h,d)) return {found:true, nonce:n, tries:n-startNonce+1, hash:h};
+  }
+  return {found:false, nonce:n, tries:maxTries};
+}
+
+/* ---------- L15：获胜概率 P_wi = φ_i / Σφ_j ---------- */
+function winProbs(phis){
+  var s=phis.reduce(function(a,b){ return a+b; },0);
+  return {sum:s, p:phis.map(function(x){ return s>0?x/s:NaN; })};
+}
+/* 反求：已知节点 k 的胜率 P 与其余各节点算力（未知那个记 null），求未知算力 */
+function solveUnknown(phis, k, P){
+  var total=phis[k]/P, known=0, unk=-1;
+  for(var i=0;i<phis.length;i++){ if(phis[i]===null) unk=i; else known+=phis[i]; }
+  return {total:total, x:total-known, unknownIndex:unk};
+}
+/* 指数竞赛模拟：每个节点首次成功时刻 ~ Exp(p0·φ_i)，最早者获胜。rng 可注入以便复现 */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function raceSimulate(phis, p0, rounds, rng){
+  rng=rng||Math.random;
+  var wins=phis.map(function(){ return 0; }), tsum=0;
+  for(var r=0;r<rounds;r++){
+    var best=Infinity, who=-1;
+    for(var i=0;i<phis.length;i++){
+      if(phis[i]<=0) continue;
+      var t=-Math.log(1-rng())/(p0*phis[i]);
+      if(t<best){ best=t; who=i; }
+    }
+    if(who>=0){ wins[who]++; tsum+=best; }
+  }
+  return {freq:wins.map(function(w){ return w/rounds; }), meanTime:tsum/rounds};
+}
+
+/* ---------- L15：追赶概率 ----------
+   中本聪（2008）第 11 节：λ = z·q/p，P = 1 − Σ_{k=0}^{z} Poisson(k;λ)·(1 − (q/p)^{z−k})；q ≥ p 时为 1。 */
+function nakamotoP(q, z){
+  var p=1-q; if(q>=p) return 1;
+  var lam=z*q/p, s=1, pois=Math.exp(-lam);
+  for(var k=0;k<=z;k++){
+    if(k>0) pois*=lam/k;
+    s-=pois*(1-Math.pow(q/p, z-k));
+  }
+  return Math.max(0,s);
+}
+/* 精确版（Rosenfeld 2014）：攻击者块数服从负二项分布。
+   P = 1 − Σ_{k=0}^{z} C(k+z−1,k)(p^z q^k − q^z p^k)；z = 0 时为 1。 */
+function exactP(q, z){
+  var p=1-q; if(q>=p) return 1; if(z<=0) return 1;
+  /* 对数空间里算组合数与幂，避免 z 大时 C(k+z−1,k) 溢出 */
+  var lp=Math.log(p), lq=Math.log(q), s=0, lc=0; /* lc = ln C(k+z−1, k) */
+  for(var k=0;k<=z;k++){
+    if(k>0) lc+=Math.log((k+z-1)/k);
+    s+=Math.exp(lc+z*lp+k*lq)-Math.exp(lc+z*lq+k*lp);
+  }
+  return Math.max(0,1-s);
+}
+/* 最小的 z，使 P < eps */
+function minZ(fn, q, eps, zmax){
+  zmax=zmax||400;
+  for(var z=0;z<=zmax;z++) if(fn(q,z)<eps) return z;
+  return null;
+}
+
+/* ---------- L14 / L15：吞吐量与确认时间 ----------
+   Throughput = Block Size / (Tx Size × Block Time)；Confirmation = k × Block Time */
+function throughput(blockMB, txB, blockT, k, mbBytes){
+  mbBytes=mbBytes||1e6;
+  var bytes=blockMB*mbBytes, perBlock=bytes/txB;
+  return {bytes:bytes, perBlock:perBlock, tps:perBlock/blockT, confirm:k*blockT};
+}
+/* 传播时间 τ 内别人也出块（分叉）的概率 ≈ 1 − e^{−τ/T} */
+function forkRate(tau, T){ return 1-Math.exp(-tau/T); }
+
+
+/* ===================== 区块链三讲共用：绘图与界面小件 =====================
+   配色规则同 L1–L4：中性线条 currentColor + 透明度；强调色描边/填充硬编码 #2F6F8F；
+   其余语义色（warn / ok / exam / muted）开页时从 CSS 变量读一次。文字一律用 currentColor 或这些变量，
+   不用硬编码的 #2F6F8F（暗色下对比太低）。 */
+var AC='#2F6F8F';
+var CSSV=getComputedStyle(document.documentElement);
+function cssv(n,fb){ var v=(CSSV.getPropertyValue(n)||'').trim(); return v||fb; }
+var WRC=cssv('--warn','#B4534B'), OKC=cssv('--ok','#3F8A63'), EXC=cssv('--exam','#9A6B2F'),
+    MUC=cssv('--muted','#5C6673'), FTC=cssv('--faint','#8A929C'), ACT=cssv('--accent','#2F6F8F');
+var MONO='ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- 数字 ---------- */
+/* 千分位 + U+2212 负号；最多 d 位小数，去尾零 */
+function fmt(v,d){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  d=(d===undefined)?2:d;
+  var neg=v<0; v=Math.abs(v);
+  var s=v.toFixed(d);
+  if(s.indexOf('.')>=0) s=s.replace(/0+$/,'').replace(/\.$/,'');
+  var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return (neg?'−':'')+p.join('.');
+}
+var SUPD={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+function supN(n){ return String(n).split('').map(function(c){ return SUPD[c]||c; }).join(''); }
+var SUBD=['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+function subN(n){ return String(n).split('').map(function(c){ return SUBD[+c]||c; }).join(''); }
+/* 科学计数：a × 10ⁿ（n 用上标，负号是 U+207B） */
+function sci(v,sig){
+  if(v===0) return '0';
+  sig=sig||3;
+  var e=Math.floor(Math.log10(Math.abs(v))), m=v/Math.pow(10,e);
+  var ms=m.toPrecision(sig); if(+ms>=10){ e++; ms=(m/10).toPrecision(sig); }
+  ms=ms.replace(/\.?0+$/,'');
+  return ms+' × 10'+supN(e);
+}
+/* 概率：≥ 0.1% 用百分数，更小用科学计数 */
+function pct(v,d){
+  /* d = 有效数字位数（默认 4） */
+  if(v===0) return '0%';
+  if(v>=1e-4){ var t=(v*100).toPrecision(d||4); if(t.indexOf('e')<0){ if(t.indexOf('.')>=0) t=t.replace(/0+$/,'').replace(/\.$/,''); return t+'%'; } }
+  return sci(v,3);
+}
+function short(hex,n){ return hex.slice(0,n||8)+'…'; }
+
+/* ---------- SVG ---------- */
+var _mk=0;
+function svgEl(tag,attrs){
+  var e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null&&attrs[k]!==undefined) e.setAttribute(k,attrs[k]);
+  return e;
+}
+function svgRoot(W,H,label){
+  var s=svgEl('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':label});
+  s.style.display='block'; s.style.width='100%'; s.style.height='auto';
+  return s;
+}
+function sText(g,x,y,t,o){
+  o=o||{};
+  var e=svgEl('text',{x:x,y:y,fill:o.fill||'currentColor','font-size':o.size||13,'text-anchor':o.anchor||'middle'});
+  if(o.mono) e.setAttribute('font-family',MONO);
+  if(o.weight) e.setAttribute('font-weight',o.weight);
+  if(o.op!==undefined) e.setAttribute('fill-opacity',o.op);
+  if(o.italic) e.setAttribute('font-style','italic');
+  if(o.rot) e.setAttribute('transform','rotate('+o.rot+' '+x+' '+y+')');
+  e.textContent=t; g.appendChild(e); return e;
+}
+function sRect(g,x,y,w,h,o){
+  o=o||{};
+  var e=svgEl('rect',{x:x,y:y,width:w,height:h,rx:o.rx===undefined?6:o.rx,
+    fill:o.fill||'currentColor','fill-opacity':o.fop===undefined?.04:o.fop,
+    stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.3:o.sop,'stroke-width':o.sw||1.2});
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  g.appendChild(e); return e;
+}
+function sPath(g,d,o){
+  o=o||{};
+  var e=svgEl('path',{d:d,fill:o.fill||'none',stroke:o.stroke||'currentColor','stroke-opacity':o.sop===undefined?.55:o.sop,'stroke-width':o.sw||1.4});
+  if(o.marker) e.setAttribute('marker-end',o.marker);
+  if(o.markerStart) e.setAttribute('marker-start',o.markerStart);
+  if(o.dash) e.setAttribute('stroke-dasharray',o.dash);
+  g.appendChild(e); return e;
+}
+/* 箭头标记：每次调用生成唯一 id，避免宽窄两版图里 id 重复 */
+function arrow(svg,color){
+  var id='mk'+(++_mk), defs=svgEl('defs'), mk=svgEl('marker',{id:id,markerWidth:9,markerHeight:9,refX:8,refY:3,orient:'auto-start-reverse'});
+  mk.appendChild(svgEl('path',{d:'M0,0 L8,3 L0,6 z',fill:color||'currentColor','fill-opacity':color?.9:.6}));
+  defs.appendChild(mk); svg.appendChild(defs); return 'url(#'+id+')';
+}
+/* 多行文字（按 \n 拆） */
+function sLines(g,x,y,text,o){
+  var ls=String(text).split('\n'), lh=(o&&o.lh)||((o&&o.size)||13)*1.35;
+  for(var i=0;i<ls.length;i++) sText(g,x,y+i*lh,ls[i],o);
+}
+function mount(hostId,svg){ var h=$(hostId); if(!h) return; h.innerHTML=''; h.appendChild(svg); }
+
+/* ---------- 打印前展开全部折叠块（Chromium 对关着的 details 不渲染内容） ---------- */
+function openAllDetails(){ var d=document.querySelectorAll('details'); for(var i=0;i<d.length;i++) d[i].open=true; }
+window.onbeforeprint=openAllDetails;
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); if(mq.addEventListener) mq.addEventListener('change',function(e){ if(e.matches) openAllDetails(); }); else mq.onchange=function(e){ if(e.matches) openAllDetails(); }; } })();
+
+/* =====================================================================
+   共用交互件：吞吐量与确认时间计算器（L14 6.3 与 L15 5.6）
+   opts：shards（L14：分片的理想上限）、fork（L15：分叉概率）、trap（L15：误代确认时间）
+   ===================================================================== */
+var TP={};
+function tpInit(opts){ TP=opts||{}; tpPreset(TP.first||'mock'); }
+var TP_PRE={
+  mock:{b:6,t:80,T:200,k:20},
+  q2:{b:2,t:500,T:200,k:10},
+  btc:{b:1,t:250,T:600,k:6},
+  ex:{b:1,t:500,T:10,k:6}
+};
+function tpPreset(name){
+  var p=TP_PRE[name]; $('tpB').value=p.b; $('tpTx').value=p.t; $('tpT').value=p.T; $('tpK').value=p.k;
+  var bs=document.querySelectorAll('#tpTool .pre'); for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on',bs[i].getAttribute('data-p')===name);
+  tpGo();
+}
+function tpNum(id){ var s=String($(id).value).replace(/[,，\s]/g,''); return s===''?NaN:Number(s); }
+function tpGo(){
+  var b=tpNum('tpB'), tx=tpNum('tpTx'), T=tpNum('tpT'), k=tpNum('tpK'), mb=+$('tpUnit').value;
+  var st=$('tpSteps'), out=$('tpOut');
+  if(!(b>0&&tx>0&&T>0&&k>=0)){ st.innerHTML='<span class="bad">四个量都要填正数（等待块数可以是 0）</span>'; out.innerHTML='<span class="bad">等待输入</span>'; return; }
+  var r=throughput(b,tx,T,k,mb), unit=mb===1e6?'10⁶':'2²⁰';
+  var h='<div><span class="k">1</span>每块装几笔：<span class="mono">'+fmt(b,4)+' × '+unit+' B ÷ '+fmt(tx,4)+' B = '+fmt(r.perBlock,3)+'</span> 笔</div>'+
+    '<div><span class="k">2</span>吞吐量 = 每块几笔 ÷ 出块时间：<span class="mono">'+fmt(r.perBlock,3)+' ÷ '+fmt(T,4)+' s = <strong>'+fmt(r.tps,3)+' Tx/s</strong></span></div>'+
+    '<div><span class="k">3</span>确认时间 = 等待块数 × 出块时间：<span class="mono">'+fmt(k,0)+' × '+fmt(T,4)+' s = <strong>'+fmt(r.confirm,3)+' s</strong></span>（约 '+fmt(r.confirm/60,1)+' 分钟）</div>';
+  st.innerHTML=h;
+  var o='<div>吞吐量 <strong class="mono">'+fmt(r.tps,3)+' Tx/s</strong>，平均确认时间 <strong class="mono">'+fmt(r.confirm,3)+' s</strong>。改等待块数只改确认时间，吞吐量不动。</div>';
+  if(TP.trap){
+    var wrong=throughput(b,tx,r.confirm||NaN,k,mb).tps;
+    o+='<div style="margin-top:.35rem" class="bad">误把确认时间代进分母：'+fmt(r.perBlock,3)+' ÷ '+fmt(r.confirm,3)+' s = '+(isFinite(wrong)?fmt(wrong,3):'—')+' Tx/s（错）</div>';
+  }
+  if(TP.fork){
+    var tau=tpNum('tpTau');
+    if(tau>=0){ o+='<div style="margin-top:.35rem">传播时间 τ = '+fmt(tau,3)+' s 内别人也出块、造成分叉的概率 ≈ 1 − e<sup>−τ/T</sup> = <strong class="mono">'+pct(forkRate(tau,T),4)+'</strong></div>'; }
+  }
+  if(TP.shards){
+    var ks=tpNum('tpS');
+    if(ks>=1){ o+='<div style="margin-top:.35rem">分成 '+fmt(ks,0)+' 个分片，理想上限约 '+fmt(ks,0)+' × '+fmt(r.tps,3)+' = <strong class="mono">'+fmt(ks*r.tps,3)+' Tx/s</strong>（不计分片间通信开销）</div>'; }
+  }
+  out.innerHTML=o;
+}
+
+/* ===================== L15 区块链共识 I：图与交互件 =====================
+   挖矿用 bc-core.js 的 SHA-256 真算；概率、吞吐量全部由内核现算（已与 Python 对拍）。 */
+
+/* ---------- 通用：节点框与连线 ---------- */
+function boxNode(g,cx,cy,w,h,lines,col,o){
+  o=o||{};
+  sRect(g,cx-w/2,cy-h/2,w,h,{rx:14,fill:col||'currentColor',fop:col?.12:.04,stroke:col||'currentColor',sop:col?.8:.45,sw:1.4});
+  var lh=17, y0=cy-(lines.length-1)*lh/2+5;
+  lines.forEach(function(t,i){ sText(g,cx,y0+i*lh,t,{size:13.5}); });
+  return {cx:cx,cy:cy,w:w,h:h};
+}
+function link(g,a,b,mk,dash){
+  sPath(g,'M'+a.cx+','+(a.cy+a.h/2)+' L'+b.cx+','+(b.cy-b.h/2-2),{marker:mk,sw:1.4,sop:.6,dash:dash||null});
+}
+
+/* =====================================================================
+   图：共识机制的分岔
+   ===================================================================== */
+function drawConsensusFig(hostId){
+  var W=680,H=580, svg=svgRoot(W,H,'共识机制的分岔：许可网络按节点投票（Paxos、RAFT 只防崩溃，PBFT 防拜占庭，下一讲）；无许可网络身份不花钱，按人头投票会被 Sybil 攻击淹没，于是把出块资格绑到伪造不了的稀缺资源上：算力对应 PoW，质押的币对应 PoS；两路最后都用吞吐量与确认时间比较');
+  var g=svgEl('g',{'font-family':'inherit'}); svg.appendChild(g);
+  var MK=arrow(svg);
+  var A=boxNode(g,330,40,330,56,['共识要回答：下一块由谁写、写什么','全网怎样对这一点达成一致'],EXC);
+  var B=boxNode(g,160,130,240,52,['许可网络','成员事先登记、身份可信']);
+  var C=boxNode(g,470,130,210,52,['无许可网络','任何人可随时加入']);
+  var D=boxNode(g,470,222,340,52,['身份不花钱：按人头投票','会被大量假身份淹没（Sybil 攻击）']);
+  var E=boxNode(g,150,340,250,90,['按节点投票','Paxos、RAFT（只防崩溃）','PBFT（防拜占庭）','下一讲 L16']);
+  var F=boxNode(g,470,326,260,52,['把出块资格绑到','伪造不了的稀缺资源上'],EXC);
+  var G=boxNode(g,385,430,160,52,['算力 → PoW','第 3 节'],OKC);
+  var Hh=boxNode(g,570,430,170,52,['质押的币 → PoS','第 4 节'],OKC);
+  var I=boxNode(g,330,530,290,52,['比较好坏：吞吐量、确认时间','第 5 节'],AC);
+  link(g,A,B,MK); link(g,A,C,MK); link(g,C,D,MK); link(g,D,F,MK); link(g,B,E,MK);
+  link(g,F,G,MK); link(g,F,Hh,MK); link(g,E,I,MK,'5 4'); link(g,G,I,MK,'5 4'); link(g,Hh,I,MK,'5 4');
+  mount(hostId,svg);
+}
+
+/* =====================================================================
+   交互件：挖矿实验
+   ===================================================================== */
+var POW={run:false};
+function powStop(){ POW.run=false; }
+function powStart(batch){
+  if(POW.run) return;
+  var d=+$('powD').value, pre=$('powPre').value, N=batch?+$('powN').value:1;
+  var cap={1:200,2:200,3:200,4:20,5:1}[d];
+  var note='';
+  if(N>cap){ note='难度 '+d+' 下一次最多连挖 '+cap+' 块（每块平均要试 '+fmt(Math.pow(16,d),0)+' 次，浏览器里太慢），已改成 '+cap+' 块。'; N=cap; }
+  POW={run:true,d:d,pre:pre,N:N,j:0,nonce:0,tries:[],cur:0,t0:Date.now(),note:note,last:null};
+  $('powOut').innerHTML='<span class="sub2">挖矿中……</span>';
+  powTick();
+}
+function powPrefix(){ return POW.N>1 ? POW.pre+' #'+POW.j+' ' : POW.pre; }
+function powTick(){
+  if(!POW.run){ powShow(true); return; }
+  var t0=Date.now();
+  while(Date.now()-t0<40){
+    var r=powMine(powPrefix(),POW.d,POW.nonce,3000);
+    POW.cur+=r.tries;
+    if(r.found){
+      POW.tries.push(POW.cur); POW.last={prefix:powPrefix(),nonce:r.nonce,hash:toHex(r.hash),tries:POW.cur};
+      POW.j++; POW.nonce=0; POW.cur=0;
+      if(POW.j>=POW.N){ POW.run=false; powShow(false); return; }
+    } else POW.nonce=r.nonce;
+  }
+  $('powLive').innerHTML='第 '+(POW.j+1)+' / '+POW.N+' 块，这一块已试 '+fmt(POW.cur,0)+' 次';
+  setTimeout(powTick,0);
+}
+function powShow(stopped){
+  var d=POW.d, E=Math.pow(16,d), T=POW.tries, el=(Date.now()-POW.t0)/1000;
+  $('powLive').innerHTML=stopped?'已停止。':'完成：'+T.length+' 块，用时 '+fmt(el,1)+' s。';
+  if(!T.length){ $('powOut').innerHTML='还没挖出块。'; return; }
+  var L=POW.last, z=leadingHexZeros(L.hash);
+  var h='';
+  if(POW.N===1||T.length===1){
+    h+='<div class="kv"><span>找到的 nonce</span><span class="mono">'+L.nonce+'</span>'+
+      '<span>试了</span><span class="mono">'+fmt(L.tries,0)+' 次（平均应为 16'+supN(d)+' = '+fmt(E,0)+'）</span>'+
+      '<span>哈希</span><span class="hx"><span class="hot">'+L.hash.slice(0,z)+'</span>'+L.hash.slice(z)+'</span></div>'+
+      '<div style="margin-top:.4rem">别人验证只要算一次：SHA-256(“'+esc(L.prefix)+L.nonce+'”) 前 '+d+' 位是 0 <span class="tag2 good">✓</span></div>';
+  } else {
+    var s=T.slice().sort(function(a,b){ return a-b; }), mean=T.reduce(function(a,b){ return a+b; },0)/T.length;
+    var med=s.length%2?s[(s.length-1)/2]:(s[s.length/2-1]+s[s.length/2])/2;
+    h+='<div class="kv"><span>块数</span><span>'+T.length+'</span>'+
+      '<span>平均尝试次数</span><span class="mono"><strong>'+fmt(mean,1)+'</strong>（理论 16'+supN(d)+' = '+fmt(E,0)+'，比值 '+fmt(mean/E,2)+'）</span>'+
+      '<span>最少 / 中位 / 最多</span><span class="mono">'+fmt(s[0],0)+' / '+fmt(med,0)+' / '+fmt(s[s.length-1],0)+'</span></div>'+
+      '<div style="margin-top:.4rem">平均工作量由难度决定，单块的次数却高度随机：最多的一块是最少的 '+fmt(s[s.length-1]/s[0],0)+' 倍。</div>';
+  }
+  if(POW.note) h+='<div class="sub2" style="margin-top:.3rem">'+POW.note+'</div>';
+  $('powOut').innerHTML=h;
+}
+function powInit(){
+  $('powLive').innerHTML='选好难度，点「挖一块」。';
+  $('powOut').innerHTML='难度 d 时单次成功概率 p₀ = (1/16)<sup>d</sup>，平均要试 16<sup>d</sup> 次：d = 1, 2, 3, 4, 5 依次是 16、256、4,096、65,536、1,048,576 次。';
+  powDHint();
+}
+function powDHint(){ var d=+$('powD').value; $('powHint').textContent='平均 16'+supN(d)+' = '+fmt(Math.pow(16,d),0)+' 次'; }
+
+/* =====================================================================
+   交互件：获胜概率 P_wi = φ_i / Σφ
+   ===================================================================== */
+function wpParse(s){ var a=String(s).replace(/[，,]/g,' ').trim().split(/\s+/).filter(Boolean).map(Number); return a.length&&a.every(function(x){ return isFinite(x)&&x>=0; })?a:null; }
+function wpSet(v){ $('wpPhi').value=v; wpGo(); }
+function wpGo(){
+  var a=wpParse($('wpPhi').value), tab=$('wpTab'), out=$('wpOut');
+  if(!a||a.length<1){ tab.innerHTML=''; out.innerHTML='<span class="bad">每个节点一个非负数，用空格隔开</span>'; return; }
+  var w=winProbs(a);
+  if(!(w.sum>0)){ tab.innerHTML=''; out.innerHTML='<span class="bad">总算力要大于 0</span>'; return; }
+  var mx=Math.max.apply(null,w.p), h='<div class="tw"><table class="compact"><thead><tr><th>节点</th><th>φ</th><th>P = φ / Σφ</th><th>约</th><th style="width:40%"></th></tr></thead><tbody>';
+  a.forEach(function(x,i){ h+='<tr><td>N'+(i+1)+'</td><td>'+fmt(x,4)+'</td><td>'+fmt(x,4)+'/'+fmt(w.sum,4)+'</td><td class="mono">'+w.p[i].toFixed(3)+'</td><td><div class="bar" style="width:'+(100*w.p[i]/mx).toFixed(1)+'%"></div></td></tr>'; });
+  h+='<tr><td>合计</td><td>'+fmt(w.sum,4)+'</td><td>'+fmt(w.sum,4)+'/'+fmt(w.sum,4)+'</td><td class="mono">'+w.p.reduce(function(s,x){ return s+x; },0).toFixed(3)+'</td><td></td></tr></tbody></table></div>';
+  tab.innerHTML=h;
+  var best=w.p.indexOf(mx);
+  out.innerHTML='总算力 Σφ = <strong>'+fmt(w.sum,4)+'</strong>。算力最高的 N'+(best+1)+' 胜率约 '+fmt(100*mx,1)+'%，平均 '+fmt(1/mx,1)+' 块里赢一块——概率最大，不是必赢。';
+}
+function wpSolve(){
+  var P=Number(String($('wsP').value).replace('%',''))/100, f1=Number($('wsF1').value), oth=wpParse($('wsOth').value), o=$('wsOut');
+  if(!(P>0&&P<=1)||!(f1>0)||!oth){ o.innerHTML='<span class="bad">胜率填 0–100 之间的百分数，算力填非负数</span>'; return; }
+  var r=solveUnknown([f1].concat(oth).concat([null]),0,P), known=oth.reduce(function(s,x){ return s+x; },0)+f1;
+  var nm='φ'+subN(oth.length+2);
+  o.innerHTML='<div class="steps">'+
+    '<div><span class="k">1</span>P<sub>w1</sub> = φ₁ / Σφ = '+fmt(P*100,4)+'%</div>'+
+    '<div><span class="k">2</span>Σφ = φ₁ / '+fmt(P,4)+' = '+fmt(f1,4)+' / '+fmt(P,4)+' = <strong>'+fmt(r.total,4)+'</strong></div>'+
+    '<div><span class="k">3</span>x = '+nm+' = '+fmt(r.total,4)+' − ('+[f1].concat(oth).map(function(v){ return fmt(v,4); }).join(' + ')+') = <strong>'+fmt(r.x,4)+'</strong></div></div>'+
+    (r.x<0?'<div class="bad">x 为负：这组数不可能（已知节点的算力加起来已经超过了总量）</div>':'<div>回代：'+fmt(f1,4)+' / ('+[f1].concat(oth).map(function(v){ return fmt(v,4); }).join(' + ')+' + '+fmt(r.x,4)+') = '+fmt(f1,4)+' / '+fmt(r.total,4)+' = '+fmt(100*f1/r.total,4)+'%</div>');
+}
+function wpSim(){
+  var a=wpParse($('wpPhi').value); if(!a){ return; }
+  var p0=Number($('wpP0').value), R=Number($('wpR').value);
+  var sim=raceSimulate(a,p0,R), w=winProbs(a), diff=0;
+  var h='<div class="tw"><table class="compact"><thead><tr><th>节点</th><th>公式</th><th>模拟频率</th></tr></thead><tbody>';
+  a.forEach(function(x,i){ diff=Math.max(diff,Math.abs(sim.freq[i]-w.p[i])); h+='<tr><td>N'+(i+1)+'</td><td class="mono">'+w.p[i].toFixed(4)+'</td><td class="mono">'+sim.freq[i].toFixed(4)+'</td></tr>'; });
+  h+='</tbody></table></div>';
+  h+='<div>'+fmt(R,0)+' 轮，最大偏差 <strong class="mono">'+diff.toFixed(4)+'</strong>。换一个 p₀ 再跑，频率不变——难度只影响出块快慢，不影响谁赢。</div>';
+  h+='<div style="margin-top:.3rem">平均出块时间：模拟 <span class="mono">'+sci(sim.meanTime,4)+'</span> 秒，公式 1/(p₀ Σφ) = <span class="mono">'+sci(1/(p0*w.sum),4)+'</span> 秒（算力单位按「次/秒」）。</div>';
+  $('wpSimOut').innerHTML=h;
+}
+
+/* =====================================================================
+   对数坐标折线（追赶概率图与交互件共用）
+   series：[{label, color, pts:[[z,P],…], dash}]
+   ===================================================================== */
+function logPlot(hostId,series,o){
+  o=o||{};
+  var nar=!!o.narrow, W=nar?400:760, H=nar?330:360, pl=nar?50:62, pr=14, pt=14, pb=nar?62:46;
+  var zmax=o.zmax||30, ymin=o.ymin||-7;
+  var svg=svgRoot(W,H,o.label||'对数坐标折线图');
+  var g=svgEl('g',{'font-family':'inherit','font-size':nar?12:12.5}); svg.appendChild(g);
+  var X=function(z){ return pl+z/zmax*(W-pl-pr); }, Y=function(lp){ return pt+(-lp)/(-ymin)*(H-pt-pb); };
+  sRect(g,pl,pt,W-pl-pr,H-pt-pb,{rx:0,fop:0,sop:.25,sw:1});
+  for(var e=0;e>=ymin;e--){
+    sPath(g,'M'+pl+','+Y(e)+' H'+(W-pr),{sop:.1,sw:1});
+    var t=sText(g,pl-6,Y(e)+4,'10',{anchor:'end',size:nar?11:12,op:.65});
+    var sp=svgEl('tspan',{dy:-5,'font-size':nar?8.5:9}); sp.textContent=String(e).replace('-','−'); t.appendChild(sp);
+  }
+  var step=zmax<=30?5:10;
+  for(var z=0;z<=zmax;z+=step){ sPath(g,'M'+X(z)+','+pt+' V'+(H-pb),{sop:.08,sw:1}); sText(g,X(z),H-pb+16,String(z),{size:nar?11:12,op:.65}); }
+  sText(g,(pl+W-pr)/2,H-pb+(nar?32:34),o.xlabel||'交易所在块之后已经接了几块（z）',{size:nar?11.5:12.5,op:.75});
+  if(!nar) sText(g,16,(pt+H-pb)/2,o.ylabel||'攻击者最终改写成功的概率',{size:12.5,op:.75,rot:-90});
+  if(o.thr){ var ly=Y(Math.log10(o.thr)); sPath(g,'M'+pl+','+ly+' H'+(W-pr),{sop:.55,dash:'2 3',sw:1.1}); sText(g,W-pr-6,ly-5,o.thrLabel||'0.1%',{anchor:'end',size:11.5,op:.7}); }
+  if(o.zmark!==undefined){ sPath(g,'M'+X(o.zmark)+','+pt+' V'+(H-pb),{sop:.4,sw:1.2}); if(o.zmarkLabel){
+    if(nar){ sText(g,X(o.zmark)-4,H-pb-22,o.zmarkShort[0],{anchor:'end',size:10.5,op:.75}); sText(g,X(o.zmark)-4,H-pb-8,o.zmarkShort[1],{anchor:'end',size:10.5,op:.75}); }
+    else sText(g,X(o.zmark)-4,H-pb-14,o.zmarkLabel,{anchor:'end',size:11,op:.75});
+  } }
+  /* 裁到图框 */
+  var cid='clip'+(++_mk), cp=svgEl('clipPath',{id:cid}); cp.appendChild(svgEl('rect',{x:pl,y:pt,width:W-pl-pr,height:H-pt-pb})); svg.appendChild(cp);
+  var cg=svgEl('g',{'clip-path':'url(#'+cid+')'}); g.appendChild(cg);
+  series.forEach(function(s){
+    var d='', dots=[];
+    s.pts.forEach(function(p,i){ var lp=p[1]>0?Math.log10(p[1]):ymin-3; d+=(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(lp).toFixed(1); dots.push([X(p[0]),Y(lp)]); });
+    sPath(cg,d,{stroke:s.color,sop:1,sw:1.8,dash:s.dash||null});
+    if(s.dots!==false) dots.forEach(function(q){ cg.appendChild(svgEl('circle',{cx:q[0],cy:q[1],r:2.4,fill:s.color})); });
+    if(s.mark!==undefined){ var pm=s.pts[s.mark]; if(pm) cg.appendChild(svgEl('circle',{cx:X(pm[0]),cy:Y(Math.log10(pm[1])),r:5,fill:'none',stroke:s.color,'stroke-width':2})); }
+  });
+  /* 图例 */
+  var lx=nar?pl+6:W-pr-230, ly0=nar?H-14:H-pb-12-(series.length-1)*18;
+  series.forEach(function(s,i){
+    var yy=nar?ly0:ly0+i*18, xx=nar?lx+i*(W-pl)/series.length:lx;
+    sPath(g,'M'+xx+','+(yy-4)+' h20',{stroke:s.color,sop:1,sw:2,dash:s.dash||null});
+    sText(g,xx+26,yy,s.label,{anchor:'start',size:nar?10.5:12});
+  });
+  mount(hostId,svg);
+}
+function catchSeries(q,fn,z1){ var a=[]; for(var z=0;z<=(z1||30);z++) a.push([z,fn(q,z)]); return a; }
+function drawCatchupFig(hostId,narrow){
+  logPlot(hostId,[
+    {label:narrow?'q = 0.1':'攻击者算力占比 q = 0.1',color:OKC,pts:catchSeries(0.1,nakamotoP)},
+    {label:narrow?'q = 0.3':'攻击者算力占比 q = 0.3',color:EXC,pts:catchSeries(0.3,nakamotoP)},
+    {label:narrow?'q = 0.45':'攻击者算力占比 q = 0.45',color:WRC,pts:catchSeries(0.45,nakamotoP)}],
+    {narrow:narrow,thr:1e-3,zmark:5,zmarkLabel:'比特币惯例 6 个确认（z = 5）',zmarkShort:['6 个确认','（z = 5）'],
+     label:'攻击者改写成功率随等待块数 z 的变化，对数纵轴，按中本聪论文第 11 节公式计算，q 取 0.1、0.3、0.45'});
+}
+
+/* =====================================================================
+   交互件：追赶概率
+   ===================================================================== */
+function cuSet(q,z){ $('cuQ').value=q; $('cuZ').value=z; cuGo(); }
+function cuGo(){
+  var q=+$('cuQ').value, z=+$('cuZ').value, thr=+$('cuThr').value, p=1-q;
+  $('cuQv').textContent=q.toFixed(2); $('cuZv').textContent=z;
+  var zmax=Math.max(30,Math.min(60,z+5));
+  logPlot('cuPlot',[
+    {label:'中本聪公式',color:ACT,pts:catchSeries(q,nakamotoP,zmax),mark:z,dots:false},
+    {label:'精确（负二项）',color:WRC,pts:catchSeries(q,exactP,zmax),mark:z,dots:false,dash:'6 4'}],
+    {narrow:window.innerWidth<=640,thr:thr,thrLabel:pct(thr,2),zmark:z,zmax:zmax,label:'当前 q 下两种算法的改写成功率随 z 变化'});
+  var o='';
+  if(q>=0.5){ o='<div class="bad">q = '+q.toFixed(2)+' ≥ 0.5：攻击者算力过半，追上的概率恒为 1（51% 攻击），等多少块都没用。</div>'; $('cuOut').innerHTML=o; return; }
+  var N=nakamotoP(q,z), X=exactP(q,z), qz=Math.pow(q/p,z);
+  var zn=minZ(nakamotoP,q,thr,5000), zx=minZ(exactP,q,thr,5000), zs=function(v){ return v===null?'超过 5,000':String(v); };
+  o='<div class="kv">'+
+    '<span>中本聪公式 P</span><span class="mono"><strong>'+pct(N)+'</strong></span>'+
+    '<span>精确算法（负二项）</span><span class="mono"><strong>'+pct(X)+'</strong></span>'+
+    '<span>(q/p)<sup>z</sup>：落后 z 块时最终追平</span><span class="mono">'+pct(qz)+'</span>'+
+    '<span>要压到 '+pct(thr,2)+' 以下</span><span>中本聪公式 z ≥ <strong>'+zs(zn)+'</strong>；精确算法 z ≥ <strong>'+zs(zx)+'</strong></span></div>'+
+    '<div class="sub2" style="margin-top:.35rem">(q/p)<sup>z</sup> 没算等待期间攻击者已经挖出的块，所以比真正的改写成功率小得多；中本聪公式假设诚实方恰好用平均时长挖出 z 块，精确算法把这段时间也当成随机的，风险更高。</div>';
+  $('cuOut').innerHTML=o;
+}
+
+/* =====================================================================
+   图：吞吐量与三个参数（宽版三联；窄版竖排）
+   ===================================================================== */
+function drawTput3(hostId,narrow){
+  var panels=[
+    {t:'(a) 吞吐量 ∝ 区块大小',s:'交易 500 B，出块时间 10 s',x:'区块大小（MB）',xs:[0.5,1,1.5,2,2.5,3,3.5,4,4.5,5],lab:function(v){ return String(v); },f:function(v){ return throughput(v,500,10,0).tps; }},
+    {t:'(b) 吞吐量 ∝ 1 / 出块时间',s:'区块 1 MB，交易 500 B',x:'出块时间（s）',xs:[1,2,3,4,5,6,7,8,9,10],lab:function(v){ return String(v); },f:function(v){ return throughput(1,500,v,0).tps; }},
+    {t:'(c) 吞吐量 ∝ 1 / 交易大小',s:'区块 1 MB，出块时间 10 s',x:'交易大小（B）',xs:[1000,2000,3000,4000,5000,6000,7000,8000,9000,10000],lab:function(v){ return (v/1000)+'k'; },f:function(v){ return throughput(1,v,10,0).tps; }}];
+  var pw=narrow?380:300, ph=270, W=narrow?400:3*pw+20, H=narrow?3*ph+10:ph+10;
+  var svg=svgRoot(W,H,'吞吐量与三个参数的柱状图：区块越大吞吐量线性上升；出块越慢吞吐量按反比下降；单笔交易越大吞吐量按反比下降');
+  var g=svgEl('g',{'font-family':'inherit'}); svg.appendChild(g);
+  panels.forEach(function(P,k){
+    var ox=narrow?10:10+k*pw, oy=narrow?k*ph:0;
+    var vals=P.xs.map(P.f), vmax=Math.max.apply(null,vals);
+    var step=vmax>1500?500:(vmax>500?200:(vmax>50?20:5)); var top=Math.ceil(vmax/step)*step;
+    var L=ox+48, R=ox+pw-10, T=oy+48, B=oy+ph-40;
+    sText(g,(L+R)/2,oy+16,P.t,{size:13,weight:'600'}); sText(g,(L+R)/2,oy+33,P.s,{size:11.5,op:.7});
+    for(var v=0;v<=top+1e-9;v+=step){ var y=B-(v/top)*(B-T); sPath(g,'M'+L+','+y+' H'+R,{sop:.1,sw:1}); sText(g,L-5,y+4,fmt(v,0),{anchor:'end',size:10.5,op:.65}); }
+    sPath(g,'M'+L+','+T+' V'+B+' H'+R,{sop:.45,sw:1});
+    var bw=(R-L)/P.xs.length;
+    vals.forEach(function(v,i){
+      var h=(v/top)*(B-T);
+      g.appendChild(svgEl('rect',{x:L+i*bw+bw*0.14,y:B-h,width:bw*0.72,height:h,fill:AC,'fill-opacity':.85}));
+      sText(g,L+i*bw+bw/2,B+14,P.lab(P.xs[i]),{size:10.5,op:.7});
+    });
+    sText(g,(L+R)/2,B+31,P.x,{size:11.5,op:.75});
+    if(k===0||narrow) sText(g,ox+10,(T+B)/2,'吞吐量（Tx/s）',{size:11,op:.7,rot:-90});
+  });
+  mount(hostId,svg);
+}
+
+/* =====================================================================
+   图：出块时间与确认时间
+   ===================================================================== */
+function drawConfirmFig(hostId){
+  var W=780,H=250, svg=svgRoot(W,H,'出块时间与确认时间：块 1 是交易所在的块，块 2 到块 5 是它之后要等的 k = 4 块；出块时间 T 是相邻两块的平均间隔，确认时间等于 k 乘以 T');
+  var g=svgEl('g',{'font-family':'inherit'}); svg.appendChild(g);
+  var MK=arrow(svg), MKA=arrow(svg,AC), MKR=arrow(svg,WRC);
+  var bw=74, gap=31, y=80, bh=58, cx=function(i){ return 20+i*(bw+gap)+bw/2; };
+  for(var i=0;i<=6;i++){
+    var col=i===1?EXC:((i>=2&&i<=5)?AC:null);
+    sRect(g,cx(i)-bw/2,y,bw,bh,{rx:3,fill:col||'currentColor',fop:col?(i===1?.55:.35):.12,stroke:col||'currentColor',sop:col?.9:.45,sw:1.3});
+    sText(g,cx(i),y+34,'块 '+i,{size:14});
+    if(i>0) sPath(g,'M'+(cx(i)-bw/2-2)+','+(y+bh/2)+' H'+(cx(i-1)+bw/2+4),{marker:MK,sw:1.4,sop:.65});
+  }
+  sPath(g,'M'+cx(1)+','+46+' H'+cx(5),{stroke:AC,sop:.9,marker:MKA,markerStart:MKA,sw:1.5});
+  sText(g,(cx(1)+cx(5))/2,34,'确认时间 = k × T（这里 k = 4：块 1 之后再等 4 块）',{size:13.5,fill:ACT});
+  sPath(g,'M'+cx(0)+','+(y+bh+26)+' H'+cx(1),{stroke:WRC,sop:.9,marker:MKR,markerStart:MKR,sw:1.5});
+  sText(g,(cx(0)+cx(1))/2,y+bh+50,'出块时间 T',{size:13,fill:WRC});
+  sText(g,(cx(0)+cx(1))/2,y+bh+68,'（相邻两块的平均间隔）',{size:11.5,fill:WRC});
+  sText(g,W-20,y+bh+44,'每块装（区块大小 ÷ 交易大小）笔交易，每 T 秒出一块',{anchor:'end',size:12.5});
+  sText(g,W-20,y+bh+64,'⇒ 吞吐量 = 区块大小 ÷（交易大小 × T），与 k 无关',{anchor:'end',size:12.5});
+  mount(hostId,svg);
+}
+
+
+/* ---------- 交互件初始化 ---------- */
+drawConsensusFig('figCons');
+powInit();
+wpGo(); wpSolve(); wpSim();
+drawCatchupFig('figCuW',false); drawCatchupFig('figCuN',true);
+cuGo();
+drawTput3('figTpW',false); drawTput3('figTpN',true);
+drawConfirmFig('figConf');
+tpInit({first:'q2',shards:false,fork:true,trap:true});
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+
+</script>
+</body>
+</html>

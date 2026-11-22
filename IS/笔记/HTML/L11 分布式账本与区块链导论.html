@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L11 分布式账本与区块链导论 · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+input[type=range]{width:min(250px,100%); vertical-align:middle; accent-color:var(--accent)}
+.rv{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; color:var(--accent); min-width:4rem; display:inline-block}
+.ctl{display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.tool input.num{width:6.8rem; font-size:14px; padding:.25rem .4rem}
+.tool input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.three span.lab,.three span.val{display:block}
+.three .val{font-size:1.2rem}
+/* ---------- 链接 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* ---------- 表：四列以上的宽表放开宽度上限，窄屏改为在 .tw 里横向滚动 ---------- */
+.tw>table.wide{max-width:100%}
+@media (max-width:640px){ .tw>table.wide{min-width:38rem} .tw>table.wide td,.tw>table.wide th{padding:.45rem .55rem} }
+.box .tw>table{margin:.6rem 0}
+.box table{font-size:14.5px}
+/* ---------- 宽窄两版图：窄屏换竖排版，打印用宽版 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+figure>div>svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.toolfig svg{display:block; width:100%; height:auto}
+/* ---------- 打印：Chromium/Safari 里关着的 details 内容藏在 ::details-content，补上 ---------- */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+.eq{overflow-x:auto}
+@media (max-width:600px){ .eq{font-size:1.05rem} }
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.small{font-size:13.5px; color:var(--muted)}
+.tw th.nw,.tw td.nw{white-space:nowrap}
+/* 正文字体的 -> 会被连字成箭头，交易文本、代码、SQL 里必须显示原字符 */
+body,input,button,svg text{font-variant-ligatures:none; font-feature-settings:"calt" 0, "liga" 0}
+
+/* ---------- L11 ---------- */
+.m .r{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif; font-size:.92em}
+.hx{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-style:normal; font-size:.86em}
+.chain{display:grid; grid-template-columns:minmax(0,1fr) 2.6rem minmax(0,1fr) 2.6rem minmax(0,1fr); align-items:center; gap:.3rem; margin:.4rem 0}
+.chain .blk{border:1px solid var(--line2); border-radius:8px; padding:.45rem .6rem; background:var(--surface2); font-size:14px; line-height:1.65; min-width:0}
+.chain .blk .bt{font-weight:700; margin-bottom:.1rem}
+.chain .lk{text-align:center; font-size:13px; font-weight:700}
+@media (max-width:640px){ .chain{grid-template-columns:1fr} .chain .lk{padding:.1rem 0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 11</div>
+  <div class="tt">分布式账本与区块链导论</div>
+  <div class="toc">
+<a href="#s1">1 · 后半程讲什么</a>
+<a href="#s2">2 · 账本：从一本手账到 DLT</a>
+<a href="#s2-1" class="sub">2.1 账本是什么</a>
+<a href="#s2-2" class="sub">2.2 四级演化：记录存在哪、谁说了算</a>
+<a href="#s2-3" class="sub">2.3 DLT 与传统数据库差在哪</a>
+<a href="#s2-4" class="sub">2.4 DLT 的两种分类维度</a>
+<a href="#s3">3 · 区块链：DLT 的一种数据结构</a>
+<a href="#s3-1" class="sub">3.1 账本的三种组织方式</a>
+<a href="#s3-2" class="sub">3.2 交易：账本里记的是什么</a>
+<a href="#s3-3" class="sub">3.3 区块：把交易打包</a>
+<a href="#s3-4" class="sub">3.4 链：用哈希把块串起来</a>
+<a href="#s3-5" class="sub">3.5 改一块，后面全对不上</a>
+<a href="#s3-6" class="sub">3.6 线性链的代价</a>
+<a href="#s3-7" class="sub">3.7 课件的定义及其边界</a>
+<a href="#s4">4 · 九大特征</a>
+<a href="#s4-1" class="sub">4.1 九个名字与规范答法</a>
+<a href="#s4-2" class="sub">4.2 谁说了算：去中心化与可用性</a>
+<a href="#s4-3" class="sub">4.3 数据可不可信：不可篡改、防篡改、安全、不可否认</a>
+<a href="#s4-4" class="sub">4.4 谁能看见：透明、可审计、假名</a>
+<a href="#s5">5 · 例子：食品供应链</a>
+<a href="#s6">6 · 区块链的来历</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 11 — Introduction to DLT and Blockchain</div>
+  <h1>分布式账本与区块链导论</h1>
+  <p>没有一个大家都信任的记账人，一群互不信任的人怎样共同维护一本可信的账本？路线：账本从手工账一路演化到 DLT → 区块链怎样用哈希把一块块记录串起来、使「改一处、处处对不上」→ 用这个机制解释九大特征和食品供应链的例子。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>课程后半程（区块链部分，Dr Yao Sun 主讲）的第一讲。主线是一个问题：<strong>没有一个大家都信任的记账人，一群互不信任的人怎样共同维护一本可信的账本？</strong></p>
+<p>这一讲给出回答的骨架：先把「账本」从手工账一路演化到<strong>分布式账本技术</strong>（distributed ledger technology，DLT），说清它和传统数据库差在「有没有中心实体」这一点上；再看区块链这种具体的 DLT 怎样用哈希把一块块记录串起来，使「改一处、处处对不上」；最后用这个机制去解释课件列的九大特征（模拟卷原题）和一个食品供应链的例子。</p>
+<p>和课件顺序的主要不同：课件把「篡改可检测」的机制放在九大特征的最后一页（p35），本笔记把它提前到讲「链」的地方（<a href="#s3-5">3.5</a>），因为九大特征里一半都要靠它解释；课件的区块链定义（p20）放到结构讲完之后再读；DBMS（database management system，数据库管理系统）对比表（p17）挪到分类（p15）之前，紧接「谁说了算」的话题。</p>
+<p style="margin-bottom:0">对应课件 <code>Lecture 1-Introduction to DLT and Blockchain.pdf</code>，41 页。文件名写 Lecture 1，幻灯片内部一律写 Lecture 11，即 Moodle 上的 L11。课件图大多截自 M. H. Rehmani, <em>Blockchain Systems and Communication Networks: From Concepts to Implementation</em>（Springer, 2021）第 1 章。文中多处用 <strong>NIST IR 8202</strong> 校正课件：它是 Moodle 上 L12 的阅读材料，美国国家标准与技术研究院（National Institute of Standards and Technology，NIST）2018 年发布的区块链技术综述（IR 是 NIST 的技术报告系列），立场中立，专门有一章讲常见误解，引用时写章节号。本讲没有课堂活动和计算题；下文的哈希值都用程序实算过。课程总览与考情见 《00 课程信息与考情》。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>考点</div>
+<p>本讲课件没有出现 「exam」、「examinable」 一类字样。考试信号来自模拟卷（去年版）：Q3(a) 三小问都在问区块链基础，题干是 「Blockchain is an emerging distributed ledger technology to record data/transactions.」；另有 Q4(c)(iv) 问区块链的其他应用。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th class="nw">模拟卷</th><th class="nw">分值</th><th>题面</th><th>出处</th><th>本笔记</th></tr></thead>
+<tbody>
+<tr><td class="nw">Q3(a)(ii)</td><td class="nw">3</td><td>「Blockchain has some unique features that distinguish it from traditional database systems. List any three features of blockchain system.」</td><td>本讲 p26（题干就是 p26 第一句原话）</td><td><a href="#s4-1">4.1</a>，各项机制见第 4 节</td></tr>
+<tr><td class="nw">Q3(a)(iii)</td><td class="nw">3</td><td>「Explain the access permission respectively for public chain, private chain and consortium chain.」</td><td>L12 p21</td><td>本讲 <a href="#s2-4">2.4</a> 只讲 DLT 的两维分类；答法见 <a href="L12 区块链系统概览.html#s2-5">L12 三类链的规范答法</a></td></tr>
+<tr><td class="nw">Q3(a)(i)</td><td class="nw">4</td><td>「List three different nodes in blockchain system, and indicates which node can generate new transactions.」</td><td>L13 课件 p11–p18（节点职责表在 p12）</td><td><a href="L13 区块链工作原理（上）.html">L13 区块链工作原理（上）</a></td></tr>
+<tr><td class="nw">Q4(c)(iv)</td><td class="nw">2</td><td>「List any other two potential blockchain-enabled applications.」</td><td>本讲 p36–p39（食品供应链）、p24（加密货币）；L19、L20</td><td><a href="#s5">第 5 节</a>末尾</td></tr>
+</tbody></table></div>
+<p>间接信号：期末前的 Summary 讲（<code>Lecture 20-Summary.pdf</code>）原样重放了本讲 p11–p14、p19–p24（账本演化、区块链定义、块—链—交易），没有重放九大特征——但模拟卷恰恰考了九大特征，所以「Summary 没放」不能当作「不考」。</p>
+<p>本讲的题都是概念题：列名词、说区别、解释一个机制。最可能的考法是「列出 X 个特征 / 说出两者的区别 / 解释为什么篡改能被发现」，每项 1 分。</p>
+<p style="margin-bottom:0">课件说法有误时的总规则：<strong>列举、定义类题照课件原话写</strong>（参考答案就是课件原话）；<strong>评述、判断类题按本笔记警告框里的修正答</strong>。下文各警告框只在有具体写法时再提。</p>
+</div>
+
+<h2 id="s1"><span class="n">1</span>后半程讲什么</h2>
+
+<p>后半程共十讲，由 Dr Yao Sun 主讲（研究方向是无线网络与无线区块链），另有两次实验 《Lab3-4 区块链与 PoW 的 Python 实现》（课件 p7 叫 Lab 1、Lab 2）。本讲的学习目标是 「Understand the big picture of the second part」 和 「Understand the basic idea of DLT and database management」；真正用到的前置知识是前半学期的哈希、公钥密码和数字签名（课件 p4 写的 「Wireless Communication System」 是模板沿用）。课件 p7 的课表是往年的，和今年对不上；本笔记提到别的讲次一律用 Moodle 编号。</p>
+
+<details class="box">
+  <summary>课务细节：ILO、今年讲次与两套编号</summary>
+<p>主讲人的联系方式见课件封面；研究方向：5G/6G 网络设计、语义通信、网络切片、无线区块链、自动驾驶等；课程协调人仍是 Dr Faisal Tariq。</p>
+<p>课程级 ILO（intended learning outcomes，预期学习成果）四条，课件写成名词短语：「Basic concepts of distributed ledger technologies」 / 「Basics of Blockchain (consensus, smart contract …)」 / 「Wireless blockchain」 / 「Blockchain applications」；后两条对应 L18–L20。</p>
+<p>课件 p7 只列了 Lecture 11–16 加四次辅导课（p9 的 Moodle 链接还写着 2022-23 学年）。今年实际的十讲：</p>
+<div class="tw"><table>
+<thead><tr><th class="nw">Moodle 编号</th><th>内容</th><th>服务器文件名</th></tr></thead>
+<tbody>
+<tr><td class="nw">L11</td><td>分布式账本与区块链导论（本讲）</td><td>Lecture 1</td></tr>
+<tr><td class="nw">L12</td><td>区块链系统概览</td><td>Lecture 2</td></tr>
+<tr><td class="nw">L13–L14</td><td>区块链工作原理（上、下）</td><td>Lecture 3、4</td></tr>
+<tr><td class="nw">L15–L17</td><td>区块链共识 I–III</td><td>Lecture 5、16、17</td></tr>
+<tr><td class="nw">L18</td><td>区块链赋能的认知无线电网络</td><td>Lecture 18</td></tr>
+<tr><td class="nw">L19–L20</td><td>应用：网联自动驾驶、D2D 缓存，以及 Summary</td><td>Lecture 19、20</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">模拟卷 Q4(a)(iii)（Paxos 共识协议，5 分）的参考答案写 「refer to the slides in lecture 16」，按今年编号就是 <a href="L16 区块链共识 II.html">L16 区块链共识 II</a>；按 p7 的旧课表 Lecture 16 却是认知无线电，两套编号不要混。</p>
+</details>
+
+<h2 id="s2"><span class="n">2</span>账本：从一本手账到 DLT</h2>
+
+<h3 id="s2-1"><span class="n">2.1</span>账本是什么</h3>
+
+<p>课件的定义：「Ledger: The records of maintenance for a property.」 这里的 property 是<strong>财产、资产</strong>（不是「属性」），课件举的是钱、房产、信息；maintenance 指这份财产的每一次变动——「Transactions / ownership updates of the property」。所以：</p>
+
+<p><strong>账本</strong>（ledger）就是一份记录，记着某种资产的每一次转手或变更。例如工资账、账单账，以及任何有价值信息的交换记录。课件还说 「All these ledgers can be linked together to form a bigger ledger」——一家公司的工资账、应收账、应付账合起来就是一本更大的总账。</p>
+
+<p>账本的价值完全取决于<strong>大家信不信它</strong>：一本谁都能随手改的账，记了等于没记。后面所有的演化都围绕一个问题：谁来保证账本没被乱改？</p>
+
+<h3 id="s2-2"><span class="n">2.2</span>四级演化：记录存在哪、谁说了算</h3>
+
+<p>课件 p12–p13 列了四个越来越长的名词，从上往下逐级演化：</p>
+
+<div class="tw"><table class="wide">
+<thead><tr><th>阶段</th><th>课件原话</th><th class="nw">记录存在哪</th><th>谁说了算</th></tr></thead>
+<tbody>
+<tr><td>传统账本（traditional ledger）</td><td>「Managed Manually」</td><td class="nw">纸上</td><td>记账的人</td></tr>
+<tr><td>数字账本（digital ledger）</td><td>「Managed using a 'computer'」</td><td class="nw"><strong>一台</strong>计算机</td><td>这台计算机的主人</td></tr>
+<tr><td>分布式数字账本（distributed digital ledger）</td><td>「Records kept on multiple computers but managed by a central entity」</td><td class="nw"><strong>多台</strong>计算机</td><td><strong>一个中心实体</strong></td></tr>
+<tr><td>去中心化分布式数字账本（decentralized distributed digital ledger）</td><td>「Records kept on multiple computers but managed in a decentralized way」</td><td class="nw">多台计算机</td><td><strong>没有中心</strong>，参与者共同管理</td></tr>
+</tbody></table></div>
+
+<p>课件在第二级的 「a」 下面画了下划线，强调「一台」；第四级用方框圈出来，表示这是终点。</p>
+
+<p>读这张表要看清<strong>两个不同的维度</strong>在变：</p>
+
+<ul>
+<li><strong>分布式</strong>（distributed）回答「数据放在哪」：一份还是多份、一台机器还是多台。第二级到第三级只改了这一维——数据复制到多台机器上，坏一台不丢账；但改账的权力还在一个中心手里，比如银行在多个机房备份数据，账仍由银行一家说了算。</li>
+<li><strong>去中心化</strong>（decentralized）回答「谁说了算」：有没有一个能单方面决定账本内容的<strong>中心实体</strong>（central entity，例如银行、政府部门、平台公司）。第三级到第四级改的是这一维——数据还是多份，但不再有谁能单独拍板。</li>
+</ul>
+
+<p>第四级就是 <strong>DLT</strong>（distributed ledger technology，分布式账本技术）。课件 p14 用一个双向箭头写明两者是同一回事：「Decentralized Distributed Digital Ledger ⟺ Distributed Ledger Technology (DLT)」，下面注 「e.g., Blockchain」——区块链是 DLT 的一个例子，DLT 不等于区块链。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>distributed 不等于 decentralized</div>
+<p>误：分布式就是去中心化，数据存在多台机器上就没有中心了。</p>
+<p style="margin-bottom:0">正：分布式只说数据有多份；去中心化说的是没有单一的管理者。银行的多机房数据库是「分布式但中心化」的（第三级）。DLT 名字里只有 distributed，含义却是第四级——两维都要满足。</p>
+</div>
+
+<h3 id="s2-3"><span class="n">2.3</span>DLT 与传统数据库差在哪</h3>
+
+<p>课件 p16 先下了一个判断：「Generally, DLT is a database」——DLT 本质上也是存数据的；接着问它和传统的 <strong>DBMS</strong>（database management system，数据库管理系统，如 MySQL、Oracle 这类由一个机构管理的数据库软件）差在哪。p17 的表截自教材：</p>
+
+<div class="tw"><table>
+<thead><tr><th>特性（Feature）</th><th>DBMS</th><th>DLT</th></tr></thead>
+<tbody>
+<tr><td>Common Records（大家看到同一份记录）</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Central Entity（有中心实体）</td><td>Yes</td><td><strong>No</strong></td></tr>
+<tr><td>Consensus Management（怎样决定账本当前的状态）</td><td>Through central entity</td><td><strong>Through mining nodes</strong></td></tr>
+<tr><td>Duplication of Data（数据存几份）</td><td>Few nodes or central entity</td><td><strong>Kept by every node</strong></td></tr>
+<tr><td>Global View（有全局视图）</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Distributed（分布式）</td><td>Yes</td><td>Yes</td></tr>
+</tbody></table></div>
+
+<p>表下两行总结：「DLT: Distributed/decentralized management (Or Peer-2-Peer)」，「DBMS: Centralized management (Or Client-Server)」。</p>
+
+<p><strong>怎么读这张表。</strong> 六行里首尾三行两边都是 Yes，不是区别；真正的区别只有中间三行，而且三行之间是一条因果链：</p>
+
+<ol>
+<li><strong>有没有中心实体</strong>——这是根。DBMS 有一个管理者，DLT 没有。</li>
+<li><strong>所以，怎样决定账本当前该是什么样</strong>：有中心，就由中心说了算，不需要商量；没有中心，网络里的每台参与机器——<strong>节点</strong>（node）——各存一份账，必须有一套规则让大家对「下一条记录是什么」达成一致，这套规则叫<strong>共识</strong>（consensus）。课件写 「Through mining nodes」：<strong>挖矿</strong>（mining）是比特币（Bitcoin，2009 年上线的第一种真正运行起来的去中心化加密货币）一类区块链的共识方式，参与者靠<strong>算力</strong>（投入的计算能力）竞争记账权，参与挖矿的节点叫矿工（miner）；具体机制在 <a href="L15 区块链共识 I.html">L15 区块链共识 I</a>。</li>
+<li><strong>所以，数据要存几份</strong>：有中心，数据只需放在中心或少数几台机器上；没有中心，谁也不能替别人保管「唯一正本」，于是每个节点都得自己存一份、自己核对。</li>
+</ol>
+
+<p>最后两行的英文缩写也要认得：<strong>P2P</strong>（peer-to-peer，对等网络）指网络里每个节点地位平等、直接互相通信，没有「服务器」；<strong>客户端–服务器</strong>（client-server）架构里，所有客户端都去问同一台服务器，服务器就是中心。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p17 表的三处不严谨</div>
+<ul style="margin-bottom:0">
+<li>「Distributed: DBMS Yes」 和同页 「DBMS: Centralized management」 看似矛盾。按 <a href="#s2-2">上面的两个维度</a>理解就不矛盾：DBMS 可以把数据<strong>分布式存储</strong>（第三级），但管理仍是<strong>中心化</strong>的。这一行的 Yes 只指存储。NIST IR 8202 §3.5 正是这么说的：「These ledgers with centralized ownership can be implemented in a centralized or distributed fashion (i.e., just one server or a coordinating cluster of servers).」</li>
+<li>「Through mining nodes」 只对靠挖矿记账的链（如比特币）成立。联盟链、私有链（只有被批准的机构才能记账的区块链，见 <a href="L12 区块链系统概览.html#s2-1">L12 三类链</a>）用投票式的共识——成员身份已知，按节点投票决定下一块（<a href="L16 区块链共识 II.html">L16 区块链共识 II</a>）——根本没有挖矿。写成 「through consensus among nodes」 才准确。</li>
+<li>「Kept by every node」 也说过头了：区块链里有一类<strong>轻节点</strong>（lightweight node）只存每个区块的摘要部分（区块头，见 <a href="#s3-3">3.3</a>）、不存完整账本（<a href="L13 区块链工作原理（上）.html">L13 区块链工作原理（上）</a>）。准确说法是：每个<strong>全节点</strong>（full node，保存完整账本并自行验证一切的节点）各存一份完整副本。</li>
+</ul>
+</div>
+
+<h3 id="s2-4"><span class="n">2.4</span>DLT 的两种分类维度</h3>
+
+<p>课件 p15（教材 Fig. 1.1）从两个互相独立的角度给 DLT 分类：</p>
+
+<figure>
+<div id="figDltW" class="only-wide"></div><div id="figDltN" class="only-narrow"></div>
+<figcaption>课件 p15：左支按「节点身份」分 permissioned / permissionless，右支按「谁能读数据」分 public / private。</figcaption>
+</figure>
+
+<ul>
+<li><strong>按节点身份</strong>（「In terms of Identity of Nodes」）：
+<ul>
+<li><strong>许可型</strong>（permissioned）：「the identity of nodes needs to be known」——参与者的身份必须是已知的，要先登记、被批准才能参加；</li>
+<li><strong>无许可型</strong>（permissionless）：「the identity does not need to be known」——谁都可以不报身份就加入，不用问任何人。</li>
+</ul></li>
+<li><strong>按谁能读数据</strong>（「In terms of Reading Data」）：
+<ul>
+<li><strong>公开</strong>（public）：「anyone can read the data」——任何人都能读账本；</li>
+<li><strong>私有</strong>（private）：「only approved nodes can read the data over the ledger」——只有被批准的节点能读。</li>
+</ul></li>
+</ul>
+
+<p>按课件字面，这是两个独立维度，左支选一个、右支再选一个。例如比特币是「无许可 + 公开」；一个只有几家银行能记账、但账本对公众公开查询的系统，就是「许可 + 公开」。不过「无许可 + 读受限」实际不存在：谁都能不经批准加入、参与记账，也就谁都能读到账本。所以真正可能的组合只有三种（NIST 的论证见 <a href="L12 区块链系统概览.html#s3-2">L12 3.2</a>）。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">注意</span>L12 换了一种分法；Q3(a)(iii) 按 L12 答</div>
+<p style="margin-bottom:0">下一讲 L12 p21 给的是一棵单维的树：permissionless → public；permissioned → consortium、private。在那棵树里 private 的意思变成了「许可由<strong>一个中心实体</strong>发放」，不再是本页的「读权限受限」——同一个词，两种含义。模拟卷 Q3(a)(iii) 的参考答案用的是 L12 的分法；问 DLT 的分类定义时，仍按本页的两维答。两种分法怎样调和、考场上怎么写，见 <a href="L12 区块链系统概览.html#s3">L12 两种分类法的对照</a>。</p>
+</div>
+
+<h2 id="s3"><span class="n">3</span>区块链：DLT 的一种数据结构</h2>
+
+<h3 id="s3-1"><span class="n">3.1</span>账本的三种组织方式</h3>
+
+<p>DLT 只规定了「去中心化地共同维护一本账」，没规定账在内部怎样组织。课件 p19 列了三种数据结构：</p>
+
+<ul>
+<li>「Linear linked list of blocks」——一块接一块排成一条线，这就是<strong>区块链</strong>（blockchain，课件用红框加箭头标出）；</li>
+<li>「Directed Acyclic Graph (DAG)」——<strong>有向无环图</strong>：每条记录可以同时指向好几条更早的记录，但沿箭头走永远绕不回自己，整体像一张往一个方向生长的网；</li>
+<li>「Tree-like data structures」——树形结构。</li>
+</ul>
+
+<p>本课后面讲的全是第一种。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p19 的 Note 与红框矛盾</div>
+<p style="margin-bottom:0">同一页底部写 「Note: Blockchain does not essentially be chain of blocks but it can be DAGs as well.」，与红框「线性块链表 = 区块链」相冲突。主流用法是：区块链指线性的块链，DAG 结构的账本叫 DAG 型 DLT，两者同属 DLT；这也和 p14 「DLT, e.g., Blockchain」 一致。也有 DAG 型系统自称区块链（如 blockDAG 一类设计），这属于术语之争；本课按线性块链理解。</p>
+</div>
+
+<p>区块链由三个要素组成（课件 p21，教材 Fig. 1.2 画的是四个写着 「Block / Transactions」 的立方体被链环串起来）：「Block」、「Chain」、「Transactions」。下面从最小的单位——交易——讲起。</p>
+
+<h3 id="s3-2"><span class="n">3.2</span>交易：账本里记的是什么</h3>
+
+<p><strong>交易</strong>（transaction，常缩写为 TX 或 Tx）是账本里的一条记录：一次资产的转移或一次状态的登记。课件 p24 列了交易可以存的五类信息：</p>
+
+<ol>
+<li>「tracking property ownership」——资产的所有权变更；</li>
+<li>「digital currency (cryptocurrency)」——数字货币的转账。<strong>加密货币</strong>（cryptocurrency）指用密码学保证转账有效、不依赖银行发行和清算的数字货币，比特币是第一个真正运行起来、不依赖中心机构的加密货币（此前的 ecash 等电子现金方案依赖中心机构，bit gold 等只停留在设计）；</li>
+<li>「loans」——借贷；</li>
+<li>「records of anything such as death records, birth records, and land records」——出生、死亡、土地登记等任何记录；</li>
+<li>「tracking information of goods」——货物的流转信息（<a href="#s5">第 5 节</a>的食品供应链就是这一类）。</li>
+</ol>
+
+<p>可见「交易」不限于钱，任何「谁在什么时候对什么做了什么」的记录都算。</p>
+
+<h3 id="s3-3"><span class="n">3.3</span>区块：把交易打包</h3>
+
+<p>单条交易一条条地全网商量太慢，所以把一段时间内的若干交易打包成一个<strong>区块</strong>（block）一起处理。课件 p22：「A 'block' is termed as a basic component in which transactions are assembled.」</p>
+
+<figure>
+<div id="figBlock" style="max-width:470px;margin:0 auto"></div>
+<figcaption>课件 p22（教材 Fig. 1.3）：两个区块，后一块的 Previous Hash 格指回前一块。「Confirmations」 一格不是区块里存的字段，见下方警告框。</figcaption>
+</figure>
+
+<p>图里每块从上往下的字段（课件没有解释，下面逐个补上）。其中反复出现的「哈希」可以先理解成一段数据的指纹：数据改一点，指纹就完全不同；它的定义与性质在 <a href="#s3-4">3.4</a> 讲。</p>
+
+<ul>
+<li><strong>Previous Hash</strong>（前一块的哈希）：前一个区块的「指纹」。图中暗红色箭头从左块指进右块的这一格，表示「右块记着左块的指纹」——<strong>链就是靠这个字段连起来的</strong>，下一小节专门讲。</li>
+<li><strong>Height</strong>（区块高度）：本块是链上第几块。第一块叫<strong>创世块</strong>（genesis block），高度为 0。</li>
+<li><strong>Nonce</strong>（number used once，一次性数，常译「随机数」，但它并不随机）：一个可以随意改的数，矿工通常按顺序逐个试。在用<strong>工作量证明</strong>（proof of work，PoW：矿工反复改 nonce，直到区块的哈希满足某个难度条件，谁先找到谁记账）的链里，nonce 就是矿工反复尝试的那个数。PoW 在 <a href="L15 区块链共识 I.html">L15 区块链共识 I</a> 讲，在 《Lab3-4 区块链与 PoW 的 Python 实现》 里要亲手实现。</li>
+<li><strong>Merkle Root</strong>（Merkle 根）：把本块所有交易两两求哈希、逐层往上合并，最后得到的一个值。它用一个 32 字节的数概括了本块的全部交易，任何一笔交易变了它就变。构造方法在 <a href="L14 区块链工作原理（下）.html">L14 区块链工作原理（下）</a> 讲。</li>
+<li><strong>TX</strong>：交易本身。</li>
+</ul>
+
+<p>TX 以外的那些字段（Previous Hash、Height、Nonce、Merkle Root；去掉不该有的 Confirmations，补上课件漏掉的时间戳）合称<strong>区块头</strong>（block header，区块的元数据部分），交易列表叫区块数据（block data）。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件 p22 的区块字段：Confirmations 不该在里面，Timestamp 却漏了</div>
+<ul>
+<li><strong>Confirmations</strong>（确认数）指「本块之后又接了多少块」（一般按「当前链高 − 本块高度 + 1」计；考试算确认时间则按模拟卷与 L15 的口径「再等 <span class="m">k</span> 块 → <span class="m">k ×</span>出块间隔」）。它随着后面不断出新块而变大。如果它写在区块里，区块的内容就会一直变，哈希也跟着变，链就断了——所以它不可能是区块字段，而是节点软件<strong>实时算出来显示</strong>的量。</li>
+<li>图里漏了<strong>时间戳</strong>（timestamp，区块生成的时间）。NIST IR 8202 §3.6 给的通用区块头字段是：区块高度、前一块<strong>区块头</strong>的哈希、区块数据的哈希（如 Merkle 根）、时间戳、区块大小、nonce。比特币的区块头实际是 80 字节、六个字段：版本号、前一块区块头的哈希、Merkle 根、时间戳、难度目标（PoW 要满足的难度条件）、nonce。比特币的区块高度不在区块头里，按 BIP34（Bitcoin Improvement Proposal 34，比特币改进提案）写在每块第一笔交易（coinbase 交易，矿工给自己发奖励的那笔）中；NIST 也说 「every blockchain implementation can define its own data fields」，所以 Height 作为通用字段可以接受。</li>
+<li>严格说 Previous Hash 是前一块<strong>区块头</strong>的哈希，不是整块的哈希；因为区块头里有 Merkle 根，交易一变区块头就变，效果相同。</li>
+</ul>
+<p style="margin-bottom:0">实验里的区块（Lab3-4 的 <code>blockchain.py</code>）有五个键：<code>index</code>（即 Height）、<code>timestamp</code>、<code>data</code>（即交易）、<code>proof</code>（即 Nonce）、<code>previous_hash</code>，正好是去掉 Confirmations、补上 timestamp 之后的样子。</p>
+</div>
+
+<h3 id="s3-4"><span class="n">3.4</span>链：用哈希把块串起来</h3>
+
+<p>课件 p23 只说 「Each of these blocks is linked together to form a blockchain」，没说用什么连。连接靠的是<strong>哈希函数</strong>。</p>
+
+<p><strong>哈希函数</strong>（hash function）把任意长的输入压成一个固定长度的输出，叫<strong>哈希值</strong>或<strong>摘要</strong>（hash value / digest），可以把它理解成数据的「指纹」。区块链最常用的是 <strong>SHA-256</strong>（Secure Hash Algorithm 256，由美国联邦信息处理标准 FIPS 180-4 规定；FIPS 即 Federal Information Processing Standards），输出 256 位，通常写成 64 个十六进制字符。例如：</p>
+
+<div class="eq"><span class="m"><span class="r">SHA-256</span>(<span class="hx">&quot;abc&quot;</span>) = <span class="hx">ba7816bf8f01cfea</span>⋯<span class="hx">f20015ad</span></span></div>
+
+<p>密码学哈希函数要满足三条性质（<a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a> 里把它当黑盒用过，这里第一次正面用到）：</p>
+
+<ul>
+<li><strong>抗原像</strong>（preimage resistance）：给定一个哈希值，找不到能算出它的输入——指纹倒推不出原数据。</li>
+<li><strong>抗第二原像</strong>（second-preimage resistance）：给定一个输入，找不到另一个不同的输入和它哈希相同——没法伪造一份「指纹一样」的替代品。</li>
+<li><strong>抗碰撞</strong>（collision resistance）：找不到任意两个不同的输入哈希相同。</li>
+</ul>
+
+<p>外加一个直观的行为：输入只改一点，输出面目全非，这就是 L3 讲过的<a href="L3 分组密码与 DES.html#s7-1">雪崩效应</a>。实测：「A-&gt;B 5」 和 「A-&gt;B 9」 只差一个字符，两者的 SHA-256 在 256 位里有 119 位不同，接近一半。</p>
+
+<div class="tool" id="avTool">
+  <h4>雪崩效应：改一个字符，SHA-256 变多少位</h4>
+  <p class="sub">两个输入各算一次 SHA-256（UTF-8 编码），红色标出不同的十六进制字符和二进制位。默认是笔记里的例子；随便改一个字符试试，不同的位数总在 128 附近。</p>
+  <div class="row">
+    <span class="ctl"><label for="avA">输入 1</label><input type="text" id="avA" value="A->B 5" style="width:11rem" oninput="avGo()"></span>
+    <span class="ctl"><label for="avB">输入 2</label><input type="text" id="avB" value="A->B 9" style="width:11rem" oninput="avGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="avSet('A->B 5','A->B 9')">笔记的例子</button>
+    <button class="btn" onclick="avSet('abc','abd')">abc 与 abd</button>
+    <button class="btn" onclick="avSet('abc','abc')">两个一样</button>
+  </div>
+  <div id="avHash"></div>
+  <div id="avBits" style="margin-top:.6rem"></div>
+  <div class="result" id="avOut"></div>
+</div>
+
+<p>有了哈希，「链」就很简单：<strong>每个区块把前一块的哈希写进自己的 Previous Hash 字段</strong>。记第 <span class="m">i</span> 块的哈希为 <span class="m">h<sub>i</sub></span>，则</p>
+
+<div class="eq"><span class="m">h<sub>i</sub> = H(<span class="r">第 </span>i<span class="r"> 块的全部内容</span>),&emsp;&emsp;<span class="r">第 </span>i<span class="r"> 块的 Previous Hash</span> = h<sub>i−1</sub></span></div>
+
+<p><span class="m">H</span> 是哈希函数。这里为了简单把整块当作输入；真实系统只对区块头求哈希，因为区块头里有 Merkle 根，交易一变区块头就变，结论相同。注意第 <span class="m">i</span> 块的内容里包含了 <span class="m">h<sub>i−1</sub></span>，所以 <span class="m">h<sub>i</sub></span> 间接依赖于 <span class="m">h<sub>i−1</sub></span>，而 <span class="m">h<sub>i−1</sub></span> 又依赖于 <span class="m">h<sub>i−2</sub></span>……一直到创世块。<strong>最新一块的哈希，相当于把整条链的全部历史压成了一个指纹。</strong></p>
+
+<h3 id="s3-5"><span class="n">3.5</span>改一块，后面全对不上</h3>
+
+<p>课件把这一机制放在九大特征的最后一项 「Data Tampering」（p35）：「Blockchain stores the hash of the previous block in the current block. Then a process is carried out for every block in the blockchain in which current block is considered and its hash is generated.」 用一条三块的玩具链实际算一遍，就能看清它在说什么。</p>
+
+<p>玩具链的规则：第 <span class="m">i</span> 块只有两样内容——Previous Hash 与一笔交易 <span class="m"><span class="r">tx</span><sub>i</sub></span>，块的哈希 <span class="m">h<sub>i</sub> = <span class="r">SHA-256</span>(h<sub>i−1</sub> ‖ <span class="r">tx</span><sub>i</sub>)</span>（<span class="m">‖</span> 表示拼接：<span class="m">h<sub>i−1</sub></span> 以 64 位小写十六进制字符串的形式，与交易文本直接首尾相接，UTF-8 编码，中间不加分隔符）；创世块之前的 <span class="m">h<sub>−1</sub></span> 取 64 个字符 0。</p>
+
+<figure>
+<div id="figTamperW" class="only-wide"></div><div id="figTamperN" class="only-narrow"></div>
+<figcaption>程序实算的 SHA-256，只显示 64 位十六进制里的前 8 位。上排是原链，下排把块 0 的交易从 「A-&gt;B 5」 改成 「A-&gt;B 9」。</figcaption>
+</figure>
+
+<p>篡改者有两条路，都会被发现：</p>
+
+<ol>
+<li><strong>只改块 0 的交易，别的不动。</strong> 块 0 的哈希变成 00f261b4，但块 1 里存的 Previous Hash 还是 339226a3。任何节点重算一遍块 0 的哈希、和块 1 里存的值一比，就对不上——<strong>链在块 0 和块 1 之间断了</strong>。</li>
+<li><strong>把后面的 Previous Hash 也一路改掉</strong>（图的下排）。块 1 的 Previous Hash 改成 00f261b4 之后，块 1 的内容变了，它自己的哈希也变成 2b88faa5；于是块 2 也得改，块 2 的哈希又变……<strong>一直改到链尾</strong>。最后链尾哈希从 4728885c 变成 2daa9b0c。块 1、块 2 的交易一个字都没动，哈希却全变了。</li>
+</ol>
+
+<p>第二条路在自己的副本里走得通，但网络里还有成千上万个节点存着原来的链。它们的链尾哈希是 4728885c，篡改者的是 2daa9b0c，一比较就知道有人动过。要让大家接受篡改后的版本，篡改者必须<strong>重算被改块之后的所有块</strong>并说服全网采用——在 PoW 链上，每一块都要重新做一遍挖矿的工作量，而诚实节点同时还在不停地往原链上加新块，越往前改代价越大。</p>
+
+<div class="tool" id="chTool">
+  <h4>篡改一条三块的玩具链</h4>
+  <p class="sub">规则同上：<span class="m">h<sub>i</sub> = <span class="r">SHA-256</span>(h<sub>i−1</sub> ‖ <span class="r">tx</span><sub>i</sub>)</span>，创世块之前取 64 个 0，图里只显示前 8 位。改任意一块的交易，看哪个链接断了；勾上「一路重链」就是篡改者的第二条路：把后面每块的 Previous Hash 都改成新值。红色 = 与其他节点手里的原链不同。</p>
+  <div class="row">
+    <span class="ctl"><label for="chTx0">块 0 交易</label><input type="text" id="chTx0" value="A->B 9" style="width:7.5rem" oninput="chGo()"></span>
+    <span class="ctl"><label for="chTx1">块 1 交易</label><input type="text" id="chTx1" value="B->C 2" style="width:7.5rem" oninput="chGo()"></span>
+    <span class="ctl"><label for="chTx2">块 2 交易</label><input type="text" id="chTx2" value="C->D 1" style="width:7.5rem" oninput="chGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label><input type="checkbox" id="chRelink" onchange="chGo()"> 一路重链（把后面的 Previous Hash 改成新值）</label></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="chSet('A->B 5','B->C 2','C->D 1',false)">恢复原链</button>
+    <button class="btn" onclick="chSet('A->B 9','B->C 2','C->D 1',false)">只改块 0（第一条路）</button>
+    <button class="btn" onclick="chSet('A->B 9','B->C 2','C->D 1',true)">改块 0 并一路重链（第二条路）</button>
+    <button class="btn" onclick="chSet('A->B 5','B->C 7','C->D 1',false)">只改块 1</button>
+  </div>
+  <div id="chView"></div>
+  <div class="result" id="chOut"></div>
+</div>
+
+<p>由此分出两个常被混为一谈的词（定义取自 NIST IR 8202 的术语表）：</p>
+
+<ul>
+<li><strong>篡改可检测</strong>（tamper-evident）：改动很容易被发现——靠哈希链。</li>
+<li><strong>篡改代价高</strong>（tamper-resistant，也译「抗篡改」）：改动很难、很贵，或者两者兼有——靠「改一块就得重做后面所有块」加上共识。</li>
+</ul>
+
+<div class="box def">
+  <div class="h">特征名 「Data Tampering」 起得不好</div>
+<p style="margin-bottom:0">字面意思是「数据篡改」，讲的却是「防篡改 / 篡改可检测」。p35 的第二句也没说出关键：哈希被<strong>下一块</strong>引用，改一块才会连锁破坏后面所有链接。模拟卷参考答案原样写的是 「Data tampering」，列特征时照写，解释时写成 「tampering with any block is detectable」。</p>
+</div>
+
+<h3 id="s3-6"><span class="n">3.6</span>线性链的代价</h3>
+
+<p>课件 p23 说：「One simple way is to link these blocks in a linear order. However, there may be issues such as scalability, accessing these blocks quickly, and in terms of security.」 三个问题，课件没展开，逐个补上因果：</p>
+
+<ul>
+<li><strong>可扩展性</strong>（scalability，系统负载变大时还能不能撑住）：所有块排成一列，同一时刻只能有一个「下一块」，全网每隔一段时间才能前进一格，每秒能处理的交易数被「一块装多少笔 ÷ 多久出一块」卡死。数字见 <a href="L12 区块链系统概览.html#s4-2">L12 交易量有限</a>。</li>
+<li><strong>访问慢</strong>：要找一笔旧交易、或核对某个账户的余额，可能得从头把整条链翻一遍。</li>
+<li><strong>安全</strong>：如果两个节点几乎同时各造出一个「下一块」，链就<strong>分叉</strong>（fork）了，必须有规则在两条分支里选一条（比特币选累计工作量最大的那条，俗称<strong>最长链</strong>规则），被放弃那条分支上的块就作废了。</li>
+</ul>
+
+<p>课件说 「Other structures can be used such as the blocks can be organized into graphs or trees」——就是 <a href="#s3-1">3.1</a> 的 DAG 和树，本课不展开。</p>
+
+<h3 id="s3-7"><span class="n">3.7</span>课件的定义及其边界</h3>
+
+<p>结构讲完，再来读课件 p20 的定义就清楚了：</p>
+
+<p>「'Blockchain': a data structure that the data is <strong>read only</strong> and <strong>cannot be modified</strong> once it is entered into the blockchain and <strong>new data</strong> can only be appended <strong>at the end of blockchain</strong>, making blockchain highly <strong>immutable</strong>!」（加粗处课件是红字）</p>
+
+<p>拆成三件事：</p>
+
+<ol>
+<li>已经写入的数据只读、不能改——由 <a href="#s3-5">3.5</a> 的哈希链保证「改了会被发现」；</li>
+<li>新数据只能追加在链尾——这种结构叫<strong>只追加</strong>（append-only）；</li>
+<li>由前两条得出：区块链是<strong>不可篡改</strong>的（immutable，写入后不能修改也不能删除）。</li>
+</ol>
+
+<p>「Key feature: It completely eliminates the role of trusted <strong>third party</strong> involvement in the maintainability of blockchain network.」 <strong>可信第三方</strong>（trusted third party）指交易双方都信任、由它来记账和担保的中间人，例如银行。电子货币为什么一向需要银行？因为数字信息可以无限复制，同一笔钱可能被花两次（<strong>双花</strong>，double spending），必须有个中心来记「这笔钱已经花掉了」。区块链让全网共同维护一本按顺序排好、不可改写的账，用共识代替银行来判定先后，于是不再需要这个中间人。</p>
+
+<p>NIST IR 8202 §1 的非正式定义比课件完整，值得对照：</p>
+
+<p>「Blockchains are distributed digital ledgers of cryptographically signed transactions that are grouped into blocks. Each block is cryptographically linked to the previous one (making it tamper evident) after validation and undergoing a consensus decision. As new blocks are added, older blocks become more difficult to modify (creating tamper resistance). New blocks are replicated across copies of the ledger within the network, and any conflicts are resolved automatically using established rules.」</p>
+
+<p>它比课件多了四样东西：交易是<strong>签了名</strong>的；区块要先经过<strong>验证</strong>；要经过<strong>共识</strong>才能接上链；新块会<strong>复制</strong>到网络里的各份账本，冲突（如 <a href="#s3-6">3.6</a> 的分叉）按既定规则自动解决。而且它只说「篡改可检测、越旧越难改」，没说「不可篡改」。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件定义说得过满的两处</div>
+<p><strong>「immutable」 不严格成立。</strong> NIST IR 8202 §7.1：「Most publications on blockchain technology describe blockchain ledgers as being immutable. However, this is not strictly true. They are tamper evident and tamper resistant.」 反例：</p>
+<ul>
+<li>链尾的几块可能被一条更长的分叉替换掉，所以大家要等后面再接上几块才认为一笔交易「确认」了；</li>
+<li>在无许可链上，谁掌握了超过一半的出块资源（算力），就能自己造一条更长的链去替换历史，这叫 <strong>51% 攻击</strong>（51% attack）；它在技术上不难，只是极贵，而且越往前改越贵；</li>
+<li>在许可型链上，掌控者或联盟可以用合法手段替换任意多块。</li>
+</ul>
+<p><strong>「completely eliminates the trusted third party」 也不成立。</strong> NIST IR 8202 §7.7（「No Trust」）列出用区块链仍然要信任的五样东西：密码算法及其实现没有缺陷；<strong>智能合约</strong>（smart contract，部署在链上、条件满足时自动执行的程序）没有漏洞；软件开发者；大多数参与者没有暗中勾结（超过 50% 出块能力即可颠覆无许可链）；不运行全节点的用户还得信任全节点公平处理交易。准确的说法是：区块链去掉了「替你记账的那个中间人」，但没有去掉信任本身。</p>
+<p style="margin-bottom:0">被问「区块链是否绝对不可篡改」一类的评述题，按这里答。</p>
+</div>
+
+<h2 id="s4"><span class="n">4</span>九大特征</h2>
+
+<h3 id="s4-1"><span class="n">4.1</span>九个名字与规范答法</h3>
+
+<p>课件 p26：「Blockchain has some unique features that distinguish it from traditional database systems.」 接着列了九个特征（3×3 排布，放映时每个都链到 p27–p35 的一页详解）：</p>
+
+<div class="tw"><table>
+<thead><tr><th style="min-width:6.6em">第一列</th><th>第二列</th><th>第三列</th></tr></thead>
+<tbody>
+<tr><td>Decentralization</td><td>Availability</td><td>Non-Repudiation</td></tr>
+<tr><td>Transparency</td><td>Pseudonymity</td><td>Auditability</td></tr>
+<tr><td>Immutability</td><td>Security</td><td>Data Tampering</td></tr>
+</tbody></table></div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>模拟卷 Q3(a)(ii) 的规范答法（3 分）</div>
+<p>题面：「Blockchain has some unique features that distinguish it from traditional database systems. List any three features of blockchain system.」</p>
+<p>参考答案：「Accept any three of the below」，列的正是上表九项。题目动词是 「List」，写出三个名字即可各得 1 分。稳妥起见每个名字后跟半句解释，例如：</p>
+<ul>
+<li><strong>Decentralization</strong>: no central entity controls or validates transactions.</li>
+<li><strong>Immutability</strong>: once validated and added, a transaction cannot be changed.</li>
+<li><strong>Transparency</strong>: anyone can trace the transaction history (especially in public blockchains).</li>
+</ul>
+<p style="margin-bottom:0">拼写要准：Pseudonymity、Non-Repudiation、Auditability 最容易写错。</p>
+</div>
+
+<p>九个名字散着背很难记。按「它回答了什么问题、靠什么机制」可以归成三组，下面三小节逐组讲：<strong>谁说了算</strong>（去中心化、可用性）；<strong>数据可不可信</strong>（不可篡改、防篡改、安全、不可否认）；<strong>谁能看见</strong>（透明、可审计、假名）。</p>
+
+<div class="box def">
+  <div class="h">「unique」 说过头了</div>
+<p style="margin-bottom:0">九项里的 Availability、Security、Non-Repudiation、Auditability，传统数据库靠多副本、访问控制、带签名的审计日志同样能做到。区块链真正独有的是一个组合：<strong>没有中心实体 + 多方共识 + 哈希链带来的篡改可检测</strong>。这是理解上的精度问题，不影响按课件答题。</p>
+</div>
+
+<h3 id="s4-2"><span class="n">4.2</span>谁说了算：去中心化与可用性</h3>
+
+<p><strong>去中心化</strong>（Decentralization，p27）：「No central entity or intermediary to control and validate transactions.」 / 「The data controlling capability is in the hands of users.」 没有任何中心实体或中间人来控制、验证交易，控制数据的能力在用户手里。这就是 <a href="#s2-2">2.2</a> 第四级的定义本身。</p>
+
+<p><strong>可用性</strong>（Availability，p30）：「Due to the distributed and decentralized nature of blockchain, the ledger itself is available to nodes, thus making the system highly available as compared to centralized systems (with single point of failure).」 中心化系统有<strong>单点故障</strong>（single point of failure：系统里有某一个部件一坏，整个系统就停摆）——中心服务器宕机或被攻击，所有人都用不了。区块链每个节点各存一份账，坏掉任何一个、甚至一大片，其余节点照常工作。这里的 availability 就是前半学期 L1 讲的 <strong>CIA 三要素</strong>（confidentiality、integrity、availability，即机密性、完整性、可用性）里的那个 A：及时、可靠地访问信息。</p>
+
+<p>两项的因果：没有中心（去中心化）→ 每个节点都有一份（<a href="#s2-3">2.3</a> 的第 3 步）→ 没有单点故障（可用性）。</p>
+
+<h3 id="s4-3"><span class="n">4.3</span>数据可不可信：不可篡改、防篡改、安全、不可否认</h3>
+
+<p><strong>不可篡改</strong>（Immutability，p29）：「Once transactions have been added to the blockchain and validated by the participating nodes that transaction cannot be changed or tampered.」</p>
+
+<p><strong>防篡改</strong>（Data Tampering，p35）：机制就是 <a href="#s3-5">3.5</a> 的哈希链。两项的关系：Data Tampering 讲的是机制（改了会被发现），Immutability 讲的是结果（所以写进去的东西改不了）；后者的边界见 <a href="#s3-7">3.7</a> 的警告框。</p>
+
+<p><strong>安全</strong>（Security，p32）：「Blockchain is secured by strong public/private keys, hashing algorithms, digital signatures, encryption techniques.」 四样东西各管什么：</p>
+
+<ul>
+<li><strong>公钥/私钥</strong>（public/private key）：每个用户有一对密钥，私钥自己保管，公钥公开，公钥（经哈希处理后）就是用户在链上的<strong>地址</strong>（address），相当于账号；原理在 <a href="L7 公钥密码.html">L7 公钥密码</a>。</li>
+<li><strong>哈希算法</strong>：把块链起来、算 Merkle 根、做 PoW。</li>
+<li><strong>数字签名</strong>（digital signature）：用户用私钥对交易签名，任何人用他的公钥就能验证「这笔交易确实是这个地址的主人发起的、内容没被改过」；原理在 <a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a>。</li>
+<li>「encryption techniques」：见下方警告框。</li>
+</ul>
+
+<p><strong>不可否认性</strong>（Non-Repudiation，p33）：「Once a transaction has been added and validated in a blockchain, it cannot be disowned by the blockchain node.」 一笔交易一旦被加进链里并验证，发起者就无法抵赖说「不是我发的」。这个词前半学期 L1 讲安全目标时出现过：事后不能否认自己发过或收过某条消息，手段是数字签名加可信时间戳。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>Security 与 Non-Repudiation 两页的因果写偏了</div>
+<ul>
+<li><strong>区块链的数据一般不加密。</strong> 比特币这类<strong>公有链</strong>（public blockchain，谁都能加入、谁都能读的区块链；这是 L12 p21 的含义，L12 细讲）的账本是明文公开的，谁都能读；安全性来自哈希（链接与 PoW）和数字签名（交易授权），公私钥用来<strong>签名</strong>而不是加密（NIST IR 8202 §3.3 末尾的小结：私钥签名交易，公钥派生地址并验证签名；「链上信息一般公开可见」见 §3.5、§8.1）。只有部分许可链平台会对某些私有数据加密。</li>
+</ul>
+<p>误：签名就是「用私钥加密」。正：这是讲 RSA 时的简化说法，NIST §3.3 正文也这么写；区块链常用的签名算法 ECDSA（Elliptic Curve Digital Signature Algorithm，椭圆曲线数字签名算法，NIST 脚注 4）根本不能用来加密——签名与加密是两种不同的运算（<a href="L8 数字签名、证书与 PKI.html">L8 数字签名、证书与 PKI</a>）。「encryption techniques」 应理解为「密码技术」，而不是「把数据加密」。</p>
+<ul style="margin-bottom:0">
+<li><strong>不可否认的来源是签名，不是「被加进链里」。</strong> 交易由发起者用私钥签名，任何人可用其公钥验证，所以他抵赖不了；「加进链里并验证」只是让这条带签名的记录无法删改。抵赖的主体也不是课件说的 「the blockchain node」，而是持有私钥的用户。</li>
+<li>局限：私钥被盗时，盗贼签出的交易同样「有效」，此时不可否认性反而对受害者不利。NIST IR 8202 §3.4.1 指出，「某某币被盗」几乎都是私钥被盗，而不是链被攻破；私钥丢了，资产就永久丢了。</li>
+</ul>
+</div>
+
+<h3 id="s4-4"><span class="n">4.4</span>谁能看见：透明、可审计、假名</h3>
+
+<p><strong>透明性</strong>（Transparency，p28）：「Anyone can track the transaction history and track transactions, thus making the blockchain system highly transparent. (Especially public blockchain)」 账本每个节点都有一份，在公有链上任何人都能下载、逐笔查看全部历史交易。</p>
+
+<p><strong>可审计性</strong>（Auditability，p34）：「It enables the user to trace any transaction within the ledger.」 可以顺着记录追溯任何一笔交易的来龙去脉。课件分两种情况：「In public blockchain, one can audit the whole ledger itself.」 / 「In private blockchain, only authorized entities can perform this audit.」 这里的 private 是 <a href="#s2-4">2.4</a> 的读权限含义：读不到，自然审计不了。透明是「看得到」，可审计是「能顺藤摸瓜查清楚」；后者依赖前者，再加上「历史不可改」（审计查的必须是没被动过的记录）。</p>
+
+<p><strong>假名性</strong>（Pseudonymity，p31）：「Nodes in the blockchain system use pseudonymity, i.e., an identity that is partially revealed. Therefore, making blockchain systems privacy aware.」 用户在链上以地址（一串由公钥算出来的字符）出现，而不是真名。「partially revealed」（部分暴露）的准确含义是：<strong>真实身份不出现，但这个化名和它名下的所有交易全部公开</strong>。</p>
+
+<p>透明与假名是一对张力：交易全公开，身份半隐藏。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>假名不是匿名</div>
+<p>误：区块链用地址不用真名，所以是匿名的，隐私有保障。</p>
+<p>正：<strong>匿名</strong>（anonymity）要求无法把两次行为联系到同一个人；<strong>假名</strong>（pseudonymity）是用一个固定的化名，同一化名下的所有交易都能被串起来。NIST IR 8202 §1.1：「users are anonymous, but their account identifiers are not; additionally, all transactions are publicly visible.」 §7.10 指出，签名只把交易关联到私钥持有人，区块链不提供把地址和现实身份对应起来的机制；这种对应只能靠链外途径建立，例如执法机构调取交易所记录、个人在网页上公布收款地址。一旦对上号，这个人的全部交易历史就暴露了。所以假名性只提供<strong>有限</strong>的隐私。</p>
+<p style="margin-bottom:0">L12 p28 又把假名性列为公有链的「问题」，与本页的「privacy aware」相反，见 <a href="L12 区块链系统概览.html#s4-6">L12 假名性</a>。两种说法合起来才完整：比用真名有隐私，但远不是匿名。</p>
+</div>
+
+<h2 id="s5"><span class="n">5</span>例子：食品供应链</h2>
+
+<p>课件 p36–p39 用食品供应链说明区块链的用处。供应链是从农场、包装、加工、运输、分销到超市和你家的一长串环节，每一环归不同的公司，彼此并不信任，也没有一个谁都服的总管。课件的三条好处（p36）：</p>
+
+<ul>
+<li>「All the parties involved in food supply chain can trust on each other.」</li>
+<li>「The data recorded on the blockchain will be immutable and tampering cannot be possible.」</li>
+<li>「Ensure the provenance and traceability of the food products.」</li>
+</ul>
+
+<p>两个应用场景：</p>
+
+<ul>
+<li><strong>溯源</strong>（p38，「Traceability and Provenance Within Food Supply Chain」）：「Correct labelling, Traceability, Provenance of food」；「Track the food that has been declared risky for customers and recall the contaminated food.」 <strong>来源证明</strong>（provenance）指能证明一件东西从哪来、经过谁手；<strong>可追溯性</strong>（traceability）指能沿着记录一环环查下去。某批食品被认定有风险时，可以顺着链查到它经过的每个环节，精确召回。</li>
+<li><strong>找出污染发生在哪一环</strong>（p39，「Identification and Removal of Contaminated Food」）：「Monitoring the food condition at every stage of the food supply chain and record the state of the food」；「Determine that food got contaminated at which level.」 每个环节把食品状态（温度、检测结果等）记上链，出了问题就能定位是哪一环出的。</li>
+</ul>
+
+<p>把例子映射回九大特征：多方互不信任、没有总管 → Decentralization；记录不能事后改 → Immutability / Data Tampering；从农场追到餐桌 → Transparency / Auditability。</p>
+
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>区块链不保证写进去的数据本来就是真的</div>
+<p style="margin-bottom:0">区块链只保证「写进去之后不被改」。如果冷链运输商一开始就录入一个假温度，或者传感器坏了，链会忠实地、不可篡改地保存这个假数据——所谓「垃圾进，垃圾出」。NIST IR 8202 §7.3 把这叫作<strong>预言机问题</strong>（oracle problem：链上系统无法自行核实链外数据是否属实），原文举的正是传感器故障、人有意或无意录入假信息；§8.1 的 「Fake Data Input」 则专指有人故意冒充可信数据源提交假数据。课件的 「tampering cannot be possible」 只覆盖了上链之后。</p>
+</div>
+
+<div class="box exam">
+  <div class="h"><span class="tag">答法</span>模拟卷 Q4(c)(iv) 的规范答法（2 分）</div>
+<p>题面（认知无线电大题的最后一问）：「List any other two potential blockchain-enabled applications.」 参考答案：「any distributed systems requiring trusted data exchange should be accepted, such as smart grid, autonomous driving, cryptocurrency, food supply chain system, etc.」</p>
+<p>从本讲可直接写两条，各 1 分：</p>
+<ul>
+<li><strong>Food supply chain</strong>: traceability and provenance of food, recall of contaminated food.</li>
+<li><strong>Cryptocurrency</strong>: e.g., Bitcoin, peer-to-peer payment without a trusted third party.</li>
+</ul>
+<p style="margin-bottom:0">自动驾驶在 <a href="L19 区块链应用：网联自动驾驶.html">L19 区块链应用：网联自动驾驶</a> 讲。</p>
+</div>
+
+<h2 id="s6"><span class="n">6</span>区块链的来历</h2>
+
+<p>课件 p25 的时间轴有六个节点，课件只给了事件，没给人名，下表补上：</p>
+
+<div class="tw"><table>
+<thead><tr><th class="nw">年份</th><th>课件原话</th><th>实际是什么</th></tr></thead>
+<tbody>
+<tr><td class="nw">1991</td><td>「A cryptographically secured chain of blocks is described」</td><td>Haber 与 Stornetta 提出给数字文件加时间戳的方法：每份文件的时间戳都包含前一份的哈希，串成一条链（链接的是文件，「区块」是后人的说法；随后 Bayer、Haber、Stornetta 引入 Merkle 树把多份文件打包（论文 1993 年发表），才接近「块」）。NIST IR 8202 §1.1 的说法是 「a signed chain of information was used as an electronic ledger」</td></tr>
+<tr><td class="nw">1998</td><td>「A decentralised digital currency 'bit gold'」</td><td>Nick Szabo 设计的去中心化数字货币方案 bit gold（2005 年才公开发表），未实际运行</td></tr>
+<tr><td class="nw">2000</td><td>「Cryptographic secured chains」</td><td>课件未给出处，来源不明，不必记</td></tr>
+<tr><td class="nw">2008</td><td>「A white paper establishing the model for a blockchain」</td><td>化名 Satoshi Nakamoto 于 2008 年 10 月 31 日发布<strong>白皮书</strong>（whitepaper，阐述一个技术方案的公开文档）「Bitcoin: A Peer-to-Peer Electronic Cash System」</td></tr>
+<tr><td class="nw">2009</td><td>「The first blockchain for transactions made using bitcoin」</td><td>2009 年 1 月 3 日比特币创世块生成，网络开始运行</td></tr>
+<tr><td class="nw">2014</td><td>「Blockchain 2.0 is born」</td><td>一般指以太坊（Ethereum）为代表的可编程区块链：链上不只记转账，还能运行程序，即 <a href="#s3-7">3.7</a> 提到的智能合约。以太坊白皮书 2013 年底发布，2014 年众筹，2015 年 7 月主网上线；「2014」只是惯用的分界</td></tr>
+</tbody></table></div>
+
+<p>NIST IR 8202 §1.1 还把一项课件没列的工作算作区块链的思想源头：1989 年 Lamport 设计的 <strong>Paxos</strong> 协议（论文 1990 年投稿、1998 年才发表），解决的是「一群计算机在机器和网络都可能出故障时怎样对一个结果达成一致」。它在 <a href="L16 区块链共识 II.html">L16 区块链共识 II</a> 讲，模拟卷 Q4 考它。区块链就是把「带签名的哈希链」和「分布式共识」这两个思想合在一起，用到了电子现金上。</p>
+
+<h2 id="recap">本讲速记</h2>
+
+<div class="recap"><ul>
+<li>账本（ledger）＝某种资产的所有权变更记录。四级演化：传统账本（手工）→ 数字账本（一台计算机）→ 分布式数字账本（多台计算机，<strong>中心实体管理</strong>）→ 去中心化分布式数字账本（多台计算机，<strong>去中心化管理</strong>）＝ <strong>DLT</strong>；区块链是 DLT 的一例。</li>
+<li><strong>distributed ≠ decentralized</strong>：前者说数据放在哪（多份），后者说谁说了算（没有中心）。</li>
+<li>DLT vs DBMS：真正的区别是中间三行，一条因果链——没有中心实体 → 必须靠节点共识决定状态 → 每个节点各存一份。DLT 是 P2P，DBMS 是 client-server。表的修正：DBMS 的 「Distributed: Yes」 指存储；「mining nodes」 只对 PoW 链成立；轻节点不存全账本。</li>
+<li>L11 的 DLT 分类是两个维度：节点身份（permissioned 须已知 / permissionless 不须已知）× 读权限（public 任何人可读 / private 仅批准节点可读）；「无许可 + 读受限」不存在，实际三种组合。<strong>考 Q3(a)(iii) 按 L12 p21 的树答</strong>，问 DLT 分类定义按本讲 p15 答。</li>
+<li>数据结构：线性块链（＝区块链）、DAG、树。三要素：区块、链、交易。</li>
+<li>区块字段：Previous Hash、Height、Nonce、Merkle Root、TX；<strong>Confirmations 不是区块字段</strong>（会变），课件漏了 timestamp。</li>
+<li>链＝每块存前一块的哈希；<span class="m">h<sub>i</sub></span> 依赖 <span class="m">h<sub>i−1</sub></span>，链尾哈希概括全部历史。改一块 → 后面所有块的哈希连锁改变 → 与其他节点保存的链尾哈希不符 → 被发现（tamper-evident）；要让篡改被接受得重算后面所有块并重做 PoW（tamper-resistant）。</li>
+<li>哈希三性质：抗原像、抗第二原像、抗碰撞；雪崩效应（改一个字符，SHA-256 约一半位改变）。</li>
+<li>线性链的代价：可扩展性差、访问慢、分叉需选链。</li>
+<li>定义（p20）：只读、只追加在链尾、不可篡改；去掉可信第三方。<strong>边界</strong>：只是 tamper evident + tamper resistant（链尾可被替换、51% 攻击）；仍需信任密码学、智能合约、开发者、多数不合谋、全节点（NIST IR 8202 §7.1、§7.7）。</li>
+<li><strong>九大特征</strong>（Q3(a)(ii) 任列三个）：Decentralization、Transparency、Immutability、Availability、Pseudonymity、Security、Non-Repudiation、Auditability、Data Tampering。三组：谁说了算（去中心化、可用性）；数据可信（不可篡改、防篡改、安全、不可否认）；谁能看见（透明、可审计、假名）。</li>
+<li>修正：链上数据一般不加密，公私钥用于签名；不可否认来自签名；假名 ≠ 匿名，交易可被串联。</li>
+<li>食品供应链：溯源召回、定位污染环节；局限是上链前的假数据（预言机问题，NIST §7.3）。Q4(c)(iv) 可答 food supply chain、cryptocurrency。</li>
+<li>历史：1991 Haber–Stornetta 时间戳链 → 1998 bit gold（Szabo）→ 2008 Nakamoto 白皮书 → 2009 比特币创世块 → 2014 前后 Blockchain 2.0（以太坊、智能合约）。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <a href="L12 区块链系统概览.html">L12 区块链系统概览</a>：三类区块链（公有、私有、联盟）的准入与维护、公有链的五个问题、区块链与数据库在维护上的六项区别。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L11 分布式账本与区块链导论.md</code> 的阅读优化版，内容一致；页内的哈希值都由页面里的 SHA-256 现算（实现已与 Python hashlib 对拍）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   svgkit.js — 学习页配图与交互件共用的极简 SVG 层（不依赖任何外部库）
+   配色规则：中性线条与文字用 currentColor + 透明度（随明暗主题自动变）；
+   强调色的填充硬编码 #2F6F8F；强调色的线条与文字、其余语义色（红/绿/金）开页时从 CSS 变量读一次
+   （深色主题下 #2F6F8F 的字和细线太暗，所以线与字改用 --accent 的取值，与 L1 的做法相同）。
+   ==========================================================================*/
+var SVGNS = 'http://www.w3.org/2000/svg';
+var ACC = '#2F6F8F';
+
+/** 数字转文本：负号用 U+2212；d 为小数位；sep 为真时加千分位逗号 */
+function nf(v, d, sep){
+  if(!isFinite(v)) return v>0?'∞':'−∞';
+  var s = (d===undefined) ? String(v) : Number(v).toFixed(d);
+  if(sep){ var p=s.split('.'); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); s=p.join('.'); }
+  return s.replace(/-/g, '−');
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function svgEl(name, attrs){
+  var e = document.createElementNS(SVGNS, name);
+  if(attrs) for(var k in attrs) if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+var THEME = null;
+function themeColors(){
+  if(THEME) return THEME;
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = cs.getPropertyValue(n).trim(); return v || fb; }
+  THEME = { accent: ACC, acc: g('--accent', ACC), warn: g('--warn','#B4534B'), ok: g('--ok','#3F8A63'), exam: g('--exam','#9A6B2F'),
+            muted: g('--muted','#5C6673'), faint: g('--faint','#8A929C') };
+  return THEME;
+}
+
+var FIG_SEQ = 0;
+/** 一张图：W×H 的 viewBox，label 是给读屏的文字说明 */
+function Fig(W, H, label){
+  this.W=W; this.H=H; this.c=themeColors(); this.id='f'+(++FIG_SEQ);
+  this.svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, role:'img', 'aria-label':label});
+  this.defs = svgEl('defs'); this.svg.appendChild(this.defs);
+  this.g = svgEl('g', {'font-family':'inherit', 'font-size':'13', 'text-anchor':'middle'});
+  this.svg.appendChild(this.g);
+  this.mk = {};
+}
+Fig.prototype.marker = function(col){
+  if(this.mk[col]) return this.mk[col];
+  var id = this.id+'m'+Object.keys(this.mk).length;
+  var m = svgEl('marker', {id:id, markerWidth:10, markerHeight:10, refX:8, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path', {d:'M0,0 L9,4 L0,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[col]=id; return id;
+};
+/** 矩形框。o: {col 描边色, fill 填充色, fo 填充透明度, so 描边透明度, rx, dash, sw} */
+Fig.prototype.box = function(x,y,w,h,o){
+  o=o||{};
+  var col=o.col||'currentColor', scol=(col===ACC)?this.c.acc:col;
+  var r=svgEl('rect', {x:x, y:y, width:w, height:h, rx:(o.rx===undefined?7:o.rx),
+    fill:o.fill||(o.col||'currentColor'), 'fill-opacity':(o.fo===undefined?(o.col?0.1:0.04):o.fo),
+    stroke:scol, 'stroke-opacity':(o.so===undefined?(o.col?0.9:0.4):o.so), 'stroke-width':o.sw||1.4,
+    'stroke-dasharray':o.dash||null});
+  this.g.appendChild(r); return r;
+};
+/** 文字：lines 为字符串或数组；(x,y) 为首行基线。o: {col, size, weight, anchor, lh, op} */
+Fig.prototype.text = function(x,y,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var t=svgEl('text', {x:x, y:y, fill:(o.col===ACC?this.c.acc:o.col)||'currentColor', 'font-size':size, 'font-weight':o.weight||null,
+    'text-anchor':o.anchor||'middle', 'fill-opacity':(o.op===undefined?(o.col?null:0.88):o.op)});
+  for(var i=0;i<lines.length;i++){
+    var s=svgEl('tspan', {x:x, dy:(i?lh:0)}); s.textContent=lines[i]; t.appendChild(s);
+  }
+  this.g.appendChild(t); return t;
+};
+/** 以 (cx,cy) 为中心放一段多行文字 */
+Fig.prototype.textC = function(cx,cy,lines,o){
+  o=o||{};
+  if(typeof lines==='string') lines=[lines];
+  var size=o.size||13, lh=o.lh||Math.round(size*1.4);
+  var y0 = cy - (lines.length-1)*lh/2 + size*0.36;
+  return this.text(cx, y0, lines, o);
+};
+/** 框 + 居中文字 */
+Fig.prototype.node = function(x,y,w,h,lines,o){
+  o=o||{};
+  this.box(x,y,w,h,o);
+  return this.textC(x+w/2, y+h/2, lines, {col:o.tcol, size:o.size, weight:o.weight, lh:o.lh});
+};
+/** 折线或路径。pts: [[x,y],...] 或 'M..' 字符串。o: {col, sw, dash, arrow:true|false|'both', op} */
+Fig.prototype.path = function(pts,o){
+  o=o||{};
+  var col=o.col||'currentColor'; if(col===ACC) col=this.c.acc;
+  var d = (typeof pts==='string') ? pts : pts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ');
+  var a={d:d, fill:'none', stroke:col, 'stroke-width':o.sw||1.6, 'stroke-dasharray':o.dash||null,
+         'stroke-opacity':(o.op===undefined?(o.col?1:0.55):o.op)};
+  if(o.arrow!==false){
+    var mcol = o.col ? col : 'currentColor';
+    var id=this.marker(mcol);
+    a['marker-end']='url(#'+id+')';
+    if(o.arrow==='both') a['marker-start']='url(#'+this.marker2(mcol)+')';
+  }
+  var p=svgEl('path',a); this.g.appendChild(p); return p;
+};
+Fig.prototype.marker2 = function(col){
+  var key='rev'+col;
+  if(this.mk[key]) return this.mk[key];
+  var id=this.id+'r'+Object.keys(this.mk).length;
+  var m=svgEl('marker',{id:id, markerWidth:10, markerHeight:10, refX:1, refY:4, orient:'auto', markerUnits:'userSpaceOnUse'});
+  m.appendChild(svgEl('path',{d:'M9,0 L0,4 L9,8 z', fill:col, 'fill-opacity':(col==='currentColor'?0.6:1)}));
+  this.defs.appendChild(m); this.mk[key]=id; return id;
+};
+Fig.prototype.mount = function(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  host.innerHTML=''; host.appendChild(this.svg);
+};
+
+/* ============================================================================
+   sha256.js — FIPS 180-4 SHA-256 的纯 JS 实现（同步，不依赖 crypto.subtle，file:// 下也能用）
+   输入字符串按 UTF-8 编码；输出 64 位小写十六进制。已与 Python hashlib 对拍。
+   ==========================================================================*/
+var SHA256_K = [
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function sha256(str){
+  var bytes = new TextEncoder().encode(str), n = bytes.length;
+  var total = ((n + 9 + 63) >> 6) << 6, m = new Uint8Array(total);
+  m.set(bytes); m[n] = 0x80;
+  var bits = n * 8;                                  /* 长度写在最后 8 字节（大端） */
+  for(var i=0;i<8;i++) m[total-1-i] = Math.floor(bits / Math.pow(2, 8*i)) & 0xff;
+  var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var w = new Array(64);
+  function rotr(x,r){ return (x>>>r) | (x<<(32-r)); }
+  for(var off=0; off<total; off+=64){
+    for(var t=0;t<16;t++) w[t] = (m[off+4*t]<<24 | m[off+4*t+1]<<16 | m[off+4*t+2]<<8 | m[off+4*t+3]) >>> 0;
+    for(t=16;t<64;t++){
+      var s0 = rotr(w[t-15],7) ^ rotr(w[t-15],18) ^ (w[t-15]>>>3);
+      var s1 = rotr(w[t-2],17) ^ rotr(w[t-2],19) ^ (w[t-2]>>>10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) >>> 0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(t=0;t<64;t++){
+      var S1 = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25), ch = (e & f) ^ (~e & g);
+      var T1 = (h + S1 + ch + SHA256_K[t] + w[t]) >>> 0;
+      var S0 = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22), mj = (a & b) ^ (a & c) ^ (b & c);
+      var T2 = (S0 + mj) >>> 0;
+      h=g; g=f; f=e; e=(d+T1)>>>0; d=c; c=b; b=a; a=(T1+T2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+  }
+  return H.map(function(x){ return ('00000000'+x.toString(16)).slice(-8); }).join('');
+}
+/** 两个 64 位十六进制串有多少位不同 */
+function hexBitDiff(a, b){
+  var n=0; for(var i=0;i<a.length;i++){ var x=parseInt(a[i],16)^parseInt(b[i],16); while(x){ n+=x&1; x>>=1; } } return n;
+}
+if(typeof module!=='undefined') module.exports={sha256:sha256, hexBitDiff:hexBitDiff};
+
+/* ============================================================================
+   L11 分布式账本与区块链导论：配图（按笔记附图重画成 SVG，哈希值页面现算）与交互件
+   ==========================================================================*/
+
+/* ---------------------------------------------------------------- 玩具链（笔记 3.5 的规则） */
+var ZERO64 = '0000000000000000000000000000000000000000000000000000000000000000';
+var TOY_TX = ['A->B 5', 'B->C 2', 'C->D 1'];
+/** h_i = SHA-256(h_{i-1} ‖ tx_i)，h_{-1} 为 64 个 0。返回每块的 prev 与 hash */
+function toyChain(txs){
+  var prev = ZERO64, out = [];
+  for(var i=0;i<txs.length;i++){ var h = sha256(prev + txs[i]); out.push({prev:prev, tx:txs[i], hash:h}); prev = h; }
+  return out;
+}
+function short8(h){ return h===ZERO64 ? '0000…0000' : h.slice(0,8); }
+
+/* ---------------------------------------------------------------- 图 1 DLT 两维分类（课件 p15，Fig. 1.1） */
+var DLT_DEF = {
+  'Permissioned': ['Permissioned DLTs:','the identity of nodes','needs to be known.'],
+  'Permissionless': ['Permissionless DLTs:','the identity does not','need to be known.'],
+  'Public': ['Public DLTs:','anyone can read','the data'],
+  'Private': ['Private DLTs:','only approved nodes','can read the data','over the ledger.']
+};
+function drawDlt(hostId, narrow){
+  var c = themeColors(), red = c.warn;
+  var f, CAP = ['Fig. 1.1  Classification of distributed ledger technology with respect to identity of nodes','and who can read the data of the ledgers'];
+  function leaf(x, y, w, name){
+    f.node(x, y, w, 40, name, {col:red, fo:0.1, size:13.5, weight:'600'});
+    f.text(x+w/2, y+62, DLT_DEF[name], {col:ACC, size:12, lh:16});
+  }
+  function line(pts){ f.path(pts, {arrow:false, col:red, sw:1.4}); }
+  if(!narrow){
+    f = new Fig(760, 420, 'DLT 的两维分类：按节点身份分 permissioned / permissionless，按谁能读数据分 public / private');
+    f.node(300, 20, 160, 50, ['Classification','of DLT'], {col:red, fo:0.12, size:13.5, weight:'600', lh:18});
+    f.node(105, 118, 210, 54, ['In terms of','“Identity of Nodes”'], {col:red, fo:0.12, size:13, lh:18});
+    f.node(445, 118, 210, 54, ['In terms of','“Reading Data”'], {col:red, fo:0.12, size:13, lh:18});
+    line([[380,70],[380,94],[210,94],[210,118]]); line([[380,94],[550,94],[550,118]]);
+    line([[210,172],[210,196],[95,196],[95,218]]); line([[210,196],[285,196],[285,218]]);
+    line([[550,172],[550,196],[475,196],[475,218]]); line([[550,196],[665,196],[665,218]]);
+    leaf(20, 218, 150, 'Permissioned'); leaf(210, 218, 150, 'Permissionless');
+    leaf(400, 218, 150, 'Public'); leaf(590, 218, 150, 'Private');
+    f.text(380, 384, CAP, {size:11, op:0.65, lh:15});
+  } else {
+    f = new Fig(380, 640, 'DLT 的两维分类：按节点身份分 permissioned / permissionless，按谁能读数据分 public / private');
+    f.node(110, 12, 160, 46, ['Classification','of DLT'], {col:red, fo:0.12, size:13, weight:'600', lh:17});
+    [['In terms of','“Identity of Nodes”','Permissioned','Permissionless', 84], ['In terms of','“Reading Data”','Public','Private', 340]].forEach(function(b){
+      var y = b[4];
+      f.node(95, y, 190, 50, [b[0], b[1]], {col:red, fo:0.12, size:12.5, lh:17});
+      line([[190, y+50],[190, y+64],[100, y+64],[100, y+76]]); line([[190, y+64],[280, y+64],[280, y+76]]);
+      leaf(20, y+76, 160, b[2]); leaf(200, y+76, 160, b[3]);
+    });
+    line([[190, 58],[190, 84]]);
+    line([[110, 35],[10, 35],[10, 365],[95, 365]]);
+    f.text(190, 588, ['Fig. 1.1  Classification of distributed ledger technology','with respect to identity of nodes and who can','read the data of the ledgers'], {size:10.5, op:0.65, lh:14});
+  }
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 2 区块结构（课件 p22，Fig. 1.3） */
+function drawBlock(hostId){
+  var c = themeColors(), red = c.warn, ok = c.ok;
+  var f = new Fig(440, 470, '两个区块的字段：Previous Hash、Height、Nonce、Confirmations、Merkle Root 和若干 TX；后一块的 Previous Hash 指回前一块');
+  var F = ['Previous Hash','Height','Nonce','Confirmations','Merkle Root','TX','TX','TX','……'];
+  [20, 250].forEach(function(x){
+    f.node(x+35, 12, 100, 26, 'BLOCK', {col:ok, fo:0.2, tcol:ok, weight:'700', size:12.5});
+    f.box(x, 44, 170, 352, {col:ACC, fo:0.07});
+    F.forEach(function(name, k){
+      var y = 56 + k*37;
+      if(k===0) f.node(x+12, y, 146, 29, name, {col:red, fo:0.16, tcol:red, weight:'700', size:12.5});
+      else if(name==='Confirmations') f.node(x+12, y, 146, 29, name, {col:red, fo:0.03, dash:'5 3', weight:'600', size:12.5});
+      else f.node(x+12, y, 146, 29, name, {col:ACC, fo:0.05, weight:'600', size:12.5});
+    });
+  });
+  f.path([[2, 70],[30, 70]], {col:red, sw:2});
+  f.path([[190, 222],[226, 222],[226, 70],[260, 70]], {col:red, sw:2});
+  f.text(220, 422, ['Fig. 1.3  Contents of a typical block in a blockchain network','in which blocks are linked together with reference','of hash value of the previous block'], {size:10.5, op:0.65, lh:14});
+  f.mount(hostId);
+}
+
+/* ---------------------------------------------------------------- 图 3 篡改的连锁反应（哈希现算） */
+function drawTamper(hostId, narrow){
+  var c = themeColors(), red = c.warn;
+  var A = toyChain(TOY_TX), B = toyChain(['A->B 9', TOY_TX[1], TOY_TX[2]]);
+  var f;
+  function block(x, y, w, i, ch, base, sz){
+    f.box(x, y, w, 112, {col:ACC, fo:0.05});
+    f.text(x+w/2, y+24, '块 '+i, {size:sz+1, weight:'700', op:1});
+    var lines = [['Previous Hash: '+short8(ch[i].prev), ch[i].prev!==base[i].prev], ['交易: '+ch[i].tx, ch[i].tx!==base[i].tx], ['本块哈希: '+short8(ch[i].hash), ch[i].hash!==base[i].hash]];
+    lines.forEach(function(L, k){ f.text(x+14, y+52+k*24, L[0], {anchor:'start', size:sz, col:L[1]?red:null}); });
+  }
+  function link(x1, y1, x2, y2){ f.path('M'+x1+','+y1+' C'+(x1+18)+','+(y1-30)+' '+(x2-24)+','+(y2)+' '+x2+','+y2, {col:ACC, sw:1.6}); }
+  var NOTE = '红色＝与原链不同。块 1、块 2 的交易一字未动，哈希却全变了；末端哈希 '+short8(A[2].hash)+' → '+short8(B[2].hash)+'，任何存着原末端哈希的节点一比就知道。';
+  if(!narrow){
+    f = new Fig(900, 410, '玩具链：只改块 0 的交易并一路重链，后面每块的哈希都变了');
+    f.text(20, 26, '原链', {anchor:'start', size:14, weight:'700', op:1});
+    f.text(20, 214, '只改块 0 的一笔交易（5 → 9），并把后面每块的 Previous Hash 一路改成新值', {anchor:'start', size:14, weight:'700', op:1});
+    for(var i=0;i<3;i++){
+      block(20+i*305, 40, 250, i, A, A, 13);
+      block(20+i*305, 228, 250, i, B, A, 13);
+      if(i<2){ link(266+i*305, 132, 322+i*305, 88); link(266+i*305, 320, 322+i*305, 276); }
+    }
+    f.text(450, 396, NOTE, {size:12, op:0.75});
+  } else {
+    f = new Fig(380, 940, '玩具链：只改块 0 的交易并一路重链，后面每块的哈希都变了');
+    f.text(14, 22, '原链', {anchor:'start', size:13.5, weight:'700', op:1});
+    f.text(14, 440, ['只改块 0 的一笔交易（5 → 9），','并把后面每块的 Previous Hash 一路改成新值'], {anchor:'start', size:13, weight:'700', op:1, lh:18});
+    for(var j=0;j<3;j++){
+      block(40, 36+j*132, 300, j, A, A, 12.5);
+      block(40, 478+j*132, 300, j, B, A, 12.5);
+      if(j<2){ f.path([[190, 36+j*132+113],[190, 36+(j+1)*132-2]], {col:ACC}); f.path([[190, 478+j*132+113],[190, 478+(j+1)*132-2]], {col:ACC}); }
+    }
+    f.text(190, 880, ['红色＝与原链不同。块 1、块 2 的交易一字未动，','哈希却全变了；末端哈希 '+short8(A[2].hash)+' → '+short8(B[2].hash)+'，','任何存着原末端哈希的节点一比就知道。'], {size:11.5, op:0.75, lh:16});
+  }
+  f.mount(hostId);
+}
+
+/* ================================================================ 交互件 1：雪崩效应 */
+function avSet(a, b){ document.getElementById('avA').value=a; document.getElementById('avB').value=b; avGo(); }
+function avGo(){
+  var a=document.getElementById('avA').value, b=document.getElementById('avB').value;
+  var ha=sha256(a), hb=sha256(b), d=hexBitDiff(ha, hb);
+  function show(h, o){
+    var s=''; for(var i=0;i<64;i++){ var diff=h[i]!==o[i]; s+= diff ? '<span style="color:var(--warn);font-weight:700">'+h[i]+'</span>' : h[i]; if(i%16===15 && i<63) s+='<br>'; }
+    return s;
+  }
+  document.getElementById('avHash').innerHTML =
+    '<div class="panes" style="margin-top:0"><div><div class="small">SHA-256(「'+esc(a)+'」)</div><div class="mono" style="font-size:13.5px;line-height:1.6">'+show(ha,hb)+'</div></div>'+
+    '<div><div class="small">SHA-256(「'+esc(b)+'」)</div><div class="mono" style="font-size:13.5px;line-height:1.6">'+show(hb,ha)+'</div></div></div>';
+  /* 256 位逐位比较的条带：红 = 这一位不同 */
+  var cth=themeColors(), f=new Fig(512, 40, '两个哈希值 256 位逐位比较');
+  for(var i=0;i<256;i++){
+    var x=parseInt(ha[i>>2],16)>>(3-(i&3))&1, y=parseInt(hb[i>>2],16)>>(3-(i&3))&1;
+    f.g.appendChild(svgEl('rect',{x:(i%128)*4, y:Math.floor(i/128)*20+1, width:3.2, height:17, fill: x!==y ? cth.warn : 'currentColor', 'fill-opacity': x!==y ? 1 : 0.12}));
+  }
+  var strip=document.getElementById('avBits'); strip.innerHTML='<div class="small">256 位逐位对照（红 = 这一位不同）：</div>';
+  var dv=document.createElement('div'); dv.className='toolfig'; dv.style.maxWidth='640px'; dv.appendChild(f.svg); strip.appendChild(dv);
+  var diffChars=0; for(var k=0;k<Math.max(a.length,b.length);k++) if(a[k]!==b[k]) diffChars++;
+  document.getElementById('avOut').innerHTML = (a===b) ? '两个输入完全相同，哈希也完全相同（0 位不同）。' :
+    '输入相差 '+diffChars+' 个字符；两个哈希在 256 位里有 <strong>'+d+'</strong> 位不同（'+nf(d/256*100,1)+'%），十六进制 64 个字符里有 '+
+    [].filter.call(ha, function(ch,i){ return ch!==hb[i]; }).length+' 个不同。';
+}
+
+/* ================================================================ 交互件 2：改一块，后面全对不上 */
+var CH_ORIG = null;
+function chInit(){ CH_ORIG = toyChain(TOY_TX); chGo(); }
+function chSet(t0, t1, t2, relink){
+  ['chTx0','chTx1','chTx2'].forEach(function(id, i){ document.getElementById(id).value=[t0,t1,t2][i]; });
+  document.getElementById('chRelink').checked = relink; chGo();
+}
+/** 篡改者的副本：只改交易（不重链）时，每块存的 Previous Hash 仍是原值；重链时改成重算的新值 */
+function chModel(txs, relink){
+  var blocks=[], prev=ZERO64;
+  for(var i=0;i<3;i++){
+    var storedPrev = (i===0) ? ZERO64 : (relink ? blocks[i-1].hash : CH_ORIG[i].prev);
+    var h = sha256(storedPrev + txs[i]);
+    blocks.push({prev:storedPrev, tx:txs[i], hash:h});
+  }
+  var links=[]; for(var j=1;j<3;j++) links.push(blocks[j].prev===blocks[j-1].hash);
+  return {blocks:blocks, links:links};
+}
+function chGo(){
+  var txs=[0,1,2].map(function(i){ return document.getElementById('chTx'+i).value; });
+  var relink=document.getElementById('chRelink').checked;
+  var m=chModel(txs, relink), O=CH_ORIG;
+  var red='color:var(--warn);font-weight:700';
+  var html='<div class="chain">';
+  m.blocks.forEach(function(b, i){
+    function fld(lab, v, o){ return '<div><span class="small">'+lab+'</span> <span class="mono" style="'+(v!==o?red:'')+'">'+esc(v)+'</span></div>'; }
+    html+='<div class="blk"><div class="bt">块 '+i+'</div>'+fld('Previous Hash', short8(b.prev), short8(O[i].prev))+fld('交易', b.tx, O[i].tx)+fld('本块哈希', short8(b.hash), short8(O[i].hash))+'</div>';
+    if(i<2) html+='<div class="lk '+(m.links[i]?'good':'bad')+'">'+(m.links[i]?'✓':'✗ 断')+'</div>';
+  });
+  html+='</div>';
+  document.getElementById('chView').innerHTML=html;
+  var firstChanged=-1; for(var k=0;k<3;k++) if(txs[k]!==TOY_TX[k]){ firstChanged=k; break; }
+  var broken=m.links.map(function(x,i){ return x?null:i; }).filter(function(x){ return x!==null; });
+  var tail=m.blocks[2].hash, otail=O[2].hash, msg;
+  if(firstChanged<0) msg='<span class="good">和其他节点手里的链完全一致</span>：链尾哈希 '+short8(tail)+'。';
+  else if(broken.length){
+    var i0=broken[0];
+    msg='<span class="bad">链在块 '+i0+' 和块 '+(i0+1)+' 之间断了</span>：块 '+(i0+1)+' 里存的 Previous Hash 是 '+short8(m.blocks[i0+1].prev)+'，重算块 '+i0+' 的哈希却得到 '+short8(m.blocks[i0].hash)+'。任何节点重算一遍就能发现。';
+  } else {
+    var redo = 2 - firstChanged;
+    msg='链内部自洽（每个链接都对得上），<span class="bad">但链尾哈希 '+short8(tail)+' ≠ 其他节点手里的 '+short8(otail)+'</span>，一比就知道有人动过。'+
+      '要让全网接受这个版本，除了被改的块 '+firstChanged+'，还得重算它之后的 '+redo+' 个块'+(redo?'（在 PoW 链上每一块都要重做一遍挖矿的工作量）':'')+'。';
+  }
+  document.getElementById('chOut').innerHTML=msg;
+}
+
+
+/* ---------- 交互件与配图初始化 ---------- */
+drawDlt('figDltW',false); drawDlt('figDltN',true);
+drawBlock('figBlock');
+avGo();
+drawTamper('figTamperW',false); drawTamper('figTamperN',true);
+chInit();
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印前展开所有折叠块（不支持 ::details-content 的浏览器靠这一条） ---------- */
+window.onbeforeprint=function(){ document.querySelectorAll('details.box').forEach(function(d){ d.setAttribute('data-was', d.open?'1':'0'); d.open=true; }); };
+window.onafterprint=function(){ document.querySelectorAll('details.box[data-was="0"]').forEach(function(d){ d.open=false; }); };
+
+</script>
+</body>
+</html>

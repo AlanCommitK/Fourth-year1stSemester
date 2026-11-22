@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L8 数字签名、证书与 PKI · IS</title>
+<style>
+:root{
+  --bg:#FBFAF8; --surface:#fff; --surface2:#F4F2ED;
+  --text:#1F2328; --muted:#5C6673; --faint:#8A929C;
+  --line:#E4E1DA; --line2:#D3CFC6;
+  --accent:#2F6F8F; --accent-bg:#2F6F8F14;
+  --warn:#B4534B; --warn-bg:#B4534B12;
+  --ok:#3F8A63; --ok-bg:#3F8A6312;
+  --exam:#9A6B2F; --exam-bg:#9A6B2F12;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181B; --surface:#1C2024; --surface2:#22272C;
+    --text:#E7E7E4; --muted:#A2ABB5; --faint:#7B848E;
+    --line:#2D333A; --line2:#3A424A;
+    --accent:#6FB3D2; --accent-bg:#6FB3D21A;
+    --warn:#E08880; --warn-bg:#E0888016;
+    --ok:#7BC79B; --ok-bg:#7BC79B16;
+    --exam:#D6A85E; --exam-bg:#D6A85E16;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.9; -webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1180px; margin:0 auto}
+/* ---------- 侧栏目录 ---------- */
+nav{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:2.4rem 1.1rem 3rem 1.4rem; border-right:1px solid var(--line); font-size:14px; line-height:1.6}
+nav .lec{font-size:12px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase}
+nav .tt{font-size:19px; font-weight:600; margin:.15rem 0 1.3rem; line-height:1.35}
+nav a{display:block; color:var(--muted); text-decoration:none; padding:.28rem .5rem .28rem .6rem;
+  border-left:2px solid transparent; border-radius:0 4px 4px 0}
+nav a:hover{color:var(--text); background:var(--surface2)}
+nav a.sub{padding-left:1.5rem; font-size:13px}
+nav a.on{color:var(--accent); border-left-color:var(--accent); background:var(--accent-bg); font-weight:600}
+/* ---------- 正文 ---------- */
+main{padding:2.4rem 2.6rem 6rem; min-width:0}
+header.top{border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2.2rem}
+header.top .kicker{font-size:13px; letter-spacing:.1em; color:var(--accent); font-weight:600}
+header.top h1{font-size:2.15rem; line-height:1.25; margin:.35rem 0 .7rem; letter-spacing:-.01em}
+header.top p{margin:0; color:var(--muted); font-size:15.5px; max-width:62ch}
+h2{font-size:1.42rem; margin:3.2rem 0 .9rem; letter-spacing:-.005em; scroll-margin-top:1.5rem}
+h2 .n{color:var(--faint); font-weight:400; margin-right:.5rem}
+h3{font-size:1.1rem; margin:2.2rem 0 .6rem; scroll-margin-top:1.5rem}
+h3 .n{color:var(--faint); font-weight:400; margin-right:.4rem}
+p{margin:0 0 1.05rem; max-width:70ch}
+strong{font-weight:600}
+ul,ol{max-width:70ch; padding-left:1.3rem; margin:0 0 1.05rem}
+li{margin:.3rem 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:var(--surface2); padding:.1em .35em; border-radius:4px}
+pre{background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius);
+  padding:.9rem 1.1rem; overflow-x:auto; max-width:74ch; font-size:14.5px; line-height:1.75}
+pre code{background:none; padding:0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.term{color:var(--accent); font-weight:600; white-space:nowrap}
+.en{color:var(--faint); font-size:.88em; font-style:normal}
+/* ---------- 盒子 ---------- */
+.box{border:1px solid var(--line); border-left:3px solid var(--c,var(--accent));
+  background:var(--surface); border-radius:var(--radius); padding:1rem 1.2rem; margin:1.4rem 0; max-width:74ch}
+.box .h{font-weight:600; font-size:.95rem; color:var(--c,var(--accent)); margin-bottom:.45rem; display:flex; gap:.5rem; align-items:baseline}
+.box .h .tag{font-size:11px; letter-spacing:.1em; border:1px solid currentColor; border-radius:20px; padding:.05rem .5rem; opacity:.85}
+.box p:last-child,.box ul:last-child,.box ol:last-child,.box pre:last-child,.box table:last-child{margin-bottom:0}
+.box.def{--c:var(--accent); background:var(--accent-bg)}
+.box.warn{--c:var(--warn); background:var(--warn-bg)}
+.box.exam{--c:var(--exam); background:var(--exam-bg)}
+details.box{--c:var(--muted); background:var(--surface2)}
+details.box>summary{cursor:pointer; font-weight:600; font-size:.95rem; color:var(--muted); list-style:none}
+details.box>summary::-webkit-details-marker{display:none}
+details.box>summary::before{content:"▸ "}
+details.box[open]>summary::before{content:"▾ "}
+details.box>summary:hover{color:var(--text)}
+details.box>*:not(summary){margin-top:.9rem}
+/* ---------- 表 ---------- */
+table{border-collapse:collapse; width:100%; max-width:74ch; margin:1.3rem 0; font-size:15.5px}
+th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+thead th{font-size:13px; letter-spacing:.04em; color:var(--muted); font-weight:600;
+  border-bottom:1.5px solid var(--line2); background:var(--surface2)}
+tbody tr:hover{background:var(--surface2)}
+.tw{overflow-x:auto}
+table.compact td,table.compact th{padding:.35rem .7rem}
+/* ---------- 数学 ---------- */
+.m{font-family:"Times New Roman",Georgia,serif; font-style:italic; font-size:1.06em}
+.m sub,.m sup{font-style:normal; font-size:.68em}
+.eq{display:block; text-align:center; margin:1.5rem 0; font-size:1.2rem}
+.eq .lbl{float:right; font-size:.8rem; color:var(--faint); font-style:normal; font-family:inherit; margin-top:.5rem}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; font-size:.85em; margin:0 .15em}
+.frac span:first-child{border-bottom:1.2px solid currentColor; padding:0 .25em}
+.frac span:last-child{padding:0 .25em}
+.sqrt{border-top:1.2px solid currentColor; padding:0 .2em}
+/* ---------- 图 ---------- */
+figure{margin:1.8rem 0; max-width:100%}
+figure svg{display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+figcaption{font-size:14px; color:var(--muted); margin-top:.6rem; max-width:70ch}
+/* ---------- 交互件 ---------- */
+.tool{border:1px solid var(--line2); border-radius:var(--radius); background:var(--surface);
+  padding:1.2rem 1.3rem; margin:1.7rem 0; max-width:78ch}
+.tool h4{margin:0 0 .2rem; font-size:1rem}
+.tool .sub{font-size:14px; color:var(--muted); margin:0 0 1rem}
+.tool table{margin:0 0 .8rem; font-size:15px}
+.row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.9rem}
+.row label{font-size:14px; color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit; font-size:15px; padding:.35rem .55rem;
+  background:var(--bg); color:var(--text); border:1px solid var(--line2); border-radius:6px}
+input:focus,select:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{font:inherit; font-size:13.5px; padding:.28rem .7rem; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line2); background:var(--surface2); color:var(--text)}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.x{border:none; background:none; color:var(--faint); padding:.2rem .4rem; font-size:16px}
+.btn.x:hover{color:var(--warn)}
+.steps{font-size:15px; line-height:2}
+.steps .k{display:inline-block; width:1.5rem; height:1.5rem; line-height:1.5rem; text-align:center;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; margin-right:.5rem}
+.steps div{margin:.4rem 0}
+.result{background:var(--surface2); border-radius:8px; padding:.7rem 1rem; margin-top:.9rem; font-size:15px}
+.bad{color:var(--warn)} .good{color:var(--ok)}
+.three{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:.8rem}
+.three div{background:var(--surface2); border-radius:8px; padding:.7rem .9rem}
+.three .lab{font-size:12.5px; color:var(--muted)}
+.three .val{font-size:1.35rem; font-weight:600; font-family:ui-monospace,Menlo,monospace}
+/* ---------- 速记 ---------- */
+.recap{background:var(--surface2); border-radius:var(--radius); padding:1.3rem 1.5rem; margin:1.4rem 0; max-width:74ch}
+.recap ul{list-style:none; padding:0; margin:0}
+.recap li{padding-left:1.5rem; position:relative; margin:.65rem 0; font-size:15.5px}
+.recap li::before{content:"›"; position:absolute; left:.3rem; color:var(--accent); font-weight:700}
+footer{margin-top:4rem; padding-top:1.4rem; border-top:1px solid var(--line); color:var(--muted); font-size:14.5px}
+footer a{color:var(--accent)}
+/* ---------- 窄屏 ---------- */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.5rem 1.4rem}
+  nav .toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0 .5rem}
+  nav a.sub{display:none}
+  main{padding:1.8rem 1.4rem 4rem}
+  header.top h1{font-size:1.7rem}
+}
+@media print{
+  nav{display:none} .wrap{display:block} main{padding:0}
+  details.box{border:1px solid #ccc} details.box>*{display:block !important}
+  .tool{display:none}
+}
+
+/* ---------- 交互件排版补充（同 L1/L4） ---------- */
+.panes{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:.9rem; margin:.7rem 0}
+.tool .tw{margin:.6rem 0}
+.tool table{font-size:14px}
+figure>div>svg{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface)}
+.ctl{display:inline-flex; align-items:center; gap:.45rem; flex:0 0 auto}
+.ctl>label{white-space:nowrap}
+.tool input.num{width:5.2rem; font-size:14px; padding:.25rem .4rem}
+input.badin{outline:2px solid var(--warn)}
+.btn.on{border-color:var(--accent); color:var(--accent); background:var(--accent-bg); font-weight:600}
+.tool tr.use td{background:var(--accent-bg)}
+.c3{color:var(--exam); font-weight:700}
+.mono{font-variant-numeric:tabular-nums}
+/* ---------- 链接 ---------- */
+main a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-bg)}
+main a:hover{border-bottom-color:var(--accent)}
+/* ---------- 公式（沿用 L4 的 HTML 公式，补三样） ---------- */
+.m .up{font-style:normal}
+.m .tx{font-style:normal; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; font-size:.9em}
+.ovs{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; line-height:.95; margin:0 .1em}
+.ovs>span:first-child{font-size:.62em; font-style:normal}
+.eq .m{display:inline-block; max-width:100%}
+@media (max-width:600px){ .eq{font-size:1.02rem; overflow-x:auto} }
+/* ---------- 宽窄两版图：窄屏换窄版，打印用宽版 ---------- */
+.only-narrow{display:none}
+@media (max-width:640px){ .only-wide{display:none} .only-narrow{display:block} }
+@media print{ .only-wide{display:block !important} .only-narrow{display:none !important} }
+figure>div{margin:0 auto}
+/* 骨架里 details.box>*{display:block} 打不开已关闭的 details（内容在 ::details-content 里），这里补上 */
+@media print{ details.box::details-content{content-visibility:visible !important; display:block !important; height:auto !important} }
+/* ---------- 表格在窄屏横向滚动，不把列挤成一字一行 ---------- */
+@media (max-width:640px){ .tw>table.wide{min-width:36rem} }
+/* ---------- 盒子里的嵌套折叠块 ---------- */
+.box details.box{margin:1rem 0 .3rem; background:var(--surface)}
+/* ---------- SHA-256 雪崩 ---------- */
+.hexline{display:flex; gap:.6rem; align-items:baseline; margin:.25rem 0}
+.hexline .lab{font-size:13px; color:var(--muted); flex:0 0 1rem}
+.hexline code{word-break:break-all; font-size:13.5px; background:none; padding:0; letter-spacing:.02em}
+.bitbar{display:grid; grid-template-columns:repeat(32,1fr); gap:2px; margin:.2rem 0 .7rem; max-width:34rem}
+.bitbar i{display:block; height:9px; border-radius:2px; background:var(--line)}
+.bitbar i.on{background:var(--exam)}
+/* ---------- 证书链判定器 ---------- */
+.chgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.6rem .8rem; margin:.4rem 0 1rem}
+.chgrid fieldset{border:1px solid var(--line); border-radius:8px; padding:.4rem .8rem .7rem; margin:0; display:flex; flex-direction:column; gap:.45rem; min-width:0}
+.chgrid legend{font-size:13px; color:var(--muted); padding:0 .3rem}
+.chgrid label{font-size:14px; color:var(--muted)}
+.chgrid input.date{width:7.4rem; font-size:14px; padding:.2rem .35rem}
+.chgrid input.dom{width:11.5rem; font-size:14px; padding:.2rem .35rem}
+.chgrid .ctl{flex-wrap:wrap}
+.ck{margin:.55rem 0}
+.ckl{margin:.15rem 0 .15rem 2rem; font-size:14.5px; line-height:1.65}
+.ckl .mk{display:inline-block; width:1.2rem; font-weight:700}
+.ckl.pass .mk{color:var(--ok)} .ckl.fail{color:var(--warn)} .ckl.fail .mk{color:var(--warn)} .ckl.soft .mk{color:var(--exam)}
+.row.pre{gap:.4rem}
+/* 长的十六进制摘要、域名等行内代码允许在任意处折行，免得窄屏撑破页面 */
+main p code, main li code, main td code{overflow-wrap:anywhere}
+.tool table.compact th{white-space:nowrap}
+.tool table.compact td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px}
+.tool table.compact td{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="lec">IS · Lecture 8</div>
+  <div class="tt">数字签名、证书与 PKI</div>
+  <div class="toc">
+<a href="#s1">1 · 公钥只是一个数</a>
+<a href="#s1-1" class="sub">1.1 上一讲留下的缺口</a>
+<a href="#s1-2" class="sub">1.2 验一句关于公钥的话</a>
+<a href="#s2">2 · 签名要保证什么</a>
+<a href="#s2-1" class="sub">2.1 四个性质</a>
+<a href="#s2-2" class="sub">2.2 签名与 MAC</a>
+<a href="#s3">3 · 用谁的钥匙</a>
+<a href="#s3-1" class="sub">3.1 证明用私钥，隐藏用公钥</a>
+<a href="#s3-2" class="sub">3.2 活动 1：六个场景</a>
+<a href="#s4">4 · RSA 签名</a>
+<a href="#s4-1" class="sub">4.1 钥匙反过来</a>
+<a href="#s4-2" class="sub">4.2 验证为什么能还原</a>
+<a href="#s4-3" class="sub">4.3 三个误解</a>
+<a href="#s4-4" class="sub">4.4 手算：平方-乘</a>
+<a href="#s4-5" class="sub">4.5 活动 2 (c)(d)</a>
+<a href="#s4-6" class="sub">4.6 课后任务 2：H = 12</a>
+<a href="#s5">5 · 签摘要，不签消息</a>
+<a href="#s5-1" class="sub">5.1 先哈希再签名</a>
+<a href="#s5-2" class="sub">5.2 三条理由</a>
+<a href="#s5-3" class="sub">5.3 存在性伪造</a>
+<a href="#s5-4" class="sub">5.4 填充</a>
+<a href="#s5-5" class="sub">5.5 哈希的三个性质</a>
+<a href="#s6">6 · 其他算法与失败方式</a>
+<a href="#s6-1" class="sub">6.1 DSA、ECDSA、Ed25519</a>
+<a href="#s6-2" class="sub">6.2 随机数复用</a>
+<a href="#s6-3" class="sub">6.3 五种失败方式</a>
+<a href="#s7">7 · 信任问题</a>
+<a href="#s7-1" class="sub">7.1 中间人换公钥</a>
+<a href="#s7-2" class="sub">7.2 信任起点问题</a>
+<a href="#s7-3" class="sub">7.3 分发公钥的办法</a>
+<a href="#s8">8 · 证书</a>
+<a href="#s8-1" class="sub">8.1 签了名的陈述</a>
+<a href="#s8-2" class="sub">8.2 活动 3：设计证书</a>
+<a href="#s9">9 · X.509 格式</a>
+<a href="#s9-1" class="sub">9.1 九个字段</a>
+<a href="#s9-2" class="sub">9.2 扩展</a>
+<a href="#s9-3" class="sub">9.3 一张真证书</a>
+<a href="#s10">10 · 信任链与校验</a>
+<a href="#s10-1" class="sub">10.1 根、中间、终端</a>
+<a href="#s10-2" class="sub">10.2 八项检查</a>
+<a href="#s10-3" class="sub">10.3 手工校验一条链</a>
+<a href="#s10-4" class="sub">10.4 活动 4：找出问题</a>
+<a href="#s11">11 · 吊销与过期</a>
+<a href="#s11-1" class="sub">11.1 为什么需要吊销</a>
+<a href="#s11-2" class="sub">11.2 CRL、OCSP、装订</a>
+<a href="#s11-3" class="sub">11.3 软失败</a>
+<a href="#s11-4" class="sub">11.4 过期</a>
+<a href="#s11-5" class="sub">11.5 短有效期加自动化</a>
+<a href="#s12">12 · PKI 怎么失败</a>
+<a href="#s12-1" class="sub">12.1 误发</a>
+<a href="#s12-2" class="sub">12.2 最弱一环</a>
+<a href="#s12-3" class="sub">12.3 现在靠什么</a>
+<a href="#s12-4" class="sub">12.4 课后任务 3：内部 CA</a>
+<a href="#s12-5" class="sub">12.5 课后任务 1：真证书</a>
+<a href="#s13">13 · 网页之外的 PKI</a>
+<a href="#s14">14 · 七条结论与下一讲</a>
+<a href="#s14-1" class="sub">14.1 七条结论</a>
+<a href="#s14-2" class="sub">14.2 课后任务 4：会话密钥</a>
+<a href="#recap">本讲速记</a>
+  </div>
+</nav>
+
+<main>
+<header class="top">
+  <div class="kicker">Lecture 8 — Digital Signatures, Certificates and PKI</div>
+  <h1>数字签名、证书与 PKI</h1>
+  <p>公钥只是一个数，这个数并不带着主人的名字。路线：数字签名能证明什么 → RSA 签名手算 → 为什么签摘要 → 签名怎样失败 → 证书把公钥和名字绑在一起 → X.509 与信任链校验 → 吊销与过期 → PKI 怎样失败、现在靠什么兜底。</p>
+</header>
+
+<div class="box def">
+  <div class="h"><span class="tag">主线</span>这一讲在做什么</div>
+<p>上一讲留下一个缺口：Diffie–Hellman 挡不住中间人；上一讲的补法是给交换的值签名，可验签又需要一把确知属于对方的公钥，而<strong>公钥只是一个数，这个数并不带着主人的名字</strong>。这一讲分两步补上：</p>
+<ol>
+  <li><strong>数字签名</strong>：一段只有私钥持有者造得出、任何人都能检验的值。它给出消息认证码（message authentication code，MAC：用双方共享的密钥算出的校验值，见 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>）给不了的东西——能说服第三方的证据，即不可否认性；</li>
+  <li><strong>证书</strong>：一个你已经信任的机构——<span class="term">证书颁发机构</span><span class="en">（certificate authority，CA）</span>——对"这把公钥属于 bank.com"这句话签名。证书一级级连成链，终止于预装在浏览器里的根；客户端按一张清单逐项检查之后才信任。签发、分发、检验、吊销（到期前宣布作废）证书的这一整套机构、标准和软件，叫 <span class="term">PKI</span><span class="en">（public key infrastructure，公钥基础设施）</span>。</li>
+</ol>
+<p>最后看这套体系在现实中怎样失败（误发、最弱一环、过期、吊销失灵），以及现在靠什么兜底。</p>
+<p>课件四个部分大体就是按这条线排的，本笔记沿用这个框架，做了三处重组：</p>
+<ul>
+  <li>"为什么签摘要"的三条理由、课堂活动 2(c) 那个伪造值的真正含义、"不加填充的 RSA"（RSA 是 L7 学的公钥算法；不加填充即直接对裸数做幂运算，见 5.4）和"弱哈希"（哈希是把任意长消息压成定长摘要的函数）两种失败，课件分散在三页，这里合成一节（<a href="#s5">第 5 节</a>）；</li>
+  <li>吊销（课件第 3 部分）和过期、短有效期（第 4 部分）是同一条因果链——吊销靠不住，于是缩短有效期，于是过期变多，于是自动化——这里合成一节（<a href="#s11">第 11 节</a>）；</li>
+  <li>四道课后任务各自放回所属的小节（4.6、12.4、12.5、14.2）。</li>
+</ul>
+<p>对应课件 <code>Lecture8_Signatures_PKI_26_TUL.pdf</code>，37 页。封面写 Lecture 8，页脚全写 Lecture 7；课件提到别的讲次都按页脚编号，本笔记一律换成 Moodle 编号：课件的 "Lecture 6" 是 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>，"Lecture 5" 是 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a>，"Lecture 8" 是 <a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a>，"Lecture 1" 是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html">L1 信息安全基础</a>。教材 Stallings 第 8 版第 13 章（数字签名）和第 15 章（公钥分发、X.509 证书、PKI）；课件参考页写的 "Chapter 14" 是第 7 版的章号。课件推荐的标准是 RFC 5280（X.509 证书格式及其校验规则）和 RFC 6962（证书透明度，Certificate Transparency：要求公共证书公开登记的机制，见 12.3）；RFC（Request for Comments）是互联网工程任务组 IETF（Internet Engineering Task Force）发布的标准文档。</p>
+<p style="margin-bottom:0">课堂活动 1–4 课件自带答案页，活动 5（四道课后任务）没有，这里的解答是自己做的；数值都用程序核对过，证书判定都用 OpenSSL（最常用的开源密码工具库）复现过。课件有三处内容被页面上的提示框盖住，已从 PDF 文字层补全。课程总览与考情见《00 课程信息与考情》。</p>
+</div>
+<div class="box exam">
+  <div class="h"><span class="tag">考点</span>课件原话里的考试信号与模拟卷对应题</div>
+<p>课件只有第 36 页预告 capstone（前 10 讲收尾的综合评估）时出现过 "exam"，但学习目标和活动标注把要会的东西说得很清楚。课程介绍列了六条 ILO（intended learning outcome，预期学习成果，全文见《00 课程信息与考情》），本讲服务 ILO 2 "interpret a number of different security protocols"，活动 1 还点到 ILO 3（评估系统的漏洞、推荐最合适的方案）。</p>
+<ul>
+  <li>第 3 页学习目标 "<strong>Produce and verify an RSA signature by hand</strong>"；第 11 页 "Square and reduce at every step. Do not compute 7²⁷ in full."；第 37 页 "Practise signing and verifying by hand until it is automatic"——手算签名与验证，写出平方-乘过程，见 <a href="#s4-4">4.4</a>；</li>
+  <li>第 3 页 "State what a digital signature provides that a MAC cannot, and why"，见 <a href="#s2-2">2.2</a>；</li>
+  <li>第 7 页 "Three things students routinely get wrong"，见 <a href="#s4-3">4.3</a>；</li>
+  <li>第 10 页 "The rule that resolves every row: To PROVE something about yourself, use YOUR private key. To HIDE something from everyone but one person, use THEIR public key."，见 <a href="#s3-1">3.1</a>；</li>
+  <li>第 9 页 "Item (e) needs two operations. Say which happens first, and why the order matters."；第 10 页 "Choosing the weaker mechanism deliberately, and being able to say why, is the ILO 3 skill."，见 <a href="#s3-2">3.2</a>；</li>
+  <li>第 11 页 "Part (c) is the one that shows why a signature is worth anything at all."，见 <a href="#s4-5">4.5</a> 与 <a href="#s5-3">5.3</a>；</li>
+  <li>第 3 页 "List what an X.509 certificate contains and what a client checks before trusting it" 与 "Activity 4 is an ILO 2 task in miniature."；第 24 页 "The last check is the one people forget"；第 35 页 "Basic Constraints is the classic example."，见 <a href="#s9-1">9.1</a>、<a href="#s10-2">10.2</a>、<a href="#s10-4">10.4</a>；</li>
+  <li>第 3 页 "Explain how a chain of trust works, and identify the ways PKI fails in practice"，见 <a href="#s10-1">10.1</a> 与 <a href="#s12">第 12 节</a>；</li>
+  <li>第 31 页 "automate the operation so the security property can be strengthened — is one of the most useful ideas in the whole module."，见 <a href="#s11-5">11.5</a>；</li>
+  <li>第 36 页 capstone："Structured evaluation of unseen systems, which is what the report and the exam scenarios ask for."，本讲的样板是 <a href="#s12-4">12.4</a>。</li>
+</ul>
+<p>模拟卷（去年版）没有直接考签名、证书的题，相关的有四处：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th>题号</th><th style="white-space:nowrap">分值</th><th>题目</th><th>对应</th></tr></thead>
+<tbody>
+<tr><td>Q2(d)</td><td style="white-space:nowrap">10</td><td>"What are the essential steps for proper functioning of public key decryption algorithm? Explain with the aid of a diagram."</td><td>规范答法在 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>；本讲 <a href="#s7-3">7.3</a> 补充第 ② 步"放进公开目录"的缺陷</td></tr>
+<tr><td>Q3(a)(ii)</td><td style="white-space:nowrap">3</td><td>列出区块链区别于传统数据库的三个特征，参考答案含 Non-repudiation</td><td><a href="#s2-1">2.1</a>：区块链的不可否认性来自交易签名</td></tr>
+<tr><td>Q1(c)</td><td style="white-space:nowrap">7</td><td>用图解释主动攻击并举例（参考答案列了 masquerading、repudiation）</td><td><a href="#s7-1">7.1</a> 是冒充，<a href="#s2-1">2.1</a> 的不可否认性对付抵赖</td></tr>
+<tr><td>Q2(b)</td><td style="white-space:nowrap">4</td><td>"What is avalanche effect of an encryption algorithm?"</td><td>主答案在 <a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s7-1">L3 7.1</a>；本讲 <a href="#s5-1">5.1</a> 是哈希上的同一现象</td></tr>
+</tbody></table></div>
+<p style="margin-bottom:0">期末 4 道 25 分大题。本讲最可能出的是：手算 RSA 签名与验证、再分析篡改；论证 MAC 为什么给不了不可否认性；列出证书字段及各自防什么；给几张证书判断接受还是拒绝、说出哪一项检查失败；评估一个 PKI 设计并按严重程度排序。</p>
+</div>
+<h2 id="s1"><span class="n">1</span>起点：公钥只是一个数</h2>
+<h3 id="s1-1"><span class="n">1.1</span>上一讲留下的缺口</h3>
+<p><a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 讲了 <span class="term">Diffie–Hellman 密钥交换</span><span class="en">（Diffie–Hellman key exchange）</span>：两个素不相识的人各在公开信道上发一个公开值，就能算出同一个共享秘密，旁听者算不出来。但它挡不住主动攻击者：攻击者坐在中间，和 Alice 跑一遍交换、再和 Bob 跑一遍，两边各自和攻击者共享了一个秘密。这叫<span class="term">中间人攻击</span>（man-in-the-middle attack，MITM：攻击者插在通信双方之间，冒充每一方去和另一方通信）。</p>
+<p>缺口是一环扣一环暴露出来的：</p>
+<ol>
+  <li>Diffie–Hellman 被攻破，直接原因是<strong>交换的值没有认证</strong>，收到的值只是一个数，分不清是 Bob 的还是攻击者的；</li>
+  <li>上一讲的补法是"认证这次交换"：各方用自己的私钥给发出的值签名，对方验签；</li>
+  <li>可验签要用签名者的公钥，于是问题变成"这把公钥真是 Bob 的吗"——而公钥同样只是一个数。</li>
+</ol>
+<p>课件第 2 页的诊断："The mathematics was never the problem. The problem is that a public key is just a number, and numbers do not carry names."</p>
+<p>上一讲课后任务 4 问的正是这件事：Alice 收到一把自称属于她银行的公钥，怎么判断真假？课件收集了学生最常给的三种答案：</p>
+<div class="tw"><table>
+<thead><tr><th>学生的答案</th><th>课件点评</th></tr></thead>
+<tbody>
+<tr><td>当面交换公钥</td><td>可行，但不能扩展：你不可能和每个网站见面</td></tr>
+<tr><td>把公钥公布在网站上</td><td>访问网站要走 HTTPS，而 HTTPS 本身就需要一把你已经信任的公钥——循环论证</td></tr>
+<tr><td>找一个你信任的人为它担保</td><td>正确，这就是整讲的内容</td></tr>
+</tbody></table></div>
+<p>表里的 <span class="term">HTTPS</span><span class="en">（HTTP Secure）</span>是浏览器与网站之间加了加密与认证的网页协议，地址栏的小锁就是它；底下干活的是 <span class="term">TLS</span><span class="en">（Transport Layer Security，传输层安全协议）</span>，负责握手（handshake：建立连接时双方交换几轮消息，协商算法、认证身份、商定密钥）和加密数据，<a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a> 专门讲。</p>
+<h3 id="s1-2"><span class="n">1.2</span>解法：不直接验公钥，而是验一句关于它的话</h3>
+<p>课件第 2 页的思路："You cannot verify a stranger's key directly, so instead you verify a STATEMENT about that key, signed by a party you already trust."</p>
+<p>"这把公钥属于 bank.com"这句话，加上一个可信机构的签名，就是<span class="term">证书</span><span class="en">（certificate）</span>。信任问题并没有消失："it is moved to a much smaller number of parties, once."</p>
+<p>本讲按顺序讲两样东西：</p>
+<ol>
+  <li><strong>签名</strong>：怎样让一段数据只能由一个人产生、而任何人都能检验（第 2–6 节）；</li>
+  <li><strong>证书与 PKI</strong>：怎样用签名把公钥和名字绑在一起，这套体系怎样运转、又怎样失败（第 7–13 节）。</li>
+</ol>
+<h2 id="s2"><span class="n">2</span>数字签名要保证什么</h2>
+<h3 id="s2-1"><span class="n">2.1</span>四个性质</h3>
+<p><span class="term">数字签名</span><span class="en">（digital signature）</span>：签名者用自己的私钥对一条消息算出的一段值；任何持有他公钥的人都能检验这段值确实出自那把私钥、消息也没被改过。课件第 5 页："A handwritten signature on paper is easy to forge and hard to verify. A digital signature is the reverse: infeasible to forge, and anyone can check it."</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap">#</th><th>性质</th><th>含义</th><th style="white-space:nowrap">回答的问题</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">1</td><td><span class="term">真实性</span><span class="en">（authenticity）</span></td><td>验证者能确定签名是谁产生的：签名通过私钥绑定在一个具体的签名者身上</td><td style="white-space:nowrap">谁发的？</td></tr>
+<tr><td style="white-space:nowrap">2</td><td><span class="term">完整性</span><span class="en">（integrity）</span></td><td>消息改动哪怕 1 位，签名就验不过；签名覆盖的是内容，不只是发送者</td><td style="white-space:nowrap">被改过吗？</td></tr>
+<tr><td style="white-space:nowrap">3</td><td><span class="term">不可否认性</span><span class="en">（non-repudiation）</span></td><td>签名者事后不能否认签过：只有他持有私钥，所以只有他造得出这个签名</td><td style="white-space:nowrap">他能抵赖吗？</td></tr>
+<tr><td style="white-space:nowrap">4</td><td><span class="term">公开可验证性</span><span class="en">（public verifiability）</span></td><td>任何持有公钥的人都能验证——包括法官、审计员，或者对签名者和接收者都不信任的第三方</td><td style="white-space:nowrap">谁能检查？</td></tr>
+</tbody></table></div>
+<p>性质 1 里的"谁"，严格说是"哪把私钥的持有者"。这把私钥属于哪个真实身份，签名本身回答不了——这是第 7 节的问题，也是需要证书的原因。</p>
+<p>和 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s4-2">L1 的扩展属性</a>对照：L1 说真实性可以靠 MAC 或签名，不可否认性要靠带可信时间戳的签名，并且定义成收发双方都不能否认。本讲讲的是其中"签名者不能否认发过"这一半；接收方不能否认收到要靠回执签名，可信时间戳用来防止签名者事后声称"私钥早就丢了"，这两点本讲不展开。模拟卷 Q3(a)(ii) 把不可否认性列为区块链的特征，也是因为每笔交易都由发起者的私钥签名。</p>
+<h3 id="s2-2"><span class="n">2.2</span>签名与 MAC：差在对称与不对称</h3>
+<p>MAC 的做法：发送方用双方共享的密钥对消息算出一个短校验值（叫标签，tag），接收方用同一把密钥重算比对。课件拿来对比的是 <span class="term">CMAC</span><span class="en">（cipher-based MAC，基于分组密码的 MAC）</span>，即用 <a href="L4%20AES.html">L4 AES</a> 的分组密码构造的 MAC。</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>MAC（如 CMAC）</th><th style="white-space:nowrap">数字签名</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">生成用的密钥</td><td>双方共享的密钥</td><td style="white-space:nowrap">签名者的<strong>私钥</strong></td></tr>
+<tr><td style="white-space:nowrap">验证用的密钥</td><td>同一把共享密钥</td><td style="white-space:nowrap">签名者的<strong>公钥</strong></td></tr>
+<tr><td style="white-space:nowrap">谁能验证</td><td>只有持有共享密钥的人</td><td style="white-space:nowrap"><strong>任何人</strong></td></tr>
+<tr><td style="white-space:nowrap">完整性</td><td>有</td><td style="white-space:nowrap">有</td></tr>
+<tr><td style="white-space:nowrap">真实性</td><td>有，但只对持有密钥的人成立</td><td style="white-space:nowrap">有，对所有人成立</td></tr>
+<tr><td style="white-space:nowrap">不可否认性</td><td><strong>没有</strong></td><td style="white-space:nowrap"><strong>有</strong></td></tr>
+<tr><td style="white-space:nowrap">速度</td><td>很快（对称运算）</td><td style="white-space:nowrap">慢（公钥运算）</td></tr>
+</tbody></table></div>
+<p>课件第 6 页对"不可否认性"那一行的论证：</p>
+<ul>
+  <li><strong>MAC 为什么给不了</strong>：Alice 和 Bob 共享密钥。Bob 拿出一条带有效标签的消息说是 Alice 发的，Alice 可以如实回答"Bob 自己也造得出来"，第三方分辨不出是谁造的。"Symmetry is the whole problem."</li>
+  <li><strong>签名为什么可以</strong>：只有 Alice 持有她的私钥；Bob 只有公钥，公钥造不出签名。所以能通过验证的签名只可能来自 Alice，任何第三方都能自己检验这一点。"Asymmetry is the whole answer."</li>
+</ul>
+<p>拆开看，不可否认性要两个条件同时成立：<strong>（一）只有一方能产生</strong>这段值；<strong>（二）第三方能检验</strong>它。MAC 两条都不满足：双方都能产生标签；第三方没有密钥就无法检验，把密钥交给他，他也能伪造了。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>签名比 MAC 多出的不止一条</div>
+<p>课件第 5 页："Property 3 is the one that separates a signature from everything we have built so far. Properties 1 and 2 a MAC already gives you."</p>
+<p>误：签名和 MAC 只差不可否认性这一条。</p>
+<p style="margin-bottom:0">正：<strong>性质 4 公开可验证性 MAC 也没有</strong>——课件第 6 页的表写着 MAC "Only holders of the shared key" 能验证；而且性质 3 正建立在性质 4 之上，没有第三方能检验，就谈不上向第三方举证。答"签名能提供而 MAC 不能提供什么"时写这两条，并说明前者依赖后者。</p>
+</div>
+<h2 id="s3"><span class="n">3</span>用谁的钥匙</h2>
+<h3 id="s3-1"><span class="n">3.1</span>一条规则：证明用自己的私钥，隐藏用对方的公钥</h3>
+<p>公钥的两种用法 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 都讲过（机密性模式与认证模式）。课件第 10 页把选钥匙归结为一句："To PROVE something about yourself, use YOUR private key. To HIDE something from everyone but one person, use THEIR public key."</p>
+<ul>
+  <li><strong>证明</strong>（签名）：用<strong>自己的私钥</strong>签，别人用<strong>你的公钥</strong>验。公钥人人都有，所以人人可验；私钥只有你有，所以只有你能签。</li>
+  <li><strong>隐藏</strong>（加密）：用<strong>对方的公钥</strong>加密，对方用<strong>他的私钥</strong>解密。人人都能加密发给他，只有他能解开。</li>
+</ul>
+<p>遇到"用谁的哪把钥匙"的题，先问这一步是要<strong>证明</strong>关于自己的事，还是要对别人<strong>隐藏</strong>内容。</p>
+<h3 id="s3-2"><span class="n">3.2</span>课堂活动 1：六个场景</h3>
+<p>题目：对每个场景选机制（MAC 还是签名），写出<strong>生成</strong>和<strong>检验</strong>各用哪把钥匙。可用的钥匙：Alice 的公钥、Alice 的私钥、Bob 的公钥、Bob 的私钥、两人的共享密钥。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th>场景</th><th style="white-space:nowrap">机制</th><th>生成用</th><th>检验用</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">a</td><td>Alice 给 Bob 发合同；闹上法庭时，法官必须能确认是 Alice 签的</td><td style="white-space:nowrap">签名</td><td>Alice 的私钥</td><td>Alice 的公钥</td><td>法官是第三方，只有签名能当作给双方之外的人看的证据</td></tr>
+<tr><td style="white-space:nowrap">b</td><td>同一机房里两台已共享密钥的服务器，要在高速内部链路上发现数据损坏</td><td style="white-space:nowrap">MAC</td><td>共享密钥</td><td>共享密钥</td><td>密钥已经有了，速度要紧，外人永远不需要验证；用签名是浪费</td></tr>
+<tr><td style="white-space:nowrap">c</td><td>Alice 发布软件更新，一万台她从没打过交道的设备要确认更新出自她</td><td style="white-space:nowrap">签名</td><td>Alice 的私钥</td><td>Alice 的公钥</td><td>一万个验证者与她没有共享秘密；用 MAC 得和每台设备各共享一把密钥</td></tr>
+<tr><td style="white-space:nowrap">d</td><td>Alice 给 Bob 发一条别人不能读的消息</td><td style="white-space:nowrap">都不是——加密</td><td>Bob 的公钥</td><td>Bob 的私钥</td><td>只要机密性。钥匙翻转了：加密给谁，就用谁的公钥</td></tr>
+<tr><td style="white-space:nowrap">e</td><td>别人不能读，<strong>并且</strong> Bob 日后能证明出自 Alice</td><td style="white-space:nowrap">先签名，再加密</td><td>先 Alice 的私钥，再 Bob 的公钥</td><td>先 Bob 的私钥，再 Alice 的公钥</td><td>见下文</td></tr>
+<tr><td style="white-space:nowrap">f</td><td>CA 声明某把公钥属于 bank.com</td><td style="white-space:nowrap">签名</td><td>CA 的私钥</td><td>CA 的公钥</td><td>这就是证书：人人都要能检验，CA 也不能否认签发过（这一行在课件上被遮住，取自文字层）</td></tr>
+</tbody></table></div>
+<p><strong>(e) 为什么先签后加密。</strong> Alice 先对明文签名，再把"明文 + 签名"一起用 Bob 的公钥加密；Bob 先用自己的私钥解密，再用 Alice 的公钥验签。反过来先加密、再对密文签名有两个问题：</p>
+<ol>
+  <li>签名只证明 Alice 见过这串<strong>密文</strong>，不证明她认可其中的<strong>内容</strong>（课件的理由）。发生争议时，法官要看的是明文和明文上的签名。</li>
+  <li>签名挂在密文外面，截获者能把它剥掉、换上自己的签名，冒充是自己发的。</li>
+</ol>
+<p><a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 把两者合用写成 <span class="m">Z = <span class="up">E</span>(PU<sub>b</sub>, <span class="up">E</span>(PR<sub>a</sub>, X))</span>，只加密签名运算的结果；那是因为 L7 的模型直接对消息 <span class="m">X</span> 做私钥运算，RSA 下 <span class="m"><span class="up">E</span>(PR<sub>a</sub>, X)</span> 用 Alice 的公钥一解就还原出 <span class="m">X</span>。本讲签的是摘要（第 5 节），摘要还原不出消息，所以要把明文和签名一起加密。两种写法的顺序相同，都是先签后加密。</p>
+<p><strong>(b) 不要为签名而签名。</strong> 课件强调签名比 MAC 慢约一千倍，而它解决的问题——和第三方的纠纷——很多系统根本没有。同一机柜、同一所有者、密钥已就位的两台服务器，只需要完整性。有意选较弱的机制并说清理由，正是课件说的 ILO 3 能力。</p>
+<details class="box">
+  <summary>先签后加密也不完美（课件外，选读）</summary>
+<p style="margin-bottom:0">Bob 解密后得到"Alice 的明文 + Alice 的签名"，他可以原封不动地用 Carol 的公钥重新加密转发给 Carol；Carol 验签通过，会以为 Alice 是写给她的。这叫<span class="term">暗中转发</span>（surreptitious forwarding，Davis 2001 年指出，S/MIME 和 PGP 这两种邮件签名与加密标准都有这个问题，见<a href="#s13">第 13 节</a>）。修补办法是在被签名的内容里写明收件人。</p>
+</details>
+<h2 id="s4"><span class="n">4</span>RSA 签名</h2>
+<h3 id="s4-1"><span class="n">4.1</span>同一套运算，钥匙反过来</h3>
+<p>先回顾 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 的 RSA（Rivest–Shamir–Adleman，以三位发明者命名的公钥算法）：选两个大素数 <span class="m">p, q</span>，模数 <span class="m">n = pq</span>，欧拉函数 <span class="m">φ(n) = (p − 1)(q − 1)</span>；公钥 <span class="m">{e, n}</span>，私钥 <span class="m">{d, n}</span>，私有指数 <span class="m">d</span> 满足 <span class="m">ed ≡ 1 (<span class="up">mod</span> φ(n))</span>；加密 <span class="m">C = M<sup>e</sup> <span class="up">mod</span> n</span>，解密 <span class="m">M = C<sup>d</sup> <span class="up">mod</span> n</span>。</p>
+<p>签名把同一个运算用在相反的钥匙上，这就是 L7 的<strong>认证模式</strong>：</p>
+<div class="eq"><span class="m"><span class="tx">签名（Alice 用私钥）：</span> S = H<sup>d</sup> <span class="up">mod</span> n  <span class="tx">验证（任何人用公钥）：</span> S<sup>e</sup> <span class="up">mod</span> n <span class="ovs"><span>?</span><span>=</span></span> H</span></div>
+<ul>
+  <li><span class="m">H</span> 是消息的<span class="term">摘要</span><span class="en">（digest）</span>：把消息送进<span class="term">哈希函数</span><span class="en">（hash function，也叫散列函数：公开的、把任意长度输入压成固定长度输出的函数）</span>得到的短值，当作一个小于 <span class="m">n</span> 的整数。为什么签摘要而不签消息本身，是<a href="#s5">第 5 节</a>的内容，这一节先把 <span class="m">H</span> 当成给定的数。</li>
+  <li>验证者自己从收到的消息算出摘要，再和 <span class="m">S<sup>e</sup> <span class="up">mod</span> n</span> 比较：相等就接受。</li>
+  <li>签名和消息<strong>一起发送</strong>，消息通常是明文。</li>
+</ul>
+<p>课件第 7 页用同一对密钥把两种用法并排（公钥 <span class="m">{3, 55}</span>、私钥 <span class="m">{27, 55}</span>，即 L7 课堂活动 3 造的那一对，<span class="m">p = 5, q = 11</span>）：用公钥加密 <span class="m">M = 7</span>，<span class="m">C = 7<sup>3</sup> <span class="up">mod</span> 55 = 343 <span class="up">mod</span> 55 = 13</span>；用私钥签 <span class="m">H = 7</span>，<span class="m">S = 7<sup>27</sup> <span class="up">mod</span> 55 = 28</span>（过程见 <a href="#s4-4">4.4</a>）。"Same number in, two entirely different results out ... one hides, the other proves."</p>
+<h3 id="s4-2"><span class="n">4.2</span>为什么验证能还原摘要</h3>
+<p>验证算的是 <span class="m">(H<sup>d</sup>)<sup>e</sup> = H<sup>ed</sup></span>。写 <span class="m">ed = 1 + kφ(n)</span>（<span class="m">k</span> 是某个整数），由欧拉定理（<span class="m">H</span> 与 <span class="m">n</span> 互素时 <span class="m">H<sup>φ(n)</sup> ≡ 1 (<span class="up">mod</span> n)</span>）：</p>
+<div class="eq"><span class="m">H<sup>ed</sup> = H · (H<sup>φ(n)</sup>)<sup>k</sup> ≡ H (<span class="up">mod</span> n)</span></div>
+<p>和 RSA 解密还原明文是同一件事：<span class="m">(M<sup>e</sup>)<sup>d</sup> = M<sup>ed</sup></span>，<span class="m">(H<sup>d</sup>)<sup>e</sup> = H<sup>ed</sup></span>，指数都是 <span class="m">ed</span>。完整证明（包括 <span class="m">H</span> 与 <span class="m">n</span> 不互素的情形）见 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>。检查这一对密钥：<span class="m">φ(55) = 4 × 10 = 40</span>，<span class="m">ed = 3 × 27 = 81 = 2 × 40 + 1</span>。</p>
+<p><strong>谁能做什么</strong>：算 <span class="m">S</span> 必须知道 <span class="m">d</span>；从公开的 <span class="m">e</span> 推出 <span class="m">d</span> 需要 <span class="m">φ(n)</span>，求 <span class="m">φ(n)</span> 要把 <span class="m">n</span> 分解成 <span class="m">p × q</span>。<span class="m">n = 55</span> 一眼就能分解，真实的 <span class="m">n</span> 是 2048 位以上，分解不了。</p>
+<h3 id="s4-3"><span class="n">4.3</span>关于签名的三个误解</h3>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件第 7 页点名的三个误解</div>
+<ul style="margin-bottom:0">
+  <li>误："签名就是用私钥加密。"正：只对 RSA 成立。DSA（Digital Signature Algorithm，数字签名算法）和 ECDSA（Elliptic Curve DSA，椭圆曲线数字签名算法）能签名却根本不能加密（<a href="#s6-1">6.1</a>），只有 RSA 恰好两者共用一套算术。L7 讲认证模式时"用私钥加密"的说法，就是这种 RSA 上的简化，L7 的提示框已说明，按它答题不扣分。</li>
+  <li>误："签名能让消息保密。"正：不能。签名和通常是明文的消息<strong>一起</strong>发送；要保密，还得另外加密。</li>
+  <li>误："用收件人的钥匙签名。"正：用<strong>自己的</strong>私钥签，因为要证明的是"这是我"；收件人的公钥管的是机密性。</li>
+</ul>
+</div>
+<h3 id="s4-4"><span class="n">4.4</span>手算：平方-乘</h3>
+<p>课堂活动 2（第 11 页）：Alice 的密钥 <span class="m">n = 55, e = 3, d = 27</span>，消息摘要 <span class="m">H = 7</span>。(a) 算签名 <span class="m">S = 7<sup>27</sup> <span class="up">mod</span> 55</span>；(b) 像 Bob 那样验证：算 <span class="m">S<sup>3</sup> <span class="up">mod</span> 55</span>；(c) 攻击者把签名从 <span class="m">S</span> 改成 <span class="m">S + 1</span> 重发，验证它，Bob 会得出什么结论？(d) 用一句话说明是哪一个事实使 Alice 不能抵赖。</p>
+<p><span class="m">7<sup>27</sup></span> 是 23 位整数，要用 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 的<span class="term">平方-乘</span><span class="en">（square-and-multiply）</span>：把 <span class="m">d</span> 写成二进制 <span class="m">27 = (11011)<sub>2</sub></span>，<span class="m">r</span> 从 1 开始、从最高位逐位读，每位先 <span class="m">r ← r<sup>2</sup> <span class="up">mod</span> n</span>，该位为 1 时再 <span class="m">r ← r · H <span class="up">mod</span> n</span>。平方让指数翻倍、乘 <span class="m">H</span> 让指数加 1，所以指数依次是 <span class="m">1 → 3 → 6 → 13 → 27</span>。</p>
+<p><strong>(a) 签名</strong>：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap">读到的位</th><th>平方</th><th style="white-space:nowrap">取模</th><th>位为 1 时乘 7</th><th style="white-space:nowrap">结果 <span class="m">r</span></th><th>此时 <span class="m">r = 7<sup>?</sup></span></th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">1<sup>2</sup> = 1</span></td><td style="white-space:nowrap">1</td><td><span class="m">1 × 7 = 7</span></td><td style="white-space:nowrap">7</td><td><span class="m">7<sup>1</sup></span></td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">7<sup>2</sup> = 49</span></td><td style="white-space:nowrap">49</td><td><span class="m">49 × 7 = 343 = 6 × 55 + 13</span></td><td style="white-space:nowrap">13</td><td><span class="m">7<sup>3</sup></span></td></tr>
+<tr><td style="white-space:nowrap">0</td><td><span class="m">13<sup>2</sup> = 169 = 3 × 55 + 4</span></td><td style="white-space:nowrap">4</td><td>—</td><td style="white-space:nowrap">4</td><td><span class="m">7<sup>6</sup></span></td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">4<sup>2</sup> = 16</span></td><td style="white-space:nowrap">16</td><td><span class="m">16 × 7 = 112 = 2 × 55 + 2</span></td><td style="white-space:nowrap">2</td><td><span class="m">7<sup>13</sup></span></td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">2<sup>2</sup> = 4</span></td><td style="white-space:nowrap">4</td><td><span class="m">4 × 7 = 28</span></td><td style="white-space:nowrap"><strong>28</strong></td><td><span class="m">7<sup>27</sup></span></td></tr>
+</tbody></table></div>
+<p><span class="m">S = 28</span>。这是 L7 的格式二，也是课件提示的做法（课件答案页把五步排成两列网格，要按行读）。用 L7 的格式一（逐次平方表）同样得分，L7 推荐考场上用它，或者拿它复核：<span class="m">7<sup>1</sup> = 7</span>，<span class="m">7<sup>2</sup> = 49</span>，<span class="m">7<sup>4</sup> = 49<sup>2</sup> = 2401 ≡ 36</span>，<span class="m">7<sup>8</sup> = 36<sup>2</sup> = 1296 ≡ 31</span>，<span class="m">7<sup>16</sup> = 31<sup>2</sup> = 961 ≡ 26</span>；<span class="m">27 = 16 + 8 + 2 + 1</span>，<span class="m">26 × 31 = 806 ≡ 36</span>，<span class="m">36 × 49 = 1764 ≡ 4</span>，<span class="m">4 × 7 = 28</span>。</p>
+<p><strong>(b) 验证</strong>：<span class="m">28<sup>3</sup> = 21952 = 399 × 55 + 7</span>，所以 <span class="m">S<sup>3</sup> <span class="up">mod</span> 55 = 7 = H</span>，签名有效。边算边约更快：<span class="m">28<sup>2</sup> = 784 ≡ 14</span>，<span class="m">14 × 28 = 392 ≡ 7</span>。</p>
+<div class="tool" id="rsTool">
+  <h4>RSA 签名与验证：平方-乘逐行</h4>
+  <p class="sub">由 <span class="m">p, q, e</span> 现算 <span class="m">n</span>、<span class="m">φ(n)</span> 与私有指数 <span class="m">d</span>，再按 4.4 的表格式逐行算 <span class="m">S = H<sup>d</sup></span> mod <span class="m">n</span>，然后像 Bob 那样只用公钥验证。勾上「篡改」就是活动 2(c)：把签名改成 <span class="m">S + 1</span> 再验。</p>
+  <div class="row">
+    <span class="ctl"><label for="rsP">p</label><input type="text" id="rsP" value="5" class="num" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsQ">q</label><input type="text" id="rsQ" value="11" class="num" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsE">e</label><input type="text" id="rsE" value="3" class="num" oninput="rsGo()"></span>
+    <span class="ctl"><label for="rsH">摘要 H</label><input type="text" id="rsH" value="7" class="num" oninput="rsGo()"></span>
+  </div>
+  <div class="row">
+    <label><input type="checkbox" id="rsTamper" onchange="rsGo()"> 篡改：把签名改成 S + 1 再验</label>
+    <label><input type="checkbox" id="rsFmt1" onchange="rsGo()"> 同时用逐次平方表（格式一）复核</label>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="rsSet(7,false)">活动 2：H = 7</button>
+    <button class="btn" onclick="rsSet(12,false)">课后任务 2：H = 12</button>
+    <button class="btn" onclick="rsSet(7,true)">活动 2(c)：S 改成 S + 1</button>
+  </div>
+  <div class="steps" id="rsSteps"></div>
+  <div class="result" id="rsOut"></div>
+</div>
+<h3 id="s4-5"><span class="n">4.5</span>篡改与抵赖：活动 2 的 (c)(d)</h3>
+<p><strong>(c)</strong>：<span class="m">S′ = 29</span>，<span class="m">29<sup>3</sup> = 24389 = 443 × 55 + 24</span>，<span class="m">24 ≠ 7</span>，Bob 拒绝。他不知道是谁、为什么改的，只知道收到的不是 Alice 签的——这正是完整性保护应该告诉他的全部。（记住 24 这个数，<a href="#s5-3">5.3</a> 要用。）</p>
+<p><strong>(d)</strong>：课件答案："Only Alice holds d = 27. Bob, and everyone else, holds only e = 3, which cannot create signatures — only check them. So a value that verifies under e could only have been produced by the holder of d."</p>
+<p>这句话有两个前提，答题时最好点出：</p>
+<ol>
+  <li><span class="m">n</span> 大到无法分解，否则任何人都能从 <span class="m">e</span> 算出 <span class="m">d</span>。<span class="m">n = 55</span> 时攻击者瞬间分解出 <span class="m">5 × 11</span>、算出 <span class="m">d = 27</span>，所以课件说这个例子"does NOT show a secure system"——"The arithmetic is genuine; only the size is a toy."</li>
+  <li>私钥从没被偷过："Non-repudiation also rests on one non-mathematical assumption: that Alice's private key was never stolen. Cryptography cannot establish that."</li>
+</ol>
+<h3 id="s4-6"><span class="n">4.6</span>课后任务 2：签 H = 12</h3>
+<p>题目：用同一对密钥（<span class="m">n = 55, e = 3, d = 27</span>）给摘要 <span class="m">H = 12</span> 签名，再验证，写出平方-乘过程。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap">读到的位</th><th>平方</th><th style="white-space:nowrap">取模</th><th>位为 1 时乘 12</th><th style="white-space:nowrap">结果 <span class="m">r</span></th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">1<sup>2</sup> = 1</span></td><td style="white-space:nowrap">1</td><td><span class="m">1 × 12 = 12</span></td><td style="white-space:nowrap">12</td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">12<sup>2</sup> = 144 = 2 × 55 + 34</span></td><td style="white-space:nowrap">34</td><td><span class="m">34 × 12 = 408 = 7 × 55 + 23</span></td><td style="white-space:nowrap">23</td></tr>
+<tr><td style="white-space:nowrap">0</td><td><span class="m">23<sup>2</sup> = 529 = 9 × 55 + 34</span></td><td style="white-space:nowrap">34</td><td>—</td><td style="white-space:nowrap">34</td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">34<sup>2</sup> = 1156 = 21 × 55 + 1</span></td><td style="white-space:nowrap">1</td><td><span class="m">1 × 12 = 12</span></td><td style="white-space:nowrap">12</td></tr>
+<tr><td style="white-space:nowrap">1</td><td><span class="m">12<sup>2</sup> = 144 ≡ 34</span></td><td style="white-space:nowrap">34</td><td><span class="m">34 × 12 = 408 ≡ 23</span></td><td style="white-space:nowrap"><strong>23</strong></td></tr>
+</tbody></table></div>
+<p><span class="m">S = 23</span>。验证：<span class="m">23<sup>3</sup> = 12167 = 221 × 55 + 12</span>，等于 <span class="m">H</span>，有效。</p>
+<p>第 4 步出现 <span class="m">34<sup>2</sup> ≡ 1 (<span class="up">mod</span> 55)</span>：34 是模 55 下 1 的"非平凡平方根"（不是 <span class="m">±1</span> 却平方得 1），中间值因此回到 12，后两步重复前两步。这是小模数的巧合，不是算错。</p>
+<h2 id="s5"><span class="n">5</span>签摘要，不签消息</h2>
+<h3 id="s5-1"><span class="n">5.1</span>先哈希再签名</h3>
+<p>真实系统从不直接对消息签名，而是对摘要签名。最常用的哈希函数是 <span class="term">SHA-256</span><span class="en">（Secure Hash Algorithm 256，美国标准的安全哈希算法）</span>，输出 256 位即 32 字节。</p>
+<figure>
+<div id="figHS" style="max-width:470px"></div>
+<figcaption>签名方先哈希再用私钥签摘要；验证方自己重算摘要，和用公钥从签名里还原出的值比较。</figcaption>
+</figure>
+<p>Alice 把消息 <span class="m">m</span> 送进哈希函数得到 <span class="m">H = h(m)</span>，算 <span class="m">S = H<sup>d</sup> <span class="up">mod</span> n</span>，发出 <span class="m">(m, S)</span>。验证方对收到的 <span class="m">m</span> 自己算 <span class="m">h(m)</span>，对 <span class="m">S</span> 算 <span class="m">S<sup>e</sup> <span class="up">mod</span> n</span>，两者相等才接受。消息改 1 位，<span class="m">h(m)</span> 就面目全非：</p>
+<ul>
+  <li><code>SHA-256(&quot;Alice pays Bob 100&quot;)</code> = <code>15fd38c0a310472112be808157dbe38b6a5173b5a9072c62b362a5da9d6b94bf</code></li>
+  <li><code>SHA-256(&quot;Alice pays Bob 101&quot;)</code> = <code>219e14632b486612ab39cb2c54ee44c561f85269fb81160a1b63b8ae903dabba</code></li>
+</ul>
+<p>只改最后一个字符，256 位里有 112 位不同，接近一半。这是 <a href="L3%20%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%8E%20DES.html#s7-1">雪崩效应</a>在哈希上的表现。</p>
+<div class="tool" id="shTool">
+  <h4>改一个字符，摘要变多少</h4>
+  <p class="sub">两条输入各算 SHA-256（页面内实现，按 FIPS 180-4）。橙色是两份摘要里不同的十六进制位；下面 256 个格子一格一位，亮的是不同的位。</p>
+  <div class="row"><span class="ctl" style="flex:1 1 16rem"><label for="shA">A</label><input type="text" id="shA" value="Alice pays Bob 100" style="width:100%" oninput="shGo()"></span></div>
+  <div class="row"><span class="ctl" style="flex:1 1 16rem"><label for="shB">B</label><input type="text" id="shB" value="Alice pays Bob 101" style="width:100%" oninput="shGo()"></span></div>
+  <div class="row">
+    <button class="btn" onclick="shSet('Alice pays Bob 100','Alice pays Bob 101')">笔记的例子</button>
+    <button class="btn" onclick="shSet('Alice pays Bob 100','alice pays Bob 100')">只改大小写</button>
+    <button class="btn" onclick="shSet('Alice pays Bob 100','Alice pays Bob 100')">完全相同</button>
+  </div>
+  <div id="shHex"></div>
+  <div class="result" id="shOut"></div>
+</div>
+<h3 id="s5-2"><span class="n">5.2</span>三条理由</h3>
+<p>课件第 8 页：</p>
+<ol>
+  <li><strong>速度</strong>："Public-key operations are roughly a thousand times slower than symmetric ones. Signing a 4 GB file directly would be absurd; signing a 32-byte digest is instant."</li>
+  <li><strong>大小</strong>：RSA 只能对小于 <span class="m">n</span> 的整数签名，2048 位的密钥最多签 256 字节（<span class="m">2048/8</span>），摘要永远放得下。（严格说是"小于 <span class="m">n</span> 的整数"，加了填充后能容纳的有效内容还要少一些，结论不变。）</li>
+  <li><strong>方案本身的安全</strong>："Signing raw values makes some algebraic forgeries possible. Hashing first destroys the algebraic structure an attacker would exploit." 这一条最重要，下一小节讲清楚。</li>
+</ol>
+<h3 id="s5-3"><span class="n">5.3</span>不签摘要会怎样：存在性伪造</h3>
+<p><a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a> 讲过的<span class="term">教科书 RSA</span><span class="en">（textbook RSA：不加填充、直接对数做幂运算的 RSA）</span>有两个代数漏洞，放到签名上就是两种伪造。</p>
+<p><strong>第一种</strong>。活动 2(c) 算出 <span class="m">29<sup>3</sup> <span class="up">mod</span> 55 = 24</span>，按验证规则，<span class="m">S = 29</span> 正是"摘要 24"的合法签名。攻击者不用私钥，只要<strong>先随便挑一个签名值 <span class="m">S′</span>，再算 <span class="m">H′ = S′<sup>e</sup> <span class="up">mod</span> n</span></strong>，就得到一对必然通过验证的 <span class="m">(H′, S′)</span>。这叫<span class="term">存在性伪造</span><span class="en">（existential forgery）</span>：不用私钥造出"某一条"消息的有效签名，只是这条消息由数学算出、不由攻击者挑。它是最轻的一类攻破，但一个签名方案只要允许它，就被认为不安全。</p>
+<p>教材第 13.1 节有两套分类，不要混：</p>
+<ul>
+  <li><strong>按攻破的程度</strong>（攻击者最终做到了什么）从重到轻：完全攻破（拿到私钥）、通用伪造（能给任何消息造签名）、选择性伪造（能给自己挑的某条消息造签名）、存在性伪造；</li>
+  <li><strong>按攻击者掌握什么</strong>：只有公钥；见过若干消息及其签名；能让签名者签自己选的消息（选择消息攻击）。</li>
+</ul>
+<p>教科书 RSA 在最弱的"只有公钥"条件下就能做存在性伪造。</p>
+<p><span class="term">第二种：可乘性</span><span class="en">（malleability）</span>，即 L7 讲加密时的可乘性换到了签名上。记 <span class="m"><span class="up">Sig</span>(H) = H<sup>d</sup> <span class="up">mod</span> n</span>（对 <span class="m">H</span> 的签名），因为 <span class="m">(H<sub>1</sub>H<sub>2</sub>)<sup>d</sup> = H<sub>1</sub><sup>d</sup> · H<sub>2</sub><sup>d</sup></span>：</p>
+<div class="eq"><span class="m"><span class="up">Sig</span>(H<sub>1</sub>) · <span class="up">Sig</span>(H<sub>2</sub>) ≡ <span class="up">Sig</span>(H<sub>1</sub>H<sub>2</sub>) (<span class="up">mod</span> n)</span></div>
+<p>用本讲的数：<span class="m"><span class="up">Sig</span>(7) = 28</span>，<span class="m"><span class="up">Sig</span>(12) = 23</span>，<span class="m">28 × 23 = 644 = 11 × 55 + 39 → 39</span>；而 <span class="m">7 × 12 = 84 ≡ 29</span>，直接算 <span class="m">29<sup>27</sup> <span class="up">mod</span> 55</span> 也是 39。拿到两个签名，就能不用私钥造出第三个；攻击者手里的已签值越多，能拼出的组合越多。如果签的是裸消息（比如金额），这就有实际意义。</p>
+<div class="tool" id="fgTool">
+  <h4>不签摘要会怎样：两种伪造现场算</h4>
+  <p class="sub">密钥同上（由 <span class="m">p, q, e</span> 现算）。第一种只用公钥：任挑一个签名值 <span class="m">S′</span>，算出它「签」的是哪个摘要；第二种拿两个合法签名相乘，得到第三个。</p>
+  <div class="row">
+    <span class="ctl"><label for="fgP">p</label><input type="text" id="fgP" value="5" class="num" oninput="fgGo()"></span>
+    <span class="ctl"><label for="fgQ">q</label><input type="text" id="fgQ" value="11" class="num" oninput="fgGo()"></span>
+    <span class="ctl"><label for="fgE">e</label><input type="text" id="fgE" value="3" class="num" oninput="fgGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="fgS">任挑 S′</label><input type="text" id="fgS" value="29" class="num" oninput="fgGo()"></span>
+    <span class="ctl"><label for="fgH1">H₁</label><input type="text" id="fgH1" value="7" class="num" oninput="fgGo()"></span>
+    <span class="ctl"><label for="fgH2">H₂</label><input type="text" id="fgH2" value="12" class="num" oninput="fgGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="fgSet(29,7,12)">笔记的数：S′ = 29，H = 7 与 12</button>
+    <button class="btn" onclick="fgSet(2,3,4)">S′ = 2，H = 3 与 4</button>
+  </div>
+  <div class="steps" id="fgSteps"></div>
+  <div class="result" id="fgOut"></div>
+</div>
+<p><strong>先哈希为什么能挡住</strong>：伪造出来的只是"某个摘要的签名"。要把它变成一条真消息的签名，攻击者还得找到 <span class="m">m</span> 使 <span class="m">h(m) = 24</span>（或 29），即攻破哈希的原像抗性（<a href="#s5-5">5.5</a>）。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>活动 2(c) 的真正含义</div>
+<p>课件给 (c) 的标题是 "The forgery fails"。</p>
+<p>误：改签名的伪造失败了，所以教科书 RSA 签名伪造不了。</p>
+<p style="margin-bottom:0">正：<span class="m">(24, 29)</span> 本身就是一对合法签名，教科书 RSA 允许任何人做存在性伪造；安全要靠"先哈希、再填充"。课件在第 8、14 页讲了原则，但没把它和 (c) 联系起来。</p>
+</div>
+<h3 id="s5-4"><span class="n">5.4</span>填充：真实系统签的是什么</h3>
+<p>课件第 14 页把"不加填充的 RSA"列为一种失败："The same problem as textbook RSA encryption in Lecture 6. The fix is the same: standard padding, never raw."</p>
+<p><span class="term">填充</span><span class="en">（padding）</span>：签名前先把摘要按标准格式扩展成和模数一样长的数，再做幂运算。标准是 RFC 8017（即 PKCS#1 v2.2；PKCS 是 RSA 公司起草的公钥密码标准系列），两种做法：</p>
+<ul>
+  <li><strong>PKCS#1 v1.5 签名</strong>：要签的数是 <code>00 01 FF FF … FF 00 ‖ DigestInfo</code>，DigestInfo 是"哈希算法的标识 + 摘要"，中间用一串 FF 填满（‖ 表示拼接）。格式固定，至今在证书里广泛使用。</li>
+  <li><span class="term">RSA-PSS</span><span class="en">（probabilistic signature scheme，概率签名方案）</span>：编码里混入随机盐值（salt，每次签名随机取的一串数），同一条消息每次签出不同的值；有严格的安全证明，新系统推荐用它。</li>
+</ul>
+<p>填充之后两种伪造都失效：随手挑的 <span class="m">S′</span> 算出的 <span class="m">S′<sup>e</sup> <span class="up">mod</span> n</span> 是一个看似随机的 2048 位数，恰好符合 <code>00 01 FF … FF 00</code> 加正确结构的概率可以忽略；两个合法编码的乘积也不再是合法编码。</p>
+<h3 id="s5-5"><span class="n">5.5</span>哈希必须具备的三个性质</h3>
+<p>签名的安全压在哈希上："If it fails, the signature fails with it." 课件用三句话描述哈希必须满足的性质，没给名字：</p>
+<div class="tw"><table class="wide">
+<thead><tr><th>性质</th><th>课件原话</th><th>含义</th><th>挡住的对签名的攻击</th></tr></thead>
+<tbody>
+<tr><td><span class="term">原像抗性</span><span class="en">（preimage resistance，也叫单向性）</span></td><td>"Given a digest, you cannot find a message producing it."</td><td>给定摘要 <span class="m">y</span>，找不到 <span class="m">m</span> 使 <span class="m">h(m) = y</span></td><td>把存在性伪造得到的"某摘要的签名"变成真消息的签名</td></tr>
+<tr><td><span class="term">第二原像抗性</span><span class="en">（second-preimage resistance）</span></td><td>"Given a message, you cannot find a second one with the same digest."</td><td>给定 <span class="m">m</span>，找不到 <span class="m">m′ ≠ m</span> 使 <span class="m">h(m′) = h(m)</span></td><td>给<strong>别人已签好的</strong>文件找摘要相同的替身</td></tr>
+<tr><td><span class="term">抗碰撞性</span><span class="en">（collision resistance）</span></td><td>"And you cannot find any two messages that collide."</td><td>找不到任何一对 <span class="m">m ≠ m′</span> 使 <span class="m">h(m) = h(m′)</span></td><td>攻击者<strong>自己准备</strong>一对摘要相同的文件，骗你签无害的那份，再把签名挪到有害的那份</td></tr>
+</tbody></table></div>
+<p>三者的差别在攻击者能自由选多少：原像只给一个摘要，第二原像给定了一条消息，碰撞则两条都由攻击者挑——自由度最大，所以抗碰撞是最强的要求，也最先被攻破。</p>
+<p><span class="term">生日界</span><span class="en">（birthday bound）</span>决定了找碰撞要多少次，<a href="L4%20AES.html#s1-1">L4 讲 64 位分组太小</a>时用过。记摘要长 <span class="m">ℓ</span> 位：随机算 <span class="m">N</span> 条消息，约有 <span class="m">N<sup>2</sup>/2</span> 对，每对相同的概率是 <span class="m">2<sup>−ℓ</sup></span>，期望碰撞数约 <span class="m">N<sup>2</sup>/2<sup>ℓ + 1</sup></span>，<span class="m">N = 2<sup>ℓ/2</sup></span> 时达到 <span class="m">1/2</span>。所以 <span class="m">ℓ</span> 位哈希只提供约 <span class="m">ℓ/2</span> 位的抗碰撞强度：SHA-256 是 <span class="m">2<sup>128</sup></span>，128 位输出的 <span class="term">MD5</span><span class="en">（Message Digest 5，第 5 版消息摘要算法，1992 年）</span>只有 <span class="m">2<sup>64</sup></span>，实际攻击还远快于此。</p>
+<p>课件第 14 页的"弱哈希"失败就是抗碰撞被攻破："Get an innocuous document signed, attach the signature to a damaging one." MD5 在 2004 年被找到碰撞；更危险的是<span class="term">选择前缀碰撞</span><span class="en">（chosen-prefix collision）</span>：两份文件的开头可以各自任意指定，只在末尾补一段碰撞块，于是能做成两份内容完全不同、各自有意义的文件——2008 年研究者就是这样用 MD5 伪造出一张受浏览器信任的 CA 证书。<span class="term">SHA-1</span><span class="en">（Secure Hash Algorithm 1，160 位输出）</span>2017 年被找到碰撞，2020 年连选择前缀碰撞也做到了。两者都已退役。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>哈希的构造不在区块链那半讲</div>
+<p>课件第 8 页："How hash functions are constructed is covered in the blockchain half of this course."</p>
+<p>误：后十讲会讲 SHA-256 内部怎么造。</p>
+<p style="margin-bottom:0">正：后十讲只<strong>使用</strong>哈希（哈希指针、Merkle 树、工作量证明，都是建立在哈希之上的区块链机制），没有一讲讲哈希的构造。考试要的是三个性质和"签名依赖它们"；想看构造，读 Stallings 第 8 版第 11 章。</p>
+</div>
+<h2 id="s6"><span class="n">6</span>其他签名算法与失败方式</h2>
+<h3 id="s6-1"><span class="n">6.1</span>DSA、ECDSA、Ed25519</h3>
+<p>课件第 13 页："RSA is not the only signature algorithm, and outside legacy systems it is no longer the most common."</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap">算法</th><th>是什么</th><th>特点（课件）</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">RSA</td><td>用私有指数 <span class="m">d</span> 做模幂，和加密同一套算术</td><td>验证很快、签名慢；密钥 2048 或 3072 位；"Still ubiquitous in certificates"</td></tr>
+<tr><td style="white-space:nowrap">DSA</td><td>专为签名设计、基于离散对数问题，<strong>不能加密</strong></td><td>签名快、验证较慢；<strong>每次签名都需要一个新的随机数</strong></td></tr>
+<tr><td style="white-space:nowrap">ECDSA</td><td>把 DSA 搬到椭圆曲线上（椭圆曲线见 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>）</td><td>当今主流；256 位密钥的安全性与 3072 位 RSA 相当，签名也小得多</td></tr>
+<tr><td style="white-space:nowrap"><strong>Ed25519</strong></td><td>现代的曲线签名方案，设计目标是"难以被实现错"</td><td><strong>确定性</strong>：每次签名不需要随机数，消除了下一小节的失败方式；越来越成为默认</td></tr>
+</tbody></table></div>
+<p>课件第一句和 RSA 行的"证书里到处都是"有点张力：网页证书里 RSA 至今很常见，ECDSA 占优的主要是新签发的证书和握手签名。</p>
+<ul>
+  <li><span class="term">离散对数问题</span><span class="en">（discrete logarithm problem）</span>：L7 的记号是已知素数 <span class="m">q</span>、本原根 <span class="m">α</span> 和 <span class="m">Y = α<sup>X</sup> <span class="up">mod</span> q</span>，求 <span class="m">X</span>。DSA 标准换了一套字母：素数模数 <span class="m">p</span>、子群的阶 <span class="m">q</span>（<span class="m">q</span> 整除 <span class="m">p − 1</span>）、生成元 <span class="m">g</span>（模 <span class="m">p</span> 下阶为 <span class="m">q</span> 的元素，作用相当于 L7 的 <span class="m">α</span>）、私钥 <span class="m">x</span>、公钥 <span class="m">y = g<sup>x</sup> <span class="up">mod</span> p</span>。这里的 <span class="m">p, q</span> 和 RSA 的 <span class="m">p, q</span> 无关，<span class="m">q</span> 也不是 L7 那个素数模数。</li>
+  <li>"256 位 ECC（elliptic curve cryptography，椭圆曲线密码）与 3072 位 RSA 相当"指两者都提供约 128 位<span class="term">安全强度</span><span class="en">（security strength：破解约需 <span class="m">2<sup>128</sup></span> 次运算）</span>，出自 NIST（National Institute of Standards and Technology，美国国家标准与技术研究院）的 SP 800-57。</li>
+  <li>Ed25519 是 <span class="term">EdDSA</span>（Edwards-curve Digital Signature Algorithm，爱德华兹曲线数字签名算法）在 edwards25519 曲线（与 L7 提到的 Curve25519 等价）上的实例。</li>
+</ul>
+<p>课件底线："DSA, ECDSA and Ed25519 sign but cannot encrypt. 'Signing is encryption with the private key' is true of RSA alone."</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>DSA 已经退役（2026 年的现状）</div>
+<p>误：DSA 是现行可选的签名算法之一。</p>
+<p style="margin-bottom:0">正：FIPS 186-5（2023 年；FIPS 即 Federal Information Processing Standards，美国联邦信息处理标准）不再批准用 DSA 生成新签名，只允许验证旧签名，同时把 EdDSA 纳入批准名单。抗量子签名 ML-DSA（FIPS 204）、SLH-DSA（FIPS 205）已于 2024 年发布，背景见 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>。考试按课件的四种答即可。</p>
+</div>
+<h3 id="s6-2"><span class="n">6.2</span>随机数复用：ECDSA 最致命的失败</h3>
+<p>DSA 和 ECDSA 每签一次名，都要取一个新的、保密的随机数 <span class="m">k</span>——一种<span class="term">一次性随机数</span><span class="en">（nonce，number used once）</span>。课件："Use the same one twice and the private key can be recovered directly from the two signatures, by simple algebra."</p>
+<p>直觉：DSA 签名有两部分 <span class="m">(r, s)</span>。<span class="m">r</span> 只由 <span class="m">k</span> 决定；<span class="m">s = k<sup>−1</sup>(H + xr) <span class="up">mod</span> q</span>（<span class="m">q</span> 是上一小节说的子群的阶）里有两个未知数，随机数 <span class="m">k</span> 和私钥 <span class="m">x</span>。一次签名给一个方程，解不出来；同一个 <span class="m">k</span> 用两次，就是两个方程、两个未知数，先解 <span class="m">k</span> 再解 <span class="m">x</span>。识别方法：两个签名的 <span class="m">r</span> 相同。</p>
+<p>课件说这是 <a href="L6%20%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E7%9A%84%E5%AE%89%E5%85%A8%E4%BD%BF%E7%94%A8.html">L6 对称密码的安全使用</a> 里 GCM（Galois/Counter Mode，一种加密兼认证的工作模式）随机数复用的同一个病："same cause, worse consequence: not one message lost, but the key itself." 真实案例：2010 年索尼 PlayStation 3 的固件签名每次用同一个 <span class="m">k</span>，研究者据此算出了索尼的 ECDSA 私钥。</p>
+<p>Ed25519 的修补：<span class="m">k</span> 不再取自随机数发生器，而是用"私钥派生的一段秘密 + 待签消息"做哈希算出。同一条消息总得到同一个 <span class="m">k</span>（签名也相同，无害），不同消息得到不同的 <span class="m">k</span>。（ECDSA 也有同样思路的确定性版本，RFC 6979。）</p>
+<details class="box">
+  <summary>推导与玩具数值：同一个 k 签两次，私钥怎样被解出来（课件外，考试不要求公式）</summary>
+<p><span class="term">DSA 签名</span><span class="en">（FIPS 186-4 的定义，该版已被 186-5 取代；Stallings 13.4 节）</span>：取随机 <span class="m">k</span>，<span class="m">r = (g<sup>k</sup> <span class="up">mod</span> p) <span class="up">mod</span> q</span>，<span class="m">s = k<sup>−1</sup>(H + xr) <span class="up">mod</span> q</span>。验证时算 <span class="m">w = s<sup>−1</sup></span>、<span class="m">u<sub>1</sub> = Hw</span>、<span class="m">u<sub>2</sub> = rw</span>（模 <span class="m">q</span>），<span class="m">v = (g<sup>u<sub>1</sub></sup>y<sup>u<sub>2</sub></sup> <span class="up">mod</span> p) <span class="up">mod</span> q</span>，<span class="m">v = r</span> 则接受。</p>
+<p><strong>玩具参数</strong>：<span class="m">p = 23, q = 11, g = 4</span>（<span class="m">4<sup>11</sup> ≡ 1 (<span class="up">mod</span> 23)</span>），<span class="m">x = 7</span>，<span class="m">y = 4<sup>7</sup> <span class="up">mod</span> 23 = 8</span>。取 <span class="m">k = 4</span>：<span class="m">r = (256 <span class="up">mod</span> 23) <span class="up">mod</span> 11 = 3</span>，<span class="m">k<sup>−1</sup> <span class="up">mod</span> 11 = 3</span>。</p>
+<ul>
+  <li>签 <span class="m">H<sub>1</sub> = 3</span>：<span class="m">s<sub>1</sub> = 3 × (3 + 7 × 3) = 72 ≡ 6</span>，签名 <span class="m">(3, 6)</span>；</li>
+  <li>签 <span class="m">H<sub>2</sub> = 5</span>：<span class="m">s<sub>2</sub> = 3 × (5 + 21) = 78 ≡ 1</span>，签名 <span class="m">(3, 1)</span>。两个都通过验证，<span class="m">r</span> 都是 3。</li>
+</ul>
+<p><strong>攻击者的代数</strong>：两式相减消去 <span class="m">xr</span>：</p>
+<div class="eq"><span class="m">s<sub>1</sub>−s<sub>2</sub> ≡ k<sup>−1</sup>(H<sub>1</sub>−H<sub>2</sub>) ⇒ k ≡ (H<sub>1</sub>−H<sub>2</sub>)(s<sub>1</sub>−s<sub>2</sub>)<sup>−1</sup> (<span class="up">mod</span> q),  x ≡ (s<sub>1</sub>k − H<sub>1</sub>) r<sup>−1</sup> (<span class="up">mod</span> q)</span></div>
+<p>代入：<span class="m">k ≡ (−2) × 5<sup>−1</sup> = (−2) × 9 ≡ 81 ≡ 4</span>；<span class="m">x ≡ (24 − 3) × 3<sup>−1</sup> = 21 × 4 = 84 ≡ 7</span>，与真值一致。</p>
+<p style="margin-bottom:0">ECDSA 结构相同，只是 <span class="m">r</span> 改成曲线上点 <span class="m">kG</span> 的 x 坐标模 <span class="m">n</span>——这里的 <span class="m">n</span> 是曲线基点 <span class="m">G</span> 的阶，和 RSA 模数无关。</p>
+</details>
+<div class="tool" id="dsTool">
+  <h4>同一个 k 签两次：从两个签名解出私钥</h4>
+  <p class="sub">玩具 DSA：按上面折叠块里的定义签两条摘要、各自验证，再站在攻击者的位置只用公开值和两个签名去解 <span class="m">k</span> 与 <span class="m">x</span>。把 <span class="m">k₂</span> 改得和 <span class="m">k₁</span> 不同，看攻击什么时候失效。</p>
+  <div class="row">
+    <span class="ctl"><label for="dsP">p</label><input type="text" id="dsP" value="23" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsQ">q</label><input type="text" id="dsQ" value="11" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsG">g</label><input type="text" id="dsG" value="4" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsX">私钥 x</label><input type="text" id="dsX" value="7" class="num" oninput="dsGo()"></span>
+  </div>
+  <div class="row">
+    <span class="ctl"><label for="dsK1">k₁</label><input type="text" id="dsK1" value="4" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsK2">k₂</label><input type="text" id="dsK2" value="4" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsH1">H₁</label><input type="text" id="dsH1" value="3" class="num" oninput="dsGo()"></span>
+    <span class="ctl"><label for="dsH2">H₂</label><input type="text" id="dsH2" value="5" class="num" oninput="dsGo()"></span>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="dsSet([23,11,4,7,4,4,3,5])">笔记的玩具数值</button>
+    <button class="btn" onclick="dsSet([23,11,4,7,4,6,3,5])">k₂ 换成 6</button>
+    <button class="btn" onclick="dsSet([227,113,4,58,77,77,100,31])">大一点的参数，k 复用</button>
+  </div>
+  <div class="steps" id="dsSteps"></div>
+  <div class="result" id="dsOut"></div>
+</div>
+<h3 id="s6-3"><span class="n">6.3</span>五种失败方式</h3>
+<p>课件第 14 页开头："As with every other primitive in this module, the mathematics is not usually the weak point."</p>
+<div class="tw"><table>
+<thead><tr><th>失败方式</th><th>发生了什么</th></tr></thead>
+<tbody>
+<tr><td>ECDSA 随机数复用</td><td>私钥从两个签名直接解出（<a href="#s6-2">6.2</a>）</td></tr>
+<tr><td>弱哈希</td><td>碰撞让一份文件上的签名适用于另一份（<a href="#s5-5">5.5</a>）</td></tr>
+<tr><td>不加填充的 RSA</td><td>代数伪造，修补是标准填充（<a href="#s5-4">5.4</a>）</td></tr>
+<tr><td>私钥被盗</td><td>"No mathematical property survives the key being copied."窃贼签的每个签名都完美通过验证——"Which is why signing keys live in hardware modules, and why revocation exists at all."</td></tr>
+<tr><td>验错了东西</td><td>实现只检查签名有效，却不检查用的是<strong>谁的</strong>公钥，或不检查被签数据到底说了什么——"Real vulnerabilities have come from libraries that returned 'valid' without checking the signer at all."</td></tr>
+</tbody></table></div>
+<p><span class="term">硬件安全模块</span><span class="en">（hardware security module，HSM）</span>：保管私钥、在内部完成签名运算的防篡改硬件，私钥导不出来。但能调用 HSM 的人仍能让它代签，签出来的同样完美通过验证，所以还要限制、记录谁能调用。</p>
+<p>"验错了东西"的例子：2014 年苹果 "goto fail" 漏洞，多写的一行代码让 TLS 实现跳过了服务器签名的检查；2022 年 Java 的 ECDSA 验证接受 <span class="m">r = s = 0</span> 这种明显无效的签名。</p>
+<p>课件总结："Four of these five are implementation or operational failures." 课件没说例外是哪条，按道理是弱哈希（算法本身被攻破）；不加填充也可算方案设计的错，但它有现成的标准修补，属于没按标准实现。</p>
+<h2 id="s7"><span class="n">7</span>信任问题</h2>
+<h3 id="s7-1"><span class="n">7.1</span>中间人：换掉公钥，什么运算都不报错</h3>
+<p><a href="#s2-1">2.1</a> 说签名能确定"哪把私钥的持有者"签的。第 2 部分的标题页（第 15 页）接着说："You can verify a signature perfectly and still have no idea who signed it." 第 16 页："It says nothing whatsoever about who that holder is."</p>
+<figure>
+<div id="figMitmW" class="only-wide"></div><div id="figMitmN" class="only-narrow"></div>
+<figcaption>中间人 Darth 只换掉了一把公钥，之后每一步密码运算都正常成功。图只画了加密方向。</figcaption>
+</figure>
+<p>图中四步（课件第 16 页；Darth 是 L7 沿用教材的攻击者名字）：</p>
+<ol>
+  <li>Darth 截下 Alice 向 Bob 索要公钥的请求；</li>
+  <li>Darth 把<strong>自己的</strong>公钥发回去，声称是 Bob 的；</li>
+  <li>Alice 用这把公钥加密发给"Bob"的消息；</li>
+  <li>Darth 用自己的私钥解开、读、改，再用 Bob 真正的公钥加密转发给 Bob。</li>
+</ol>
+<p>签名方向同理，只是箭头反过来：Bob 发给 Alice 的签名消息被 Darth 截下、篡改，Darth 用自己的私钥重新签名，Alice 按以为是 Bob 的 <span class="m">K<sub><span class="up">Darth</span></sub></span> 验证，照样通过。"No cryptographic operation fails at any point." 这是 L1 讲的<span class="term">冒充</span><span class="en">（masquerade，见 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-3">L1 5.3</a>）</span>，一种<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-2">主动攻击</a>。</p>
+<p>缺的是："A binding between a KEY and an IDENTITY. Cryptography can prove that two messages came from the same key holder. It cannot, by itself, tell you that the key holder is your bank." 一句话："Identity is not a mathematical property." 这就是 <a href="#s1-1">1.1</a> 第 3 环；课件说上一讲"authenticate the exchange"的答案不完整，"Today completes it."</p>
+<h3 id="s7-2"><span class="n">7.2</span>信任起点问题</h3>
+<p>课件第 16 页的信任起点问题（the bootstrapping problem，也叫自举问题）："To trust a new key you need a key you already trust. So trust cannot be created out of nothing — it has to start somewhere, and every system that claims otherwise has simply hidden where it started."</p>
+<p>所以工程上要做的不是避开起点，而是让它"small, visible and manageable"。证书体系的起点是浏览器里预装的那几百张<span class="term">根证书</span><span class="en">（root certificate：自己签自己、被直接信任的顶层 CA 证书，<a href="#s10-1">10.1</a> 详讲）</span>。</p>
+<h3 id="s7-3"><span class="n">7.3</span>分发公钥的办法</h3>
+<p>课件第 17 页列了三种。表里的<span class="term">指纹</span><span class="en">（fingerprint）</span>是公钥的哈希值，短到可以念出来核对；<span class="term">SSH</span><span class="en">（Secure Shell，安全外壳协议）</span>是远程登录协议，第一次连接时显示服务器公钥的指纹让你确认，之后就记住它，这叫<span class="term">首次使用即信任</span><span class="en">（trust on first use，TOFU）</span>。</p>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th>直接交换</th><th>公开目录</th><th>证书</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">怎么做</td><td>当面交出公钥，或在已可信的信道上念出指纹</td><td>可信机构维护"名字—公钥"目录，参与者登记、别人来查</td><td>可信机构对"名字—公钥"的绑定签名，持有该机构公钥的人都能验证</td></tr>
+<tr><td style="white-space:nowrap">为什么行</td><td>真正安全，没有第三方；SSH 主机密钥、核对软件指纹就这么做</td><td>概念简单；换钥匙时只改一处</td><td>验证不需在线查询，证明随公钥走；一把可信公钥能验成千上万张证书；使用时不必联系机构</td></tr>
+<tr><td style="white-space:nowrap">为什么不行</td><td>超过几个人就扩展不了</td><td>目录必须时刻在线；它是单一攻击目标，攻破它就能替换任何人的公钥；通往目录仍需可信信道</td><td>机构的公钥必须安全地拿到一次；机构被攻破后果严重</td></tr>
+</tbody></table></div>
+<div class="box warn">
+  <div class="h"><span class="tag">易错</span>教材列的是四种</div>
+<p>误：分发公钥只有直接交换、公开目录、证书三种办法。</p>
+<p style="margin-bottom:0">正：Stallings 第 8 版 15.3 节列四种——<span class="term">公开发布</span><span class="en">（public announcement：各人自己广播公钥，谁都能冒名发布）</span>、<span class="term">公开可访问的目录</span><span class="en">（publicly available directory）</span>、<span class="term">公钥权威机构</span>（public-key authority：在线机构，每次有人查某人的公钥，它就用自己的私钥签一份应答发回；它必须每次在线，是瓶颈也是攻击目标）、<span class="term">公钥证书</span><span class="en">（public-key certificates：把权威机构的签名做成可离线验证、随公钥流转的文件）</span>。四种是一条演进线，证书去掉了"权威机构必须时刻在线"这最后一个瓶颈。课件把"公开发布"放在了第 2 页的学生答案里，"公钥权威机构"没有出现。</p>
+</div>
+<p>模拟卷 Q2(d)（10 分，"公钥解密的基本步骤，配图"）的参考答案和规范答法见 <a href="L7%20%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81.html">L7 公钥密码</a>。本讲的补充落在第 ② 步"每个用户把公钥放进公开登记处，并收集别人的公钥"：它正是公开目录，没有把公钥与身份绑定。按 L7 的角色，Alice 用 Bob 的公钥加密——可 Alice 拿到的"Bob 的公钥"可能是 Darth 的（7.1）。答这道题时在第 ② 步后补一句"公钥与身份的绑定须由证书保证"并点出中间人风险，是有依据的加分点。</p>
+<h2 id="s8"><span class="n">8</span>证书</h2>
+<h3 id="s8-1"><span class="n">8.1</span>证书是一条签了名的陈述</h3>
+<p>课件第 18 页："A certificate is a signed statement: 'this public key belongs to this name', signed by an authority whose own key you already hold." 证书里被绑定的实体（网站、组织或个人）叫<span class="term">主体</span><span class="en">（subject）</span>，签发它的 CA 叫<span class="term">签发者</span><span class="en">（issuer）</span>。</p>
+<p>一张网站证书的诞生与使用分五步：</p>
+<ol>
+  <li><strong>主体生成密钥对</strong>：bank.com 生成私钥和配对的公钥，私钥从不离开它的服务器。</li>
+  <li><strong>主体向 CA 申请</strong>：发送公钥，并证明自己控制这个域名——在网站上放一个 CA 指定的挑战文件，或在域名系统里加一条 CA 指定的记录。</li>
+  <li><strong>CA 签名</strong>：CA 构造一条结构化记录——名称、公钥、有效期、用途——用<strong>自己的私钥</strong>对整条记录签名。</li>
+  <li><strong>主体出示证书</strong>：bank.com 把证书发给每个来访的浏览器。证书公开，里面没有秘密。</li>
+  <li><strong>客户端验证</strong>：浏览器用它<strong>已经持有的</strong> CA 公钥验证 CA 的签名，通过就接受"名字—公钥"的绑定。（这一步在课件上被提示框盖住，取自文字层。）</li>
+</ol>
+<p>提示框的话是整套体系的要害："Notice what step 5 requires: the client must ALREADY hold the CA's public key, securely. That key was not obtained by certificate — it shipped with the browser or the operating system. That is where the trust actually starts." 这就是 <a href="#s7-2">7.2</a> 那个起点的具体位置。</p>
+<p>第 2 步的细节：</p>
+<ul>
+  <li><span class="term">DNS</span><span class="en">（Domain Name System，域名系统）</span>是把域名翻译成 IP 地址（Internet Protocol address，网上每台主机的数字地址）的互联网目录；只有域名的控制者能往里加记录，所以"按要求加一条记录"能证明控制权。</li>
+  <li>这两种证明方式来自 <span class="term">ACME</span>（Automatic Certificate Management Environment，自动证书管理环境，RFC 8555）协议，叫 http-01 和 dns-01 挑战；免费 CA Let's Encrypt 推动了它的普及，意义见 <a href="#s11-5">11.5</a>。</li>
+  <li>实际提交的通常是一份 <span class="term">CSR</span><span class="en">（certificate signing request，证书签名请求）</span>：申请者用自己的私钥对"公钥 + 名称"签名，CA 用其中的公钥验这个签名，顺带确认申请者持有配对的私钥。课件第 36 页的实验预告提到了它。</li>
+</ul>
+<h3 id="s8-2"><span class="n">8.2</span>课堂活动 3：自己设计证书</h3>
+<p>题目（第 19 页）：从零设计证书格式，CA 会对它签名，全世界的浏览器都依赖它。它显然要包含主体名称和公钥，但只有这两项不够。(a) 至少再列四个字段，各说出防的攻击；(b) 一张证书只含名称和公钥、签名正确，说出两种仍然可行的攻击；(c) 证书该保密吗？一句话说理由；(d) CA 的签名到底要覆盖什么？只覆盖一部分会怎样？课件页底："You are reinventing X.509."（X.509 是通行的证书格式标准，第 9 节。）</p>
+<p>课件答案给了七个字段：</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap">字段</th><th>内容</th><th>没有它会怎样</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">主体名称</td><td>公钥属于谁：域名、组织或个人</td><td>公钥是匿名的</td></tr>
+<tr><td style="white-space:nowrap">公钥</td><td>被认证的公钥及其算法</td><td>这就是被绑定的东西本身</td></tr>
+<tr><td style="white-space:nowrap"><strong>有效期</strong></td><td>起始与截止日期（not-before、not-after）</td><td>被盗的私钥永远有效；有日期，损失才有期限</td></tr>
+<tr><td style="white-space:nowrap"><strong>签发者名称</strong></td><td>哪个 CA 签发的</td><td>验证者不知道该用谁的公钥验签名</td></tr>
+<tr><td style="white-space:nowrap"><strong>序列号</strong></td><td>签发者分配的唯一编号</td><td>无法吊销：想撤回一张证书，得先能叫出它的名字</td></tr>
+<tr><td style="white-space:nowrap"><strong>密钥用途</strong></td><td>这把公钥能干什么：签名、加密、签发别的证书</td><td>证书被挪作他用，比如网站证书被拿去签发更多证书</td></tr>
+<tr><td style="white-space:nowrap">签名</td><td>CA 对以上<strong>全部</strong>内容的签名</td><td>以上每个字段都能被篡改而不被发现</td></tr>
+</tbody></table></div>
+<details class="box">
+  <summary>活动 3 的 (b)(c)(d) 解答</summary>
+<p><strong>(b)</strong> 课件答案：没有日期，被盗的私钥永远被信任；没有签发者，不知道该验谁的签名。另外两种也成立：没有用途限制，普通证书可被当作 CA 证书签发别的证书（<a href="#s10-4">活动 4 的 C</a>）；没有序列号，出了事无法吊销。</p>
+<p><strong>(c)</strong> 不该。证书按设计就公开、不含秘密，它的用途就是让所有人读到"这把公钥属于谁"并检验；秘密的私钥从不在证书里。</p>
+<p><strong>(d)</strong> 签名必须覆盖<strong>每一个</strong>字段（真实格式里连"签名算法"字段也在内），没被覆盖的字段可以随意修改而签名照样有效。攻击者最想改的是主体名称（换成想冒充的域名）和公钥（换成自己的）。</p>
+<p style="margin-bottom:0">课件答案以外还可以答 <a href="#s9-2">9.2</a> 的扩展：扩展密钥用途、CA 标志、吊销信息的位置，以及签名算法标识（防止把算法换成弱的）。</p>
+</details>
+<h2 id="s9"><span class="n">9</span>X.509 证书格式</h2>
+<h3 id="s9-1"><span class="n">9.1</span>九个字段</h3>
+<p><strong>X.509</strong> 是 ITU-T（International Telecommunication Union Telecommunication Standardization Sector，国际电信联盟电信标准化部门）制定的证书格式标准，<a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s5-1">X.800</a> 也出自这个机构。第 3 版（v3）通行全球，每条 HTTPS 连接背后都是它。</p>
+<figure>
+<div id="figX509W" class="only-wide" style="max-width:640px"></div><div id="figX509N" class="only-narrow" style="max-width:640px"></div>
+<figcaption>课件第 22 页：X.509 v3 证书从上到下的九个字段。</figcaption>
+</figure>
+<ul>
+  <li><strong>Version</strong>（版本）：3。</li>
+  <li><strong>Serial number</strong>（序列号）：在同一签发者范围内唯一。</li>
+  <li><strong>Signature algorithm</strong>（签名算法）：如 "SHA-256 with ECDSA"，即先用 SHA-256 算摘要、再用 ECDSA 签名。</li>
+  <li><strong>Issuer name</strong>（签发者名称）：签这张证书的 CA。</li>
+  <li><strong>Validity</strong>（有效期）：not-before / not-after。</li>
+  <li><strong>Subject name</strong>（主体名称）：公钥属于的实体。</li>
+  <li><strong>Subject public key info</strong>（主体公钥信息）：算法 + 公钥本身。</li>
+  <li><strong>Extensions</strong>（扩展，v3 才有）：密钥用途、主体备用名、CA 标志、吊销信息的位置等，见下一小节。</li>
+  <li><strong>Signature</strong>（签名）：CA 对<strong>以上全部内容</strong>的签名。</li>
+</ul>
+<p>九项和活动 3 的七个字段一一对得上，多出版本号和签名算法。签名之前的部分合起来叫 <span class="term">TBSCertificate</span><span class="en">（to-be-signed certificate，待签名的证书主体）</span>：CA 对这一整块算摘要、再签名，签名值附在最后。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件的字段表做了简化</div>
+<p>误：X.509 v3 证书就是这九个字段，版本字段里写的是 3。</p>
+<p style="margin-bottom:0">正（RFC 5280 第 4.1 节）：版本号从 0 起算，<span class="term">"v3" 编码为整数 2</span><span class="en">（OpenSSL 显示 <code>Version: 3 (0x2)</code>）</span>；第 2 版加入的<span class="term">签发者唯一标识</span><span class="en">（issuerUniqueID）</span>和<span class="term">主体唯一标识</span><span class="en">（subjectUniqueID）</span>两个可选字段课件省略了；<strong>签名算法标识出现两次</strong>，一次在 TBSCertificate 里（受签名保护，防止被换成别的算法），一次在签名值旁边，两者必须一致。考试列字段按课件九项写即可，被问"v2 加了什么"答两个唯一标识。</p>
+</div>
+<h3 id="s9-2"><span class="n">9.2</span>扩展才是干活的部分</h3>
+<p>课件："The extensions do the real work."</p>
+<ul>
+  <li><span class="term">主体备用名</span><span class="en">（Subject Alternative Name，SAN）</span>：证书适用的域名清单，如 <code>DNS:bank.com, DNS:www.bank.com</code>。"Modern browsers ignore the subject name and use this." 主体名称里过去放域名的那一项叫 <span class="term">CN</span><span class="en">（common name，通用名）</span>，Chrome 从 2017 年起完全不看它。SAN 可以写<span class="term">通配符</span><span class="en">（wildcard）</span><code>*.bank.com</code>，只匹配<strong>最左边恰好一级</strong>：匹配 <code>www.bank.com</code>，不匹配 <code>bank.com</code> 本身，也不匹配 <code>a.b.bank.com</code>。</li>
+  <li><span class="term">基本约束</span><span class="en">（Basic Constraints）</span>：其中的 <span class="term">CA 标志</span><span class="en">（CA flag）</span>为 FALSE 时，这张证书<strong>不得</strong>签发别的证书；还可带<span class="term">路径长度约束</span><span class="en">（pathLenConstraint）</span>，限定它下面最多还能有几层中间 CA（终端证书不计）。</li>
+  <li><span class="term">密钥用途</span><span class="en">（Key Usage）</span>：一组开关，常见的有数字签名（digitalSignature）、密钥加密（keyEncipherment）、密钥协商（keyAgreement）、签发证书（keyCertSign）、签发吊销列表（cRLSign）。</li>
+  <li><span class="term">扩展密钥用途</span><span class="en">（Extended Key Usage，EKU，课件没提）</span>：限定应用场景，如 TLS 服务器认证（serverAuth）或代码签名（codeSigning）。网站证书必须含 serverAuth。</li>
+</ul>
+<p>扩展还可以标成<span class="term">关键</span><span class="en">（critical）</span>：客户端遇到不认识的关键扩展，必须拒绝整张证书。</p>
+<p><strong>为什么基本约束要紧</strong>：客户端若不检查 CA 标志，任何持有普通网站证书的人都能拿它给<strong>任何域名</strong>签证书并被接受。课件："Major browsers and libraries have shipped with exactly this bug, and it converts one cheap certificate into the ability to impersonate the entire web." 例：2002 年微软 IE（Internet Explorer 浏览器）、2011 年苹果 iOS 都出过这个漏洞。</p>
+<h3 id="s9-3"><span class="n">9.3</span>一张证书实际长什么样</h3>
+<p>用 OpenSSL 签发的一张网站证书（公钥和签名值截短了）。<code>Data</code> 那一块就是 TBSCertificate，可以和九个字段逐项对照：</p>
+<pre><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 16:db:4f:91:37:06:6f:a8:…
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = Toy Intermediate CA
+        Validity
+            Not Before: Nov 21 18:59:33 2026 GMT
+            Not After : Feb 19 18:59:33 2027 GMT
+        Subject: CN = bank.com
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage:
+                TLS Web Server Authentication
+            X509v3 Subject Alternative Name:
+                DNS:bank.com, DNS:www.bank.com
+    Signature Algorithm: ecdsa-with-SHA256
+    Signature Value:
+        30:46:02:21:00:8d:41:69:…</code></pre>
+<h2 id="s10"><span class="n">10</span>信任链与客户端校验</h2>
+<h3 id="s10-1"><span class="n">10.1</span>根、中间、终端</h3>
+<p>没有哪个机构亲自签发每一张证书。证书连成<strong>链</strong>：每一张由上面那一张的私钥签发，一直到一个自己签自己的根。这条链叫<span class="term">信任链</span><span class="en">（chain of trust）</span>。</p>
+<figure>
+<div id="figChain" style="max-width:470px"></div>
+<figcaption>三级证书链：每张证书的 Issuer 指向上一张的 Subject，签名用上一张证书里的公钥验。</figcaption>
+</figure>
+<p>从下往上读：</p>
+<ul>
+  <li><span class="term">终端实体证书</span><span class="en">（end-entity certificate）</span>：bank.com 实际出示的那张，CA 标志为 FALSE，"so it can sign data but not further certificates"。它的 Issuer 是 "Intermediate CA"，客户端据此找到 Subject 为 "Intermediate CA" 的证书，用<strong>那张证书里的公钥</strong> <span class="m">K<sub><span class="up">inter</span></sub></span> 验终端证书的签名（图中 ①）。</li>
+  <li><span class="term">中间 CA 证书</span><span class="en">（intermediate CA）</span>："Does the day-to-day issuing. If it is compromised, only it needs replacing — the root survives. This is why roots stay offline." 用根的公钥 <span class="m">K<sub><span class="up">root</span></sub></span> 验它的签名（图中 ②）。</li>
+  <li><span class="term">根 CA 证书</span><span class="en">（root CA）</span>：Subject 与 Issuer 相同，用自己的私钥签自己，叫<span class="term">自签名</span><span class="en">（self-signed）</span>。"Its public key ships with your browser or operating system. Nothing vouches for it — it is trusted by decision, not by proof." 存放这些根证书的地方叫<span class="term">信任库</span><span class="en">（trust store）</span>。</li>
+</ul>
+<p>验证到根就停，"because the root is already in its trust store. Each link is one signature check." 谁都能给自己签一张自称是根的证书，所以自签名本身不提供信任，信任完全来自"它被预装进信任库"这一决定。也因此服务器发链时一般不发根。</p>
+<p>课件同页："The chain is only as strong as its weakest link."——第 <a href="#s12">12</a> 节展开。</p>
+<h3 id="s10-2"><span class="n">10.2</span>客户端的八项检查</h3>
+<p>课件第 3 页说，证书是这门课里第一个真正的协议对象：有定义好的字段、覆盖它们的签名、一组接收方必须执行的检查——读懂它、知道哪些检查要紧，就是 ILO 2 的"解读协议"。第 24 页列出了这组检查："Failing any one of them should abort the connection."</p>
+<div class="tw"><table>
+<thead><tr><th>检查</th><th>检查什么</th><th>失败意味着</th></tr></thead>
+<tbody>
+<tr><td>签名链（signature chain）</td><td>每张证书都能用上一张证书的公钥验过，一直到可信根</td><td>证书被伪造或篡改</td></tr>
+<tr><td>可信根（trusted root）</td><td>链终止于一个已在信任库里的根</td><td>没有你信任的人为它担保</td></tr>
+<tr><td>有效期（validity dates）</td><td>今天在 not-before 和 not-after 之间，<strong>链上每一张</strong>都要</td><td>已过期或尚未生效——常常是时钟出了问题</td></tr>
+<tr><td>名称匹配（name match）</td><td>你输入的域名出现在 SAN 清单里</td><td>一张有效的证书，却是别的网站的</td></tr>
+<tr><td>基本约束（Basic Constraints）</td><td>终端之上的每张证书 CA = true；终端 CA = false</td><td>一张普通证书正在被用来签发别的证书</td></tr>
+<tr><td>密钥用途（key usage）</td><td>这把钥匙正被用于证书允许的用途</td><td>签名用的钥匙被拿去做密钥交换之类</td></tr>
+<tr><td>吊销状态（revocation status）</td><td>证书没有被签发者撤回（<strong>吊销</strong> revocation，机制见<a href="#s11">第 11 节</a>）</td><td>私钥已泄露，证书已被撤下</td></tr>
+<tr><td><span class="term">持有私钥</span><span class="en">（possession of the private key）</span></td><td>服务器在 TLS 握手中证明自己持有证书公钥配对的私钥</td><td>攻击者复制了证书，但没有私钥</td></tr>
+</tbody></table></div>
+<p>第 8 项在课件上被黑条盖住了，而黑条说的正是它："The last check is the one people forget: a certificate is public, so anyone can copy it. Only proof of the private key turns it into evidence of identity." 前七项只检查证书这份<strong>公开文件</strong>，原样复制来的 bank.com 证书七项全过；只有第 8 项要求对方当场用私钥做一件事。在 TLS 1.3 里这一步叫 <strong>CertificateVerify</strong>：服务器用私钥对整个握手记录签名，客户端用证书里的公钥验证，<a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a> 会讲它在握手里的位置。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>八项清单的两处不严谨</div>
+<p>误一：终端证书必须写明 CA = false。</p>
+<p>正：RFC 5280 和 <span class="term">CA/B 论坛</span><span class="en">（CA/Browser Forum，各大 CA 与浏览器厂商共同制定公共 TLS 证书规则的组织）</span>的规则 Baseline Requirements 都不要求终端证书带基本约束扩展；后者只规定，带了的话 cA 必须为 FALSE。所以"终端 CA = false"的准确含义是"终端不能是 CA"，不是"必须写出 CA:FALSE"。路径校验真正检查的是<strong>签过别人的</strong>证书：CA = true、带密钥用途扩展时须含签发证书、满足路径长度约束。</p>
+<p>误二：八项就是全部。</p>
+<p style="margin-bottom:0">正：实际客户端还查扩展密钥用途（网站要 serverAuth）、路径长度约束、<span class="term">名称约束</span><span class="en">（Name Constraints：把一个 CA 限定在某些域名之下的扩展，见 12.2）</span>，以及证书透明度的收据（12.3）。这些检查并不保证互相兜底：本笔记复现活动 4 的 C 时三项同时报错，是因为玩具中间 CA 设了路径长度 0、mail 证书的密钥用途里没有签发证书；换一种配置，可能只剩基本约束这一道关。所以课件说漏掉它就可能全面失守。</p>
+</div>
+<h3 id="s10-3"><span class="n">10.3</span>手工校验一条链：答题步骤</h3>
+<p>把八项检查排成能照着做的顺序。拿到"终端证书 + 服务器发来的中间证书 + 客户端信任库 + 今天的日期 + 用户输入的域名"，依次做：</p>
+<ol>
+  <li><strong>建链</strong>：从终端证书开始，按它的 Issuer 找 Subject 相同的证书，再往上找，直到信任库里的根。找不到下一张（如服务器漏发中间证书、本地也没有）→ 拒绝，"可信根"失败。</li>
+  <li><strong>逐级验签</strong>：每张证书的签名用<strong>上一张证书里的公钥</strong>验。验不过 → 拒绝，"签名链"失败。</li>
+  <li><strong>逐张查有效期</strong>：根、中间、终端都要在有效期内。</li>
+  <li><strong>查每一张签过别人的证书</strong>：CA 标志为 true；带密钥用途扩展时须含签发证书；它下面的中间 CA 层数不超过它的路径长度约束。普通证书签了别的证书 → 拒绝，"基本约束"失败。</li>
+  <li><strong>查终端证书的名称与用途</strong>：SAN 含用户输入的域名（按<a href="#s9-2">通配符规则</a>）；密钥用途、扩展密钥用途允许当前用途。</li>
+  <li><strong>查吊销</strong>：链上每张都没被撤回。</li>
+  <li><strong>要求持有证明</strong>：握手中服务器用终端证书的私钥签名，客户端用证书公钥验。</li>
+</ol>
+<p>前六步只用到公开数据，第 7 步才把"这份文件"和"正在跟我说话的这台服务器"连起来。答判断题写四样：<strong>接受还是拒绝；哪一项检查失败；依据（题面里的具体数据）；后果</strong>。</p>
+<h3 id="s10-4"><span class="n">10.4</span>课堂活动 4：找出问题</h3>
+<p>题目（第 26 页）：四张证书出示给浏览器，按校验清单判断接受还是拒绝，并说出哪一项检查失败。</p>
+<ul>
+  <li><strong>A</strong>：SAN 为 bank.com；有效期 2026-01-01 至 2027-01-01；链能验到可信根；你输入的是 www.bank.com。</li>
+  <li><strong>B</strong>：SAN 为 shop.example；有效期 2025-03-01 至 2026-03-01；链能验通；今天是 2026 年 8 月 7 日；你输入的是 shop.example。</li>
+  <li><strong>C</strong>：SAN 为 mail.example；日期有效；签它的那张证书的基本约束写着 CA = FALSE；你输入的是 mail.example。</li>
+  <li><strong>D</strong>：SAN 为 bank.com；日期有效；链能验到可信根；但握手中服务器完成不了持有私钥的证明。</li>
+</ul>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th style="white-space:nowrap">判定</th><th style="white-space:nowrap">失败的检查</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">A</td><td style="white-space:nowrap"><strong>拒绝</strong></td><td style="white-space:nowrap">名称匹配</td><td>SAN 只有 bank.com，你要的是 www.bank.com，两个不同的名字互不蕴含。真实证书会两个都列，或用通配符（但 <code>*.bank.com</code> 不覆盖 bank.com 本身，两个都列最稳）</td></tr>
+<tr><td style="white-space:nowrap">B</td><td style="white-space:nowrap"><strong>拒绝</strong></td><td style="white-space:nowrap">有效期</td><td>2026 年 3 月 1 日就过期了（到 8 月 7 日已过 159 天）。其余都对，单凭过期就足以拒绝</td></tr>
+<tr><td style="white-space:nowrap">C</td><td style="white-space:nowrap"><strong>拒绝</strong></td><td style="white-space:nowrap">基本约束</td><td>签发者无权签发证书。CA = FALSE 的证书可以签数据，永远不能签别的证书</td></tr>
+<tr><td style="white-space:nowrap">D</td><td style="white-space:nowrap"><strong>拒绝</strong></td><td style="white-space:nowrap">持有私钥</td><td>证书本身真实有效，但服务器没有配对的私钥，几乎肯定是复制来的</td></tr>
+</tbody></table></div>
+<div class="tool" id="chTool">
+  <h4>证书链校验判定器</h4>
+  <p class="sub">一条三级链：终端证书 ← Intermediate CA ← Root CA。改任何一格，按 10.3 的七步逐项判定，结果照「接受还是拒绝；哪一项检查失败；依据；后果」写出。四个活动 4 的情形和几种别的失败都有预设。</p>
+  <div class="row pre">
+    <button class="btn" data-k="ok" onclick="chSet('ok')">全部正常</button>
+    <button class="btn" data-k="A" onclick="chSet('A')">活动 4 A</button>
+    <button class="btn" data-k="B" onclick="chSet('B')">B</button>
+    <button class="btn" data-k="C" onclick="chSet('C')">C</button>
+    <button class="btn" data-k="D" onclick="chSet('D')">D</button>
+    <button class="btn" data-k="wild" onclick="chSet('wild')">通配符配裸域名</button>
+    <button class="btn" data-k="miss" onclick="chSet('miss')">漏发中间证书</button>
+    <button class="btn" data-k="soft" onclick="chSet('soft')">吊销查不到·软失败</button>
+  </div>
+  <div class="chgrid">
+    <fieldset><legend>客户端</legend>
+      <span class="ctl"><label for="chToday">今天</label><input type="text" id="chToday" class="date" oninput="chGo()"></span>
+      <span class="ctl"><label for="chTyped">你输入的域名</label><input type="text" id="chTyped" class="dom" oninput="chGo()"></span>
+      <span class="ctl"><label for="chRev">吊销查询</label><select id="chRev" onchange="chGo()"><option value="good">没吊销</option><option value="revoked">已吊销</option><option value="unknown">查不到</option></select></span>
+      <span class="ctl"><label for="chPol">查不到时</label><select id="chPol" onchange="chGo()"><option value="soft">软失败（放行）</option><option value="hard">硬失败（拒绝）</option></select></span>
+      <label><input type="checkbox" id="chPos" onchange="chGo()"> 服务器在握手中证明了持有私钥</label>
+    </fieldset>
+    <fieldset><legend>终端证书</legend>
+      <span class="ctl"><label for="chSan">SAN</label><input type="text" id="chSan" class="dom" oninput="chGo()"></span>
+      <span class="ctl"><label for="chLnb">有效期</label><input type="text" id="chLnb" class="date" oninput="chGo()"><label for="chLna">至</label><input type="text" id="chLna" class="date" oninput="chGo()"></span>
+      <label><input type="checkbox" id="chLsig" onchange="chGo()"> 签名验得过</label>
+    </fieldset>
+    <fieldset><legend>中间 CA 证书（路径长度 0）</legend>
+      <label><input type="checkbox" id="chIca" onchange="chGo()"> 基本约束 CA = TRUE</label>
+      <span class="ctl"><label for="chInb">有效期</label><input type="text" id="chInb" class="date" oninput="chGo()"><label for="chIna">至</label><input type="text" id="chIna" class="date" oninput="chGo()"></span>
+      <label><input type="checkbox" id="chIsent" onchange="chGo()"> 服务器发了它</label>
+      <label><input type="checkbox" id="chIsig" onchange="chGo()"> 签名验得过</label>
+    </fieldset>
+    <fieldset><legend>根 CA 证书</legend>
+      <label><input type="checkbox" id="chRstore" onchange="chGo()"> 在客户端的信任库里</label>
+      <span class="ctl"><label for="chRnb">有效期</label><input type="text" id="chRnb" class="date" oninput="chGo()"><label for="chRna">至</label><input type="text" id="chRna" class="date" oninput="chGo()"></span>
+    </fieldset>
+  </div>
+  <div class="steps" id="chSteps"></div>
+  <div class="result" id="chOut"></div>
+</div>
+<p><strong>配对讨论：假如 C 里浏览器不检查基本约束，持证人能做什么？</strong> 课件："If the Basic Constraints check is skipped, one ordinary certificate becomes a certificate authority." mail.example 的持有者可以用自己的私钥给 bank.com 或任何域名签证书；链"伪造的 bank.com 证书 → mail.example 证书 → 中间 CA → 根"每一环在签名层面都成立，带漏洞的浏览器就会接受。范围是<strong>所有带漏洞的客户端 × 所有域名</strong>，他还能把这种能力卖给别人，直到 mail.example 的证书过期或被吊销——而吊销本身又靠不住（<a href="#s11-3">11.3</a>）。</p>
+<p>课件最后："In practice most certificate errors are cases B — expiry — and they are operational failures, not attacks." "Which is why users learn to click through warnings — and why that habit is so dangerous." 被过期警告训练成随手点"继续"的用户，遇到 A、C、D 那样的攻击也会照点不误。</p>
+<h2 id="s11"><span class="n">11</span>证书的寿命：吊销与过期</h2>
+<h3 id="s11-1"><span class="n">11.1</span>为什么需要吊销</h3>
+<p>课件第 25 页："Keys are stolen, employees leave, and certificates are issued in error. A certificate is valid until its expiry date unless something actively withdraws it." 证书上的签名永远有效；要在到期前让它失效，签发者必须<strong>另外发布</strong>一份"这张作废了"的声明，客户端还得去查。吊销声明靠<a href="#s8-2">序列号</a>指出是哪一张。</p>
+<h3 id="s11-2"><span class="n">11.2</span>CRL、OCSP 与 OCSP 装订</h3>
+<div class="tw"><table class="wide">
+<thead><tr><th style="white-space:nowrap"></th><th>CRL</th><th>OCSP</th><th>OCSP 装订</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">全称</td><td>certificate revocation list，证书吊销列表</td><td>Online Certificate Status Protocol，在线证书状态协议</td><td>OCSP stapling，"服务器自己去取状态"</td></tr>
+<tr><td style="white-space:nowrap">怎么做</td><td>CA 发布一份签名的已吊销序列号清单，客户端定期下载</td><td>客户端每次实时问 CA："这一张现在还有效吗？"</td><td>服务器定期从 CA 取一份签名的近期状态，握手时直接附给客户端</td></tr>
+<tr><td style="white-space:nowrap">好处</td><td>简单；下载后可离线验证</td><td>答案新鲜，应答很小</td><td>不用额外查询，不泄露隐私</td></tr>
+<tr><td style="white-space:nowrap">坏处</td><td>清单越来越大；两次刷新之间信息过时</td><td>每次连接都要在线查；<strong>向 CA 泄露你访问了哪些网站</strong>；查不到时大多数客户端照样继续——攻击者可以故意制造这种情况</td><td>服务器要保证附上的应答一直新鲜</td></tr>
+</tbody></table></div>
+<p>"装订"的画面是：服务器把 CA 盖过章的状态证明订在证书上一起交出，客户端不必自己去问 CA。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>课件对吊销机制的两处说法与现状不符</div>
+<p>误一："The list grows without bound."（CRL 无限增长）</p>
+<p>正：RFC 5280 允许证书过期后把它移出 CRL，另有只发布增量的差量 CRL、按范围拆分的分区 CRL。CRL 的真正问题是体积大、刷新有延迟。</p>
+<p>误二：OCSP 装订是 "Now the normal approach"。</p>
+<p>正（2026 年现状）：CA/B 论坛 2023 年决议，自 2024 年 3 月起 CRL 必选、OCSP 可选；最大的公共 CA Let's Encrypt 已于 2025 年关停 OCSP，理由正是隐私泄露。浏览器改由厂商汇总各 CA 的吊销信息推送给浏览器：Chrome 用 CRLSets；Firefox 137 版（2025 年）起在桌面端启用 CRLite，142 版起对域名验证证书不再做 OCSP。主流做法成了"CRL + 浏览器端汇总 + 短有效期"。</p>
+<p style="margin-bottom:0">课件对三种机制优缺点的分析仍然正确，并且恰好解释了 OCSP 为什么被放弃；考场上按课件分析作答，再补一句现状即可。</p>
+</div>
+<h3 id="s11-3"><span class="n">11.3</span>软失败：吊销是全系统最弱的一环</h3>
+<p>课件："Most clients treat a failed revocation check as a pass rather than a failure — because failing closed would break the web every time a responder had an outage."</p>
+<ul>
+  <li><span class="term">软失败</span><span class="en">（soft-fail，也叫失败开放 fail open）</span>：查不到吊销状态时按"没吊销"放行；</li>
+  <li><span class="term">硬失败</span><span class="en">（hard-fail，失败关闭 fail closed）</span>：查不到就拒绝连接。</li>
+</ul>
+<p>软失败违反的正是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s7-3">L1 的故障安全默认</a>（出错时默认拒绝，宁可停机也不暴露）；客户端这样选，是因为 OCSP 服务器宕机一次，硬失败就会让所有用它的网站同时打不开。代价：<strong>攻击者只要挡住吊销查询</strong>（他已在中间人位置，挡一个请求轻而易举），效果就和"已吊销的证书被接受"一样。Chrome 安全工程师 Adam Langley 2012 年的比喻：软失败的吊销检查像一条撞车时会断的安全带。</p>
+<p>于是 "shorten certificate lifetimes drastically, so that expiry does the work revocation cannot"：证书只活几周或几个月，被盗私钥能被利用的窗口也就这么长。</p>
+<h3 id="s11-4"><span class="n">11.4</span>过期：最常见的证书事故</h3>
+<p>课件第 31 页："Most real certificate incidents are not attacks. They are a certificate nobody renewed." 原因有四条：证书装一次就被遗忘，装的人往往已离职；安装时到期日在一年以后，没人设提醒；大机构有成千上万张，散在服务器、负载均衡器（把流量分摊到多台服务器的设备）、内部服务和各种设备上；机器对机器的证书没有用户看到警告。</p>
+<p>丢的是哪个安全目标？"AVAILABILITY — not confidentiality or integrity." 密码学一切正常，只是服务用不了：客户端拒绝连接，或者用户看到一个本不该被训练去忽略的警告。这是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s4-1">CIA</a> 里的可用性。课件把它说成 L1 的一个观点："a control can itself cause an incident."——L1 笔记里对应的是 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s7-3">故障安全默认</a>那条：安全控制出错时宁可造成看得见的停机，也不要看不见的暴露。过期正是一种按设计"拒绝"造成的停机。</p>
+<h3 id="s11-5"><span class="n">11.5</span>短有效期加自动化</h3>
+<p>课件："Short lifetimes limit the damage from a compromised key and reduce reliance on revocation, which we saw barely works. Long lifetimes reduce the operational burden and the chance of an outage."</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap"></th><th>短有效期</th><th>长有效期</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">好处</td><td>被盗私钥的可用窗口短；不再依赖吊销</td><td>运维省事，过期事故少</td></tr>
+<tr><td style="white-space:nowrap">代价</td><td>换证频繁，人工操作必然出错</td><td>私钥泄露后长期可用；只能指望靠不住的吊销</td></tr>
+</tbody></table></div>
+<p>行业选择了<strong>短有效期</strong>，并用<strong>完全自动化</strong>的签发和续期（ACME：服务器上的程序自动证明域名控制权、领新证书、换上，全程无人）让它变得可以承受。</p>
+<p>课件认为这是全课最有用的思想之一："The answer to 'this control causes outages' was not to weaken the control. It was to automate the process around it until the control could be applied far more aggressively than before."</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>"从几年降到几周"还只是方向（2026 年的现状）</div>
+<p>课件："Certificate validity has fallen from years to weeks."</p>
+<p>误：公共证书的有效期现在已经是几周。</p>
+<p style="margin-bottom:0">正：截至 2026 年 11 月，公共 TLS 证书最长 <strong>200 天</strong>（2026 年 3 月 15 日起，此前 398 天）；按 CA/B 论坛 2025 年的 SC-081 决议，2027 年 3 月 15 日起 <strong>100 天</strong>，2029 年 3 月 15 日起 <strong>47 天</strong>。Let's Encrypt 默认 90 天，另有可选的约 6 天短期证书。"几周"对一部分证书已是现实，对整个行业还是正在走的方向。</p>
+</div>
+<h2 id="s12"><span class="n">12</span>PKI 怎么失败</h2>
+<h3 id="s12-1"><span class="n">12.1</span>误发：证书在密码学上完美，绑定却是假的</h3>
+<p>第 4 部分标题页："The mathematics has never been the problem here either." 核心风险是<span class="term">误发</span><span class="en">（mis-issuance：CA 把证书发给了并不拥有那个名字的人）</span>："A certificate is only as trustworthy as the CA's validation process."</p>
+<div class="tw"><table>
+<thead><tr><th style="white-space:nowrap">类型</th><th>怎么发生</th><th>例子与点评</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap">CA 被攻破</td><td>攻击者入侵 CA 的系统，直接给任何域名签证书；每个浏览器都接受，因为链是真的</td><td>课件说的荷兰 CA 即 <strong>DigiNotar</strong>：2011 年被入侵，签出 500 多张伪造证书，<code>*.google.com</code> 被用来对伊朗用户的 Gmail 做中间人攻击；被各浏览器移出信任库后当年破产</td></tr>
+<tr><td style="white-space:nowrap">验证失败</td><td>CA 诚实，但域名控制检查太弱或实现有误，申请者拿到不属于自己的名字的证书</td><td>"Automated validation has repeatedly been found accepting proofs that a determined applicant could fake."</td></tr>
+<tr><td style="white-space:nowrap">内部人员或胁迫</td><td>CA 内部有人故意签发，或被有权管辖它的机构强迫签发</td><td>不是技术漏洞，再多的密码学也没用</td></tr>
+<tr><td style="white-space:nowrap">子 CA 委托</td><td>CA 给客户签发一张中间 CA 证书，客户就能为<strong>任何</strong>域名签证书</td><td>合法用途是企业流量检查，泄露或管理不善就是灾难；如 Trustwave（2012）、TÜRKTRUST（2013）</td></tr>
+</tbody></table></div>
+<p><span class="term">流量检查</span><span class="en">（traffic inspection）</span>：企业为查毒、防泄密，在网关上把员工的 HTTPS 流量解密、检查、再加密转发——技术上就是一次中间人攻击，只是出于管理目的。</p>
+<p>"In every case the certificate is cryptographically perfect. Verification succeeds. The binding between name and key is simply false." 误发的证书能通过<a href="#s10-2">八项检查</a>的每一项：清单只能证明"某个受信任的 CA 签过它"，证明不了"CA 签对了"。</p>
+<h3 id="s12-2"><span class="n">12.2</span>最弱一环</h3>
+<p>课件第 30 页："Your browser trusts a few hundred root certificates. ANY of them can issue a valid certificate for ANY domain."</p>
+<ol>
+  <li><strong>没有按域名划分</strong>：一个国家的 CA 可以为另一个国家的银行签证书，"that is a policy matter, not a technical one."</li>
+  <li><strong>它们不是你选的</strong>：信任库随浏览器或操作系统预装，几乎没人看过；删掉一项往往让不相干的网站打不开。</li>
+  <li><strong>最弱的那个决定安全水平</strong>：攻击者不必攻破给真证书签名的那家 CA，只要攻破信任库里管理最差的那家，或任何一家下面最差的中间 CA。</li>
+  <li><strong>企业流量检查是同一个机制</strong>：机构在管理的电脑上装自己的根以解密流量，"indistinguishable from an attack — because structurally it is the same thing."</li>
+</ol>
+<p>课件："This is Lecture 1's attack surface argument applied to trust: the surface is not one authority, it is every authority." 即 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s6-2">L1 的攻击面</a>（对手够得着、用得上的漏洞的集合）：对整个 PKI，攻击面是信任库里<strong>每一个</strong> CA。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>X.509 其实有限定 CA 范围的机制</div>
+<p>课件："Nothing in the design restricts which names a CA may certify."</p>
+<p>误：X.509 在技术上无法限制一个 CA 能为哪些名字签证书。</p>
+<p style="margin-bottom:0">正：X.509 有名称约束扩展（RFC 5280 第 4.2.1.10 节），能把一个 CA 限定在某些域名之下，如只许签 <code>*.corp.example</code>。公共根基本不用它，课件"这是政策问题"的结论大体成立，但"设计里没有"不准确。企业内部 CA 正好可以用它（<a href="#s12-4">12.4</a>）。</p>
+</div>
+<h3 id="s12-3"><span class="n">12.3</span>现在靠什么保护</h3>
+<p>"PKI has not been redesigned. It has been surrounded with mechanisms that make mis-issuance detectable and short-lived."</p>
+<div class="tw"><table>
+<thead><tr><th>机制</th><th>是什么</th><th>起什么作用</th></tr></thead>
+<tbody>
+<tr><td><span class="term">证书透明度</span><span class="en">（CT）</span></td><td>CA 签发的每张证书都必须公布到公开的、只能追加的日志里；浏览器拒绝没登记过的证书</td><td>不阻止误发，而是让误发<strong>藏不住</strong>：域名所有者监控日志，几小时内就能看到任何人为他的名字签的证书</td></tr>
+<tr><td>短有效期</td><td>有效期从几年降到几周，签发与续期自动化</td><td>压缩被盗私钥的可用窗口，不再依赖吊销</td></tr>
+<tr><td><span class="term">CAA 记录</span><span class="en">（Certification Authority Authorization，CA 授权记录）</span></td><td>域名所有者在 DNS 里公布哪些 CA 可以为这个名字签证书</td><td>把最弱一环从"几百家里任何一家"变成"我点名的几家"；CA 自 2017 年起必须遵守</td></tr>
+<tr><td>自动签发</td><td>无需人工就能证明域名控制并领到证书的协议（ACME）</td><td>让短有效期可行，去掉过期事故起源的人工环节</td></tr>
+<tr><td>信任库治理</td><td>浏览器和操作系统厂商审计 CA，要求公开报告事故，把不合格的移出</td><td>2011 年那次入侵立了先例："a CA that loses trust is removed, and does not come back."（后来还有 2017–2018 年移除赛门铁克、2024 年 Chrome 停止信任 Entrust）</td></tr>
+</tbody></table></div>
+<p>CT 的<span class="term">只能追加的日志</span><span class="en">（append-only log）</span>只能往后加记录、不能改删；它用 <strong>Merkle 树</strong>（把大量记录逐层两两哈希、汇成一个根哈希的树，任何一条被改，根哈希都会变）保证这一点，和区块链用的是同一种结构，见 <a href="L14%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%88%E4%B8%8B%EF%BC%89.html">L14 区块链工作原理（下）</a>。CA 把证书提交给日志后拿到一张收据，叫 <span class="term">SCT</span><span class="en">（signed certificate timestamp，签名证书时间戳）</span>，嵌在证书里供浏览器检查。</p>
+<p><strong>战略的转变</strong>："from PREVENTING mis-issuance to DETECTING it quickly and limiting how long it is useful. That is the three Ds from Lecture 1, applied to an entire ecosystem." 即 <a href="L1%20%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E5%9F%BA%E7%A1%80.html#s7-1">L1 的三个 D</a>：防御（CA 的验证流程）做不到万无一失，重心移到检测（CT）和限制损失（短有效期）；失信的 CA 会被公开看到并移除，这本身也是威慑。</p>
+<div class="box warn">
+  <div class="h"><span class="tag">勘误</span>证书透明度不覆盖所有证书</div>
+<p>课件："Every certificate a CA issues must be published to public, append-only logs."</p>
+<p>误：所有证书都必须登记 CT 日志，这是证书格式本身的要求。</p>
+<p style="margin-bottom:0">正：这是浏览器对<strong>公共信任的 TLS 服务器证书</strong>的政策：Chrome 要求 2018 年 4 月 30 日以后签发的证书带 SCT，从 Chrome 68（2018 年 7 月）起执行；Apple 自 2018 年 10 月起；Firefox 135 版（2025 年）起在桌面端执行。链到用户自装的企业根的证书豁免，私有 CA、代码签名、邮件证书都不在其列。"几小时内看到"也要域名所有者真的在监控。</p>
+</div>
+<h3 id="s12-4"><span class="n">12.4</span>课后任务 3：评估一个内部 CA</h3>
+<p>题目：一家公司运行内部 CA。根私钥存放在共享网络盘上；证书有效期十年；没有吊销机制；根证书装在每一台员工笔记本上。按严重程度列出所有问题，说明每一个威胁哪个安全目标。</p>
+<p>这是 capstone 题型。做法：逐条找出违背本讲原则的地方；按"被利用后损失多大、多容易被利用"排序；每条写清威胁的安全目标和修补。</p>
+<details class="box">
+  <summary>课后任务 3 解答（按严重程度排序）</summary>
+<p><strong>1. 根私钥在共享网络盘上——最严重。</strong> 能访问网盘的人（包括被盗用的员工账号、内网恶意软件）都能复制根私钥，为<strong>任何域名</strong>签证书；因为第 4 点，这些证书在每台员工电脑上都被信任，攻击者可以对全公司的 HTTPS 流量做中间人攻击（包括访问外部的网银、邮箱）。威胁<strong>机密性、完整性</strong>（读取、篡改加密流量）和<strong>真实性</strong>（冒充任何站点）。网盘上的复制不留痕迹，泄露了也不知道。修补：根私钥离线放进 HSM，并限制、审计能调用 HSM 的人；日常签发交给中间 CA（<a href="#s10-1">10.1</a>）。</p>
+<p><strong>2. 没有吊销机制。</strong> 私钥泄露或误发后无法撤回，只能等过期；和第 3 点叠加就是十年。威胁<strong>完整性、真实性</strong>，且无法止损。修补：发布 CRL，要求内部客户端检查（内部环境吊销服务器在自己手里，可以用硬失败）。</p>
+<p><strong>3. 有效期十年。</strong> 被盗的终端私钥十年可用；算法和密钥长度无法及时更新。威胁<strong>机密性、完整性</strong>；另一面是<strong>可用性</strong>：十年后大批证书集中过期，装证书的人早已离职（<a href="#s11-4">11.4</a>）。修补：缩短到几十天，用 ACME 之类的协议自动续期。</p>
+<p><strong>4. 根证书装在所有笔记本上。</strong> 这是内部 PKI 的正常做法，但它把第 1 点的影响扩大到全员；而且不受限的根能为<strong>外部</strong>域名签证书，等于每台电脑上有一个能冒充全世界的根（<a href="#s12-2">12.2</a> 第 4 条）。修补：用名称约束把根限定在内部域名。</p>
+<p style="margin-bottom:0">还可补充：没有中间 CA 分层（根直接签发，就得一直在线）；没有签发日志与审计，误发了也发现不了——缺了三个 D 里的检测。</p>
+</details>
+<h3 id="s12-5"><span class="n">12.5</span>课后任务 1：看一张真证书</h3>
+<p>题目：打开任意 HTTPS 网站，查看证书，记下签发者、有效期、主体备用名、签名算法、链里有几张证书，以及让你意外的地方。2026 年通常会看到：</p>
+<ul>
+  <li><strong>签发者</strong>是中间 CA 而不是根，如 Let's Encrypt 的 YR1、YE1 这类（2026 年起陆续取代原来的 R、E 系列）；</li>
+  <li><strong>有效期</strong>短：Let's Encrypt 90 天，其他公共证书最长 200 天；</li>
+  <li><strong>主体名称</strong>几乎没信息，域名全在 SAN 里，常同时列裸域名和 www；</li>
+  <li><strong>签名算法</strong>是 <code>ecdsa-with-SHA256</code> 或 <code>sha256WithRSAEncryption</code>；</li>
+  <li><strong>链</strong>一般显示三张，服务器只发终端和中间两张，根是浏览器从本地信任库补上的；</li>
+  <li>扩展里有"嵌入式 SCT"，即证书透明度的收据；</li>
+  <li>在公司网络里，签发者可能是公司自己的根——这就是流量检查。</li>
+</ul>
+<p>课件参考页还建议：顺着证书链一直点到根；数一数自己设备的信任库里有多少个没听说过的 CA；在证书透明度日志的查询网站上搜一个熟悉的域名，"Every certificate is there."</p>
+<h2 id="s13"><span class="n">13</span>网页之外的 PKI</h2>
+<p>课件第 33 页："The same structure appears wherever a key must be bound to an identity."</p>
+<div class="tw"><table>
+<thead><tr><th>用途</th><th>做什么</th><th>风险或特点</th></tr></thead>
+<tbody>
+<tr><td><span class="term">代码签名</span><span class="en">（code signing）</span></td><td>软件和驱动带签名，操作系统安装前据此确认发布者</td><td>偷到签名私钥，恶意软件就能顶着发布者的信誉安装（如 2010 年震网病毒 Stuxnet 盗用了两家台湾硬件公司的私钥），所以这类私钥放在硬件里</td></tr>
+<tr><td>文档签名</td><td>PDF、合同、法律文书带签名，在很多司法辖区有法律效力</td><td>不可否认性在这里不再抽象：签名就是要拿到法庭上用的</td></tr>
+<tr><td>电子邮件（S/MIME、PGP）</td><td>邮件签名以证明来源，加密以保密</td><td>PGP 用信任网代替中心机构——信任模型不同，底下的问题相同</td></tr>
+<tr><td>设备与机器身份</td><td>给服务器、物联网设备、容器发证书，让服务之间互相认证</td><td>数量远多于网站证书，通常由内部 CA 签发，往往管理得最差</td></tr>
+<tr><td>国家身份证件</td><td>政府智能卡里装着私钥和证书，用于公民身份认证</td><td>把公钥绑到<strong>法律身份</strong>而不是域名上——最强的一种绑定</td></tr>
+</tbody></table></div>
+<p><span class="term">S/MIME</span>（Secure/Multipurpose Internet Mail Extensions，安全多用途互联网邮件扩展）是基于 X.509 证书的邮件签名与加密标准；<span class="term">PGP</span><span class="en">（Pretty Good Privacy）</span>是 1991 年起流行的邮件加密软件及格式。<span class="term">物联网</span><span class="en">（Internet of Things，IoT）</span>指联网的传感器、摄像头、家电等设备；<span class="term">容器</span><span class="en">（container）</span>是把程序连同运行环境打包隔离运行的单元。</p>
+<p><span class="term">信任网</span><span class="en">（web of trust）</span>：PGP 里没有 CA，用户直接互相给对方的公钥签名担保。课件："It is more robust to any single compromise, and it has never scaled."——没有攻破一处就通吃的中心，但普通人不会去互签公钥，它始终停留在小圈子里。</p>
+<h2 id="s14"><span class="n">14</span>七条结论与下一讲</h2>
+<h3 id="s14-1"><span class="n">14.1</span>七条结论</h3>
+<p>课件第 35 页 "Seven things to leave with"：</p>
+<ol>
+  <li>签名用签名者的私钥生成、公钥检验；证明自己用自己的钥匙，隐藏用对方的（<a href="#s3-1">3.1</a>）。</li>
+  <li>只有签名给不可否认性，因为只有签名能说服第三方（<a href="#s2-2">2.2</a>）。</li>
+  <li>签摘要不签消息：为速度、为大小、为消除代数结构（<a href="#s5-2">5.2</a>）。</li>
+  <li>身份不是数学性质；证书是绑定公钥与名字的签名陈述（<a href="#s8-1">8.1</a>）。</li>
+  <li>PKI 没消除信任，只是把它集中到几百个你没选过的根上（<a href="#s12-2">12.2</a>）。</li>
+  <li>校验是一张清单，漏任何一项都可能全面失守，基本约束是经典例子（<a href="#s10-2">10.2</a>）。</li>
+  <li>多数证书事故是过期不是攻击；对策是自动化续期好让有效期更短，而不是放松控制（<a href="#s11-5">11.5</a>）。</li>
+</ol>
+<h3 id="s14-2"><span class="n">14.2</span>课后任务 4：证书之后，怎样得到会话密钥</h3>
+<p>题目："A certificate proves a server holds a particular private key. It does NOT by itself encrypt anything. So how does a browser get from 'this is really bank.com' to 'we now share a secret key for this session'? Sketch the steps you think are needed. Do not look it up." 课件说这题没有错误答案，先自己想。它是 <a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a> 的开场：把本讲的证书和 L7 的 Diffie–Hellman 拼起来。</p>
+<details class="box">
+  <summary>一种答案：TLS 1.3 的要点（下一讲完整讲）</summary>
+<ol>
+  <li>双方各生成一对<strong>临时的</strong> Diffie–Hellman 密钥（通常在椭圆曲线上，叫 ECDHE：elliptic curve Diffie–Hellman ephemeral），在最初两条握手消息里交换公开值，算出共享秘密。"临时"指用完即弃，日后服务器长期私钥泄露，过去的会话也解不开，这叫<span class="term">前向保密</span><span class="en">（forward secrecy）</span>。</li>
+  <li>服务器发来证书链，客户端按 <a href="#s10-3">10.3</a> 校验。</li>
+  <li>服务器用证书对应的私钥，对<strong>到目前为止的整个握手记录</strong>（含交换的公开值）签名，即 CertificateVerify。它把证书里的身份和这一次密钥交换绑在一起，正是"认证这次交换"的完整答案：中间人换掉公开值，签名就对不上；不换，他就算不出共享秘密。</li>
+  <li>双方从共享秘密和握手记录派生会话密钥，互发一条对握手记录的校验值（Finished 消息）确认看到的握手一致，之后用 AES-GCM 这类认证加密保护数据。</li>
+</ol>
+<p style="margin-bottom:0">课件第 36 页还预告了证书实验："Generate a key pair, create a certificate signing request, sign it with your own CA, and then break it — wrong name, expired dates, missing CA flag — and watch each check fail."</p>
+</details>
+<h2 id="recap">本讲速记</h2>
+<div class="recap"><ul>
+  <li>缺口三环：Diffie–Hellman 不认证交换值 → 补法是给交换值签名 → 验签要可信公钥，而<strong>公钥只是一个数</strong>。解法：验一条可信机构签过名的关于公钥的陈述——证书。</li>
+  <li>签名四性质：真实性、完整性、<strong>不可否认性</strong>、<strong>公开可验证性</strong>（"谁"只到"哪把私钥"）。MAC 只有前两条且只对持钥人；不可否认 = 只有一方能产生 + 第三方能检验。</li>
+  <li>选钥匙：证明用自己的私钥，隐藏用对方的公钥。活动 1：a、c、f 签名；b 用 MAC；d 用 Bob 公钥加密；e <strong>先签后加密</strong>。签名 ≠ 用私钥加密（只对 RSA 成立）；签名不保密；不用收件人的钥匙签。</li>
+  <li>RSA 签名 <span class="m">S = H<sup>d</sup> <span class="up">mod</span> n</span>，验证 <span class="m">S<sup>e</sup> <span class="up">mod</span> n <span class="ovs"><span>?</span><span>=</span></span> H</span>，因 <span class="m">ed ≡ 1 (<span class="up">mod</span> φ(n))</span>。平方-乘：<span class="m">7<sup>27</sup> <span class="up">mod</span> 55 = 28</span>，<span class="m">28<sup>3</sup> ≡ 7</span>；<span class="m">12<sup>27</sup> ≡ 23</span>，<span class="m">23<sup>3</sup> ≡ 12</span>；篡改 <span class="m">29<sup>3</sup> ≡ 24 ≠ 7</span>。不可否认的前提：<span class="m">n</span> 不可分解、私钥没被偷。</li>
+  <li>签摘要三理由：速度、大小、消除代数伪造。存在性伪造：任取 <span class="m">S′</span>，<span class="m">H′ = S′<sup>e</sup></span>，<span class="m">(24, 29)</span> 即一例；可乘性 <span class="m"><span class="up">Sig</span>(a)<span class="up">Sig</span>(b) ≡ <span class="up">Sig</span>(ab)</span>。哈希 + 填充（PKCS#1 v1.5、PSS）使之无用。分类别混：攻破程度 vs 攻击者掌握什么。</li>
+  <li>哈希三性质：原像、第二原像、抗碰撞（最强、最先被破）；生日界 <span class="m">2<sup>ℓ/2</sup></span>。MD5、SHA-1 被碰撞，选择前缀碰撞可伪造 CA 证书。</li>
+  <li>DSA 不能加密、每次需新随机数（已停用于新签名）；ECDSA 主流（256 位 ≈ RSA 3072）；Ed25519 确定性。随机数复用两签名即泄露私钥（<span class="m">r</span> 相同）。</li>
+  <li>五种失败：随机数复用、弱哈希、无填充、私钥被盗（HSM 防复制不防滥用）、验错东西。</li>
+  <li>验签只说明"出自某把私钥"；中间人换公钥后无运算报错。信任起点要小、看得见、管得住。分发：直接交换、公开目录、证书（教材另有公开发布、公钥权威机构）。</li>
+  <li>证书五步：生成密钥对 → 申请并证明域名控制（ACME、CSR）→ CA 签整条记录 → 出示 → 客户端用<strong>已持有的</strong> CA 公钥验。字段：主体、公钥、有效期、签发者、序列号、用途、覆盖全部的签名。</li>
+  <li>X.509 九字段，签名前为 TBSCertificate；v3 编码为 2。扩展：SAN（通配符只配一级）、基本约束（CA 标志、路径长度）、密钥用途、EKU。</li>
+  <li>信任链：终端 ← 中间 ← 自签名的根（"trusted by decision, not by proof"）；每级用上一张的公钥验。八项检查最后一项是持有私钥。活动 4：A 名称、B 过期、C 基本约束、D 无私钥，全拒。</li>
+  <li>吊销：CRL、OCSP（泄露隐私、软失败）、装订；软失败让攻击者挡住查询即可 → 缩短有效期。现状：OCSP 被弃，浏览器汇总。过期丢的是可用性；对策是自动化。上限 200 天，2029 年 47 天。</li>
+  <li>误发四类（DigiNotar）；最弱一环：几百个根任何一个都能签任何域名；防护：CT、短有效期、CAA、ACME、信任库治理——从预防转向检测与限时，即三个 D。</li>
+</ul></div>
+
+<footer>
+<p>下一讲 <a href="L9%20%E5%AE%9E%E7%94%A8%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE.html">L9 实用安全协议</a>：TLS 1.3 握手从头到尾——证书、密钥交换、认证与会话密钥怎样拼成一个协议；另有 Kerberos（靠可信第三方发放票据的网络认证协议）和无线网络认证。课件说："Everything from Lectures 2 to 7 comes together in Lecture 8."（课件编号，即本课 L2–L8 的内容在 L9 汇合。）再往后是 <a href="L10%20%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%EF%BC%9A%E5%A8%81%E8%83%81%E3%80%81%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1.html">L10 网络安全：威胁、攻击与防御</a>，以及课件预告、目前还没有课件的 capstone。</p>
+<p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L8 数字签名、证书与 PKI.md</code> 的阅读优化版，内容一致；页内交互件的数值全部由页面脚本现算（已与 Python 的计算逐项对照）。检索与双链请在 Obsidian 里用。</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* ============================================================================
+   common.js — L8/L9 学习页共用：SVG 绘图小工具、时序图渲染器、SHA-256 与 HMAC。
+   配色规则（同 L1/L4 模板）：中性线条 currentColor + stroke-opacity；强调色硬编码 #2F6F8F；
+   其余语义色开页时 getComputedStyle 从 CSS 变量读一次。文字一律 currentColor 或语义色，
+   不用 #2F6F8F 写字（暗色下对比太低）。
+   ==========================================================================*/
+var AC = '#2F6F8F';
+var MONO = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
+var TC = (function(){
+  if (typeof document === 'undefined') return {};
+  var cs = getComputedStyle(document.documentElement);
+  function g(n, fb){ var v = (cs.getPropertyValue(n) || '').trim(); return v || fb; }
+  return { warn: g('--warn', '#B4534B'), ok: g('--ok', '#3F8A63'), exam: g('--exam', '#9A6B2F'),
+           muted: g('--muted', '#5C6673'), faint: g('--faint', '#8A929C') };
+})();
+function toneColor(t){ return t === 'warn' ? TC.warn : t === 'ok' ? TC.ok : t === 'exam' ? TC.exam : t === 'accent' ? AC : 'currentColor'; }
+function $(id){ return document.getElementById(id); }
+function escH(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function nm(v){ return String(v).replace(/-/g, '−'); }          /* 负号用 U+2212 */
+
+/* ---------------------------------------------------------------- SVG 基础 */
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  var e = document.createElementNS(SVGNS, tag);
+  if (attrs) for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgRoot(W, H, label){
+  var s = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': label });
+  s.style.display = 'block'; s.style.width = '100%'; s.style.height = 'auto';
+  return s;
+}
+var _mk = 0;
+function arrowHead(svg, color, op){
+  var id = 'ah' + (++_mk), defs = svgEl('defs'), m = svgEl('marker', { id: id, markerWidth: 10, markerHeight: 10, refX: 8.5, refY: 3.5, orient: 'auto', markerUnits: 'userSpaceOnUse' });
+  m.appendChild(svgEl('path', { d: 'M0,0 L9,3.5 L0,7 z', fill: color || 'currentColor', 'fill-opacity': op === undefined ? .75 : op }));
+  defs.appendChild(m); svg.appendChild(defs); return 'url(#' + id + ')';
+}
+function sRect(g, x, y, w, h, o){
+  o = o || {};
+  var e = svgEl('rect', { x: x, y: y, width: w, height: h, rx: o.rx === undefined ? 6 : o.rx,
+    fill: o.fill || 'currentColor', 'fill-opacity': o.fop === undefined ? .04 : o.fop,
+    stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .3 : o.sop, 'stroke-width': o.sw || 1.2 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  g.appendChild(e); return e;
+}
+function sLine(g, x1, y1, x2, y2, o){
+  o = o || {};
+  var e = svgEl('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .5 : o.sop, 'stroke-width': o.sw || 1.4 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  if (o.marker) e.setAttribute('marker-end', o.marker);
+  g.appendChild(e); return e;
+}
+function sPath(g, d, o){
+  o = o || {};
+  var e = svgEl('path', { d: d, fill: o.fill || 'none', stroke: o.stroke || 'currentColor', 'stroke-opacity': o.sop === undefined ? .55 : o.sop, 'stroke-width': o.sw || 1.4 });
+  if (o.dash) e.setAttribute('stroke-dasharray', o.dash);
+  if (o.marker) e.setAttribute('marker-end', o.marker);
+  g.appendChild(e); return e;
+}
+
+/* ---------------------------------------------------------------- 带上下标的文字
+   记法：X_a、X_{abc} 下标；X^{abc} 上标；*…* 斜体。一行一个 <text>。 */
+function richTokens(str){
+  var out = [], i = 0, cur = '', italic = false;
+  function push(t, kind){ if (t) out.push({ t: t, k: kind, it: italic }); }
+  while (i < str.length){
+    var c = str[i];
+    if ((c === '_' || c === '^') && i + 1 < str.length){
+      push(cur, 'n'); cur = '';
+      var kind = c === '_' ? 'sub' : 'sup', t;
+      if (str[i + 1] === '{'){ var j = str.indexOf('}', i + 2); t = str.slice(i + 2, j); i = j + 1; }
+      else { t = str[i + 1]; i += 2; }
+      var it0 = italic;
+      if (/^\*.*\*$/.test(t)){ t = t.slice(1, -1); italic = true; }
+      push(t, kind); italic = it0; continue;
+    }
+    if (c === '*'){ push(cur, 'n'); cur = ''; italic = !italic; i++; continue; }
+    if (c === '\\' && '*_^'.indexOf(str[i + 1]) >= 0){ cur += str[i + 1]; i += 2; continue; }
+    cur += c; i++;
+  }
+  push(cur, 'n');
+  return out;
+}
+function plainOf(str){ return richTokens(str).map(function(x){ return x.t; }).join(''); }
+function estW(str, size){
+  var w = 0;
+  richTokens(str).forEach(function(tk){
+    var f = tk.k === 'n' ? 1 : .72;
+    for (var i = 0; i < tk.t.length; i++){
+      var ch = tk.t.charCodeAt(i);
+      w += size * f * ((ch >= 0x2E80 && ch <= 0xFFEF) || (ch >= 0x2460 && ch <= 0x24FF) ? 1 : (ch >= 0x2000 && ch <= 0x22FF ? .8 : .56));
+    }
+  });
+  return w;
+}
+function sRich(g, x, y, str, o){
+  o = o || {};
+  var size = o.size || 13;
+  var e = svgEl('text', { x: x, y: y, 'font-size': size, 'text-anchor': o.anchor || 'middle', fill: o.fill || 'currentColor' });
+  if (o.weight) e.setAttribute('font-weight', o.weight);
+  if (o.op !== undefined) e.setAttribute('fill-opacity', o.op);
+  if (o.mono) e.setAttribute('font-family', MONO);
+  var shift = 0;
+  richTokens(str).forEach(function(tk){
+    var ts = svgEl('tspan'), want = tk.k === 'sub' ? Math.round(size * .3) : tk.k === 'sup' ? -Math.round(size * .38) : 0;
+    if (want !== shift){ ts.setAttribute('dy', want - shift); shift = want; }
+    if (tk.k !== 'n') ts.setAttribute('font-size', Math.round(size * .72));
+    if (tk.it) ts.setAttribute('font-style', 'italic');
+    ts.textContent = tk.t; e.appendChild(ts);
+  });
+  if (shift){ var z = svgEl('tspan', { dy: -shift }); z.textContent = '​'; e.appendChild(z); }
+  g.appendChild(e); return e;
+}
+/* 按估计宽度折行：ASCII 词不拆，汉字逐字；显式 \n 强制换行 */
+function wrapText(str, maxW, size){
+  var lines = [];
+  String(str).split('\n').forEach(function(par){
+    var toks = par.match(/[\x21-\x7E′‖⊕→←·∣]+(?:_\{[^}]*\}|\^\{[^}]*\})*[\x21-\x7E′]*|\s+|[\s\S]/g) || [''];
+    var cur = '';
+    toks.forEach(function(t){
+      if (estW(cur + t, size) > maxW && cur.trim() !== ''){ lines.push(cur.replace(/\s+$/, '')); cur = t.replace(/^\s+/, ''); }
+      else cur += t;
+    });
+    lines.push(cur.replace(/\s+$/, ''));
+  });
+  return lines;
+}
+function sLines(g, x, y, lines, lh, o){ lines.forEach(function(l, k){ sRich(g, x, y + k * lh, l, o); }); }
+
+/* ---------------------------------------------------------------- 时序图
+   spec = { actors:[{id,label,tone}], notesHead, rows:[…] }
+   行：{msg:[from,to], text, tone, dash, note, aside, asideAt} | {box:actor, text, tone, note} | {band:text, tone, note} | {gap:px}
+   宽版：右侧一列说明；窄版：说明改成箭头下方的小字，全图收窄到 400。 */
+function seqDiagram(hostId, spec, narrow){
+  var host = $(hostId);
+  var W = narrow ? 400 : (spec.width || 880), M = narrow ? 10 : 16;
+  var notesW = narrow ? 0 : (spec.notesW === undefined ? 270 : spec.notesW), tagW = spec.tags ? (narrow ? 46 : 70) : 0;
+  var areaL = M + tagW, areaR = W - M - (notesW ? notesW + 18 : 0);
+  var n = spec.actors.length, pad = narrow ? 44 : 70;
+  var FS0 = narrow ? 12 : 13.5;
+  [spec.actors[0], spec.actors[n - 1]].forEach(function(a){ pad = Math.max(pad, (estW(a.label, FS0 + .5) + 20) / 2 + 2); });
+  var xs = {}, hw0 = Math.min(narrow ? 80 : 120, (areaR - areaL) / n - 8);
+  spec.actors.forEach(function(a, k){ xs[a.id] = n === 1 ? (areaL + areaR) / 2 : areaL + pad + k * (areaR - areaL - 2 * pad) / (n - 1); });
+  var FS = narrow ? 12 : 13.5, NS = narrow ? 11 : 12.5, LH = FS * 1.35, NLH = NS * 1.4;
+  var svg = svgRoot(W, 100, spec.label || '时序图'), g = svgEl('g'); svg.appendChild(g);
+  var heads = {};
+  function head(tone, dash){ var k = tone + (dash ? 'd' : ''); if (!heads[k]) heads[k] = arrowHead(svg, toneColor(tone === 'plain' ? '' : tone), .85); return heads[k]; }
+  var y = M;
+  /* 表头 */
+  var hh = narrow ? 34 : 40;
+  var cap = n === 1 ? areaR - areaL : (areaR - areaL - 2 * pad) / (n - 1) - 6;
+  spec.actors.forEach(function(a){
+    var col = toneColor(a.tone || 'accent'), hw = Math.max(hw0, Math.min(cap, estW(a.label, FS + .5) + 20));
+    sRect(g, xs[a.id] - hw / 2, y, hw, hh, { fill: col, fop: .14, stroke: col, sop: .75, rx: 7, sw: 1.4 });
+    sRich(g, xs[a.id], y + hh / 2 + FS * .36, a.label, { size: FS + .5, weight: 700 });
+  });
+  if (notesW && spec.notesHead) sRich(g, W - M - notesW, y + hh / 2 + 5, spec.notesHead, { size: NS, weight: 700, anchor: 'start', op: .75 });
+  y += hh + (narrow ? 12 : 16);
+  var top = y, bands = [];
+  spec.rows.forEach(function(r){
+    if (r.gap){ y += r.gap; return; }
+    var y0 = y, h;
+    var noteLines = r.note ? wrapText(r.note, narrow ? W - 2 * M - 8 : notesW, NS) : [];
+    if (r.msg){
+      var x1 = xs[r.msg[0]], x2 = xs[r.msg[1]], mid = (x1 + x2) / 2, span = Math.abs(x2 - x1);
+      var lines = String(r.text).split('\n'), wmax = 0;
+      lines.forEach(function(l){ wmax = Math.max(wmax, estW(l, FS)); });
+      var cx = Math.max(areaL + wmax / 2, Math.min(areaR - wmax / 2, mid));
+      var col = r.tone ? toneColor(r.tone) : 'currentColor';
+      sLines(g, cx, y + FS, lines, LH, { size: FS, fill: col });
+      var ay = y + FS + (lines.length - 1) * LH + (narrow ? 9 : 11);
+      var dir = x2 > x1 ? 1 : -1;
+      sLine(g, x1, ay, x2 - dir * 3, ay, { stroke: col, sop: r.tone ? .9 : .6, sw: 1.6, dash: r.dash ? '6 4' : null, marker: head(r.tone || 'plain', r.dash) });
+      h = ay - y + 8;
+      if (r.aside){ sRich(g, xs[r.asideAt] + 8, ay + NS + 4, r.aside, { size: NS, anchor: 'start', fill: toneColor(r.asideTone || 'warn') }); h += NS + 2; }
+      if (r.tag) sRich(g, M + 2, ay - 4, r.tag, { size: NS + .5, anchor: 'start', weight: 700, fill: TC.exam });
+    } else if (r.box){
+      var bl = String(r.text).split('\n'), bw = 0;
+      bl.forEach(function(l){ bw = Math.max(bw, estW(l, NS + .5)); });
+      bw += 22; var bh = bl.length * NLH + 12;
+      var bx = Math.max(M, Math.min(W - M - (notesW ? notesW + 18 : 0) - bw, xs[r.box] - bw / 2));
+      var tc = toneColor(r.tone || 'exam');
+      sRect(g, bx, y + 2, bw, bh, { fill: tc, fop: .1, stroke: tc, sop: .6, rx: 6 });
+      sLines(g, bx + bw / 2, y + 2 + 6 + NS + .5, bl, NLH, { size: NS + .5 });
+      h = bh + 10;
+    } else if (r.band){
+      var tl = wrapText(r.band, (narrow ? W - 2 * M : areaR - M) - 20, NS + .5);
+      var bh2 = tl.length * NLH + 12;
+      bands.push({ y: y + 2, h: bh2, tone: r.tone, lines: tl });
+      h = bh2 + 10;
+    }
+    if (noteLines.length){
+      if (narrow){
+        var ny = y0 + h - 2 + NS;
+        sLines(g, M + 4, ny, noteLines, NLH, { size: NS, anchor: 'start', op: .66 });
+        h += noteLines.length * NLH + 4;
+      } else {
+        sLines(g, W - M - notesW, y0 + NS + 2, noteLines, NLH, { size: NS, anchor: 'start', op: .72 });
+        h = Math.max(h, noteLines.length * NLH + 8);
+      }
+    }
+    y += h + (narrow ? 6 : 8);
+  });
+  var bottom = y + 4;
+  /* 生命线画在最底层 */
+  var life = svgEl('g'); g.insertBefore(life, g.firstChild);
+  spec.actors.forEach(function(a){ sLine(life, xs[a.id], top - 12, xs[a.id], bottom, { sop: .35, dash: '4 4', sw: 1.2 }); });
+  /* 横条压在生命线上 */
+  bands.forEach(function(b){
+    var bg = svgEl('g'); g.insertBefore(bg, life.nextSibling);
+    var tc = toneColor(b.tone || '');
+    sRect(bg, M, b.y, (narrow ? W - M : areaR) - M, b.h, { fill: b.tone ? tc : 'currentColor', fop: b.tone ? .12 : .07, stroke: b.tone ? tc : 'currentColor', sop: b.tone ? .35 : .12, rx: 6 });
+    sLines(bg, (M + (narrow ? W - M : areaR)) / 2, b.y + 6 + NS + .5, b.lines, NLH, { size: NS + .5 });
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(bottom + M));
+  host.innerHTML = ''; host.appendChild(svg);
+}
+
+/* ---------------------------------------------------------------- SHA-256 / HMAC-SHA256（FIPS 180-4） */
+var SHA_K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function utf8(str){ return new TextEncoder().encode(str); }
+function sha256(bytes){
+  var l = bytes.length, nb = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(nb);
+  m.set(bytes); m[l] = 0x80;
+  var bl = l * 8; for (var i = 0; i < 4; i++) m[nb - 1 - i] = (bl / Math.pow(2, 8 * i)) & 0xff;
+  m[nb - 5] = Math.floor(l / 0x20000000) & 0xff;
+  var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19], w = new Array(64);
+  function rr(x, n){ return (x >>> n) | (x << (32 - n)); }
+  for (var o = 0; o < nb; o += 64){
+    for (var t = 0; t < 16; t++) w[t] = (m[o+4*t] << 24) | (m[o+4*t+1] << 16) | (m[o+4*t+2] << 8) | m[o+4*t+3];
+    for (t = 16; t < 64; t++){
+      var s0 = rr(w[t-15], 7) ^ rr(w[t-15], 18) ^ (w[t-15] >>> 3), s1 = rr(w[t-2], 17) ^ rr(w[t-2], 19) ^ (w[t-2] >>> 10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (t = 0; t < 64; t++){
+      var S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & g), t1 = (h + S1 + ch + SHA_K[t] + w[t]) | 0;
+      var S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  var out = new Uint8Array(32);
+  for (i = 0; i < 8; i++){ out[4*i] = H[i] >>> 24; out[4*i+1] = (H[i] >>> 16) & 0xff; out[4*i+2] = (H[i] >>> 8) & 0xff; out[4*i+3] = H[i] & 0xff; }
+  return out;
+}
+function hmacSha256(key, msg){
+  if (key.length > 64) key = sha256(key);
+  var k = new Uint8Array(64); k.set(key);
+  var ip = new Uint8Array(64 + msg.length), op = new Uint8Array(96);
+  for (var i = 0; i < 64; i++){ ip[i] = k[i] ^ 0x36; op[i] = k[i] ^ 0x5c; }
+  ip.set(msg, 64); op.set(sha256(ip), 64);
+  return sha256(op);
+}
+function hex(bytes){ var s = ''; for (var i = 0; i < bytes.length; i++) s += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16); return s; }
+function bitDiff(a, b){ var n = 0; for (var i = 0; i < a.length; i++){ var x = a[i] ^ b[i]; while (x){ n += x & 1; x >>= 1; } } return n; }
+
+
+/* ============================================================================
+   core-l8.js — L8 交互件背后的纯计算（不碰 DOM，node 里可直接测）。
+   数一律用 BigInt，免得用户填大数时溢出。
+   ==========================================================================*/
+function B(x){ return BigInt(x); }
+function mod(a, m){ a = a % m; return a < 0n ? a + m : a; }
+function gcd(a, b){ a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b){ var t = a % b; a = b; b = t; } return a; }
+function modinv(a, m){
+  var r0 = mod(a, m), r1 = m, s0 = 1n, s1 = 0n;
+  while (r1){ var q = r0 / r1, t = r0 - q * r1; r0 = r1; r1 = t; t = s0 - q * s1; s0 = s1; s1 = t; }
+  return r0 === 1n ? mod(s0, m) : null;
+}
+function powmod(b, e, m){ var r = 1n; b = mod(b, m); while (e > 0n){ if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r; }
+function isPrime(n){ if (n < 2n) return false; for (var d = 2n; d * d <= n; d++) if (n % d === 0n) return false; return true; }
+function parseBig(s){ s = String(s).trim(); return /^\d{1,30}$/.test(s) ? BigInt(s) : null; }
+
+/* 平方-乘（从最高位读，r 从 1 开始），按笔记 4.4 的表格式逐行给出 */
+function sqmulTrace(base, exp, n){
+  var bits = exp.toString(2), r = 1n, ex = 0n, rows = [];
+  for (var k = 0; k < bits.length; k++){
+    var bit = bits[k], sq = r * r, sqm = sq % n, row = { bit: bit, rin: r, sq: sq, sqQ: sq / n, sqm: sqm };
+    ex = ex * 2n; r = sqm;
+    if (bit === '1'){ var p = r * base; row.prod = p; row.prodQ = p / n; r = p % n; ex += 1n; }
+    row.r = r; row.ex = ex; rows.push(row);
+  }
+  return { bits: bits, rows: rows, result: r };
+}
+/* 逐次平方表（笔记里的格式一）：base^(2^i)，再把 exp 拆成 2 的幂相乘 */
+function sqTable(base, exp, n){
+  var pw = [], v = mod(base, n), i = 0n, e = exp;
+  while ((1n << i) <= exp){ pw.push({ k: 1n << i, v: v, sq: v * v }); v = v * v % n; i++; }
+  var parts = pw.filter(function(p){ return (exp & p.k) !== 0n; }).reverse();
+  var acc = null, steps = [];
+  parts.forEach(function(p){
+    if (acc === null){ acc = p.v; return; }
+    var prod = acc * p.v; steps.push({ a: acc, b: p.v, prod: prod, r: prod % n }); acc = prod % n;
+  });
+  return { pw: pw, parts: parts, steps: steps, result: acc === null ? 1n : acc };
+}
+/* 由 p, q, e 造 RSA 密钥 */
+function rsaKey(p, q, e){
+  var err = [];
+  if (!isPrime(p)) err.push('p = ' + p + ' 不是素数');
+  if (!isPrime(q)) err.push('q = ' + q + ' 不是素数');
+  if (p === q) err.push('p 与 q 不能相同');
+  if (err.length) return { err: err };
+  var n = p * q, phi = (p - 1n) * (q - 1n);
+  if (e <= 1n || e >= phi) return { err: ['e 要在 1 与 φ(n) = ' + phi + ' 之间'] };
+  if (gcd(e, phi) !== 1n) return { err: ['gcd(e, φ(n)) = ' + gcd(e, phi) + ' ≠ 1，没有私有指数 d'] };
+  var d = modinv(e, phi);
+  return { n: n, phi: phi, e: e, d: d, k: (e * d - 1n) / phi };
+}
+/* 教科书 RSA 的两种伪造 */
+function forgeExistential(Sp, e, n){ return powmod(Sp, e, n); }
+function malleable(H1, H2, d, n){
+  var s1 = powmod(H1, d, n), s2 = powmod(H2, d, n), prod = s1 * s2, H12 = H1 * H2 % n;
+  return { s1: s1, s2: s2, prod: prod, prodMod: prod % n, H12raw: H1 * H2, H12: H12, s12: powmod(H12, d, n) };
+}
+/* 玩具 DSA：签名、验证、同一个 k 用两次时解出 k 与 x */
+function dsaParamsCheck(p, q, g){
+  var err = [];
+  if (!isPrime(p)) err.push('p 不是素数');
+  if (!isPrime(q)) err.push('q 不是素数');
+  if (!err.length && (p - 1n) % q !== 0n) err.push('q 不整除 p − 1');
+  if (!err.length && (g <= 1n || g >= p || powmod(g, q, p) !== 1n)) err.push('g 在模 p 下的阶不是 q（要 1 < g < p 且 g^q ≡ 1）');
+  return err;
+}
+function dsaSign(p, q, g, x, k, H){
+  var gk = powmod(g, k, p), r = gk % q, kinv = modinv(k, q);
+  if (kinv === null) return { err: 'k 在模 q 下没有逆元' };
+  var inner = H + x * r, s = mod(kinv * inner, q);
+  return { gk: gk, r: r, kinv: kinv, inner: inner, s: s };
+}
+function dsaVerify(p, q, g, y, H, r, s){
+  if (r <= 0n || r >= q || s <= 0n || s >= q) return { ok: false, why: 'r、s 要在 1 与 q − 1 之间' };
+  var w = modinv(s, q), u1 = mod(H * w, q), u2 = mod(r * w, q), v = (powmod(g, u1, p) * powmod(y, u2, p) % p) % q;
+  return { w: w, u1: u1, u2: u2, v: v, ok: v === r };
+}
+function dsaRecover(q, H1, s1, H2, s2, r){
+  var ds = mod(s1 - s2, q), dh = H1 - H2, inv = modinv(ds, q);
+  if (inv === null) return { err: 's₁ − s₂ ≡ 0 (mod q)，这一对解不出 k' };
+  var k = mod(dh * inv, q), rinv = modinv(r, q), x = mod((s1 * k - H1) * rinv, q);
+  return { ds: ds, dh: dh, inv: inv, k: k, rinv: rinv, x: x, num: s1 * k - H1 };
+}
+
+/* ---------------------------------------------------------------- 证书链校验（笔记 10.2 八项、10.3 七步）
+   chain[0] 终端，chain[1..] 往上；每张 {role, subject, issuer, san[], nb, na, ca, pathLen, ku[], eku[], sigOK, sent, inStore} */
+function dayNum(s){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim()); if (!m) return null;
+  var t = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  if (t.getUTCMonth() !== +m[2] - 1 || t.getUTCDate() !== +m[3]) return null;     /* 2026-13-01、02-30 之类不收 */
+  return t.getTime() / 864e5;
+}
+function sanMatch(pattern, host){
+  pattern = pattern.toLowerCase().trim(); host = host.toLowerCase().trim();
+  if (!pattern || !host) return false;
+  if (pattern.indexOf('*.') === 0){
+    var suf = pattern.slice(1), lab = host.slice(0, host.length - suf.length);
+    return host.length > suf.length && host.slice(-suf.length) === suf && lab.indexOf('.') < 0 && lab.length > 0;
+  }
+  return pattern === host;
+}
+function chainCheck(inp){
+  var C = inp.chain, today = dayNum(inp.today), res = [];
+  function add(key, name, ok, detail, fail, soft){ res.push({ key: key, name: name, ok: ok, detail: detail, fail: fail, soft: !!soft }); }
+  /* 1 建链 + 可信根 */
+  var built = [C[0]], broken = null;
+  for (var i = 0; i < C.length - 1; i++){
+    var nx = C[i + 1];
+    if (nx.subject !== C[i].issuer){ broken = '第 ' + (i + 1) + ' 张的 Issuer 是 “' + C[i].issuer + '”，找不到 Subject 相同的证书'; break; }
+    if (nx.role === '中间 CA' && nx.sent === false){ broken = '服务器漏发了中间证书 “' + nx.subject + '”，本地也没有'; break; }
+    built.push(nx);
+  }
+  var root = built[built.length - 1];
+  var rootOK = !broken && root.role === '根' && root.subject === root.issuer && root.inStore;
+  add('root', '可信根', rootOK, broken ? broken : (rootOK ? '链终止于信任库里的根 “' + root.subject + '”' : '链顶的 “' + root.subject + '” 不在信任库里'), '没有你信任的人为它担保');
+  /* 2 逐级验签 */
+  var badSig = built.filter(function(c){ return c.sigOK === false; });
+  add('sig', '签名链', !broken && badSig.length === 0,
+      badSig.length ? badSig.map(function(c){ return '“' + c.subject + '” 的签名用上一张证书里的公钥验不过'; }).join('；') : (broken ? '链没建起来，无从逐级验签' : '每张都能用上一张证书里的公钥验过（共 ' + (built.length - 1) + ' 次验签）'),
+      '证书被伪造或篡改');
+  /* 3 有效期，链上每一张 */
+  var dd = [];
+  built.forEach(function(c){
+    var nb = dayNum(c.nb), na = dayNum(c.na);
+    if (today < nb) dd.push('“' + c.subject + '” 尚未生效（' + c.nb + ' 起，还差 ' + (nb - today) + ' 天）');
+    else if (today > na) dd.push('“' + c.subject + '” 已于 ' + c.na + ' 过期（到今天已过 ' + (today - na) + ' 天）');
+  });
+  add('date', '有效期', dd.length === 0, dd.length ? dd.join('；') : '今天 ' + inp.today + ' 落在链上每一张的 not-before 与 not-after 之间', '已过期或尚未生效——常常是时钟出了问题');
+  /* 4 基本约束：签过别人的每一张 */
+  var bc = [];
+  for (i = 1; i < built.length; i++){
+    var c = built[i], below = 0;
+    for (var j = 1; j < i; j++) below++;                    /* 它下面的中间 CA 层数（终端不计） */
+    if (!c.ca) bc.push('签了 “' + built[i - 1].subject + '” 的 “' + c.subject + '” 写着 CA = FALSE');
+    else {
+      if (c.ku && c.ku.length && c.ku.indexOf('keyCertSign') < 0) bc.push('“' + c.subject + '” 的密钥用途里没有签发证书');
+      if (c.pathLen !== null && c.pathLen !== undefined && below > c.pathLen) bc.push('“' + c.subject + '” 的路径长度约束是 ' + c.pathLen + '，下面却有 ' + below + ' 层中间 CA');
+    }
+  }
+  add('bc', '基本约束', bc.length === 0, bc.length ? bc.join('；') : '终端之上的每张证书 CA = true' + (C[0].ca ? '' : '，终端不是 CA'), '一张普通证书正在被用来签发别的证书');
+  /* 5 名称匹配与用途（终端） */
+  var hit = C[0].san.filter(function(s){ return sanMatch(s, inp.typed); });
+  add('name', '名称匹配', hit.length > 0, hit.length ? '输入的 ' + inp.typed + ' 匹配 SAN 里的 ' + hit[0] : 'SAN 清单 [' + C[0].san.join(', ') + '] 里没有能匹配 ' + inp.typed + ' 的名字', '一张有效的证书，却是别的网站的');
+  var ku = [];
+  if (C[0].ku && C[0].ku.length && C[0].ku.indexOf('digitalSignature') < 0) ku.push('密钥用途里没有数字签名，握手里没法用这把钥匙签名');
+  if (C[0].eku && C[0].eku.length && C[0].eku.indexOf('serverAuth') < 0) ku.push('扩展密钥用途里没有 serverAuth');
+  add('ku', '密钥用途', ku.length === 0, ku.length ? ku.join('；') : '终端证书允许用于 TLS 服务器认证', '签名用的钥匙被拿去做密钥交换之类');
+  /* 6 吊销 */
+  var rv = inp.revocation, soft = inp.policy === 'soft';
+  var revOK = rv === 'good' || (rv === 'unknown' && soft);
+  add('rev', '吊销状态', revOK, rv === 'good' ? '链上每张都没被撤回' : rv === 'revoked' ? '终端证书已被签发者吊销' : (soft ? '查不到吊销状态，客户端按软失败当作“没吊销”放行——攻击者挡住查询就是这个效果' : '查不到吊销状态，硬失败：拒绝连接'), '私钥已泄露，证书已被撤下', rv === 'unknown' && soft);
+  /* 7 持有私钥 */
+  add('pos', '持有私钥', !!inp.possession, inp.possession ? '握手中服务器用终端证书的私钥签名，客户端用证书公钥验过' : '服务器完成不了持有私钥的证明', '攻击者复制了证书，但没有私钥');
+  var fails = res.filter(function(r){ return !r.ok; });
+  return { checks: res, accept: fails.length === 0, fails: fails, softPass: res.some(function(r){ return r.soft; }) };
+}
+
+
+/* ===================== L8 数字签名、证书与 PKI：图与交互件 =====================
+   所有数由 core-l8.js / common.js 现算，页面里不写死任何答案。 */
+
+/* ---------------------------------------------------------------- 图：先哈希再签名 */
+function drawHashSign(hostId){
+  var W = 460, H = 784, svg = svgRoot(W, H, '先哈希再签名：签名方把消息哈希成摘要再用私钥签；验证方自己重算摘要，与用公钥从签名还原出的值比较'), g = svgEl('g');
+  svg.appendChild(g);
+  var ah = arrowHead(svg), ahd = arrowHead(svg, 'currentColor', .6);
+  function node(cx, cy, w, h, text, tone){
+    var c = tone ? toneColor(tone) : 'currentColor';
+    sRect(g, cx - w / 2, cy - h / 2, w, h, { fill: c, fop: tone ? .14 : .03, stroke: c, sop: tone ? .6 : .35, rx: 12, sw: 1.3 });
+    var ls = text.split('\n'); sLines(g, cx, cy - (ls.length - 1) * 9 + 5, ls, 18, { size: 14 });
+  }
+  function arr(d, dash){ sPath(g, d, { marker: dash ? ahd : ah, dash: dash ? '6 4' : null, sop: .6 }); }
+  /* 签名方 */
+  sRect(g, 10, 10, 440, 292, { fill: AC, fop: .03, stroke: AC, sop: .55, rx: 14 });
+  sRich(g, 24, 32, '签名方 Alice（持有私钥 *d*）', { size: 14, anchor: 'start', weight: 600 });
+  node(230, 72, 150, 46, '消息 *m*\n（任意长度）');
+  node(230, 140, 130, 36, '哈希函数', 'accent');
+  node(230, 204, 190, 48, '摘要 *H* = *h*(*m*)\n（定长，如 32 字节）', 'exam');
+  node(230, 268, 170, 48, '签名\n*S* = *H*^{*d*} mod *n*', 'warn');
+  arr('M230,95 V120'); arr('M230,158 V178'); arr('M230,228 V242');
+  /* 发送 */
+  node(230, 344, 150, 46, '发送 (*m*, *S*)\n*m* 通常是明文', 'exam');
+  arr('M230,292 V319');
+  arr('M305,72 H425 V344 H307', true);
+  /* 验证方 */
+  sRect(g, 10, 386, 440, 388, { fill: TC.ok, fop: .03, stroke: TC.ok, sop: .55, rx: 14 });
+  sRich(g, 24, 762, '验证方：任何人（只需公钥 *e*, *n*）', { size: 14, anchor: 'start', weight: 600 });
+  node(120, 424, 120, 36, '收到的 *S*');
+  node(340, 424, 120, 36, '收到的 *m*');
+  arr('M205,367 L130,404'); arr('M255,367 L330,404');
+  node(340, 492, 120, 36, '哈希函数', 'accent');
+  node(120, 568, 140, 40, '*S*^{*e*} mod *n*', 'ok');
+  node(340, 568, 130, 46, '自己算的\n*h*(*m*)', 'exam');
+  arr('M340,442 V472'); arr('M120,442 V546'); arr('M340,510 V543');
+  /* 菱形 */
+  var cx = 230, cy = 670;
+  sPath(g, 'M' + cx + ',' + (cy - 52) + ' L' + (cx + 120) + ',' + cy + ' L' + cx + ',' + (cy + 52) + ' L' + (cx - 120) + ',' + cy + ' Z', { fill: TC.ok, sop: .55, stroke: TC.ok }).setAttribute('fill-opacity', .08);
+  sLines(g, cx, cy - 14, ['两者相等？', '相等 → 接受', '不等 → 拒绝'], 18, { size: 13.5 });
+  arr('M120,588 L190,630'); arr('M340,591 L270,630');
+  $(hostId).appendChild(svg);
+}
+
+/* ---------------------------------------------------------------- 图：中间人替换公钥 */
+var MITM_SPEC = {
+  label: '中间人 Darth 截下 Alice 索要 Bob 公钥的请求，发回自己的公钥，解开 Alice 的消息后再用 Bob 真正的公钥加密转发',
+  actors: [{ id: 'A', label: 'Alice' }, { id: 'D', label: 'Darth', tone: 'warn' }, { id: 'B', label: 'Bob', tone: 'ok' }],
+  notesW: 0, width: 720,
+  rows: [
+    { msg: ['A', 'D'], text: '① 请把 Bob 的公钥发给我', aside: '截下请求', asideAt: 'D' },
+    { msg: ['D', 'A'], text: '② "这是 Bob 的公钥"：其实是 *K*_{Darth}', tone: 'warn' },
+    { msg: ['A', 'D'], text: '③ 用 *K*_{Darth} 加密的消息\n（Alice 以为是发给 Bob 的）' },
+    { box: 'D', text: '用自己的私钥解开、读、改', tone: 'warn' },
+    { msg: ['D', 'B'], text: '④ 用 Bob 真正的公钥 *K*_{Bob}\n重新加密后转发', tone: 'warn' },
+    { gap: 4 },
+    { band: '每一步的加密、解密都"成功"——没有任何密码运算报错。缺的不是数学，而是"这把公钥属于谁"的绑定。', tone: 'exam' }
+  ]
+};
+
+/* ---------------------------------------------------------------- 图：X.509 v3 九个字段（课件第 22 页） */
+function drawX509(hostId, narrow){
+  var rows = [
+    ['Version', '3', 'accent', .26], ['Serial number', 'unique within the issuer', 'accent', .26],
+    ['Signature algorithm', 'e.g. SHA-256 with ECDSA', 'accent', .26], ['Issuer name', 'the CA that signed this', 'accent', .12],
+    ['Validity', 'not-before  /  not-after', 'accent', .12], ['Subject name', 'the entity the key belongs to', 'accent', .12],
+    ['Subject public key info', 'algorithm + the key itself', 'warn', .16],
+    ['Extensions (v3)', 'key usage, subject alternative names, CA flag, CRL and OCSP locations', 'exam', .16],
+    ['Signature', 'the CA’s signature over everything above', 'ok', .16]
+  ];
+  var W = narrow ? 400 : 640, M = 12, bw = narrow ? 170 : 230, tx = M + bw + 16, tw = W - tx - M, FS = narrow ? 12.5 : 14, rh = narrow ? 34 : 36, gap = 6;
+  var svg = svgRoot(W, 10, 'X.509 v3 证书从上到下的九个字段'), g = svgEl('g'); svg.appendChild(g);
+  sRich(g, M, 26, 'Structure of an X.509 v3 certificate', { size: FS + 3, anchor: 'start', weight: 700 });
+  var y = 42;
+  rows.forEach(function(r){
+    var lines = wrapText(r[1], tw, FS), h = Math.max(rh, lines.length * FS * 1.3 + 12), c = toneColor(r[2]);
+    sRect(g, M, y, bw, h, { fill: c, fop: r[3], stroke: c, sop: .7, rx: 6 });
+    sRich(g, M + bw / 2, y + h / 2 + FS * .35, r[0], { size: FS, weight: 700 });
+    sLines(g, tx, y + h / 2 - (lines.length - 1) * FS * .65 + FS * .35, lines, FS * 1.3, { size: FS, anchor: 'start' });
+    y += h + gap;
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (y + 6));
+  $(hostId).appendChild(svg);
+}
+
+/* ---------------------------------------------------------------- 图：信任链的逐级验签 */
+function drawChain(hostId){
+  var W = 440, svg = svgRoot(W, 712, '三级证书链：根 CA 证书自签名并已在信任库中；用根证书里的公钥验中间 CA 证书的签名，用中间 CA 证书里的公钥验终端证书的签名'), g = svgEl('g');
+  svg.appendChild(g);
+  var X = 96, TW = 330, kx = X + 12, vx = X + 112, RH = 26;
+  function cert(y, title, tone, rows, hlKey, hlSig){
+    var c = toneColor(tone);
+    sRect(g, X, y, TW, 30 + rows.length * RH + 4, { fill: 'currentColor', fop: .02, stroke: c, sop: .75, rx: 4, sw: 1.3 });
+    sRect(g, X, y, TW, 30, { fill: c, fop: .22, stroke: c, sop: 0, rx: 4 });
+    sRich(g, X + TW / 2, y + 20, title, { size: 14, weight: 700 });
+    rows.forEach(function(r, k){
+      var yy = y + 30 + k * RH;
+      if (k === 2 && hlKey) sRect(g, X + 1, yy + 1, TW - 2, RH, { fill: c, fop: .12, sop: 0, rx: 0 });
+      if (k === 4 && hlSig) sRect(g, X + 1, yy + 1, TW - 2, RH, { fill: AC, fop: .1, sop: 0, rx: 0 });
+      sRich(g, kx, yy + 18, r[0], { size: 13.5, anchor: 'start' });
+      sRich(g, vx, yy + 18, r[1], { size: 13.5, anchor: 'start' });
+    });
+    return { keyY: y + 30 + 2 * RH + RH / 2 + 1, sigY: y + 30 + 4 * RH + RH / 2 + 1, bottom: y + 34 + rows.length * RH };
+  }
+  /* 信任库 */
+  sRect(g, 70, 10, 330, 50, { fill: TC.warn, fop: .06, stroke: TC.warn, sop: .75, rx: 14, dash: '6 4' });
+  sLines(g, 235, 30, ['客户端的信任库（trust store）', '随浏览器 / 操作系统预装，里面已有根证书'], 18, { size: 13, fill: TC.warn });
+  sLine(g, 235, 60, 235, 102, { stroke: TC.warn, sop: .75, dash: '5 4' });
+  sRich(g, 227, 86, '已在库中：信任它是决定，不是证明', { size: 12.5, anchor: 'end', fill: TC.warn });
+  var R = cert(104, '根 CA 证书（自签名）', 'warn', [['Subject', 'Root CA'], ['Issuer', 'Root CA（与 Subject 相同）'], ['公钥', '*K*_{root}'], ['CA 标志', 'TRUE'], ['签名', '根自己的私钥签的']], true, false);
+  var I = cert(R.bottom + 58, '中间 CA 证书', 'exam', [['Subject', 'Intermediate CA'], ['Issuer', 'Root CA'], ['公钥', '*K*_{inter}'], ['CA 标志', 'TRUE'], ['签名', '根的私钥签的']], true, true);
+  var E = cert(I.bottom + 58, '终端实体证书（bank.com 出示的）', 'accent', [['Subject / SAN', 'bank.com'], ['Issuer', 'Intermediate CA'], ['公钥', '*K*_{bank}'], ['CA 标志', 'FALSE'], ['签名', '中间 CA 的私钥签的']], false, true);
+  var ar = arrowHead(svg, TC.warn, .9), ae = arrowHead(svg, TC.exam, .9);
+  sPath(g, 'M' + X + ',' + R.keyY + ' C 10,' + R.keyY + ' 10,' + I.sigY + ' ' + (X - 2) + ',' + I.sigY, { stroke: TC.warn, sop: .85, sw: 1.7, marker: ar });
+  sPath(g, 'M' + X + ',' + I.keyY + ' C 4,' + I.keyY + ' 4,' + E.sigY + ' ' + (X - 2) + ',' + E.sigY, { stroke: TC.exam, sop: .85, sw: 1.7, marker: ae });
+  sRich(g, 40, R.bottom + 34, '② 用 *K*_{root} 验中间 CA 证书的签名', { size: 13, anchor: 'start', fill: TC.warn });
+  sRich(g, 40, I.bottom + 34, '① 用 *K*_{inter} 验终端证书的签名', { size: 13, anchor: 'start', fill: TC.exam });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (E.bottom + 10));
+  $(hostId).appendChild(svg);
+}
+
+/* ================================================================ 交互件 */
+function bv(id){ return parseBig($(id).value); }
+function err(m){ return '<span class="bad">' + m + '</span>'; }
+function sup(x){ return '<sup>' + x + '</sup>'; }
+function eqq(v, n){ /* v 写成 “v = q × n + r”（v ≥ n 时） */
+  return v >= n ? v + ' = ' + (v / n) + ' × ' + n + ' + ' + (v % n) : String(v);
+}
+
+/* ---------------------------------------------------------------- 1 RSA 签名与验证（4.4–4.6） */
+function rsSet(H, tamper){ $('rsH').value = H; $('rsTamper').checked = !!tamper; rsGo(); }
+function sqmulTableHTML(T, base, n, baseName){
+  var h = '<div class="tw"><table class="compact"><thead><tr><th>读到的位</th><th>平方</th><th>取模</th><th>位为 1 时乘 ' + baseName + '</th><th>结果 <span class="m">r</span></th><th>此时 <span class="m">r</span> = ' + baseName + '<sup>?</sup></th></tr></thead><tbody>';
+  T.rows.forEach(function(r, k){
+    h += '<tr' + (k === T.rows.length - 1 ? ' class="use"' : '') + '><td>' + r.bit + '</td><td class="mono">' + r.rin + '² = ' + eqq(r.sq, n) + '</td><td class="mono">' + r.sqm + '</td><td class="mono">' +
+      (r.bit === '1' ? r.sqm + ' × ' + base + ' = ' + eqq(r.prod, n) : '—') + '</td><td class="mono"><strong>' + r.r + '</strong></td><td class="mono">' + baseName + sup(r.ex) + '</td></tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function rsGo(){
+  var p = bv('rsP'), q = bv('rsQ'), e = bv('rsE'), H = bv('rsH'), st = $('rsSteps'), out = $('rsOut');
+  if (p === null || q === null || e === null || H === null){ st.innerHTML = err('p、q、e、H 都要填非负整数'); out.innerHTML = '—'; return; }
+  var K = rsaKey(p, q, e);
+  if (K.err){ st.innerHTML = err(K.err.join('；')); out.innerHTML = '—'; return; }
+  if (H >= K.n){ st.innerHTML = err('摘要 H 必须小于 n = ' + K.n + '（RSA 只能签小于 n 的整数，见 5.2）'); out.innerHTML = '—'; return; }
+  var Ts = sqmulTrace(H, K.d, K.n), S = Ts.result, tamper = $('rsTamper').checked, Sv = tamper ? (S + 1n) % K.n : S;
+  var Tv = sqmulTrace(Sv, K.e, K.n), v = Tv.result, ok = v === H;
+  var h = '<div><span class="k">0</span>密钥：<span class="m">n</span> = ' + p + ' × ' + q + ' = ' + K.n + '，<span class="m">φ(n)</span> = ' + (p - 1n) + ' × ' + (q - 1n) + ' = ' + K.phi +
+    '，私有指数 <span class="m">d</span> = ' + K.d + '（检查 <span class="m">ed</span> = ' + (K.e * K.d) + ' = ' + K.k + ' × ' + K.phi + ' + 1）</div>';
+  h += '<div><span class="k">1</span>签名 <span class="m">S</span> = ' + H + sup(K.d) + ' mod ' + K.n + '：<span class="m">d</span> = ' + K.d + ' = (' + Ts.bits + ')<sub>2</sub>，从最高位逐位读，每位先平方、该位为 1 再乘 ' + H + '，指数依次是 ' + Ts.rows.map(function(r){ return r.ex; }).join(' → ') + '。</div>';
+  h += sqmulTableHTML(Ts, H, K.n, String(H));
+  if ($('rsFmt1').checked){
+    var F = sqTable(H, K.d, K.n);
+    h += '<div style="margin-left:2rem">格式一（逐次平方表）复核：' + F.pw.map(function(x){ return H + sup(x.k) + ' ≡ ' + x.v; }).join('，') + '；' + K.d + ' = ' + F.parts.map(function(x){ return x.k; }).join(' + ') + '，' +
+      (F.steps.length ? F.steps.map(function(s){ return s.a + ' × ' + s.b + ' = ' + s.prod + ' ≡ ' + s.r; }).join('，') : '只有一项') + '。结果 ' + F.result + (F.result === S ? ' <span class="good">一致</span>' : ' <span class="bad">不一致</span>') + '</div>';
+  }
+  h += '<div><span class="k">2</span>' + (tamper ? '攻击者把签名从 ' + S + ' 改成 <span class="m">S′</span> = ' + Sv + '，Bob 照常验证：' : '验证（Bob 只用公钥 <span class="m">e</span> = ' + K.e + '）：') +
+    '算 ' + Sv + sup(K.e) + ' mod ' + K.n + (Sv ** K.e < 10n ** 15n ? '，直接算 ' + Sv + sup(K.e) + ' = ' + eqq(Sv ** K.e, K.n) : '') + '；边算边约：</div>';
+  h += sqmulTableHTML(Tv, Sv, K.n, String(Sv));
+  st.innerHTML = h;
+  out.innerHTML = '签名 <strong class="mono">S = ' + S + '</strong>。' + (tamper ? '收到的 <span class="m">S′</span> = ' + Sv + '，' : '') + '验证得 <span class="mono">' + Sv + sup(K.e) + ' mod ' + K.n + ' = ' + v + '</span>' +
+    (ok ? ' = <span class="m">H</span>，<span class="good">签名有效，接受</span>' : ' ≠ ' + H + '，<span class="bad">拒绝</span>——Bob 只知道收到的不是 Alice 签的' + (tamper ? '（这一对 (' + v + ', ' + Sv + ') 本身却是合法签名，见 5.3）' : '')) + '。';
+}
+
+/* ---------------------------------------------------------------- 2 SHA-256 雪崩（5.1） */
+function shSet(a, b){ $('shA').value = a; $('shB').value = b; shGo(); }
+function shGo(){
+  var a = sha256(utf8($('shA').value)), b = sha256(utf8($('shB').value)), ha = hex(a), hb = hex(b), n = bitDiff(a, b);
+  function mark(h, o){ var s = ''; for (var i = 0; i < h.length; i++) s += h[i] !== o[i] ? '<b class="c3">' + h[i] + '</b>' : h[i]; return s; }
+  $('shHex').innerHTML = '<div class="hexline"><span class="lab">A</span><code>' + mark(ha, hb) + '</code></div><div class="hexline"><span class="lab">B</span><code>' + mark(hb, ha) + '</code></div>';
+  var bar = '<div class="bitbar">';
+  for (var i = 0; i < 32; i++){ for (var j = 7; j >= 0; j--){ var d = ((a[i] ^ b[i]) >> j) & 1; bar += '<i' + (d ? ' class="on"' : '') + '></i>'; } }
+  $('shOut').innerHTML = bar + '</div>' + (n === 0 ? '两条输入完全相同，摘要也相同（0 位不同）。' : '256 位里有 <strong>' + n + '</strong> 位不同（' + (n / 2.56).toFixed(1) + '%），橙色的十六进制位与上面亮起的格子就是变了的地方。');
+}
+
+/* ---------------------------------------------------------------- 3 教科书 RSA 的两种伪造（5.3） */
+function fgSet(Sp, H1, H2){ $('fgS').value = Sp; $('fgH1').value = H1; $('fgH2').value = H2; fgGo(); }
+function fgGo(){
+  var p = bv('fgP'), q = bv('fgQ'), e = bv('fgE'), Sp = bv('fgS'), H1 = bv('fgH1'), H2 = bv('fgH2'), st = $('fgSteps'), out = $('fgOut');
+  if ([p, q, e, Sp, H1, H2].some(function(x){ return x === null; })){ st.innerHTML = err('每格都要填非负整数'); out.innerHTML = '—'; return; }
+  var K = rsaKey(p, q, e);
+  if (K.err){ st.innerHTML = err(K.err.join('；')); out.innerHTML = '—'; return; }
+  if (Sp >= K.n || H1 >= K.n || H2 >= K.n){ st.innerHTML = err('S′、H₁、H₂ 都要小于 n = ' + K.n); out.innerHTML = '—'; return; }
+  var Hp = forgeExistential(Sp, K.e, K.n), M = malleable(H1, H2, K.d, K.n);
+  st.innerHTML =
+    '<div><span class="k">1</span><strong>存在性伪造</strong>（只用公钥 {' + K.e + ', ' + K.n + '}）：先挑签名 <span class="m">S′</span> = ' + Sp + '，再算 <span class="m">H′</span> = ' + Sp + sup(K.e) + ' mod ' + K.n + ' = <strong>' + Hp + '</strong>。按验证规则 <span class="m">S′<sup>e</sup></span> mod <span class="m">n</span> = ' + Hp + ' = <span class="m">H′</span>，这一对 (' + Hp + ', ' + Sp + ') 必然通过验证。</div>' +
+    '<div><span class="k">2</span><strong>可乘性</strong>（攻击者手里有两个合法签名）：Sig(' + H1 + ') = ' + H1 + sup(K.d) + ' mod ' + K.n + ' = ' + M.s1 + '，Sig(' + H2 + ') = ' + M.s2 + '。</div>' +
+    '<div style="margin-left:2rem">相乘：' + M.s1 + ' × ' + M.s2 + ' = ' + eqq(M.prod, K.n) + ' → <strong>' + M.prodMod + '</strong>；而 ' + H1 + ' × ' + H2 + ' = ' + M.H12raw + ' ≡ ' + M.H12 + '，直接算 ' + M.H12 + sup(K.d) + ' mod ' + K.n + ' = <strong>' + M.s12 + '</strong>。</div>';
+  var same = M.prodMod === M.s12;
+  out.innerHTML = '伪造 1：(' + Hp + ', ' + Sp + ') 是摘要 ' + Hp + ' 的合法签名，<span class="bad">没用私钥</span>。伪造 2：Sig(' + H1 + ') · Sig(' + H2 + ') mod ' + K.n + ' = ' + M.prodMod + (same ? ' = ' : ' ≠ ') + 'Sig(' + M.H12 + ')' + (same ? '，<span class="bad">不用私钥造出了第三个签名</span>' : '') + '。要把它们变成真消息的签名，还得找到 <span class="m">m</span> 使 <span class="m">h(m)</span> 等于 ' + Hp + '（或 ' + M.H12 + '）——先哈希挡住的就是这一步。';
+}
+
+/* ---------------------------------------------------------------- 4 同一个 k 签两次（6.2 折叠块） */
+function dsSet(v){ var ks = ['dsP', 'dsQ', 'dsG', 'dsX', 'dsK1', 'dsK2', 'dsH1', 'dsH2']; ks.forEach(function(k, i){ $(k).value = v[i]; }); dsGo(); }
+function dsGo(){
+  var v = ['dsP', 'dsQ', 'dsG', 'dsX', 'dsK1', 'dsK2', 'dsH1', 'dsH2'].map(bv), st = $('dsSteps'), out = $('dsOut');
+  if (v.some(function(x){ return x === null; })){ st.innerHTML = err('每格都要填非负整数'); out.innerHTML = '—'; return; }
+  var p = v[0], q = v[1], g = v[2], x = v[3], k1 = v[4], k2 = v[5], H1 = v[6], H2 = v[7];
+  var pe = dsaParamsCheck(p, q, g);
+  if (pe.length){ st.innerHTML = err(pe.join('；')); out.innerHTML = '—'; return; }
+  if (x < 1n || x >= q || k1 < 1n || k1 >= q || k2 < 1n || k2 >= q){ st.innerHTML = err('x、k 都要在 1 与 q − 1 = ' + (q - 1n) + ' 之间'); out.innerHTML = '—'; return; }
+  var y = powmod(g, x, p), s1 = dsaSign(p, q, g, x, k1, H1), s2 = dsaSign(p, q, g, x, k2, H2);
+  if (s1.err || s2.err){ st.innerHTML = err(s1.err || s2.err); out.innerHTML = '—'; return; }
+  var v1 = dsaVerify(p, q, g, y, H1, s1.r, s1.s), v2 = dsaVerify(p, q, g, y, H2, s2.r, s2.s);
+  function sg(i, k, H, s, vv){
+    return '<div><span class="k">' + i + '</span>签 <span class="m">H<sub>' + i + '</sub></span> = ' + H + '，<span class="m">k</span> = ' + k + '：' + g + sup(k) + ' mod ' + p + ' = ' + s.gk + '，<span class="m">r</span> = ' + s.gk + ' mod ' + q + ' = <strong>' + s.r + '</strong>，<span class="m">k</span><sup>−1</sup> mod ' + q + ' = ' + s.kinv +
+      '，<span class="m">s</span> = ' + s.kinv + ' × (' + H + ' + ' + x + ' × ' + s.r + ') = ' + s.kinv + ' × ' + s.inner + ' = ' + (s.kinv * s.inner) + ' ≡ <strong>' + s.s + '</strong>；签名 (' + s.r + ', ' + s.s + ')，验证 <span class="m">v</span> = ' + vv.v + (vv.ok ? ' = <span class="m">r</span>，<span class="good">通过</span>' : ' <span class="bad">不通过</span>') + '</div>';
+  }
+  var h = '<div><span class="k">0</span>公钥 <span class="m">y</span> = ' + g + sup(x) + ' mod ' + p + ' = ' + y + '（攻击者只看得到 <span class="m">p, q, g, y</span> 和签名）</div>' + sg(1, k1, H1, s1, v1) + sg(2, k2, H2, s2, v2);
+  var o;
+  if (s1.r !== s2.r){
+    o = '两个签名的 <span class="m">r</span> 不同（' + s1.r + ' 与 ' + s2.r + '），用的不是同一个 <span class="m">k</span>：每个方程各带一个新的未知数 <span class="m">k</span>，加上私钥 <span class="m">x</span>，解不出来。';
+  } else {
+    var R = dsaRecover(q, H1, s1.s, H2, s2.s, s1.r);
+    if (R.err) { o = '两个签名的 <span class="m">r</span> 相同，但 ' + R.err + '（两条摘要模 q 相同时就是这样）。'; }
+    else {
+      h += '<div><span class="k">3</span>攻击者看到两个 <span class="m">r</span> 都是 ' + s1.r + '，两式相减消去 <span class="m">xr</span>：<span class="m">k</span> ≡ (' + H1 + ' − ' + H2 + ') × (' + s1.s + ' − ' + s2.s + ')<sup>−1</sup> = ' + nm(R.dh) + ' × ' + R.ds + '<sup>−1</sup> = ' + nm(R.dh) + ' × ' + R.inv + ' ≡ <strong>' + R.k + '</strong>（mod ' + q + '）</div>' +
+           '<div><span class="k">4</span><span class="m">x</span> ≡ (' + s1.s + ' × ' + R.k + ' − ' + H1 + ') × ' + s1.r + '<sup>−1</sup> = ' + nm(R.num) + ' × ' + R.rinv + ' ≡ <strong>' + R.x + '</strong>（mod ' + q + '）</div>';
+      o = (k1 === k2 ? '同一个 <span class="m">k</span> 用了两次（两个 <span class="m">r</span> 相同）：解出 <span class="m">k</span> = ' + R.k + '、私钥 <span class="m">x</span> = ' + R.x + (R.x === x ? '，<span class="bad">与真值一致——私钥泄露</span>' : '') :
+           '两次的 <span class="m">k</span> 不同，玩具参数下 <span class="m">r</span> 偶然相同；照「同一个 k」去解得到 <span class="m">x</span> = ' + R.x + (R.x === x ? '（碰巧对）' : '，<span class="good">与真值 ' + x + ' 不符，攻击不成立</span>')) + '。';
+    }
+  }
+  st.innerHTML = h; out.innerHTML = o;
+}
+
+/* ---------------------------------------------------------------- 5 证书链校验判定（10.2–10.4） */
+var CH_BASE = { today: '2026-08-07', typed: 'bank.com', san: 'bank.com, www.bank.com', lnb: '2026-01-01', lna: '2027-01-01', lsig: true,
+  ica: true, inb: '2024-01-01', ina: '2030-01-01', isent: true, isig: true, rstore: true, rnb: '2015-01-01', rna: '2040-01-01', rev: 'good', pol: 'soft', pos: true };
+var CH_PRESETS = {
+  ok: {}, A: { typed: 'www.bank.com', san: 'bank.com' },
+  B: { typed: 'shop.example', san: 'shop.example', lnb: '2025-03-01', lna: '2026-03-01' },
+  C: { typed: 'mail.example', san: 'mail.example', ica: false }, D: { pos: false },
+  wild: { typed: 'bank.com', san: '*.bank.com' }, miss: { isent: false }, soft: { rev: 'unknown', pol: 'soft' }
+};
+function chSet(k){
+  var v = Object.assign({}, CH_BASE, CH_PRESETS[k]);
+  $('chToday').value = v.today; $('chTyped').value = v.typed; $('chSan').value = v.san; $('chLnb').value = v.lnb; $('chLna').value = v.lna; $('chLsig').checked = v.lsig;
+  $('chIca').checked = v.ica; $('chInb').value = v.inb; $('chIna').value = v.ina; $('chIsent').checked = v.isent; $('chIsig').checked = v.isig;
+  $('chRstore').checked = v.rstore; $('chRnb').value = v.rnb; $('chRna').value = v.rna; $('chRev').value = v.rev; $('chPol').value = v.pol; $('chPos').checked = v.pos;
+  document.querySelectorAll('#chTool .pre .btn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-k') === k); });
+  chGo();
+}
+function chGo(){
+  var dates = ['chToday', 'chLnb', 'chLna', 'chInb', 'chIna', 'chRnb', 'chRna'], bad = dates.filter(function(id){ return dayNum($(id).value) === null; });
+  dates.forEach(function(id){ $(id).classList.toggle('badin', bad.indexOf(id) >= 0); });
+  if (bad.length){ $('chSteps').innerHTML = err('日期请写成 YYYY-MM-DD'); $('chOut').innerHTML = '—'; return; }
+  var san = $('chSan').value.split(/[,\s]+/).filter(Boolean);
+  var inp = { today: $('chToday').value, typed: $('chTyped').value.trim(), revocation: $('chRev').value, policy: $('chPol').value, possession: $('chPos').checked,
+    chain: [
+      { role: '终端', subject: san[0] || '(空)', issuer: 'Intermediate CA', san: san, nb: $('chLnb').value, na: $('chLna').value, ca: false, ku: ['digitalSignature'], eku: ['serverAuth'], sigOK: $('chLsig').checked },
+      { role: '中间 CA', subject: 'Intermediate CA', issuer: 'Root CA', nb: $('chInb').value, na: $('chIna').value, ca: $('chIca').checked, pathLen: 0, ku: $('chIca').checked ? ['keyCertSign', 'cRLSign'] : ['digitalSignature'], sigOK: $('chIsig').checked, sent: $('chIsent').checked },
+      { role: '根', subject: 'Root CA', issuer: 'Root CA', nb: $('chRnb').value, na: $('chRna').value, ca: true, inStore: $('chRstore').checked, sigOK: true }
+    ] };
+  var R = chainCheck(inp), steps = [['root'], ['sig'], ['date'], ['bc'], ['name', 'ku'], ['rev'], ['pos']];
+  var stepName = ['建链，查可信根', '逐级验签', '逐张查有效期', '查签过别人的证书', '查终端的名称与用途', '查吊销', '要求持有证明'];
+  var by = {}; R.checks.forEach(function(c){ by[c.key] = c; });
+  var h = '';
+  steps.forEach(function(ks, i){
+    h += '<div class="ck"><span class="k">' + (i + 1) + '</span><strong>' + stepName[i] + '</strong>' + ks.map(function(k){
+      var c = by[k]; return '<div class="ckl ' + (c.ok ? (c.soft ? 'soft' : 'pass') : 'fail') + '"><span class="mk">' + (c.ok ? (c.soft ? '!' : '✓') : '✗') + '</span>' + c.name + '：' + escH(c.detail) + '</div>';
+    }).join('') + '</div>';
+  });
+  $('chSteps').innerHTML = h;
+  if (R.accept) $('chOut').innerHTML = '<strong class="good">接受</strong>：八项检查全部通过' + (R.softPass ? '——<span class="bad">但吊销那一项是软失败放行的，等于没查</span>' : '') + '。前六步只用到公开数据，第 7 步才把这份文件和正在说话的服务器连起来。';
+  else $('chOut').innerHTML = '<strong class="bad">拒绝</strong>。' + R.fails.map(function(f){ return '失败的检查：<strong>' + f.name + '</strong>；依据：' + escH(f.detail) + '；后果：' + f.fail + '。'; }).join('<br>');
+}
+
+
+
+/* ---------- 交互件与图初始化 ---------- */
+rsGo();
+drawHashSign('figHS');
+shGo();
+fgGo();
+dsGo();
+seqDiagram('figMitmW',MITM_SPEC,false); seqDiagram('figMitmN',MITM_SPEC,true);
+drawX509('figX509W',false); drawX509('figX509N',true);
+drawChain('figChain');
+chSet('A');
+
+/* ---------- 目录高亮 ---------- */
+(function(){
+  const links=[...document.querySelectorAll('nav a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ const a=map.get(e.target.id); if(!a) return;
+      if(e.isIntersecting){links.forEach(x=>x.classList.remove('on')); a.classList.add('on');}});
+  },{rootMargin:'0px 0px -75% 0px'});
+  map.forEach((a,id)=>{const el=document.getElementById(id); if(el) io.observe(el);});
+})();
+/* ---------- 打印时展开全部折叠块（Chromium 对关着的 details 不渲染内容，CSS 撑不开） ---------- */
+function openAllDetails(){ var d=document.querySelectorAll('details'); for(var i=0;i<d.length;i++) d[i].open=true; }
+window.onbeforeprint=openAllDetails;
+(function(){ if(window.matchMedia){ var mq=window.matchMedia('print'); mq.onchange=function(e){ if(e.matches) openAllDetails(); }; } })();
+
+</script>
+</body>
+</html>
