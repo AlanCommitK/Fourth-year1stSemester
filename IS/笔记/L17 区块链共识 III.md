@@ -13,7 +13,7 @@ status: 已完成
 > - 几道用到本讲课件页的补充练习（第 3 节）。
 >
 > 文中 $N$ 表示节点总数，$f$ 表示至多出故障的节点数，与 L16 笔记一致。
-> 对应课件 `Lecture 17 - Blockchain Consensus-III`，53 页，内部编号与 Moodle 一致（17）。课件文字与图大多取自 Imran Bashir《Mastering Blockchain》第 3 版第 5 章。课程总览与考情见 [[00 课程信息与考情]]。
+> 对应课件 `Lecture 17 - Blockchain Consensus-III`，53 页，内部编号与 Moodle 一致（17）。课件文字与图大多取自 Imran Bashir《Mastering Blockchain》第 3 版第 5 章。课程总览与考情见 [[00 IS 课程信息与考情]]。
 
 > [!tip] 考点
 > 课件没有 "exam" 一类原话。考试信号有两处：讲者红字最密的一页是 p46 的 "n ≥ 3f + 1"（= L16 p67）；RAFT、PBFT 的主思想、三种角色、三阶段与时序图，在 L16、L18、L20 Summary 里又原样出现了三次。

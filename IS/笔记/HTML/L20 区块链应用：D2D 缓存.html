@@ -246,7 +246,7 @@ th.nw,td.nw{white-space:nowrap}
 <li><strong>双层区块链</strong>：每个簇内一条<strong>子链</strong>用 <strong>Raft</strong>（只容崩溃故障、由单个 leader 主导的共识），簇与簇之间一条<strong>主链</strong>用 <strong>PBFT</strong>（实用拜占庭容错，能容忍少数节点作恶的共识），记录并核验模型更新。</li>
 </ol>
 <p>课件按论文的结构排：背景 → 贡献 → 系统模型 → 问题建模（公式）→ 解法（框架、Double DQN、模型更新与算法）→ 仿真。本笔记先讲系统要解决的问题与联邦学习，再把<strong>双层区块链和两种共识的选择</strong>提到前面重点讲（这是本课的主线，逐条挂回 <a href="L16%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20II.html">L16 区块链共识 II</a>、<a href="L17%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%85%B1%E8%AF%86%20III.html">L17 区块链共识 III</a>），Double DQN 与模型更新公式放到后面、讲到能看懂系统为止。最后一节和 <a href="L19%20%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BA%94%E7%94%A8%EF%BC%9A%E7%BD%91%E8%81%94%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6.html">L19 区块链应用：网联自动驾驶</a> 对照。</p>
-<p>对应课件 <code>Lecture 20 - BC for D2D-slides.pdf</code>，11 页，Moodle 标题 "Lecture 20 - Tutorial II"，也是论文汇报幻灯片，没有学习目标、活动和例题。Moodle 上的 <strong>Research Paper 3</strong> 应是下面这篇期刊论文（按 Moodle 三篇论文的主题顺序推断，尚未在 Moodle 上逐一核对）：Runze Cheng, Yao Sun, Yijing Liu, Le Xia, Daquan Feng, Muhammad Ali Imran, "Blockchain-Empowered Federated Learning Approach for an Intelligent and Reliable D2D Caching Scheme", <em>IEEE Internet of Things Journal</em>, vol. 9, no. 11, pp. 7879–7890, 2022。课件封面的标题却是同一组作者的会议版 "A Privacy-preserved D2D Caching Scheme Underpinned by Blockchain-enabled Federated Learning"（IEEE GLOBECOM 2021，GLOBECOM 即 IEEE 全球通信大会 Global Communications Conference；期刊名里的 IoT 是 Internet of Things，物联网），幻灯片内容混用了两版：方案名 <strong>DBFL</strong>（double-layer blockchain-based federated learning，双层区块链联邦学习）出自会议版，<strong>BDRFL</strong>（double-layer blockchain-based deep reinforcement federated learning，双层区块链深度强化联邦学习）出自期刊版，课件 p10 干脆写成 "BDRFL (DBFL)"。两者指同一个方案，本笔记统称 DBFL。课件没定义的符号与仿真规模按论文原文补。课程总览见 00 课程信息与考情。</p>
+<p>对应课件 <code>Lecture 20 - BC for D2D-slides.pdf</code>，11 页，Moodle 标题 "Lecture 20 - Tutorial II"，也是论文汇报幻灯片，没有学习目标、活动和例题。Moodle 上的 <strong>Research Paper 3</strong> 应是下面这篇期刊论文（按 Moodle 三篇论文的主题顺序推断，尚未在 Moodle 上逐一核对）：Runze Cheng, Yao Sun, Yijing Liu, Le Xia, Daquan Feng, Muhammad Ali Imran, "Blockchain-Empowered Federated Learning Approach for an Intelligent and Reliable D2D Caching Scheme", <em>IEEE Internet of Things Journal</em>, vol. 9, no. 11, pp. 7879–7890, 2022。课件封面的标题却是同一组作者的会议版 "A Privacy-preserved D2D Caching Scheme Underpinned by Blockchain-enabled Federated Learning"（IEEE GLOBECOM 2021，GLOBECOM 即 IEEE 全球通信大会 Global Communications Conference；期刊名里的 IoT 是 Internet of Things，物联网），幻灯片内容混用了两版：方案名 <strong>DBFL</strong>（double-layer blockchain-based federated learning，双层区块链联邦学习）出自会议版，<strong>BDRFL</strong>（double-layer blockchain-based deep reinforcement federated learning，双层区块链深度强化联邦学习）出自期刊版，课件 p10 干脆写成 "BDRFL (DBFL)"。两者指同一个方案，本笔记统称 DBFL。课件没定义的符号与仿真规模按论文原文补。课程总览见 00 IS 课程信息与考情。</p>
 </div>
 
 <div class="box exam">
@@ -722,7 +722,7 @@ th.nw,td.nw{white-space:nowrap}
 
 
 <footer>
-<p>本讲是后半程最后一讲。后半程总复习见课件 <code>Lecture 20-Summary.pdf</code>（只覆盖 L11–L18），课程总览见 00 课程信息与考情。</p>
+<p>本讲是后半程最后一讲。后半程总复习见课件 <code>Lecture 20-Summary.pdf</code>（只覆盖 L11–L18），课程总览见 00 IS 课程信息与考情。</p>
 <p style="margin-bottom:0">这份 HTML 是 Obsidian 笔记 <code>L20 区块链应用：D2D 缓存.md</code> 的阅读优化版，内容一致。检索与双链请在 Obsidian 里用。</p>
 </footer>
 

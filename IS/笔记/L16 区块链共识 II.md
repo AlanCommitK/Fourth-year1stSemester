@@ -14,7 +14,7 @@ status: 已完成
 >
 > 三个协议表面上各有一套角色和阶段，底下是同一条规则：**任意两个法定人数（quorum）必须相交于至少一个诚实节点**。法定人数是协议每一步至少要凑齐的回应者集合；下文 $N$ 表示节点总数，$f$ 表示至多出故障的节点数。课件把这条规则推出的两个数 $2f+1$（p38）和 $3f+1$（p67）分散在 Paxos 和 PBFT 里、只给结论。本笔记把它提到最前面统一推导（[[#3 法定人数交集：2f+1 与 3f+1 从哪里来|第 3 节]]），再逐个讲三个协议，每讲一条规则都回头说明它在守护哪个交集。这是和课件顺序的主要不同；三个协议内部仍按课件的"主思想 → 角色 → 阶段"展开，另补了课件没讲的"每一步为什么必要"。
 > 对应课件 `Lecture 16 - Blockchain Consensus-II.pdf`，74 页。p2–p22 原样复习 L15，压缩在[[#1 回顾：L15 的 PoW、PoS 与性能指标|第 1 节]]；p23–25、p43、p62、p73–74 是路线图、教学计划、分节页和小结，没有新知识点（p62 标题误印成 "Outline of Lecture 13"；p74 预告的认知无线电实际在 [[L18 区块链赋能的认知无线电网络]]）。p24 教学计划的目标只有一行 "Three consensus mechanisms PAXOS, RAFT, and PBFT (typical in communication network)"。课件这三个协议部分的措辞和几张时序图、状态图，与 Imran Bashir《Mastering Blockchain》共识算法一章的风格一致，很可能取自该书；本笔记核对用的是三篇原始论文：Lamport 2001、Ongaro 与 Ousterhout 2014、Castro 与 Liskov 1999。
-> 下一讲 [[L17 区块链共识 III]] 的课件几乎逐字重放本讲的 RAFT 与 PBFT；**Paxos 的五页细则 p32–34、p40–41 只在本讲出现**，模拟卷的 Paxos 题明说以本讲为准。附读物 `PBFT-Mathematical Proof.pdf` 实为 PBFT 原论文全文，概要见 [[#6.8 附读物：PBFT 原论文|6.8]]。课程总览与考情见 [[00 课程信息与考情]]。
+> 下一讲 [[L17 区块链共识 III]] 的课件几乎逐字重放本讲的 RAFT 与 PBFT；**Paxos 的五页细则 p32–34、p40–41 只在本讲出现**，模拟卷的 Paxos 题明说以本讲为准。附读物 `PBFT-Mathematical Proof.pdf` 实为 PBFT 原论文全文，概要见 [[#6.8 附读物：PBFT 原论文|6.8]]。课程总览与考情见 [[00 IS 课程信息与考情]]。
 
 > [!tip] 考点
 > 课件没有 "exam""you will be asked" 一类原话。考试信号有两处：

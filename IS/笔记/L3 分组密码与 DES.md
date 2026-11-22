@@ -14,7 +14,7 @@ status: 已完成
 > 5. 强度由什么决定？轮数、轮函数、密钥编排三个设计杠杆，外加密钥长度。DES 正是败在密钥长度上，于是有了 2DES 的失败、3DES 的过渡和 AES。
 >
 > 这里提到的术语都在下文对应小节定义。课件的五个部分本来就是按这条链排的，本笔记沿用原顺序，只做两处补充：课件没给的 DES 内部结构（轮函数 F、S 盒、密钥编排的细节）补在 [[#6 DES|第 6 节]]；Feistel 解密正确性的完整推导补在 [[#5.4 解密：同一个算法，密钥倒序|5.4]]。
-> 课程总览与考情见 [[00 课程信息与考情]]。对应课件 `Lecture3_BlockCiphers_DES_26_TUL`，32 页；笔记里说的"课件第几页"按 PDF 页序（课件页脚编号因删去了 4 页答案页而偏大）。教材 Stallings 第 8 版第 4 章 4.1–4.5；双重/三重 DES 与中间相遇攻击在第 7 章 7.1（课件参考页只写了第 4 章）。
+> 课程总览与考情见 [[00 IS 课程信息与考情]]。对应课件 `Lecture3_BlockCiphers_DES_26_TUL`，32 页；笔记里说的"课件第几页"按 PDF 页序（课件页脚编号因删去了 4 页答案页而偏大）。教材 Stallings 第 8 版第 4 章 4.1–4.5；双重/三重 DES 与中间相遇攻击在第 7 章 7.1（课件参考页只写了第 4 章）。
 
 > [!tip] 考点
 > 课件开头列的学习目标就是本讲要会的四件事："Explain why the ideal block cipher cannot be built, **with numbers**"；"Distinguish confusion from diffusion and identify which a given operation provides"；"**Execute one round of a Feistel cipher by hand, and undo it**"；"Describe DES and evaluate proposed changes to it"。

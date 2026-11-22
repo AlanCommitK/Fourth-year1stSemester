@@ -17,10 +17,10 @@ status: 已完成
 > - 四道课后任务各自放回所属的小节（4.6、12.4、12.5、14.2）。
 >
 > 对应课件 `Lecture8_Signatures_PKI_26_TUL.pdf`，37 页。封面写 Lecture 8，页脚全写 Lecture 7；课件提到别的讲次都按页脚编号，本笔记一律换成 Moodle 编号：课件的 "Lecture 6" 是 [[L7 公钥密码]]，"Lecture 5" 是 [[L6 对称密码的安全使用]]，"Lecture 8" 是 [[L9 实用安全协议]]，"Lecture 1" 是 [[L1 信息安全基础]]。教材 Stallings 第 8 版第 13 章（数字签名）和第 15 章（公钥分发、X.509 证书、PKI）；课件参考页写的 "Chapter 14" 是第 7 版的章号。课件推荐的标准是 RFC 5280（X.509 证书格式及其校验规则）和 RFC 6962（证书透明度，Certificate Transparency：要求公共证书公开登记的机制，见 12.3）；RFC（Request for Comments）是互联网工程任务组 IETF（Internet Engineering Task Force）发布的标准文档。
-> 课堂活动 1–4 课件自带答案页，活动 5（四道课后任务）没有，这里的解答是自己做的；数值都用程序核对过，证书判定都用 OpenSSL（最常用的开源密码工具库）复现过。课件有三处内容被页面上的提示框盖住，已从 PDF 文字层补全。课程总览与考情见 [[00 课程信息与考情]]。
+> 课堂活动 1–4 课件自带答案页，活动 5（四道课后任务）没有，这里的解答是自己做的；数值都用程序核对过，证书判定都用 OpenSSL（最常用的开源密码工具库）复现过。课件有三处内容被页面上的提示框盖住，已从 PDF 文字层补全。课程总览与考情见 [[00 IS 课程信息与考情]]。
 
 > [!tip] 考点
-> 课件只有第 36 页预告 capstone（前 10 讲收尾的综合评估）时出现过 "exam"，但学习目标和活动标注把要会的东西说得很清楚。课程介绍列了六条 ILO（intended learning outcome，预期学习成果，全文见 [[00 课程信息与考情]]），本讲服务 ILO 2 "interpret a number of different security protocols"，活动 1 还点到 ILO 3（评估系统的漏洞、推荐最合适的方案）。
+> 课件只有第 36 页预告 capstone（前 10 讲收尾的综合评估）时出现过 "exam"，但学习目标和活动标注把要会的东西说得很清楚。课程介绍列了六条 ILO（intended learning outcome，预期学习成果，全文见 [[00 IS 课程信息与考情]]），本讲服务 ILO 2 "interpret a number of different security protocols"，活动 1 还点到 ILO 3（评估系统的漏洞、推荐最合适的方案）。
 > - 第 3 页学习目标 "**Produce and verify an RSA signature by hand**"；第 11 页 "Square and reduce at every step. Do not compute 7²⁷ in full."；第 37 页 "Practise signing and verifying by hand until it is automatic"——手算签名与验证，写出平方-乘过程，见 [[#4.4 手算：平方-乘|4.4]]；
 > - 第 3 页 "State what a digital signature provides that a MAC cannot, and why"，见 [[#2.2 签名与 MAC：差在对称与不对称|2.2]]；
 > - 第 7 页 "Three things students routinely get wrong"，见 [[#4.3 关于签名的三个误解|4.3]]；
