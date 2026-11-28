@@ -1,5 +1,0 @@
-Original chain                               links match: True   is_chain_valid: True
-Block 1 data edited                          links match: False  is_chain_valid: False
-Block 1 edited, block 2 relinked             links match: True   is_chain_valid: False
-  new hash of block 1: bcdc811eb2c5ba646024654989e63561c4e9631703c9fc2c7f8538d5f46905a0
-Last block (block 2) data edited             links match: True   is_chain_valid: False
