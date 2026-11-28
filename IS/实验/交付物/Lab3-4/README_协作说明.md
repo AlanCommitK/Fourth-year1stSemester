@@ -24,30 +24,31 @@ python -m venv venv
 python --version
 ```
 
-## 3 文件与题号对应
+## 3 文件与题号对应（2026-11-28 更新）
 
-| 文件 | 对应 | 现场怎么演示 |
+现场演示用的是搭档自己写的那套代码，提交的报告也以这套为准；我方最初写的版本（`task1_python_tutorial.py`、`lab3_demo.py`、`lab4_demo.py`、`test_blockchain.py` 等）已移到 `报告/旧版_v2/代码_我方初版/`，不再使用。
+
+| 文件 | 对应 | 用法 |
 | --- | --- | --- |
-| `task1_python_tutorial.py` | Lab 3 Task 1.1–1.4 | `python task1_python_tutorial.py` 打印 10 个块；`python task1_python_tutorial.py 3` 只打印 index 3 |
-| `blockchain.py` | Lab 3 Task 2–3、Lab 4 Task 3 | 核心类，被下面两个脚本调用 |
-| `lab3_demo.py` | Lab 3 Task 3.1–3.3 | `python lab3_demo.py`：创世块、记两块、取上一块、整条链及每块哈希 |
-| `lab4_demo.py` | Lab 4 Task 3、Mine New Block、Validate | `python lab4_demo.py`：挖两块（难度 4，各约 0.1 s）、校验通过；再篡改第 1 块，校验失败并指出哪一块 |
-| `difficulty_experiment.py` | 扩展（报告用） | `python difficulty_experiment.py 4 50`：难度 1–4 各挖 50 块，平均哈希次数对照 $16^d$ |
-| `test_blockchain.py` | 自测 | `python -m unittest test_blockchain -v`，12 项全过 |
+| `blockchain.py` | Lab 3 Task 1–3、Lab 4 Task 3 与 Validate | `BlockRecords`（10 条练习记录）与 `Blockchain`（创世块、`mine_block`、`proof_of_work`、`is_chain_valid`）；搭档现场演示的原代码 |
+| `run_lab.py` | 两次实验的主程序 | `python run_lab.py --json-out run_results.json`：打印 10 条记录、挖两块、跑 10 项自检；搭档现场演示的原代码 |
+| `difficulty_experiment.py` | 报告分析用（事后补写） | `python difficulty_experiment.py 4 200`：难度 1–4 各挖 200 块，对照 $16^d$ |
+| `tamper_experiment.py` | 报告分析用（事后补写） | `python tamper_experiment.py`：区分哈希链接与 PoW 各能查出哪种篡改 |
+| `*_output.txt`、`run_results.json`、`difficulty_results.csv` | 报告附录 C 与表 2–4 的原始输出 | 复跑结果 |
 
 ## 4 题面里的几处笔误，代码怎么处理的
 
 - 结构图里写 `timestep`，正文写 Timestamp：代码用 **`timestamp`**。
 - Task 3.1 列表里写 "**Date**: The recorded information"：指的是 **data**，代码用 `data`。
 - Task 1.2 写"achieve the block record in task**3.1**"：上下文是 Task 1.1 的记录，按 1.1 实现。
-- Task 1.1 "index and data in equal steps starting from 100 until it reaches 1000"：理解为 10 个块的 data 依次是 100, 200, …, 1000（每个包成列表 `[100]`），index 是 0–9 的位置。GTA 若理解为 index 也从 100 起，改 `record_blocks` 里一行即可。
+- Task 1.1 "index and data in equal steps starting from 100 until it reaches 1000"：理解为 10 个块的 data 依次是 100, 200, …, 1000（每个包成列表 `[100]`），index 是 0–9 的位置。（搭档代码 `generate_records()` 也是这样实现的。）
 - 课程代码写的是 UESTC4036_2023 / 2022，是旧版题面，不影响内容。
 
 ## 5 设计上和网上常见写法的一处不同（GTA 可能会问）
 
 网上常见的教程（题面里 `check_proof`、`hash_operation` 这些变量名就出自这类教程）把 PoW 写成"找 `new_proof`，使 `sha256(str(new_proof**2 - previous_proof**2))` 以 0000 开头"。那个谜题**只和上一块的 proof 有关，和本块的数据无关**：改掉某块的数据，它的 proof 依然"有效"，攻击者只需重算后面各块的哈希，**一次 PoW 都不用重做**，PoW 起不到防篡改作用。
 
-本代码让哈希覆盖**整块**（index、timestamp、data、proof、previous_hash），与比特币对区块头做哈希的做法一致：改动任何字段，这一块的工作量证明立刻失效，攻击者必须重挖这一块和它后面的每一块。`lab4_demo.py` 最后那段篡改演示就是在展示这一点。
+本代码让哈希覆盖**整块**（index、timestamp、data、proof、previous_hash），与比特币对区块头做哈希的做法一致：改动任何字段，这一块的工作量证明立刻失效，攻击者必须重挖这一块和它后面的每一块。搭档的 `proof_of_work()` 同样对整块做哈希；`tamper_experiment.py` 演示了这一点。
 
 ## 6 需要你现场完成或回传的
 

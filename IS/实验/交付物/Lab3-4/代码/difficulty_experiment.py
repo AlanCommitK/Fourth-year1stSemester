@@ -1,77 +1,75 @@
-"""
-difficulty_experiment.py - how the work grows with the difficulty (extension, for the report).
+"""Measure how many attempts proof of work needs at several difficulties.
 
-For difficulty d (number of leading hex zeros) each hash meets the target with
-probability (1/16)**d, so the number of hashes until success is geometric with
-mean 16**d. This script mines several blocks at each difficulty and compares the
-measured mean number of hashes with 16**d.
+This script is an analysis aid for the report. It does not change blockchain.py:
+it subclasses Blockchain and repeats the same search, only with a prefix length
+that can be set, because the lab version fixes the target at four zeros.
 
-Run:  python difficulty_experiment.py            (difficulties 1-4, 20 blocks each)
-      python difficulty_experiment.py 5 10       (difficulties 1-5, 10 blocks each)
-Writes difficulty_results.csv next to the script.
+Usage: python difficulty_experiment.py [max_difficulty] [blocks_per_difficulty]
 """
 
 import csv
-import os
 import statistics
 import sys
-import time
+from time import perf_counter
 
 from blockchain import Blockchain
 
 
-def measure_difficulty(difficulty, blocks_per_level):
-    """Mine blocks_per_level blocks at one difficulty and collect statistics.
+class VariableDifficultyChain(Blockchain):
+    """A Blockchain whose PoW target is a prefix of `difficulty` zeros."""
 
-    Args:
-        difficulty (int): number of leading hex zeros required.
-        blocks_per_level (int): how many blocks to mine.
+    def __init__(self, difficulty: int) -> None:
+        """Store the target prefix, then build the genesis block. Return nothing."""
+        self.POW_PREFIX = "0" * difficulty  # instance value replaces the class constant
+        super().__init__()
 
-    Returns:
-        dict: difficulty, expected and measured mean hashes, mean seconds per block.
-    """
-    test_chain = Blockchain(difficulty=difficulty)
-    hash_counts = []
-    block_seconds = []
-    for block_number in range(blocks_per_level):
-        start_time = time.perf_counter()
-        mined_block = test_chain.mine_block(f"experiment block {block_number}")
-        block_seconds.append(time.perf_counter() - start_time)
-        hash_counts.append(mined_block["proof"] + 1)
-    return {"difficulty": difficulty,
-            "expected_hashes": 16 ** difficulty,
-            "mean_hashes": round(statistics.mean(hash_counts), 1),
-            "min_hashes": min(hash_counts),
-            "max_hashes": max(hash_counts),
-            "mean_seconds": round(statistics.mean(block_seconds), 4)}
+    def proof_of_work(self, block: dict) -> int:
+        """Return the first proof from 1 upwards whose block hash has the prefix."""
+        candidate = block.copy()
+        proof = 1
+        # Same loop as Blockchain.proof_of_work, but the prefix length is variable.
+        while True:
+            candidate["proof"] = proof
+            if self.hash(candidate).startswith(self.POW_PREFIX):
+                return proof
+            proof += 1
 
 
-def main():
-    """Run the experiment and save a CSV table.
+def measure(difficulty: int, blocks: int) -> dict:
+    """Mine `blocks` blocks at one difficulty and return attempt and time statistics."""
+    chain = VariableDifficultyChain(difficulty)
+    attempts, seconds = [], []
+    for number in range(blocks):
+        start = perf_counter()
+        block = chain.mine_block(f"Block {number}")
+        seconds.append(perf_counter() - start)
+        attempts.append(block["proof"])  # the search starts at 1, so proof = attempts
+    return {
+        "difficulty": difficulty,
+        "expected": 16 ** difficulty,
+        "mean": statistics.mean(attempts),
+        "min": min(attempts),
+        "max": max(attempts),
+        "mean_seconds": statistics.mean(seconds),
+        "attempts": attempts,
+    }
 
-    Args:
-        None (optional: maximum difficulty and blocks per level on the command line).
 
-    Returns:
-        None.
-    """
+def main() -> None:
+    """Run the experiment, print a table and save the raw attempts to CSV."""
     max_difficulty = int(sys.argv[1]) if len(sys.argv) > 1 else 4
-    blocks_per_level = int(sys.argv[2]) if len(sys.argv) > 2 else 20
-    results = [measure_difficulty(level, blocks_per_level)
-               for level in range(1, max_difficulty + 1)]
-
-    header = list(results[0].keys())
-    print(" | ".join(header))
-    for row in results:
-        print(" | ".join(str(row[key]) for key in header))
-
-    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "difficulty_results.csv")
-    with open(output_path, "w", newline="") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=header)
-        writer.writeheader()
-        writer.writerows(results)
-    print("\nSaved", output_path)
+    blocks = int(sys.argv[2]) if len(sys.argv) > 2 else 200
+    rows = [measure(difficulty, blocks) for difficulty in range(1, max_difficulty + 1)]
+    print(f"{'d':>2} {'16^d':>7} {'mean':>10} {'min':>7} {'max':>8} {'time/block':>11}")
+    for row in rows:
+        print(f"{row['difficulty']:>2} {row['expected']:>7} {row['mean']:>10.1f} "
+              f"{row['min']:>7} {row['max']:>8} {row['mean_seconds']:>10.4f}s")
+    with open("difficulty_results.csv", "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["difficulty", "block", "attempts"])
+        for row in rows:
+            for number, value in enumerate(row["attempts"]):
+                writer.writerow([row["difficulty"], number, value])
 
 
 if __name__ == "__main__":

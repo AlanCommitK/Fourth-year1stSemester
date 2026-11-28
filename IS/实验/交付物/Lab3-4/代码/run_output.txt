@@ -1,0 +1,37 @@
+Python 3.13.18 | venv active: True
+
+Lab 3: Python records and chain architecture
+{"index": 0, "data": [100]}
+{"index": 1, "data": [200]}
+{"index": 2, "data": [300]}
+{"index": 3, "data": [400]}
+{"index": 4, "data": [500]}
+{"index": 5, "data": [600]}
+{"index": 6, "data": [700]}
+{"index": 7, "data": [800]}
+{"index": 8, "data": [900]}
+{"index": 9, "data": [1000]}
+Requested record: {"index": 4, "data": [500]}
+Genesis block: {"index": 0, "timestamp": "2026-11-28T07:07:39.356100+00:00", "data": "Hello World!", "proof": 0, "previous_hash": "0"}
+Genesis SHA-256: b6b2fa13953aec891e5d7271693d18bd4195e12d8cf321b598f26d8d030136f0
+
+Lab 4: four-zero proof of work
+Mined block: {"index": 1, "timestamp": "2026-11-28T07:07:39.356402+00:00", "data": "Transaction A", "proof": 27932, "previous_hash": "b6b2fa13953aec891e5d7271693d18bd4195e12d8cf321b598f26d8d030136f0"}
+  SHA-256: 0000d6f509ce8d21d8a12d715872781d4b7a4b9479c32f780414287c7effc49f
+  Attempts: 27932 | Mining time: 0.068478 s
+Mined block: {"index": 2, "timestamp": "2026-11-28T07:07:39.424899+00:00", "data": "Transaction B", "proof": 56708, "previous_hash": "0000d6f509ce8d21d8a12d715872781d4b7a4b9479c32f780414287c7effc49f"}
+  SHA-256: 00000e1ace404e3aab5b40247f5fe98a891a31ac88f94fa11c360b61e698b28a
+  Attempts: 56708 | Mining time: 0.140152 s
+
+Verification
+PASS  ten_records_in_order
+PASS  genesis_fields
+PASS  previous_block_is_tip
+PASS  two_blocks_appended
+PASS  every_link_matches
+PASS  both_mined_hashes_meet_target
+PASS  original_chain_accepted
+PASS  modified_middle_record_rejected
+PASS  modified_final_link_rejected
+PASS  invalid_final_proof_rejected
+10/10 checks passed.
