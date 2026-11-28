@@ -26,7 +26,7 @@ python --version
 
 ## 3 文件与题号对应（2026-11-28 更新）
 
-现场演示用的是搭档自己写的那套代码，提交的报告也以这套为准；我方最初写的版本（`task1_python_tutorial.py`、`lab3_demo.py`、`lab4_demo.py`、`test_blockchain.py` 等）已移到 `报告/旧版_v2/代码_我方初版/`，不再使用。
+现场演示用的是搭档自己写的那套代码，提交的报告也以这套为准，这套代码与两份分析脚本放在 `代码/_private/`（用户 2026-11-28 定：不公开到 GitHub，`_private` 不进仓库）。`代码/` 根下仍是我方最初写的版本（`task1_python_tutorial.py`、`lab3_demo.py`、`lab4_demo.py`、`test_blockchain.py` 等），报告不再使用，但保留在公开仓库里。下表的文件都在 `代码/_private/`。
 
 | 文件 | 对应 | 用法 |
 | --- | --- | --- |
